@@ -414,36 +414,6 @@ class SuperCutUI(QWidget):
                 self._stopping_msgbox = None
             self.close()
 
-    def on_worker_finished_with_leftovers(self, leftover_mp3s, original_mp3_files, original_image_files):
-        self.progress_bar.setVisible(False)
-        self.waiting_dialog.close()
-        self.stop_btn.setEnabled(False)
-        self.stop_btn.setVisible(False)
-        self.create_btn.setEnabled(True)
-        # Calculate leftover images
-        used_mp3s = set(original_mp3_files) - set(leftover_mp3s)
-        used_images = set()
-        # Images that were moved to bin (not in original folder anymore)
-        folder = self.media_sources_edit.text().strip()
-        for img in original_image_files:
-            if not os.path.exists(os.path.join(folder, img)):
-                used_images.add(img)
-        leftover_images = list(original_image_files - used_images)
-        # Show success dialog with both leftovers
-        if leftover_mp3s or leftover_images:
-            self.show_success_options(leftover_files=leftover_mp3s, leftover_images=leftover_images)
-        else:
-            self.show_success_options()
-        self.clear_inputs()
-        self._worker = None
-        self._thread = None
-        if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
-            self._auto_close_on_stop = False
-            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
-                self._stopping_msgbox.close()
-                self._stopping_msgbox = None
-            self.close()
-
     def stop_video_creation(self):
         if hasattr(self, "_worker") and self._worker is not None:
             stop_method = getattr(self._worker, 'stop', None)
@@ -454,13 +424,158 @@ class SuperCutUI(QWidget):
                     pass  # Worker already deleted
         self.stop_btn.setEnabled(False)
         self.stop_btn.setVisible(False)
-        # Show non-blocking stopping message
-        self._stopping_msgbox = QMessageBox(self)
-        self._stopping_msgbox.setWindowTitle("Stopping")
-        self._stopping_msgbox.setText("Stopping... Wait current batch to finish.")
-        self._stopping_msgbox.setStandardButtons(QMessageBox.NoButton)
+        # Show a dialog to inform the user to wait for the current batch to finish
+        class PleaseWaitDialog(QDialog):
+            def __init__(self, parent=None):
+                super().__init__(parent)
+                self.setWindowTitle("Stopping...")
+                self.setModal(True)
+                self.setFixedSize(260, 100)
+                self.setStyleSheet("""
+                    QDialog {
+                        background: #f5f7fa;
+                        border-radius: 8px;
+                    }
+                    QLabel {
+                        font-size: 13px;
+                        color: #333;
+                    }
+                """)
+                vbox = QVBoxLayout(self)
+                vbox.setContentsMargins(16, 16, 16, 16)
+                vbox.setSpacing(10)
+                label = QLabel("Waiting current batch to finish")
+                label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                vbox.addWidget(label)
+                self.setLayout(vbox)
+        self._stopping_msgbox = PleaseWaitDialog(self)
         self._stopping_msgbox.show()
-        self._auto_close_on_stop = True
+        if hasattr(self, "waiting_dialog") and self.waiting_dialog is not None:
+            self.waiting_dialog.close()
+        self.progress_bar.setVisible(False)
+        self.create_btn.setEnabled(True)
+        self._auto_close_on_stop = False
+        self._stopped_by_user = True  # <-- Add this flag
+
+    def on_worker_finished_with_leftovers(self, leftover_mp3s, original_mp3_files, original_image_files):
+        self.progress_bar.setVisible(False)
+        self.waiting_dialog.close()
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.setVisible(False)
+        self.create_btn.setEnabled(True)
+        # Calculate leftover images
+        used_mp3s = set(original_mp3_files) - set(leftover_mp3s)
+        used_images = set()
+        folder = self.media_sources_edit.text().strip()
+        for img in original_image_files:
+            if not os.path.exists(os.path.join(folder, img)):
+                used_images.add(img)
+        leftover_images = list(original_image_files - used_images)
+        # Show stopped dialog if stopped by user, otherwise show success dialog
+        if hasattr(self, '_stopped_by_user') and self._stopped_by_user:
+            self._stopped_by_user = False  # reset for next run
+
+            # Close PleaseWaitDialog if open
+            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                self._stopping_msgbox.close()
+                self._stopping_msgbox = None
+
+            class StoppedDialog(QDialog):
+                def __init__(self, parent=None, batch_count=0, total_batches=0):
+                    super().__init__(parent)
+                    self.setWindowTitle("Stopped")
+                    self.setStyleSheet("""
+                        QDialog {
+                            background: #f5f7fa;
+                            border-radius: 10px;
+                        }
+                        QLabel#iconLabel {
+                            font-size: 34px;
+                            color: #e67e22;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        QLabel#msgLabel {
+                            font-size: 14px;
+                            color: #222;
+                            font-weight: 600;
+                            margin-top: 4px;
+                            margin-bottom: 4px;
+                        }
+                        QLabel#batchLabel {
+                            font-size: 13px;
+                            color: #555;
+                            margin-top: 2px;
+                            margin-bottom: 8px;
+                        }
+                        QPushButton {
+                            background-color: #4a90e2;
+                            color: white;
+                            font-size: 13px;
+                            padding: 6px 16px;
+                            border-radius: 6px;
+                            min-width: 70px;
+                        }
+                        QPushButton:hover {
+                            background-color: #357ABD;
+                        }
+                    """)
+
+                    layout = QVBoxLayout(self)
+                    layout.setContentsMargins(20, 18, 20, 14)
+                    layout.setSpacing(10)
+
+                    icon = QLabel("📛")
+                    icon.setObjectName("iconLabel")
+                    icon.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                    layout.addWidget(icon)
+
+                    msg = QLabel("Video creation was stopped.")
+                    msg.setObjectName("msgLabel")
+                    msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                    layout.addWidget(msg)
+
+                    # Batch info
+                    batch_count = self.parent().progress_bar.value() if hasattr(self.parent(), 'progress_bar') else 0
+                    total_batches = self.parent().progress_bar.maximum() if hasattr(self.parent(), 'progress_bar') else 0
+                    unsuccessful = max(0, total_batches - batch_count)
+                    batch_info = QLabel(f"Batches completed: {batch_count} / {total_batches}<br>Unsuccessful: {unsuccessful}")
+                    batch_info.setObjectName("batchLabel")
+                    batch_info.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                    batch_info.setTextFormat(Qt.TextFormat.RichText)
+                    layout.addWidget(batch_info)
+
+                    ok_btn = QPushButton("OK")
+                    ok_btn.setDefault(True)
+                    ok_btn.clicked.connect(self.accept)
+
+                    btn_row = QHBoxLayout()
+                    btn_row.addStretch()
+                    btn_row.addWidget(ok_btn)
+                    btn_row.addStretch()
+                    layout.addLayout(btn_row)
+
+                    QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.close)
+
+                    self.adjustSize()  # 👈 Auto-fit the dialog to content
+
+            batch_count = self.progress_bar.value() if hasattr(self, 'progress_bar') else 0
+            total_batches = self.progress_bar.maximum() if hasattr(self, 'progress_bar') else 0
+            dlg = StoppedDialog(self, batch_count=batch_count, total_batches=total_batches)
+            dlg.exec_()
+        else:
+            if leftover_mp3s or leftover_images:
+                self.show_success_options(leftover_files=leftover_mp3s, leftover_images=leftover_images)
+            else:
+                self.show_success_options()
+        self.clear_inputs()
+        self._worker = None
+        self._thread = None
+        if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
+            self._auto_close_on_stop = False
+            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                self._stopping_msgbox.close()
+                self._stopping_msgbox = None
 
     def show_success_options(self, leftover_files=None, leftover_images=None):
         # Play notification sound at 10% volume (Windows only, if pycaw is available)
