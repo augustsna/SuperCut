@@ -1,0 +1,6 @@
+C:/Users/Rome/Documents/Git filter=lfs diff=lfs merge=lfs -text
+Repo/SuperCut/ffmpeg/bin/ffmpeg.exe filter=lfs diff=lfs merge=lfs -text
+C:/Users/Rome/Documents/Git filter=lfs diff=lfs merge=lfs -text
+Repo/SuperCut/ffmpeg/bin/ffplay.exe filter=lfs diff=lfs merge=lfs -text
+C:/Users/Rome/Documents/Git filter=lfs diff=lfs merge=lfs -text
+Repo/SuperCut/ffmpeg/bin/ffprobe.exe filter=lfs diff=lfs merge=lfs -text
