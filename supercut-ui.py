@@ -163,6 +163,29 @@ class VideoWorker(QObject):
         except Exception as e:
             self.error.emit(str(e))
 
+class FolderDropLineEdit(QLineEdit):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            if urls and urls[0].isLocalFile():
+                path = urls[0].toLocalFile()
+                if os.path.isdir(path):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def dropEvent(self, event):
+        urls = event.mimeData().urls()
+        if urls and urls[0].isLocalFile():
+            path = urls[0].toLocalFile()
+            if os.path.isdir(path):
+                self.setText(path)
+                self.editingFinished.emit()
+
 class SuperCutUI(QWidget):
     def __init__(self):
         super().__init__()
@@ -221,9 +244,13 @@ class SuperCutUI(QWidget):
         media_sources_layout = QHBoxLayout()
         label_media = QLabel("Media Folder:")
         label_media.setFixedWidth(folder_row_style["label_width"])
-        self.media_sources_edit = QLineEdit()
-        self.media_sources_edit.setReadOnly(False)  # Allow user to edit the media folder path manually
+        # --- Use FolderDropLineEdit for drag & drop support ---
+        self.media_sources_edit = FolderDropLineEdit()
+        self.media_sources_edit.setReadOnly(False)
         self.media_sources_edit.setMinimumWidth(folder_row_style["edit_min_width"])
+        self.media_sources_edit.setPlaceholderText("Drag & drop or click Select Folder")
+        # Optionally, keep the tooltip for accessibility:
+        self.media_sources_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
         media_sources_btn = QPushButton("Select Folder")
         media_sources_btn.setFixedWidth(folder_row_style["btn_width"])
         media_sources_btn.clicked.connect(self.select_media_sources_folder)
@@ -236,9 +263,12 @@ class SuperCutUI(QWidget):
         folder_layout = QHBoxLayout()
         label_output = QLabel("Output Folder:")
         label_output.setFixedWidth(folder_row_style["label_width"])
-        self.folder_edit = QLineEdit()
-        self.folder_edit.setReadOnly(False)  # Allow user to edit the output folder path manually
+        # --- Optionally, add drag & drop for output folder too ---
+        self.folder_edit = FolderDropLineEdit()
+        self.folder_edit.setReadOnly(False)
         self.folder_edit.setMinimumWidth(folder_row_style["edit_min_width"])
+        self.folder_edit.setPlaceholderText("Drag & drop or click Select Folder")  # <-- Add this line
+        self.folder_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
         folder_btn = QPushButton("Select Folder")
         folder_btn.setFixedWidth(folder_row_style["btn_width"])
         folder_btn.clicked.connect(self.select_output_folder)
