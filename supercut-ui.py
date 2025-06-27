@@ -7,12 +7,13 @@ from PyQt5.QtWidgets import (
     QPushButton, QVBoxLayout, QWidget, QHBoxLayout, QDialog, QSpacerItem, QSizePolicy
 )
 from PyQt5.QtCore import Qt, QSettings, QObject, QThread, pyqtSignal
-from moviepy import ImageClip, AudioFileClip, concatenate_audioclips
+from moviepy import AudioFileClip, ImageClip, concatenate_audioclips
 import subprocess
 import shutil
 from PyQt5.QtGui import QIntValidator, QIcon, QMovie
 import tempfile
 import ctypes
+import re
 
 # Set FFMPEG paths (use local ffmpeg folder)
 os.environ["FFMPEG_BINARY"] = os.path.abspath("ffmpeg/ffmpeg.exe")
@@ -77,8 +78,6 @@ class VideoWorker(QObject):
 
     def run(self):
         set_low_priority()
-        import random, os, tempfile, shutil
-        from moviepy import AudioFileClip
         try:
             mp3_files = [os.path.join(self.media_sources, f) for f in os.listdir(self.media_sources) if f.lower().endswith('.mp3')]
             image_files = [f for f in os.listdir(self.media_sources) if f.lower().endswith((".jpg", ".png"))]
@@ -109,7 +108,6 @@ class VideoWorker(QObject):
                 selected_image = os.path.join(self.media_sources, selected_image_name)
                 used_images.add(selected_image_name)
                 # Merge and create video
-                from moviepy import concatenate_audioclips
                 clips = [AudioFileClip(f) for f in selected_mp3s]
                 final_clip = concatenate_audioclips(clips)
                 output_filename = f"{self.export_name}_{current_number}.mp4"
@@ -118,7 +116,6 @@ class VideoWorker(QObject):
                     audio_path = tmp.name
                     final_clip.write_audiofile(audio_path)
                 try:
-                    from moviepy import ImageClip
                     audio = AudioFileClip(audio_path)
                     image = ImageClip(selected_image).with_duration(audio.duration).resized(height=720)
                     video = image.with_audio(audio)
@@ -266,10 +263,10 @@ class SuperCutUI(QWidget):
         layout.addLayout(part_layout)
 
         # Create button
-        create_btn = QPushButton("🚀 Create Video")
-        create_btn.setFixedHeight(35)
-        create_btn.clicked.connect(self.create_video)
-        layout.addWidget(create_btn)
+        self.create_btn = QPushButton("🚀 Create Video")
+        self.create_btn.setFixedHeight(35)
+        self.create_btn.clicked.connect(self.create_video)
+        layout.addWidget(self.create_btn)
 
         # Add progress bar (hidden by default)
         self.progress_bar = QtWidgets.QProgressBar()
@@ -303,6 +300,8 @@ class SuperCutUI(QWidget):
             if not self.output_folder_manual:
                 self.folder_edit.setText(folder)
             self.update_output_name()
+        else:
+            self.folder_edit.setText("")
 
     def select_output_folder(self):
         # Open at Desktop by default
@@ -313,6 +312,10 @@ class SuperCutUI(QWidget):
             self.output_folder_manual = True
             self.update_output_name()
 
+    def sanitize_filename(self, name):
+        # Remove invalid filename characters: <>:"/\|?*
+        return re.sub(r'[<>:"/\\|?*]', '_', name)
+
     def update_output_name(self):
         part1 = self.part1_edit.text().strip()
         part2 = self.part2_edit.text().strip()
@@ -320,6 +323,8 @@ class SuperCutUI(QWidget):
         # Default to 1 if blank or zero
         if not part2 or part2 == '0':
             part2 = '1'
+        # Sanitize export name
+        part1 = self.sanitize_filename(part1)
         if part1 and part2:
             filename = f"{part1}_{part2}.mp4"
         else:
@@ -333,6 +338,8 @@ class SuperCutUI(QWidget):
         # Default to 1 if blank or zero
         if not number or number == '0':
             number = '1'
+        # Sanitize export name
+        export_name = self.sanitize_filename(export_name)
         folder = self.folder_edit.text().strip() or os.getcwd()
         if not media_sources:
             QMessageBox.warning(self, "⚠️ Missing Input", "Please select the media folder.", QMessageBox.Ok)
@@ -354,18 +361,23 @@ class SuperCutUI(QWidget):
             QMessageBox.critical(self, "❌ Error", "Not enough mp3 files in folder (need at least 3 to start batch processing)")
             return
 
-        # Calculate total batches (groups of 3 mp3s)
-        total_batches = len(mp3_files) // 3
+        # Calculate total batches: min(images, mp3s // 3)
+        total_batches = min(len(image_files), len(mp3_files) // 3)
         self.progress_bar.setMaximum(total_batches)
         self.progress_bar.setValue(0)
         self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
         self.progress_bar.setVisible(True)
+
+        # Track original files for leftovers
+        original_mp3_files = set(mp3_files)
+        original_image_files = set(image_files)
 
         self.waiting_dialog = WaitingDialog(self)
         self.waiting_dialog.show()
         QtWidgets.QApplication.processEvents()
         self.stop_btn.setEnabled(True)
         self.stop_btn.setVisible(True)
+        self.create_btn.setEnabled(False)
 
         # Set up worker and thread
         self._thread = QThread()
@@ -374,7 +386,7 @@ class SuperCutUI(QWidget):
         self._thread.started.connect(self._worker.run)
         self._worker.progress.connect(self.on_worker_progress)
         self._worker.error.connect(self.on_worker_error)
-        self._worker.finished.connect(self.on_worker_finished)
+        self._worker.finished.connect(lambda leftover_mp3s: self.on_worker_finished_with_leftovers(leftover_mp3s, original_mp3_files, original_image_files))
         self._worker.finished.connect(self._thread.quit)
         self._worker.finished.connect(self._worker.deleteLater)
         self._thread.finished.connect(self._thread.deleteLater)
@@ -391,6 +403,7 @@ class SuperCutUI(QWidget):
         self.waiting_dialog.close()
         self.stop_btn.setEnabled(False)
         self.stop_btn.setVisible(False)
+        self.create_btn.setEnabled(True)
         QMessageBox.critical(self, "❌ Error", message)
         self._worker = None
         self._thread = None
@@ -401,13 +414,24 @@ class SuperCutUI(QWidget):
                 self._stopping_msgbox = None
             self.close()
 
-    def on_worker_finished(self, leftover_files):
+    def on_worker_finished_with_leftovers(self, leftover_mp3s, original_mp3_files, original_image_files):
         self.progress_bar.setVisible(False)
         self.waiting_dialog.close()
         self.stop_btn.setEnabled(False)
         self.stop_btn.setVisible(False)
-        if leftover_files:
-            self.show_success_options(leftover_files=leftover_files)
+        self.create_btn.setEnabled(True)
+        # Calculate leftover images
+        used_mp3s = set(original_mp3_files) - set(leftover_mp3s)
+        used_images = set()
+        # Images that were moved to bin (not in original folder anymore)
+        folder = self.media_sources_edit.text().strip()
+        for img in original_image_files:
+            if not os.path.exists(os.path.join(folder, img)):
+                used_images.add(img)
+        leftover_images = list(original_image_files - used_images)
+        # Show success dialog with both leftovers
+        if leftover_mp3s or leftover_images:
+            self.show_success_options(leftover_files=leftover_mp3s, leftover_images=leftover_images)
         else:
             self.show_success_options()
         self.clear_inputs()
@@ -433,27 +457,31 @@ class SuperCutUI(QWidget):
         # Show non-blocking stopping message
         self._stopping_msgbox = QMessageBox(self)
         self._stopping_msgbox.setWindowTitle("Stopping")
-        self._stopping_msgbox.setText("Stopping... Please wait for the process to finish.")
+        self._stopping_msgbox.setText("Stopping... Wait current batch to finish.")
         self._stopping_msgbox.setStandardButtons(QMessageBox.NoButton)
         self._stopping_msgbox.show()
         self._auto_close_on_stop = True
 
-    def show_success_options(self, leftover_files=None):
-        # Play notification sound at 10% volume 
+    def show_success_options(self, leftover_files=None, leftover_images=None):
+        # Play notification sound at 10% volume (Windows only, if pycaw is available)
         try:
             if sys.platform.startswith('win'):
-                # pycaw/comtypes not installed, just play beep
                 QtWidgets.QApplication.beep()
             else:
                 QtWidgets.QApplication.beep()
         except Exception:
             pass
         class SuccessDialog(QDialog):
-            def __init__(self, parent=None, open_folder=None, leftover_files=None):
+            def __init__(self, parent=None, open_folder=None, leftover_files=None, leftover_images=None):
                 super().__init__(parent)
                 self.open_folder = open_folder
                 self.setWindowTitle("Task Completed")
-                self.setFixedSize(370, 220 if leftover_files else 170)
+                extra_height = 0
+                if leftover_files:
+                    extra_height += 50 + 15 * len(leftover_files)
+                if leftover_images:
+                    extra_height += 50 + 15 * len(leftover_images)
+                self.setFixedSize(370, 170 + extra_height)
                 self.setStyleSheet("""
                     QDialog {
                         background: #f5f7fa;
@@ -512,11 +540,10 @@ class SuperCutUI(QWidget):
                 vbox.setContentsMargins(24, 18, 24, 18)
                 vbox.setSpacing(8)
 
-                  # Large icon
+                # Large icon
                 icon = QLabel("✅")
                 icon.setObjectName("iconLabel")
                 icon.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-                # Use only color, no outline or shadow
                 icon.setStyleSheet("font-size: 28px; color: #4BB543; border: none; background: transparent;")
                 vbox.addWidget(icon)
 
@@ -526,9 +553,9 @@ class SuperCutUI(QWidget):
                 msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
                 vbox.addWidget(msg)
 
-                # Leftover files section
+                # Leftover MP3 files section
                 if leftover_files:
-                    leftover_label = QLabel(f"{len(leftover_files)} MP3 file(s) left over (not enough for a group):")
+                    leftover_label = QLabel(f"{len(leftover_files)} MP3 files left over (not enough for a group):")
                     leftover_label.setObjectName("leftoverLabel")
                     leftover_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
                     vbox.addWidget(leftover_label)
@@ -536,6 +563,17 @@ class SuperCutUI(QWidget):
                     file_list.setObjectName("fileListLabel")
                     file_list.setAlignment(Qt.AlignmentFlag.AlignHCenter)
                     vbox.addWidget(file_list)
+
+                # Leftover image files section
+                if leftover_images:
+                    leftover_img_label = QLabel(f"{len(leftover_images)} image files left over (not enough for a group):")
+                    leftover_img_label.setObjectName("leftoverLabel")
+                    leftover_img_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                    vbox.addWidget(leftover_img_label)
+                    img_file_list = QLabel("\n".join([os.path.basename(f) for f in leftover_images]))
+                    img_file_list.setObjectName("fileListLabel")
+                    img_file_list.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                    vbox.addWidget(img_file_list)
 
                 # Buttons row
                 btn_row = QHBoxLayout()
@@ -562,7 +600,7 @@ class SuperCutUI(QWidget):
                 if self.open_folder:
                     self.open_folder()
 
-        dlg = SuccessDialog(self, open_folder=self.open_result_folder, leftover_files=leftover_files)
+        dlg = SuccessDialog(self, open_folder=self.open_result_folder, leftover_files=leftover_files, leftover_images=leftover_images)
         dlg.exec_()
 
     def open_result_folder(self):
