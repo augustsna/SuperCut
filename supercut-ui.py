@@ -513,6 +513,20 @@ class SuperCutUI(QWidget):
         self.part2_edit.setText("")
 
     def closeEvent(self, event):
+        # If a worker thread is running, warn the user
+        if hasattr(self, "_thread") and self._thread.isRunning():
+            reply = QMessageBox.question(
+                self,
+                "Process Running",
+                "A video batch is still processing. Are you sure you want to exit?\n"
+                "Closing now may leave files incomplete.",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            if reply == QMessageBox.No:
+                event.ignore()
+                return
+        # Save window position as before
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
         super().closeEvent(event)
