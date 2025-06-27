@@ -6,12 +6,13 @@ from PyQt5.QtWidgets import (
     QFileDialog, QMessageBox, QApplication, QLabel, QLineEdit,
     QPushButton, QVBoxLayout, QWidget, QHBoxLayout, QDialog, QSpacerItem, QSizePolicy
 )
-from PyQt5.QtCore import Qt, QSettings
+from PyQt5.QtCore import Qt, QSettings, QObject, QThread, pyqtSignal
 from moviepy import ImageClip, AudioFileClip, concatenate_audioclips
 import subprocess
 import shutil
 from PyQt5.QtGui import QIntValidator, QIcon, QMovie
 import tempfile
+import ctypes
 
 # Set FFMPEG paths (use local ffmpeg folder)
 os.environ["FFMPEG_BINARY"] = os.path.abspath("ffmpeg/ffmpeg.exe")
@@ -28,15 +29,14 @@ def make_video(image_path, audio_path, output_path):
     image = ImageClip(image_path).with_duration(audio.duration).resized(height=720)
     video = image.with_audio(audio)
     video.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
+    audio.close()
+    image.close()
 
-def merge_random_mp3s(folder_path, count=3):
-    mp3_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.lower().endswith('.mp3')]
-    if len(mp3_files) < count:
-        raise Exception(f"Not enough mp3 files in folder (found {len(mp3_files)}, need {count})")
-    selected = random.sample(mp3_files, count)
-    clips = [AudioFileClip(f) for f in selected]
+def merge_random_mp3s(selected_mp3s):
+    clips = [AudioFileClip(f) for f in selected_mp3s]
     final_clip = concatenate_audioclips(clips)
-    return final_clip, selected
+    # Do NOT close the clips here! Return them for later cleanup.
+    return final_clip, clips
 
 class WaitingDialog(QDialog):
     def __init__(self, parent=None):
@@ -53,10 +53,111 @@ class WaitingDialog(QDialog):
         layout.addWidget(self.label)
         self.spinner = QLabel()
         self.spinner.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.movie = QMovie("spinner.gif")
+        gif_path = os.path.join(os.path.dirname(__file__), "sources/spinner.gif")
+        self.movie = QMovie(gif_path)
         self.spinner.setMovie(self.movie)
         layout.addWidget(self.spinner)
         self.movie.start()
+
+class VideoWorker(QObject):
+    progress = pyqtSignal(int, int)  # batch_count, total_batches
+    error = pyqtSignal(str)
+    finished = pyqtSignal(list)  # leftover_files
+
+    def __init__(self, media_sources, export_name, number, folder):
+        super().__init__()
+        self.media_sources = media_sources
+        self.export_name = export_name
+        self.number = number
+        self.folder = folder
+
+    def run(self):
+        set_low_priority()
+        import random, os, tempfile, shutil
+        from moviepy import AudioFileClip
+        try:
+            mp3_files = [os.path.join(self.media_sources, f) for f in os.listdir(self.media_sources) if f.lower().endswith('.mp3')]
+            image_files = [f for f in os.listdir(self.media_sources) if f.lower().endswith((".jpg", ".png"))]
+            if not image_files:
+                self.error.emit("No image files found in the media folder.")
+                return
+            if not mp3_files or len(mp3_files) < 3:
+                self.error.emit("Not enough mp3 files in folder (need at least 3 to start batch processing)")
+                return
+            try:
+                start_number = int(self.number)
+            except Exception:
+                start_number = 1
+            current_number = start_number
+            used_images = set()
+            total_batches = len(mp3_files) // 3
+            batch_count = 0
+            while len(mp3_files) >= 3:
+                selected_mp3s = random.sample(mp3_files, 3)
+                available_images = [img for img in image_files if img not in used_images]
+                if not available_images:
+                    used_images = set()
+                    available_images = image_files[:]
+                selected_image_name = random.choice(available_images)
+                selected_image = os.path.join(self.media_sources, selected_image_name)
+                used_images.add(selected_image_name)
+                # Merge and create video
+                from moviepy import concatenate_audioclips
+                clips = [AudioFileClip(f) for f in selected_mp3s]
+                final_clip = concatenate_audioclips(clips)
+                output_filename = f"{self.export_name}_{current_number}.mp4"
+                out = os.path.join(self.folder, output_filename)
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+                    audio_path = tmp.name
+                    final_clip.write_audiofile(audio_path)
+                try:
+                    from moviepy import ImageClip
+                    audio = AudioFileClip(audio_path)
+                    image = ImageClip(selected_image).with_duration(audio.duration).resized(height=720)
+                    video = image.with_audio(audio)
+                    video.write_videofile(out, fps=24, codec="libx264", audio_codec="aac")
+                    audio.close()
+                    image.close()
+                finally:
+                    final_clip.close()
+                    for clip in clips:
+                        clip.close()
+                    if os.path.exists(audio_path):
+                        os.remove(audio_path)
+                # Write log file in media folder
+                output_base_name = os.path.splitext(output_filename)[0]
+                log_path = os.path.join(self.media_sources, f"{output_base_name}.log")
+                with open(log_path, "w", encoding="utf-8") as logf:
+                    logf.write(f"Output video: {out}\n")
+                    logf.write(f"Image used: {selected_image}\n")
+                    logf.write("MP3s used:\n")
+                    for mp3 in selected_mp3s:
+                        logf.write(f"  {mp3}\n")
+                bin_folder = os.path.join(self.media_sources, "bin")
+                os.makedirs(bin_folder, exist_ok=True)
+                shutil.move(log_path, os.path.join(bin_folder, f"{output_base_name}.log"))
+                output_base = os.path.splitext(os.path.basename(out))[0]
+                for idx, mp3 in enumerate(selected_mp3s, 1):
+                    new_name = f"{output_base}+{idx}.mp3"
+                    try:
+                        shutil.move(mp3, os.path.join(bin_folder, new_name))
+                        mp3_files.remove(mp3)
+                    except Exception as move_err:
+                        print(f"Failed to move {mp3}: {move_err}")
+                try:
+                    img_ext = os.path.splitext(selected_image)[1]
+                    img_new_name = f"{output_base}{img_ext}"
+                    shutil.move(selected_image, os.path.join(bin_folder, img_new_name))
+                    image_files.remove(selected_image_name)
+                except Exception as move_err:
+                    print(f"Failed to move {selected_image}: {move_err}")
+                current_number += 1
+                batch_count += 1
+                self.progress.emit(batch_count, total_batches)
+            left_mp3 = len(mp3_files)
+            self.finished.emit(mp3_files if left_mp3 > 0 else [])
+        except Exception as e:
+            self.error.emit(str(e))
 
 class SuperCutUI(QWidget):
     def __init__(self):
@@ -117,7 +218,7 @@ class SuperCutUI(QWidget):
         label_media = QLabel("Media Folder:")
         label_media.setFixedWidth(folder_row_style["label_width"])
         self.media_sources_edit = QLineEdit()
-        self.media_sources_edit.setReadOnly(True)
+        self.media_sources_edit.setReadOnly(False)  # Allow user to edit the media folder path manually
         self.media_sources_edit.setMinimumWidth(folder_row_style["edit_min_width"])
         media_sources_btn = QPushButton("Select Folder")
         media_sources_btn.setFixedWidth(folder_row_style["btn_width"])
@@ -132,7 +233,7 @@ class SuperCutUI(QWidget):
         label_output = QLabel("Output Folder:")
         label_output.setFixedWidth(folder_row_style["label_width"])
         self.folder_edit = QLineEdit()
-        self.folder_edit.setReadOnly(True)
+        self.folder_edit.setReadOnly(False)  # Allow user to edit the output folder path manually
         self.folder_edit.setMinimumWidth(folder_row_style["edit_min_width"])
         folder_btn = QPushButton("Select Folder")
         folder_btn.setFixedWidth(folder_row_style["btn_width"])
@@ -178,19 +279,6 @@ class SuperCutUI(QWidget):
         self.folder_edit.setText("")
         self.update_output_name()
 
-    def build_file_input(self, label_text, action, attr_name):
-        layout = QHBoxLayout()
-        label = QLabel(label_text)
-        edit = QLineEdit()
-        button = QPushButton("Browse")
-        button.setFixedWidth(80)
-        button.clicked.connect(action)
-        layout.addWidget(label)
-        layout.addWidget(edit)
-        layout.addWidget(button)
-        setattr(self, attr_name, edit)
-        return layout
-
     def select_media_sources_folder(self):
         desktop_folder = os.path.join(os.path.expanduser("~"), "Desktop")
         folder = QFileDialog.getExistingDirectory(self, "Select Media Folder", desktop_folder)
@@ -231,110 +319,60 @@ class SuperCutUI(QWidget):
         if not number:
             QMessageBox.warning(self, "⚠️ Missing Input", "Please enter a number.", QMessageBox.Ok)
             return
-        # Only show waiting dialog after all checks pass
-        waiting_dialog = WaitingDialog(self)
-        waiting_dialog.show()
+
+        # Check for media before showing waiting dialog
+        mp3_files = [os.path.join(media_sources, f) for f in os.listdir(media_sources) if f.lower().endswith('.mp3')]
+        image_files = [f for f in os.listdir(media_sources) if f.lower().endswith((".jpg", ".png"))]
+        if not image_files:
+            QMessageBox.critical(self, "❌ Error", "No image files found in the media folder.")
+            return
+        if not mp3_files or len(mp3_files) < 3:
+            QMessageBox.critical(self, "❌ Error", "Not enough mp3 files in folder (need at least 3 to start batch processing)")
+            return
+
+        self.waiting_dialog = WaitingDialog(self)
+        self.waiting_dialog.show()
         QtWidgets.QApplication.processEvents()
-        try:
-            mp3_files = [os.path.join(media_sources, f) for f in os.listdir(media_sources) if f.lower().endswith('.mp3')]
-            image_files = [f for f in os.listdir(media_sources) if f.lower().endswith((".jpg", ".png"))]
-            if not image_files:
-                waiting_dialog.close()
-                QMessageBox.critical(self, "❌ Error", "No image files found in the media folder.")
-                return
-            if not mp3_files or len(mp3_files) < 3:
-                waiting_dialog.close()
-                raise Exception("Not enough mp3 files in folder (need at least 3 to start batch processing)")
-            # Prepare for batch processing
-            try:
-                start_number = int(number)
-            except Exception:
-                start_number = 1
-            current_number = start_number
-            used_images = set()
-            total_batches = len(mp3_files) // 3
-            self.progress_bar.setMaximum(total_batches)
-            self.progress_bar.setValue(0)
-            self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
-            self.progress_bar.setVisible(True)
-            QtWidgets.QApplication.processEvents()
-            batch_count = 0
-            while len(mp3_files) >= 3:
-                # Pick 3 mp3s
-                selected_mp3s = random.sample(mp3_files, 3)
-                # Pick an image (random, but try to avoid repeats until all are used)
-                available_images = [img for img in image_files if img not in used_images]
-                if not available_images:
-                    used_images = set()
-                    available_images = image_files[:]
-                selected_image = os.path.join(media_sources, random.choice(available_images))
-                used_images.add(os.path.basename(selected_image))
-                # Merge and create video
-                merged_clip, _ = merge_random_mp3s(media_sources, 3)
-                output_filename = f"{export_name}_{current_number}.mp4"
-                out = os.path.join(folder, output_filename)
-                # Use tempfile for audio_path
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
-                    audio_path = tmp.name
-                    merged_clip.write_audiofile(audio_path)
-                try:
-                    make_video(selected_image, audio_path, out)
-                    merged_clip.close()
-                finally:
-                    if os.path.exists(audio_path):
-                        os.remove(audio_path)
-                # Write log file in media folder
-                output_base_name = os.path.splitext(output_filename)[0]
-                log_path = os.path.join(media_sources, f"{output_base_name}.log")
-                with open(log_path, "w", encoding="utf-8") as logf:
-                    logf.write(f"Output video: {out}\n")
-                    logf.write(f"Image used: {selected_image}\n")
-                    logf.write("MP3s used:\n")
-                    for mp3 in selected_mp3s:
-                        logf.write(f"  {mp3}\n")
-                # Move log file to bin folder
-                bin_folder = os.path.join(media_sources, "bin")
-                os.makedirs(bin_folder, exist_ok=True)
-                shutil.move(log_path, os.path.join(bin_folder, f"{output_base_name}.log"))
-                # Move used mp3s and image to bin folder
-                output_base = os.path.splitext(os.path.basename(out))[0]
-                for idx, mp3 in enumerate(selected_mp3s, 1):
-                    new_name = f"{output_base}+{idx}.mp3"
-                    try:
-                        shutil.move(mp3, os.path.join(bin_folder, new_name))
-                        mp3_files.remove(mp3)
-                    except Exception as move_err:
-                        print(f"Failed to move {mp3}: {move_err}")
-                # Move used image to bin folder and rename as output name
-                try:
-                    img_ext = os.path.splitext(selected_image)[1]
-                    img_new_name = f"{output_base}{img_ext}"
-                    shutil.move(selected_image, os.path.join(bin_folder, img_new_name))
-                    image_files.remove(os.path.basename(selected_image))
-                except Exception as move_err:
-                    print(f"Failed to move {selected_image}: {move_err}")
-                current_number += 1
-                batch_count += 1
-                self.progress_bar.setValue(batch_count)
-                self.progress_bar.setFormat(f"Batch: {batch_count}/{total_batches}")
-                QtWidgets.QApplication.processEvents()
-            self.progress_bar.setVisible(False)
-            # After loop, show message about leftovers
-            left_mp3 = len(mp3_files)
-            if left_mp3 > 0:
-                self.show_success_options(leftover_files=mp3_files)
-                self.clear_inputs()
-            else:
-                self.show_success_options()
-                self.clear_inputs()
-        except Exception as e:
-            self.progress_bar.setVisible(False)
-            QMessageBox.critical(self, "❌ Error", str(e))
-        finally:
-            waiting_dialog.close()
+
+        self.progress_bar.setValue(0)
+        self.progress_bar.setFormat("Batch: 0/0")
+        self.progress_bar.setVisible(True)
+
+        # Set up worker and thread
+        self._thread = QThread()
+        self._worker = VideoWorker(media_sources, export_name, number, folder)
+        self._worker.moveToThread(self._thread)
+        self._thread.started.connect(self._worker.run)
+        self._worker.progress.connect(self.on_worker_progress)
+        self._worker.error.connect(self.on_worker_error)
+        self._worker.finished.connect(self.on_worker_finished)
+        self._worker.finished.connect(self._thread.quit)
+        self._worker.finished.connect(self._worker.deleteLater)
+        self._thread.finished.connect(self._thread.deleteLater)
+        self._thread.start()
+
+    def on_worker_progress(self, batch_count, total_batches):
+        self.progress_bar.setMaximum(total_batches)
+        self.progress_bar.setValue(batch_count)
+        self.progress_bar.setFormat(f"Batch: {batch_count}/{total_batches}")
+        QtWidgets.QApplication.processEvents()
+
+    def on_worker_error(self, message):
+        self.progress_bar.setVisible(False)
+        self.waiting_dialog.close()
+        QMessageBox.critical(self, "❌ Error", message)
+
+    def on_worker_finished(self, leftover_files):
+        self.progress_bar.setVisible(False)
+        self.waiting_dialog.close()
+        if leftover_files:
+            self.show_success_options(leftover_files=leftover_files)
+        else:
+            self.show_success_options()
+        self.clear_inputs()
 
     def show_success_options(self, leftover_files=None):
-        # Play notification sound at 10% volume (Windows only, if pycaw is available)
+        # Play notification sound at 10% volume 
         try:
             if sys.platform.startswith('win'):
                 # pycaw/comtypes not installed, just play beep
@@ -460,19 +498,6 @@ class SuperCutUI(QWidget):
         dlg = SuccessDialog(self, open_folder=self.open_result_folder, leftover_files=leftover_files)
         dlg.exec_()
 
-    def open_log_file(self):
-        # Try to open log from media folder if possible
-        log_path = os.path.join(self.media_sources_edit.text(), "output.log")
-        if os.path.exists(log_path):
-            if sys.platform.startswith('win'):
-                os.startfile(log_path)
-            elif sys.platform.startswith('darwin'):
-                subprocess.call(['open', log_path])
-            else:
-                subprocess.call(['xdg-open', log_path])
-        else:
-            QMessageBox.information(self, "Log Not Found", "No log file found.")
-
     def open_result_folder(self):
         folder = os.path.dirname(self.output_path)
         if sys.platform.startswith('win'):
@@ -485,13 +510,19 @@ class SuperCutUI(QWidget):
     def clear_inputs(self):
         self.media_sources_edit.setText("")
         self.folder_edit.setText("")
-        self.part1_edit.setText("")
         self.part2_edit.setText("")
 
     def closeEvent(self, event):
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
         super().closeEvent(event)
+
+def set_low_priority():
+    try:
+        p = ctypes.windll.kernel32.GetCurrentProcess()
+        ctypes.windll.kernel32.SetPriorityClass(p, 0x00004000)  # BELOW_NORMAL_PRIORITY_CLASS
+    except Exception:
+        pass
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
