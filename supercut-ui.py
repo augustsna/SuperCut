@@ -70,6 +70,10 @@ class VideoWorker(QObject):
         self.export_name = export_name
         self.number = number
         self.folder = folder
+        self._stop = False  # Add stop flag
+
+    def stop(self):
+        self._stop = True
 
     def run(self):
         set_low_priority()
@@ -93,6 +97,9 @@ class VideoWorker(QObject):
             total_batches = len(mp3_files) // 3
             batch_count = 0
             while len(mp3_files) >= 3:
+                if self._stop:
+                    self.finished.emit(mp3_files)
+                    return
                 selected_mp3s = random.sample(mp3_files, 3)
                 available_images = [img for img in image_files if img not in used_images]
                 if not available_images:
@@ -274,6 +281,15 @@ class SuperCutUI(QWidget):
         self.progress_bar.setVisible(False)
         layout.addWidget(self.progress_bar)
 
+        # Stop button (directly below progress bar, small, hidden by default)
+        self.stop_btn = QPushButton("🛑 Stop")
+        self.stop_btn.setFixedHeight(24)
+        self.stop_btn.setFixedWidth(70)
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.setVisible(False)
+        self.stop_btn.clicked.connect(self.stop_video_creation)
+        layout.addWidget(self.stop_btn)
+
         self.setLayout(layout)
         self.output_folder_manual = False
         self.folder_edit.setText("")
@@ -289,7 +305,9 @@ class SuperCutUI(QWidget):
             self.update_output_name()
 
     def select_output_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Output Folder", os.getcwd())
+        # Open at Desktop by default
+        desktop_folder = os.path.join(os.path.expanduser("~"), "Desktop")
+        folder = QFileDialog.getExistingDirectory(self, "Select Output Folder", desktop_folder)
         if folder:
             self.folder_edit.setText(folder)
             self.output_folder_manual = True
@@ -299,6 +317,9 @@ class SuperCutUI(QWidget):
         part1 = self.part1_edit.text().strip()
         part2 = self.part2_edit.text().strip()
         folder = self.folder_edit.text().strip() or os.getcwd()
+        # Default to 1 if blank or zero
+        if not part2 or part2 == '0':
+            part2 = '1'
         if part1 and part2:
             filename = f"{part1}_{part2}.mp4"
         else:
@@ -309,6 +330,9 @@ class SuperCutUI(QWidget):
         media_sources = self.media_sources_edit.text()
         export_name = self.part1_edit.text().strip()
         number = self.part2_edit.text().strip()
+        # Default to 1 if blank or zero
+        if not number or number == '0':
+            number = '1'
         folder = self.folder_edit.text().strip() or os.getcwd()
         if not media_sources:
             QMessageBox.warning(self, "⚠️ Missing Input", "Please select the media folder.", QMessageBox.Ok)
@@ -330,13 +354,18 @@ class SuperCutUI(QWidget):
             QMessageBox.critical(self, "❌ Error", "Not enough mp3 files in folder (need at least 3 to start batch processing)")
             return
 
+        # Calculate total batches (groups of 3 mp3s)
+        total_batches = len(mp3_files) // 3
+        self.progress_bar.setMaximum(total_batches)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
+        self.progress_bar.setVisible(True)
+
         self.waiting_dialog = WaitingDialog(self)
         self.waiting_dialog.show()
         QtWidgets.QApplication.processEvents()
-
-        self.progress_bar.setValue(0)
-        self.progress_bar.setFormat("Batch: 0/0")
-        self.progress_bar.setVisible(True)
+        self.stop_btn.setEnabled(True)
+        self.stop_btn.setVisible(True)
 
         # Set up worker and thread
         self._thread = QThread()
@@ -360,16 +389,54 @@ class SuperCutUI(QWidget):
     def on_worker_error(self, message):
         self.progress_bar.setVisible(False)
         self.waiting_dialog.close()
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.setVisible(False)
         QMessageBox.critical(self, "❌ Error", message)
+        self._worker = None
+        self._thread = None
+        if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
+            self._auto_close_on_stop = False
+            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                self._stopping_msgbox.close()
+                self._stopping_msgbox = None
+            self.close()
 
     def on_worker_finished(self, leftover_files):
         self.progress_bar.setVisible(False)
         self.waiting_dialog.close()
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.setVisible(False)
         if leftover_files:
             self.show_success_options(leftover_files=leftover_files)
         else:
             self.show_success_options()
         self.clear_inputs()
+        self._worker = None
+        self._thread = None
+        if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
+            self._auto_close_on_stop = False
+            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                self._stopping_msgbox.close()
+                self._stopping_msgbox = None
+            self.close()
+
+    def stop_video_creation(self):
+        if hasattr(self, "_worker") and self._worker is not None:
+            stop_method = getattr(self._worker, 'stop', None)
+            if callable(stop_method):
+                try:
+                    stop_method()
+                except RuntimeError:
+                    pass  # Worker already deleted
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.setVisible(False)
+        # Show non-blocking stopping message
+        self._stopping_msgbox = QMessageBox(self)
+        self._stopping_msgbox.setWindowTitle("Stopping")
+        self._stopping_msgbox.setText("Stopping... Please wait for the process to finish.")
+        self._stopping_msgbox.setStandardButtons(QMessageBox.NoButton)
+        self._stopping_msgbox.show()
+        self._auto_close_on_stop = True
 
     def show_success_options(self, leftover_files=None):
         # Play notification sound at 10% volume 
@@ -513,22 +580,12 @@ class SuperCutUI(QWidget):
         self.part2_edit.setText("")
 
     def closeEvent(self, event):
-        # If a worker thread is running, warn the user
-        if hasattr(self, "_thread") and self._thread.isRunning():
-            reply = QMessageBox.question(
-                self,
-                "Process Running",
-                "A video batch is still processing. Are you sure you want to exit?\n"
-                "Closing now may leave files incomplete.",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No
-            )
-            if reply == QMessageBox.No:
-                event.ignore()
-                return
-        # Save window position as before
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
+        # Fix: Only call isRunning if self._thread is not None
+        if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
+            self._thread.quit()
+            self._thread.wait()
         super().closeEvent(event)
 
 def set_low_priority():
