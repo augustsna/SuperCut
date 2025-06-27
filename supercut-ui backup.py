@@ -6,16 +6,18 @@ from PyQt5.QtWidgets import (
     QFileDialog, QMessageBox, QApplication, QLabel, QLineEdit,
     QPushButton, QVBoxLayout, QWidget, QHBoxLayout, QDialog, QSpacerItem, QSizePolicy
 )
-from PyQt5.QtCore import Qt, QSettings
-from moviepy import ImageClip, AudioFileClip, concatenate_audioclips
+from PyQt5.QtCore import Qt, QSettings, QObject, QThread, pyqtSignal
+from moviepy import AudioFileClip, ImageClip, concatenate_audioclips
 import subprocess
 import shutil
 from PyQt5.QtGui import QIntValidator, QIcon, QMovie
 import tempfile
+import ctypes
+import re
 
 # Set FFMPEG paths (use local ffmpeg folder)
-os.environ["FFMPEG_BINARY"] = os.path.abspath("ffmpeg/ffmpeg.exe")
-os.environ["FFPLAY_BINARY"] = os.path.abspath("ffmpeg/ffplay.exe")
+os.environ["FFMPEG_BINARY"] = os.path.abspath("ffmpeg/bin/ffmpeg.exe")
+os.environ["FFPLAY_BINARY"] = os.path.abspath("ffmpeg/bin/ffplay.exe")
 
 # Check if ffmpeg exists
 if not os.path.exists(os.environ["FFMPEG_BINARY"]):
@@ -28,15 +30,14 @@ def make_video(image_path, audio_path, output_path):
     image = ImageClip(image_path).with_duration(audio.duration).resized(height=720)
     video = image.with_audio(audio)
     video.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
+    audio.close()
+    image.close()
 
-def merge_random_mp3s(folder_path, count=3):
-    mp3_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.lower().endswith('.mp3')]
-    if len(mp3_files) < count:
-        raise Exception(f"Not enough mp3 files in folder (found {len(mp3_files)}, need {count})")
-    selected = random.sample(mp3_files, count)
-    clips = [AudioFileClip(f) for f in selected]
+def merge_random_mp3s(selected_mp3s):
+    clips = [AudioFileClip(f) for f in selected_mp3s]
     final_clip = concatenate_audioclips(clips)
-    return final_clip, selected
+    # Do NOT close the clips here! Return them for later cleanup.
+    return final_clip, clips
 
 class WaitingDialog(QDialog):
     def __init__(self, parent=None):
@@ -53,10 +54,137 @@ class WaitingDialog(QDialog):
         layout.addWidget(self.label)
         self.spinner = QLabel()
         self.spinner.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.movie = QMovie("spinner.gif")
+        gif_path = os.path.join(os.path.dirname(__file__), "sources/spinner.gif")
+        self.movie = QMovie(gif_path)
         self.spinner.setMovie(self.movie)
         layout.addWidget(self.spinner)
         self.movie.start()
+
+class VideoWorker(QObject):
+    progress = pyqtSignal(int, int)  # batch_count, total_batches
+    error = pyqtSignal(str)
+    finished = pyqtSignal(list)  # leftover_files
+
+    def __init__(self, media_sources, export_name, number, folder):
+        super().__init__()
+        self.media_sources = media_sources
+        self.export_name = export_name
+        self.number = number
+        self.folder = folder
+        self._stop = False  # Add stop flag
+
+    def stop(self):
+        self._stop = True
+
+    def run(self):
+        set_low_priority()
+        try:
+            mp3_files = [os.path.join(self.media_sources, f) for f in os.listdir(self.media_sources) if f.lower().endswith('.mp3')]
+            image_files = [f for f in os.listdir(self.media_sources) if f.lower().endswith((".jpg", ".png"))]
+            if not image_files:
+                self.error.emit("No image files found in the media folder.")
+                return
+            if not mp3_files or len(mp3_files) < 3:
+                self.error.emit("Not enough mp3 files in folder (need at least 3 to start batch processing)")
+                return
+            try:
+                start_number = int(self.number)
+            except Exception:
+                start_number = 1
+            current_number = start_number
+            used_images = set()
+            total_batches = len(mp3_files) // 3
+            batch_count = 0
+            while len(mp3_files) >= 3:
+                if self._stop:
+                    self.finished.emit(mp3_files)
+                    return
+                selected_mp3s = random.sample(mp3_files, 3)
+                available_images = [img for img in image_files if img not in used_images]
+                if not available_images:
+                    used_images = set()
+                    available_images = image_files[:]
+                selected_image_name = random.choice(available_images)
+                selected_image = os.path.join(self.media_sources, selected_image_name)
+                used_images.add(selected_image_name)
+                # Merge and create video
+                clips = [AudioFileClip(f) for f in selected_mp3s]
+                final_clip = concatenate_audioclips(clips)
+                output_filename = f"{self.export_name}_{current_number}.mp4"
+                out = os.path.join(self.folder, output_filename)
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+                    audio_path = tmp.name
+                    final_clip.write_audiofile(audio_path)
+                try:
+                    audio = AudioFileClip(audio_path)
+                    image = ImageClip(selected_image).with_duration(audio.duration).resized(height=720)
+                    video = image.with_audio(audio)
+                    video.write_videofile(out, fps=24, codec="libx264", audio_codec="aac")
+                    audio.close()
+                    image.close()
+                finally:
+                    final_clip.close()
+                    for clip in clips:
+                        clip.close()
+                    if os.path.exists(audio_path):
+                        os.remove(audio_path)
+                # Write log file in media folder
+                output_base_name = os.path.splitext(output_filename)[0]
+                log_path = os.path.join(self.media_sources, f"{output_base_name}.log")
+                with open(log_path, "w", encoding="utf-8") as logf:
+                    logf.write(f"Output video: {out}\n")
+                    logf.write(f"Image used: {selected_image}\n")
+                    logf.write("MP3s used:\n")
+                    for mp3 in selected_mp3s:
+                        logf.write(f"  {mp3}\n")
+                bin_folder = os.path.join(self.media_sources, "bin")
+                os.makedirs(bin_folder, exist_ok=True)
+                shutil.move(log_path, os.path.join(bin_folder, f"{output_base_name}.log"))
+                output_base = os.path.splitext(os.path.basename(out))[0]
+                for idx, mp3 in enumerate(selected_mp3s, 1):
+                    new_name = f"{output_base}+{idx}.mp3"
+                    try:
+                        shutil.move(mp3, os.path.join(bin_folder, new_name))
+                        mp3_files.remove(mp3)
+                    except Exception as move_err:
+                        print(f"Failed to move {mp3}: {move_err}")
+                try:
+                    img_ext = os.path.splitext(selected_image)[1]
+                    img_new_name = f"{output_base}{img_ext}"
+                    shutil.move(selected_image, os.path.join(bin_folder, img_new_name))
+                    image_files.remove(selected_image_name)
+                except Exception as move_err:
+                    print(f"Failed to move {selected_image}: {move_err}")
+                current_number += 1
+                batch_count += 1
+                self.progress.emit(batch_count, total_batches)
+            left_mp3 = len(mp3_files)
+            self.finished.emit(mp3_files if left_mp3 > 0 else [])
+        except Exception as e:
+            self.error.emit(str(e))
+
+class FolderDropLineEdit(QLineEdit):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            if urls and urls[0].isLocalFile():
+                path = urls[0].toLocalFile()
+                if os.path.isdir(path):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def dropEvent(self, event):
+        urls = event.mimeData().urls()
+        if urls and urls[0].isLocalFile():
+            path = urls[0].toLocalFile()
+            if os.path.isdir(path):
+                self.setText(path)
+                self.editingFinished.emit()
 
 class SuperCutUI(QWidget):
     def __init__(self):
@@ -116,9 +244,13 @@ class SuperCutUI(QWidget):
         media_sources_layout = QHBoxLayout()
         label_media = QLabel("Media Folder:")
         label_media.setFixedWidth(folder_row_style["label_width"])
-        self.media_sources_edit = QLineEdit()
-        self.media_sources_edit.setReadOnly(True)
+        # --- Use FolderDropLineEdit for drag & drop support ---
+        self.media_sources_edit = FolderDropLineEdit()
+        self.media_sources_edit.setReadOnly(False)
         self.media_sources_edit.setMinimumWidth(folder_row_style["edit_min_width"])
+        self.media_sources_edit.setPlaceholderText("Drag & drop or click Select Folder")
+        # Optionally, keep the tooltip for accessibility:
+        self.media_sources_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
         media_sources_btn = QPushButton("Select Folder")
         media_sources_btn.setFixedWidth(folder_row_style["btn_width"])
         media_sources_btn.clicked.connect(self.select_media_sources_folder)
@@ -131,9 +263,12 @@ class SuperCutUI(QWidget):
         folder_layout = QHBoxLayout()
         label_output = QLabel("Output Folder:")
         label_output.setFixedWidth(folder_row_style["label_width"])
-        self.folder_edit = QLineEdit()
-        self.folder_edit.setReadOnly(True)
+        # --- Optionally, add drag & drop for output folder too ---
+        self.folder_edit = FolderDropLineEdit()
+        self.folder_edit.setReadOnly(False)
         self.folder_edit.setMinimumWidth(folder_row_style["edit_min_width"])
+        self.folder_edit.setPlaceholderText("Drag & drop or click Select Folder")  # <-- Add this line
+        self.folder_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
         folder_btn = QPushButton("Select Folder")
         folder_btn.setFixedWidth(folder_row_style["btn_width"])
         folder_btn.clicked.connect(self.select_output_folder)
@@ -158,10 +293,10 @@ class SuperCutUI(QWidget):
         layout.addLayout(part_layout)
 
         # Create button
-        create_btn = QPushButton("🚀 Create Video")
-        create_btn.setFixedHeight(35)
-        create_btn.clicked.connect(self.create_video)
-        layout.addWidget(create_btn)
+        self.create_btn = QPushButton("🚀 Create Video")
+        self.create_btn.setFixedHeight(35)
+        self.create_btn.clicked.connect(self.create_video)
+        layout.addWidget(self.create_btn)
 
         # Add progress bar (hidden by default)
         self.progress_bar = QtWidgets.QProgressBar()
@@ -173,23 +308,19 @@ class SuperCutUI(QWidget):
         self.progress_bar.setVisible(False)
         layout.addWidget(self.progress_bar)
 
+        # Stop button (directly below progress bar, small, hidden by default)
+        self.stop_btn = QPushButton("🛑 Stop")
+        self.stop_btn.setFixedHeight(24)
+        self.stop_btn.setFixedWidth(70)
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.setVisible(False)
+        self.stop_btn.clicked.connect(self.stop_video_creation)
+        layout.addWidget(self.stop_btn)
+
         self.setLayout(layout)
         self.output_folder_manual = False
         self.folder_edit.setText("")
         self.update_output_name()
-
-    def build_file_input(self, label_text, action, attr_name):
-        layout = QHBoxLayout()
-        label = QLabel(label_text)
-        edit = QLineEdit()
-        button = QPushButton("Browse")
-        button.setFixedWidth(80)
-        button.clicked.connect(action)
-        layout.addWidget(label)
-        layout.addWidget(edit)
-        layout.addWidget(button)
-        setattr(self, attr_name, edit)
-        return layout
 
     def select_media_sources_folder(self):
         desktop_folder = os.path.join(os.path.expanduser("~"), "Desktop")
@@ -199,18 +330,31 @@ class SuperCutUI(QWidget):
             if not self.output_folder_manual:
                 self.folder_edit.setText(folder)
             self.update_output_name()
+        else:
+            self.folder_edit.setText("")
 
     def select_output_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Output Folder", os.getcwd())
+        # Open at Desktop by default
+        desktop_folder = os.path.join(os.path.expanduser("~"), "Desktop")
+        folder = QFileDialog.getExistingDirectory(self, "Select Output Folder", desktop_folder)
         if folder:
             self.folder_edit.setText(folder)
             self.output_folder_manual = True
             self.update_output_name()
 
+    def sanitize_filename(self, name):
+        # Remove invalid filename characters: <>:"/\|?*
+        return re.sub(r'[<>:"/\\|?*]', '_', name)
+
     def update_output_name(self):
         part1 = self.part1_edit.text().strip()
         part2 = self.part2_edit.text().strip()
         folder = self.folder_edit.text().strip() or os.getcwd()
+        # Default to 1 if blank or zero
+        if not part2 or part2 == '0':
+            part2 = '1'
+        # Sanitize export name
+        part1 = self.sanitize_filename(part1)
         if part1 and part2:
             filename = f"{part1}_{part2}.mp4"
         else:
@@ -221,6 +365,11 @@ class SuperCutUI(QWidget):
         media_sources = self.media_sources_edit.text()
         export_name = self.part1_edit.text().strip()
         number = self.part2_edit.text().strip()
+        # Default to 1 if blank or zero
+        if not number or number == '0':
+            number = '1'
+        # Sanitize export name
+        export_name = self.sanitize_filename(export_name)
         folder = self.folder_edit.text().strip() or os.getcwd()
         if not media_sources:
             QMessageBox.warning(self, "⚠️ Missing Input", "Please select the media folder.", QMessageBox.Ok)
@@ -231,124 +380,256 @@ class SuperCutUI(QWidget):
         if not number:
             QMessageBox.warning(self, "⚠️ Missing Input", "Please enter a number.", QMessageBox.Ok)
             return
-        # Only show waiting dialog after all checks pass
-        waiting_dialog = WaitingDialog(self)
-        waiting_dialog.show()
+
+        # Check for media before showing waiting dialog
+        mp3_files = [os.path.join(media_sources, f) for f in os.listdir(media_sources) if f.lower().endswith('.mp3')]
+        image_files = [f for f in os.listdir(media_sources) if f.lower().endswith((".jpg", ".png"))]
+        if not image_files:
+            QMessageBox.critical(self, "❌ Error", "No image files found in the media folder.")
+            return
+        if not mp3_files or len(mp3_files) < 3:
+            QMessageBox.critical(self, "❌ Error", "Not enough mp3 files in folder (need at least 3 to start batch processing)")
+            return
+
+        # Calculate total batches: min(images, mp3s // 3)
+        total_batches = min(len(image_files), len(mp3_files) // 3)
+        self.progress_bar.setMaximum(total_batches)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
+        self.progress_bar.setVisible(True)
+
+        # Track original files for leftovers
+        original_mp3_files = set(mp3_files)
+        original_image_files = set(image_files)
+
+        self.waiting_dialog = WaitingDialog(self)
+        self.waiting_dialog.show()
         QtWidgets.QApplication.processEvents()
-        try:
-            mp3_files = [os.path.join(media_sources, f) for f in os.listdir(media_sources) if f.lower().endswith('.mp3')]
-            image_files = [f for f in os.listdir(media_sources) if f.lower().endswith((".jpg", ".png"))]
-            if not image_files:
-                waiting_dialog.close()
-                QMessageBox.critical(self, "❌ Error", "No image files found in the media folder.")
-                return
-            if not mp3_files or len(mp3_files) < 3:
-                waiting_dialog.close()
-                raise Exception("Not enough mp3 files in folder (need at least 3 to start batch processing)")
-            # Prepare for batch processing
-            try:
-                start_number = int(number)
-            except Exception:
-                start_number = 1
-            current_number = start_number
-            used_images = set()
-            total_batches = len(mp3_files) // 3
-            self.progress_bar.setMaximum(total_batches)
-            self.progress_bar.setValue(0)
-            self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
-            self.progress_bar.setVisible(True)
-            QtWidgets.QApplication.processEvents()
-            batch_count = 0
-            while len(mp3_files) >= 3:
-                # Pick 3 mp3s
-                selected_mp3s = random.sample(mp3_files, 3)
-                # Pick an image (random, but try to avoid repeats until all are used)
-                available_images = [img for img in image_files if img not in used_images]
-                if not available_images:
-                    used_images = set()
-                    available_images = image_files[:]
-                selected_image = os.path.join(media_sources, random.choice(available_images))
-                used_images.add(os.path.basename(selected_image))
-                # Merge and create video
-                merged_clip, _ = merge_random_mp3s(media_sources, 3)
-                output_filename = f"{export_name}_{current_number}.mp4"
-                out = os.path.join(folder, output_filename)
-                # Use tempfile for audio_path
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
-                    audio_path = tmp.name
-                    merged_clip.write_audiofile(audio_path)
+        self.stop_btn.setEnabled(True)
+        self.stop_btn.setVisible(True)
+        self.create_btn.setEnabled(False)
+
+        # Set up worker and thread
+        self._thread = QThread()
+        self._worker = VideoWorker(media_sources, export_name, number, folder)
+        self._worker.moveToThread(self._thread)
+        self._thread.started.connect(self._worker.run)
+        self._worker.progress.connect(self.on_worker_progress)
+        self._worker.error.connect(self.on_worker_error)
+        self._worker.finished.connect(lambda leftover_mp3s: self.on_worker_finished_with_leftovers(leftover_mp3s, original_mp3_files, original_image_files))
+        self._worker.finished.connect(self._thread.quit)
+        self._worker.finished.connect(self._worker.deleteLater)
+        self._thread.finished.connect(self._thread.deleteLater)
+        self._thread.start()
+
+    def on_worker_progress(self, batch_count, total_batches):
+        self.progress_bar.setMaximum(total_batches)
+        self.progress_bar.setValue(batch_count)
+        self.progress_bar.setFormat(f"Batch: {batch_count}/{total_batches}")
+        QtWidgets.QApplication.processEvents()
+
+    def on_worker_error(self, message):
+        self.progress_bar.setVisible(False)
+        self.waiting_dialog.close()
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.setVisible(False)
+        self.create_btn.setEnabled(True)
+        QMessageBox.critical(self, "❌ Error", message)
+        self._worker = None
+        self._thread = None
+        if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
+            self._auto_close_on_stop = False
+            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                self._stopping_msgbox.close()
+                self._stopping_msgbox = None
+            self.close()
+
+    def stop_video_creation(self):
+        if hasattr(self, "_worker") and self._worker is not None:
+            stop_method = getattr(self._worker, 'stop', None)
+            if callable(stop_method):
                 try:
-                    make_video(selected_image, audio_path, out)
-                    merged_clip.close()
-                finally:
-                    if os.path.exists(audio_path):
-                        os.remove(audio_path)
-                # Write log file in media folder
-                output_base_name = os.path.splitext(output_filename)[0]
-                log_path = os.path.join(media_sources, f"{output_base_name}.log")
-                with open(log_path, "w", encoding="utf-8") as logf:
-                    logf.write(f"Output video: {out}\n")
-                    logf.write(f"Image used: {selected_image}\n")
-                    logf.write("MP3s used:\n")
-                    for mp3 in selected_mp3s:
-                        logf.write(f"  {mp3}\n")
-                # Move log file to bin folder
-                bin_folder = os.path.join(media_sources, "bin")
-                os.makedirs(bin_folder, exist_ok=True)
-                shutil.move(log_path, os.path.join(bin_folder, f"{output_base_name}.log"))
-                # Move used mp3s and image to bin folder
-                output_base = os.path.splitext(os.path.basename(out))[0]
-                for idx, mp3 in enumerate(selected_mp3s, 1):
-                    new_name = f"{output_base}+{idx}.mp3"
-                    try:
-                        shutil.move(mp3, os.path.join(bin_folder, new_name))
-                        mp3_files.remove(mp3)
-                    except Exception as move_err:
-                        print(f"Failed to move {mp3}: {move_err}")
-                # Move used image to bin folder and rename as output name
-                try:
-                    img_ext = os.path.splitext(selected_image)[1]
-                    img_new_name = f"{output_base}{img_ext}"
-                    shutil.move(selected_image, os.path.join(bin_folder, img_new_name))
-                    image_files.remove(os.path.basename(selected_image))
-                except Exception as move_err:
-                    print(f"Failed to move {selected_image}: {move_err}")
-                current_number += 1
-                batch_count += 1
-                self.progress_bar.setValue(batch_count)
-                self.progress_bar.setFormat(f"Batch: {batch_count}/{total_batches}")
-                QtWidgets.QApplication.processEvents()
-            self.progress_bar.setVisible(False)
-            # After loop, show message about leftovers
-            left_mp3 = len(mp3_files)
-            if left_mp3 > 0:
-                self.show_success_options(leftover_files=mp3_files)
-                self.clear_inputs()
+                    stop_method()
+                except RuntimeError:
+                    pass  # Worker already deleted
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.setVisible(False)
+        # Show a dialog to inform the user to wait for the current batch to finish
+        class PleaseWaitDialog(QDialog):
+            def __init__(self, parent=None):
+                super().__init__(parent)
+                self.setWindowTitle("Stopping...")
+                self.setModal(True)
+                self.setFixedSize(260, 100)
+                self.setStyleSheet("""
+                    QDialog {
+                        background: #f5f7fa;
+                        border-radius: 8px;
+                    }
+                    QLabel {
+                        font-size: 13px;
+                        color: #333;
+                    }
+                """)
+                vbox = QVBoxLayout(self)
+                vbox.setContentsMargins(16, 16, 16, 16)
+                vbox.setSpacing(10)
+                label = QLabel("Wait, current batch to finish")
+                font = label.font()
+                font.setBold(True)
+                label.setFont(font)
+                label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                vbox.addWidget(label)
+                self.setLayout(vbox)
+        self._stopping_msgbox = PleaseWaitDialog(self)
+        self._stopping_msgbox.show()
+        if hasattr(self, "waiting_dialog") and self.waiting_dialog is not None:
+            self.waiting_dialog.close()
+        self.progress_bar.setVisible(False)
+        self.create_btn.setEnabled(True)
+        self._auto_close_on_stop = False
+        self._stopped_by_user = True  # <-- Add this flag
+
+    def on_worker_finished_with_leftovers(self, leftover_mp3s, original_mp3_files, original_image_files):
+        self.progress_bar.setVisible(False)
+        self.waiting_dialog.close()
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.setVisible(False)
+        self.create_btn.setEnabled(True)
+        # Calculate leftover images
+        used_mp3s = set(original_mp3_files) - set(leftover_mp3s)
+        used_images = set()
+        folder = self.media_sources_edit.text().strip()
+        for img in original_image_files:
+            if not os.path.exists(os.path.join(folder, img)):
+                used_images.add(img)
+        leftover_images = list(original_image_files - used_images)
+        # Show stopped dialog if stopped by user, otherwise show success dialog
+        if hasattr(self, '_stopped_by_user') and self._stopped_by_user:
+            self._stopped_by_user = False  # reset for next run
+
+            # Close PleaseWaitDialog if open
+            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                self._stopping_msgbox.close()
+                self._stopping_msgbox = None
+
+            class StoppedDialog(QDialog):
+                def __init__(self, parent=None, batch_count=0, total_batches=0):
+                    super().__init__(parent)
+                    self.setWindowTitle("Stopped")
+                    self.setStyleSheet("""
+                        QDialog {
+                            background: #f5f7fa;
+                            border-radius: 10px;
+                        }
+                        QLabel#iconLabel {
+                            font-size: 34px;
+                            color: #e67e22;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        QLabel#msgLabel {
+                            font-size: 14px;
+                            color: #222;
+                            font-weight: 600;
+                            margin-top: 4px;
+                            margin-bottom: 4px;
+                        }
+                        QLabel#batchLabel {
+                            font-size: 13px;
+                            color: #555;
+                            margin-top: 2px;
+                            margin-bottom: 8px;
+                        }
+                        QPushButton {
+                            background-color: #4a90e2;
+                            color: white;
+                            font-size: 13px;
+                            padding: 6px 16px;
+                            border-radius: 6px;
+                            min-width: 70px;
+                        }
+                        QPushButton:hover {
+                            background-color: #357ABD;
+                        }
+                    """)
+
+                    layout = QVBoxLayout(self)
+                    layout.setContentsMargins(20, 18, 20, 14)
+                    layout.setSpacing(10)
+
+                    icon = QLabel("📛")
+                    icon.setObjectName("iconLabel")
+                    icon.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                    layout.addWidget(icon)
+
+                    msg = QLabel("Video creation was stopped.")
+                    msg.setObjectName("msgLabel")
+                    msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                    layout.addWidget(msg)
+
+                    # Batch info
+                    batch_count = self.parent().progress_bar.value() if hasattr(self.parent(), 'progress_bar') else 0
+                    total_batches = self.parent().progress_bar.maximum() if hasattr(self.parent(), 'progress_bar') else 0
+                    unsuccessful = max(0, total_batches - batch_count)
+                    batch_info = QLabel(f"Batches completed: {batch_count} / {total_batches}<br>Unsuccessful: {unsuccessful}")
+                    batch_info.setObjectName("batchLabel")
+                    batch_info.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                    batch_info.setTextFormat(Qt.TextFormat.RichText)
+                    layout.addWidget(batch_info)
+
+                    ok_btn = QPushButton("OK")
+                    ok_btn.setDefault(True)
+                    ok_btn.clicked.connect(self.accept)
+
+                    btn_row = QHBoxLayout()
+                    btn_row.addStretch()
+                    btn_row.addWidget(ok_btn)
+                    btn_row.addStretch()
+                    layout.addLayout(btn_row)
+
+                    QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.close)
+
+                    self.adjustSize()  # 👈 Auto-fit the dialog to content
+
+            batch_count = self.progress_bar.value() if hasattr(self, 'progress_bar') else 0
+            total_batches = self.progress_bar.maximum() if hasattr(self, 'progress_bar') else 0
+            dlg = StoppedDialog(self, batch_count=batch_count, total_batches=total_batches)
+            dlg.exec_()
+        else:
+            if leftover_mp3s or leftover_images:
+                self.show_success_options(leftover_files=leftover_mp3s, leftover_images=leftover_images)
             else:
                 self.show_success_options()
-                self.clear_inputs()
-        except Exception as e:
-            self.progress_bar.setVisible(False)
-            QMessageBox.critical(self, "❌ Error", str(e))
-        finally:
-            waiting_dialog.close()
+        self.clear_inputs()
+        self._worker = None
+        self._thread = None
+        if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
+            self._auto_close_on_stop = False
+            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                self._stopping_msgbox.close()
+                self._stopping_msgbox = None
 
-    def show_success_options(self, leftover_files=None):
+    def show_success_options(self, leftover_files=None, leftover_images=None):
         # Play notification sound at 10% volume (Windows only, if pycaw is available)
         try:
             if sys.platform.startswith('win'):
-                # pycaw/comtypes not installed, just play beep
                 QtWidgets.QApplication.beep()
             else:
                 QtWidgets.QApplication.beep()
         except Exception:
             pass
         class SuccessDialog(QDialog):
-            def __init__(self, parent=None, open_folder=None, leftover_files=None):
+            def __init__(self, parent=None, open_folder=None, leftover_files=None, leftover_images=None):
                 super().__init__(parent)
                 self.open_folder = open_folder
                 self.setWindowTitle("Task Completed")
-                self.setFixedSize(370, 220 if leftover_files else 170)
+                extra_height = 0
+                if leftover_files:
+                    extra_height += 50 + 15 * len(leftover_files)
+                if leftover_images:
+                    extra_height += 50 + 15 * len(leftover_images)
+                self.setFixedSize(370, 170 + extra_height)
                 self.setStyleSheet("""
                     QDialog {
                         background: #f5f7fa;
@@ -407,11 +688,10 @@ class SuperCutUI(QWidget):
                 vbox.setContentsMargins(24, 18, 24, 18)
                 vbox.setSpacing(8)
 
-                  # Large icon
+                # Large icon
                 icon = QLabel("✅")
                 icon.setObjectName("iconLabel")
                 icon.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-                # Use only color, no outline or shadow
                 icon.setStyleSheet("font-size: 28px; color: #4BB543; border: none; background: transparent;")
                 vbox.addWidget(icon)
 
@@ -421,9 +701,9 @@ class SuperCutUI(QWidget):
                 msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
                 vbox.addWidget(msg)
 
-                # Leftover files section
+                # Leftover MP3 files section
                 if leftover_files:
-                    leftover_label = QLabel(f"{len(leftover_files)} MP3 file(s) left over (not enough for a group):")
+                    leftover_label = QLabel(f"{len(leftover_files)} MP3 files left over (not enough for a group):")
                     leftover_label.setObjectName("leftoverLabel")
                     leftover_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
                     vbox.addWidget(leftover_label)
@@ -431,6 +711,17 @@ class SuperCutUI(QWidget):
                     file_list.setObjectName("fileListLabel")
                     file_list.setAlignment(Qt.AlignmentFlag.AlignHCenter)
                     vbox.addWidget(file_list)
+
+                # Leftover image files section
+                if leftover_images:
+                    leftover_img_label = QLabel(f"{len(leftover_images)} image files left over (not enough for a group):")
+                    leftover_img_label.setObjectName("leftoverLabel")
+                    leftover_img_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                    vbox.addWidget(leftover_img_label)
+                    img_file_list = QLabel("\n".join([os.path.basename(f) for f in leftover_images]))
+                    img_file_list.setObjectName("fileListLabel")
+                    img_file_list.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                    vbox.addWidget(img_file_list)
 
                 # Buttons row
                 btn_row = QHBoxLayout()
@@ -457,21 +748,8 @@ class SuperCutUI(QWidget):
                 if self.open_folder:
                     self.open_folder()
 
-        dlg = SuccessDialog(self, open_folder=self.open_result_folder, leftover_files=leftover_files)
+        dlg = SuccessDialog(self, open_folder=self.open_result_folder, leftover_files=leftover_files, leftover_images=leftover_images)
         dlg.exec_()
-
-    def open_log_file(self):
-        # Try to open log from media folder if possible
-        log_path = os.path.join(self.media_sources_edit.text(), "output.log")
-        if os.path.exists(log_path):
-            if sys.platform.startswith('win'):
-                os.startfile(log_path)
-            elif sys.platform.startswith('darwin'):
-                subprocess.call(['open', log_path])
-            else:
-                subprocess.call(['xdg-open', log_path])
-        else:
-            QMessageBox.information(self, "Log Not Found", "No log file found.")
 
     def open_result_folder(self):
         folder = os.path.dirname(self.output_path)
@@ -485,13 +763,23 @@ class SuperCutUI(QWidget):
     def clear_inputs(self):
         self.media_sources_edit.setText("")
         self.folder_edit.setText("")
-        self.part1_edit.setText("")
         self.part2_edit.setText("")
 
     def closeEvent(self, event):
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
+        # Fix: Only call isRunning if self._thread is not None
+        if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
+            self._thread.quit()
+            self._thread.wait()
         super().closeEvent(event)
+
+def set_low_priority():
+    try:
+        p = ctypes.windll.kernel32.GetCurrentProcess()
+        ctypes.windll.kernel32.SetPriorityClass(p, 0x00004000)  # BELOW_NORMAL_PRIORITY_CLASS
+    except Exception:
+        pass
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
