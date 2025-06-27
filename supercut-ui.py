@@ -6,15 +6,22 @@ from PyQt5.QtWidgets import (
     QFileDialog, QMessageBox, QApplication, QLabel, QLineEdit,
     QPushButton, QVBoxLayout, QWidget, QHBoxLayout, QDialog, QSpacerItem, QSizePolicy
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSettings
 from moviepy import ImageClip, AudioFileClip, concatenate_audioclips
 import subprocess
 import shutil
-from PyQt5.QtGui import QIntValidator
+from PyQt5.QtGui import QIntValidator, QIcon, QMovie
+import tempfile
 
 # Set FFMPEG paths (use local ffmpeg folder)
 os.environ["FFMPEG_BINARY"] = os.path.abspath("ffmpeg/ffmpeg.exe")
 os.environ["FFPLAY_BINARY"] = os.path.abspath("ffmpeg/ffplay.exe")
+
+# Check if ffmpeg exists
+if not os.path.exists(os.environ["FFMPEG_BINARY"]):
+    app = QApplication(sys.argv)
+    QMessageBox.critical(None, "FFmpeg Not Found", "Could not find ffmpeg/ffmpeg.exe. Please ensure ffmpeg is present in the ffmpeg folder.")
+    sys.exit(1)
 
 def make_video(image_path, audio_path, output_path):
     audio = AudioFileClip(audio_path)
@@ -31,10 +38,32 @@ def merge_random_mp3s(folder_path, count=3):
     final_clip = concatenate_audioclips(clips)
     return final_clip, selected
 
+class WaitingDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Running...")
+        self.setModal(True)
+        self.setFixedSize(180, 120)
+        layout = QVBoxLayout(self)
+        self.label = QLabel("Creating video, wait...")
+        font = self.label.font()
+        font.setPointSize(10)
+        self.label.setFont(font)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.label)
+        self.spinner = QLabel()
+        self.spinner.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.movie = QMovie("spinner.gif")
+        self.spinner.setMovie(self.movie)
+        layout.addWidget(self.spinner)
+        self.movie.start()
+
 class SuperCutUI(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("🎬 SuperCut Video Maker")
+        # Set window icon from sources/icon.ico
+        self.setWindowIcon(QIcon('sources/icon.ico'))
+        self.setWindowTitle("SuperCut Video Maker")
         self.setFixedSize(500, 300)
         self.setStyleSheet("""
             QWidget {
@@ -64,6 +93,11 @@ class SuperCutUI(QWidget):
         """)
         self.output_folder_manual = False
         self.init_ui()
+        # Restore window position
+        settings = QSettings('SuperCut', 'SuperCutUI')
+        pos = settings.value('window_position')
+        if pos:
+            self.move(pos)
         # Add Ctrl+W shortcut to close main window
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.close)
 
@@ -111,7 +145,7 @@ class SuperCutUI(QWidget):
         # Part 1 and Part 2 fields (now below output folder)
         part_layout = QHBoxLayout()
         self.part1_edit = QLineEdit("Ragged")
-        self.part1_edit.setPlaceholderText("Ragged")
+        self.part1_edit.setPlaceholderText("Export Name")
         self.part2_edit = QLineEdit("")
         self.part2_edit.setPlaceholderText("12345")
         self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
@@ -124,10 +158,20 @@ class SuperCutUI(QWidget):
         layout.addLayout(part_layout)
 
         # Create button
-        create_btn = QPushButton("🚀 Create Video (with 3 random mp3s)")
+        create_btn = QPushButton("🚀 Create Video")
         create_btn.setFixedHeight(35)
         create_btn.clicked.connect(self.create_video)
         layout.addWidget(create_btn)
+
+        # Add progress bar (hidden by default)
+        self.progress_bar = QtWidgets.QProgressBar()
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximum(1)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(True)
+        self.progress_bar.setFormat("Batch: 0/0")
+        self.progress_bar.setVisible(False)
+        layout.addWidget(self.progress_bar)
 
         self.setLayout(layout)
         self.output_folder_manual = False
@@ -148,7 +192,8 @@ class SuperCutUI(QWidget):
         return layout
 
     def select_media_sources_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Media Folder", os.getcwd())
+        desktop_folder = os.path.join(os.path.expanduser("~"), "Desktop")
+        folder = QFileDialog.getExistingDirectory(self, "Select Media Folder", desktop_folder)
         if folder:
             self.media_sources_edit.setText(folder)
             if not self.output_folder_manual:
@@ -178,14 +223,27 @@ class SuperCutUI(QWidget):
         number = self.part2_edit.text().strip()
         folder = self.folder_edit.text().strip() or os.getcwd()
         if not media_sources:
-            QMessageBox.warning(self, "⚠️ Missing Input", "Please select the media folder.")
+            QMessageBox.warning(self, "⚠️ Missing Input", "Please select the media folder.", QMessageBox.Ok)
             return
+        if not export_name:
+            QMessageBox.warning(self, "⚠️ Missing Input", "Please enter an export name.", QMessageBox.Ok)
+            return
+        if not number:
+            QMessageBox.warning(self, "⚠️ Missing Input", "Please enter a number.", QMessageBox.Ok)
+            return
+        # Only show waiting dialog after all checks pass
+        waiting_dialog = WaitingDialog(self)
+        waiting_dialog.show()
+        QtWidgets.QApplication.processEvents()
         try:
             mp3_files = [os.path.join(media_sources, f) for f in os.listdir(media_sources) if f.lower().endswith('.mp3')]
             image_files = [f for f in os.listdir(media_sources) if f.lower().endswith((".jpg", ".png"))]
             if not image_files:
-                raise Exception("No image files found in the media folder.")
+                waiting_dialog.close()
+                QMessageBox.critical(self, "❌ Error", "No image files found in the media folder.")
+                return
             if not mp3_files or len(mp3_files) < 3:
+                waiting_dialog.close()
                 raise Exception("Not enough mp3 files in folder (need at least 3 to start batch processing)")
             # Prepare for batch processing
             try:
@@ -194,6 +252,13 @@ class SuperCutUI(QWidget):
                 start_number = 1
             current_number = start_number
             used_images = set()
+            total_batches = len(mp3_files) // 3
+            self.progress_bar.setMaximum(total_batches)
+            self.progress_bar.setValue(0)
+            self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
+            self.progress_bar.setVisible(True)
+            QtWidgets.QApplication.processEvents()
+            batch_count = 0
             while len(mp3_files) >= 3:
                 # Pick 3 mp3s
                 selected_mp3s = random.sample(mp3_files, 3)
@@ -208,22 +273,30 @@ class SuperCutUI(QWidget):
                 merged_clip, _ = merge_random_mp3s(media_sources, 3)
                 output_filename = f"{export_name}_{current_number}.mp4"
                 out = os.path.join(folder, output_filename)
-                audio_path = out + "_audio.mp3"
-                merged_clip.write_audiofile(audio_path)
-                make_video(selected_image, audio_path, out)
-                merged_clip.close()
-                os.remove(audio_path)
+                # Use tempfile for audio_path
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+                    audio_path = tmp.name
+                    merged_clip.write_audiofile(audio_path)
+                try:
+                    make_video(selected_image, audio_path, out)
+                    merged_clip.close()
+                finally:
+                    if os.path.exists(audio_path):
+                        os.remove(audio_path)
                 # Write log file in media folder
-                log_path = os.path.join(media_sources, f"output_{current_number}.log")
+                output_base_name = os.path.splitext(output_filename)[0]
+                log_path = os.path.join(media_sources, f"{output_base_name}.log")
                 with open(log_path, "w", encoding="utf-8") as logf:
                     logf.write(f"Output video: {out}\n")
                     logf.write(f"Image used: {selected_image}\n")
                     logf.write("MP3s used:\n")
                     for mp3 in selected_mp3s:
                         logf.write(f"  {mp3}\n")
-                # Move used mp3s and image to bin folder
+                # Move log file to bin folder
                 bin_folder = os.path.join(media_sources, "bin")
                 os.makedirs(bin_folder, exist_ok=True)
+                shutil.move(log_path, os.path.join(bin_folder, f"{output_base_name}.log"))
+                # Move used mp3s and image to bin folder
                 output_base = os.path.splitext(os.path.basename(out))[0]
                 for idx, mp3 in enumerate(selected_mp3s, 1):
                     new_name = f"{output_base}+{idx}.mp3"
@@ -241,6 +314,11 @@ class SuperCutUI(QWidget):
                 except Exception as move_err:
                     print(f"Failed to move {selected_image}: {move_err}")
                 current_number += 1
+                batch_count += 1
+                self.progress_bar.setValue(batch_count)
+                self.progress_bar.setFormat(f"Batch: {batch_count}/{total_batches}")
+                QtWidgets.QApplication.processEvents()
+            self.progress_bar.setVisible(False)
             # After loop, show message about leftovers
             left_mp3 = len(mp3_files)
             if left_mp3 > 0:
@@ -250,58 +328,73 @@ class SuperCutUI(QWidget):
                 self.show_success_options()
                 self.clear_inputs()
         except Exception as e:
+            self.progress_bar.setVisible(False)
             QMessageBox.critical(self, "❌ Error", str(e))
+        finally:
+            waiting_dialog.close()
 
     def show_success_options(self, leftover_files=None):
+        # Play notification sound at 10% volume (Windows only, if pycaw is available)
+        try:
+            if sys.platform.startswith('win'):
+                # pycaw/comtypes not installed, just play beep
+                QtWidgets.QApplication.beep()
+            else:
+                QtWidgets.QApplication.beep()
+        except Exception:
+            pass
         class SuccessDialog(QDialog):
-            def __init__(self, parent=None, open_log=None, open_folder=None, leftover_files=None):
+            def __init__(self, parent=None, open_folder=None, leftover_files=None):
                 super().__init__(parent)
-                self.open_log = open_log
                 self.open_folder = open_folder
-                self.setWindowTitle("✅ Success")
-                self.setFixedSize(300, 180 if leftover_files else 140)
+                self.setWindowTitle("Task Completed")
+                self.setFixedSize(370, 220 if leftover_files else 170)
                 self.setStyleSheet("""
                     QDialog {
                         background: #f5f7fa;
-                        border-radius: 8px;
+                        border-radius: 10px;
                     }
                     QLabel#iconLabel {
-                        font-size: 28px;
+                        font-size: 44px;
                         color: #4BB543;
                         margin-bottom: 0px;
                     }
                     QLabel#msgLabel {
-                        font-size: 13px;
+                        font-size: 16px;
                         color: #222;
                         font-weight: bold;
-                        margin-bottom: 4px;
+                        margin-bottom: 8px;
+                        margin-top: 6px;
                     }
                     QLabel#leftoverLabel {
-                        font-size: 14px;
+                        font-size: 13px;
                         color: #b00;
-                        margin-top: 6px;
+                        margin-top: 10px;
                         margin-bottom: 2px;
+                        font-weight: bold;
                     }
                     QLabel#fileListLabel {
                         font-size: 11px;
                         color: #555;
                         margin-left: 8px;
+                        margin-bottom: 8px;
                     }
                     QPushButton {
                         background-color: #4a90e2;
                         color: white;
-                        border-radius: 5px;
-                        padding: 4px 10px;
-                        font-size: 12px;
-                        min-width: 90px;
+                        border-radius: 6px;
+                        padding: 7px 18px;
+                        font-size: 13px;
+                        min-width: 110px;
+                        margin-top: 8px;
                     }
                     QPushButton#okBtn {
                         background-color: #4BB543;
                         font-weight: bold;
-                        font-size: 12px;
-                        padding: 4px 10px;
-                        min-width: 55px;
-                        max-width: 60px;
+                        font-size: 13px;
+                        min-width: 70px;
+                        max-width: 80px;
+                        margin-top: 8px;
                     }
                     QPushButton:hover {
                         background-color: #357ABD;
@@ -311,60 +404,60 @@ class SuperCutUI(QWidget):
                     }
                 """)
                 vbox = QVBoxLayout(self)
-                vbox.setContentsMargins(16, 10, 16, 10)
-                vbox.setSpacing(4)
-                icon = QLabel("")
+                vbox.setContentsMargins(24, 18, 24, 18)
+                vbox.setSpacing(8)
+
+                  # Large icon
+                icon = QLabel("✅")
                 icon.setObjectName("iconLabel")
                 icon.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                # Use only color, no outline or shadow
+                icon.setStyleSheet("font-size: 28px; color: #4BB543; border: none; background: transparent;")
                 vbox.addWidget(icon)
+
+                # Main message
+                msg = QLabel("Video created successfully!")
+                msg.setObjectName("msgLabel")
+                msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                vbox.addWidget(msg)
+
+                # Leftover files section
                 if leftover_files:
-                    msg = QLabel(f"Complete✅ {len(leftover_files)} file(s) left over:")
-                    msg.setObjectName("leftoverLabel")
-                    msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-                    vbox.addWidget(msg)
+                    leftover_label = QLabel(f"{len(leftover_files)} MP3 file(s) left over (not enough for a group):")
+                    leftover_label.setObjectName("leftoverLabel")
+                    leftover_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+                    vbox.addWidget(leftover_label)
                     file_list = QLabel("\n".join([os.path.basename(f) for f in leftover_files]))
                     file_list.setObjectName("fileListLabel")
+                    file_list.setAlignment(Qt.AlignmentFlag.AlignHCenter)
                     vbox.addWidget(file_list)
-                else:
-                    msg = QLabel("✅Video created successfully!")
-                    msg.setObjectName("msgLabel")
-                    msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-                    vbox.addWidget(msg)
-                # OK button row (above)
-                ok_row = QHBoxLayout()
-                ok_row.addSpacerItem(QSpacerItem(5, 5, QSizePolicy.Expanding, QSizePolicy.Minimum))
-                self.ok_btn = QPushButton("OK")
-                self.ok_btn.setObjectName("okBtn")
-                self.ok_btn.setDefault(True)
-                self.ok_btn.setMinimumWidth(55)
-                self.ok_btn.setMaximumWidth(60)
-                ok_row.addWidget(self.ok_btn)
-                ok_row.addSpacerItem(QSpacerItem(5, 5, QSizePolicy.Expanding, QSizePolicy.Minimum))
-                vbox.addLayout(ok_row)
-                vbox.addSpacing(6)
-                # Log and Result Folder row (below)
+
+                # Buttons row
                 btn_row = QHBoxLayout()
                 btn_row.setSpacing(18)
                 btn_row.addSpacerItem(QSpacerItem(5, 5, QSizePolicy.Expanding, QSizePolicy.Minimum))
-                self.log_btn = QPushButton("Check Log")
+
                 self.folder_btn = QPushButton("Result Folder")
-                self.log_btn.setMinimumWidth(90)
-                self.folder_btn.setMinimumWidth(90)
-                btn_row.addWidget(self.log_btn)
+                self.folder_btn.setMinimumWidth(120)
+                self.folder_btn.clicked.connect(self.on_folder)
                 btn_row.addWidget(self.folder_btn)
+
+                self.ok_btn = QPushButton("OK")
+                self.ok_btn.setObjectName("okBtn")
+                self.ok_btn.setDefault(True)
+                self.ok_btn.clicked.connect(self.accept)
+                btn_row.addWidget(self.ok_btn)
+
                 btn_row.addSpacerItem(QSpacerItem(5, 5, QSizePolicy.Expanding, QSizePolicy.Minimum))
                 vbox.addLayout(btn_row)
-                self.log_btn.clicked.connect(self.on_log)
-                self.folder_btn.clicked.connect(self.on_folder)
-                self.ok_btn.clicked.connect(self.accept)
+
                 QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.close)
-            def on_log(self):
-                if self.open_log:
-                    self.open_log()
+
             def on_folder(self):
                 if self.open_folder:
                     self.open_folder()
-        dlg = SuccessDialog(self, open_log=self.open_log_file, open_folder=self.open_result_folder, leftover_files=leftover_files)
+
+        dlg = SuccessDialog(self, open_folder=self.open_result_folder, leftover_files=leftover_files)
         dlg.exec_()
 
     def open_log_file(self):
@@ -394,6 +487,11 @@ class SuperCutUI(QWidget):
         self.folder_edit.setText("")
         self.part1_edit.setText("")
         self.part2_edit.setText("")
+
+    def closeEvent(self, event):
+        settings = QSettings('SuperCut', 'SuperCutUI')
+        settings.setValue('window_position', self.pos())
+        super().closeEvent(event)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
