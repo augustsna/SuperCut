@@ -14,6 +14,7 @@ import tempfile
 import ctypes
 import re
 import json
+import atexit
 
 # Set FFMPEG paths (use local ffmpeg folder)
 os.environ["FFMPEG_BINARY"] = os.path.abspath("C:/SuperCut/ffmpeg/bin/ffmpeg.exe")
@@ -122,6 +123,7 @@ def merge_random_mp3s(selected_mp3s):
     """Merge MP3 files using ffmpeg - returns output path and duration"""
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
         output_path = tmp.name
+        TEMP_FILES.add(output_path)
     
     if merge_mp3s_with_ffmpeg(selected_mp3s, output_path):
         duration = get_audio_duration(output_path)
@@ -416,7 +418,8 @@ class VideoWorker(QObject):
                 except Exception as move_err:
                     print(f"Failed to move {selected_image}: {move_err}")
                 finally:
-                    image_files.remove(selected_image_name)
+                    if selected_image_name in image_files:
+                        image_files.remove(selected_image_name)
                 current_number += 1
                 batch_count += 1
                 self.progress.emit(batch_count, total_batches)
@@ -1123,6 +1126,19 @@ def set_low_priority():
         ctypes.windll.kernel32.SetPriorityClass(p, 0x00004000)  # BELOW_NORMAL_PRIORITY_CLASS
     except Exception:
         pass
+
+TEMP_FILES = set()
+
+def cleanup_temp_files():
+    for f in list(TEMP_FILES):
+        try:
+            if os.path.exists(f):
+                os.remove(f)
+        except Exception:
+            pass
+        TEMP_FILES.discard(f)
+
+atexit.register(cleanup_temp_files)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
