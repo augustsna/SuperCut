@@ -306,41 +306,37 @@ class SuperCutUI(QWidget):
         self.codec_combo.setMaximumHeight(28)
         self.codec_combo.setStyleSheet("""
             QComboBox {
-                font-size: 13px;
-                padding: 2px 24px 2px 8px;
-                min-height: 28px;
-                max-height: 28px;
-                min-width: 100px;
-                max-width: 100px;
+                background-color: #ffffff;
+                border: 1px solid #d0d0d0;
                 border-radius: 6px;
-                border: 1px solid #ccc;
-                background: #fff;
-                selection-background-color: #e3f1ff;
+                padding: 6px 12px;
+                font-size: 12px;
+                color: #333;
+                font-family: 'Segoe UI', sans-serif;
+                min-height: 20px;
+                max-height: 20px;
+                min-width: 106px;
+                max-width: 106px;
+            }
+            QComboBox:hover {
+                border: 2px solid #4687f4;
             }
             QComboBox::drop-down {
                 subcontrol-origin: padding;
                 subcontrol-position: top right;
-                width: 22px;
+                width: 30px;
                 border-left: 1px solid #ccc;
-                border-top-right-radius: 6px;
-                border-bottom-right-radius: 6px;
-                background: transparent;
             }
             QComboBox::down-arrow {
-                image: url("sources/down_arrow.svg");
-                width: 14px;
-                height: 14px;
-            }
-            QComboBox:hover, QComboBox:focus {
-                border: 1.5px solid #4a90e2;
-                background: #f0f7ff;
+                image: url(sources/down_arrow.svg);
+                width: 16px;
+                height: 16px;
             }
             QComboBox QAbstractItemView {
-                font-size: 13px;
-                border-radius: 6px;
-                background: #fff;
-                selection-background-color: #e3f1ff;
+                background-color: #ffffff;
+                selection-background-color: #3f92e3;
                 border: 1px solid #ccc;
+                outline: none;
             }
         """)
         self.codec_combo.addItem("H.264 NVENC", "h264_nvenc")
