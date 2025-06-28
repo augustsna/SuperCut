@@ -22,7 +22,7 @@ os.environ["FFPLAY_BINARY"] = os.path.abspath("C:/SuperCut/ffmpeg/bin/ffplay.exe
 # Check if ffmpeg exists
 if not os.path.exists(os.environ["FFMPEG_BINARY"]):
     app = QApplication(sys.argv)
-    QMessageBox.critical(None, "FFmpeg Not Found", "Could not find ffmpeg/ffmpeg.exe. Please ensure ffmpeg is present in the ffmpeg folder.")
+    QMessageBox.critical(None, "FFmpeg Not Found", "Could not find C:/SuperCut/ffmpeg/bin/ffmpeg.exe. Please ensure ffmpeg is present in the ffmpeg folder.")
     sys.exit(1)
 
 def make_video(image_path, audio_path, output_path):
