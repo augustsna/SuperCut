@@ -7,13 +7,13 @@ from PyQt5.QtWidgets import (
     QPushButton, QVBoxLayout, QWidget, QHBoxLayout, QDialog, QSpacerItem, QSizePolicy
 )
 from PyQt5.QtCore import Qt, QSettings, QObject, QThread, pyqtSignal
-from moviepy import AudioFileClip, ImageClip, concatenate_audioclips
 import subprocess
 import shutil
 from PyQt5.QtGui import QIntValidator, QIcon, QMovie
 import tempfile
 import ctypes
 import re
+import json
 
 # Set FFMPEG paths (use local ffmpeg folder)
 os.environ["FFMPEG_BINARY"] = os.path.abspath("C:/SuperCut/ffmpeg/bin/ffmpeg.exe")
@@ -25,11 +25,109 @@ if not os.path.exists(os.environ["FFMPEG_BINARY"]):
     QMessageBox.critical(None, "FFmpeg Not Found", "Could not find C:/SuperCut/ffmpeg/bin/ffmpeg.exe. Please ensure ffmpeg is present in the ffmpeg folder.")
     sys.exit(1)
 
+def get_audio_duration(file_path):
+    """Get audio duration using ffprobe"""
+    try:
+        cmd = [
+            os.environ["FFMPEG_BINARY"].replace("ffmpeg.exe", "ffprobe.exe"),
+            "-v", "quiet",
+            "-show_entries", "format=duration",
+            "-of", "json",
+            file_path
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        data = json.loads(result.stdout)
+        return float(data['format']['duration'])
+    except Exception as e:
+        print(f"Error getting duration for {file_path}: {e}")
+        return 0.0
+
+def merge_mp3s_with_ffmpeg(input_files, output_file):
+    """Merge multiple MP3 files using ffmpeg"""
+    try:
+        # Create a file list for ffmpeg
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+            for file_path in input_files:
+                f.write(f"file '{file_path}'\n")
+            file_list_path = f.name
+        
+        # Use ffmpeg to concatenate
+        cmd = [
+            os.environ["FFMPEG_BINARY"],
+            "-f", "concat",
+            "-safe", "0",
+            "-i", file_list_path,
+            "-c", "copy",
+            output_file,
+            "-y"  # Overwrite output file
+        ]
+        
+        subprocess.run(cmd, check=True, capture_output=True)
+        
+        # Clean up file list
+        os.unlink(file_list_path)
+        return True
+    except Exception as e:
+        print(f"Error merging MP3s: {e}")
+        return False
+
+def create_video_with_ffmpeg(image_path, audio_path, output_path, resolution, fps, codec):
+    """Create video from image and audio using ffmpeg"""
+    try:
+        width, height = map(int, resolution.split('x'))
+        
+        # Build ffmpeg command
+        cmd = [
+            os.environ["FFMPEG_BINARY"],
+            "-loop", "1",
+            "-i", image_path,
+            "-i", audio_path,
+            "-c:v", codec,
+            "-c:a", "aac",
+            "-b:a", "384k",
+            "-ar", "48000",
+            "-ac", "2",
+            "-vf", f"scale={width}:{height}",
+            "-r", str(fps),
+            "-shortest",
+            "-y"  # Overwrite output file
+        ]
+        
+        # Add codec-specific parameters
+        if codec in ("libx264", "h264_nvenc"):
+            cmd.extend(["-preset", "slow"])
+            cmd.extend(["-profile:v", "high"])
+            cmd.extend(["-level:v", "4.2"])
+        
+        cmd.extend(["-movflags", "+faststart"])
+        cmd.extend(["-b:v", "15M"])
+        cmd.extend(["-maxrate", "20M"])
+        cmd.extend(["-bufsize", "24M"])
+        cmd.extend(["-pix_fmt", "yuv420p"])
+        cmd.extend(["-g", "120"])
+        cmd.extend(["-bf", "2"])
+        
+        if codec == "h264_nvenc":
+            cmd.extend(["-rc", "vbr_hq"])
+        
+        cmd.append(output_path)
+        
+        subprocess.run(cmd, check=True, capture_output=True)
+        return True
+    except Exception as e:
+        print(f"Error creating video: {e}")
+        return False
+
 def merge_random_mp3s(selected_mp3s):
-    clips = [AudioFileClip(f) for f in selected_mp3s]
-    final_clip = concatenate_audioclips(clips)
-    # Do NOT close the clips here! Return them for later cleanup.
-    return final_clip, clips
+    """Merge MP3 files using ffmpeg - returns output path and duration"""
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+        output_path = tmp.name
+    
+    if merge_mp3s_with_ffmpeg(selected_mp3s, output_path):
+        duration = get_audio_duration(output_path)
+        return output_path, duration
+    else:
+        return None, 0.0
 
 class WaitingDialog(QDialog):
     def __init__(self, parent=None):
@@ -105,71 +203,42 @@ class VideoWorker(QObject):
                 selected_image_name = random.choice(available_images)
                 selected_image = os.path.join(self.media_sources, selected_image_name)
                 used_images.add(selected_image_name)
-                # Merge and create video
-                clips = [AudioFileClip(f) for f in selected_mp3s]
-                final_clip = concatenate_audioclips(clips)
+                
+                # Merge MP3s using ffmpeg
+                merged_audio_path, audio_duration = merge_random_mp3s(selected_mp3s)
+                if not merged_audio_path or audio_duration <= 0:
+                    self.error.emit(f"Failed to merge MP3 files or get duration")
+                    return
+                
                 output_filename = f"{self.export_name}_{current_number}.mp4"
                 out = os.path.join(self.folder, output_filename)
                 
-                audio_path = None
                 try:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
-                        audio_path = tmp.name
-                        final_clip.write_audiofile(audio_path)
-                    
-                    audio = AudioFileClip(audio_path)
-                    width, height = map(int, self.resolution.split('x'))
-                    image = ImageClip(selected_image).with_duration(audio.duration).resized((width, height))
-                    video = image.with_audio(audio)
-                    
-                    ffmpeg_params = []
-                    if self.codec in ("libx264", "h264_nvenc"):
-                        ffmpeg_params += ["-preset", "slow"]
-                    if self.codec in ("libx264", "h264_nvenc"):
-                        ffmpeg_params += ["-profile:v", "high"]
-                        ffmpeg_params += ["-level:v", "4.2"]
-                    ffmpeg_params += ["-movflags", "+faststart"]
-                    ffmpeg_params += ["-b:v", "15M"]
-                    ffmpeg_params += ["-maxrate", "20M"]
-                    ffmpeg_params += ["-bufsize", "24M"]
-                    ffmpeg_params += ["-pix_fmt", "yuv420p"]
-                    ffmpeg_params += ["-g", "120"]
-                    ffmpeg_params += ["-bf", "2"]                    
-                    ffmpeg_params += ["-ac", "2"]  # Force audio to 2 channels (stereo)
-                    if self.codec == "h264_nvenc":
-                        ffmpeg_params += ["-rc", "vbr_hq"]
-
-                    video.write_videofile(
-                        out,
-                        fps=self.fps,
-                        codec=self.codec,
-                        audio_codec="aac",
-                        audio_bitrate="384k",
-                        audio_fps=48000,
-                        ffmpeg_params=ffmpeg_params
-                    )
-                    
-                    # Close all clips properly
-                    audio.close()
-                    image.close()
-                    video.close()
+                    # Create video using ffmpeg
+                    if not create_video_with_ffmpeg(
+                        selected_image, 
+                        merged_audio_path, 
+                        out, 
+                        self.resolution, 
+                        self.fps, 
+                        self.codec
+                    ):
+                        self.error.emit(f"Failed to create video: {output_filename}")
+                        return
                     
                 except Exception as e:
                     # Ensure cleanup even if error occurs
-                    if audio_path and os.path.exists(audio_path):
+                    if merged_audio_path and os.path.exists(merged_audio_path):
                         try:
-                            os.remove(audio_path)
+                            os.remove(merged_audio_path)
                         except:
                             pass  # Ignore cleanup errors
                     raise e
                 finally:
-                    # Always cleanup
-                    final_clip.close()
-                    for clip in clips:
-                        clip.close()
-                    if audio_path and os.path.exists(audio_path):
+                    # Always cleanup temporary audio file
+                    if merged_audio_path and os.path.exists(merged_audio_path):
                         try:
-                            os.remove(audio_path)
+                            os.remove(merged_audio_path)
                         except:
                             pass  # Ignore cleanup errors
                 # Write log file in media folder
