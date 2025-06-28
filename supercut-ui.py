@@ -29,9 +29,12 @@ def make_video(image_path, audio_path, output_path):
     audio = AudioFileClip(audio_path)
     image = ImageClip(image_path).with_duration(audio.duration).resized(height=720)
     video = image.with_audio(audio)
-    video.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
-    audio.close()
-    image.close()
+    try:
+        video.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
+    finally:
+        audio.close()
+        image.close()
+        video.close()
 
 def merge_random_mp3s(selected_mp3s):
     clips = [AudioFileClip(f) for f in selected_mp3s]
@@ -568,9 +571,7 @@ class SuperCutUI(QWidget):
                     msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
                     layout.addWidget(msg)
 
-                    # Batch info
-                    batch_count = self.parent().progress_bar.value() if hasattr(self.parent(), 'progress_bar') else 0
-                    total_batches = self.parent().progress_bar.maximum() if hasattr(self.parent(), 'progress_bar') else 0
+                    # Batch info - use the parameters passed to constructor
                     unsuccessful = max(0, total_batches - batch_count)
                     batch_info = QLabel(f"Batches completed: {batch_count} / {total_batches}<br>Unsuccessful: {unsuccessful}")
                     batch_info.setObjectName("batchLabel")
