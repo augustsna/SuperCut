@@ -1,13 +1,13 @@
 import os
 import sys
 import random
+import json
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import (
     QFileDialog, QMessageBox, QApplication, QLabel, QLineEdit,
     QPushButton, QVBoxLayout, QWidget, QHBoxLayout, QDialog, QSpacerItem, QSizePolicy
 )
 from PyQt5.QtCore import Qt, QSettings, QObject, QThread, pyqtSignal
-from moviepy import AudioFileClip, ImageClip, concatenate_audioclips
 import subprocess
 import shutil
 from PyQt5.QtGui import QIntValidator, QIcon, QMovie
@@ -16,28 +16,124 @@ import ctypes
 import re
 
 # Set FFMPEG paths (use local ffmpeg folder)
-os.environ["FFMPEG_BINARY"] = os.path.abspath("C:/SuperCut/ffmpeg/bin/ffmpeg.exe")
-os.environ["FFPLAY_BINARY"] = os.path.abspath("C:/SuperCut/ffmpeg/bin/ffplay.exe")
+FFMPEG_PATH = os.path.abspath("C:/SuperCut/ffmpeg/bin/ffmpeg.exe")
+FFPROBE_PATH = os.path.abspath("C:/SuperCut/ffmpeg/bin/ffprobe.exe")
 
 # Check if ffmpeg exists
-if not os.path.exists(os.environ["FFMPEG_BINARY"]):
+if not os.path.exists(FFMPEG_PATH):
     app = QApplication(sys.argv)
     QMessageBox.critical(None, "FFmpeg Not Found", "Could not find C:/SuperCut/ffmpeg/bin/ffmpeg.exe. Please ensure ffmpeg is present in the ffmpeg folder.")
     sys.exit(1)
 
-def make_video(image_path, audio_path, output_path):
-    audio = AudioFileClip(audio_path)
-    image = ImageClip(image_path).with_duration(audio.duration).resized(height=720)
-    video = image.with_audio(audio)
-    video.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
-    audio.close()
-    image.close()
+def get_audio_duration(file_path):
+    """Get audio duration using ffprobe"""
+    try:
+        cmd = [
+            FFPROBE_PATH,
+            "-v", "quiet",
+            "-show_entries", "format=duration",
+            "-of", "json",
+            file_path
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        data = json.loads(result.stdout)
+        return float(data['format']['duration'])
+    except Exception as e:
+        print(f"Error getting duration for {file_path}: {e}")
+        return 0.0
 
-def merge_random_mp3s(selected_mp3s):
-    clips = [AudioFileClip(f) for f in selected_mp3s]
-    final_clip = concatenate_audioclips(clips)
-    # Do NOT close the clips here! Return them for later cleanup.
-    return final_clip, clips
+def concatenate_audio_files(input_files, output_file):
+    """Concatenate multiple audio files using FFmpeg"""
+    try:
+        # Create a temporary file list for FFmpeg
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+            temp_list_file = f.name
+            for file_path in input_files:
+                f.write(f"file '{file_path}'\n")
+        
+        # Use FFmpeg to concatenate
+        cmd = [
+            FFMPEG_PATH,
+            "-f", "concat",
+            "-safe", "0",
+            "-i", temp_list_file,
+            "-c", "copy",
+            output_file,
+            "-y"  # Overwrite output file
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        
+        # Clean up temp file
+        try:
+            os.unlink(temp_list_file)
+        except:
+            pass
+            
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"FFmpeg error: {e.stderr}")
+        return False
+    except Exception as e:
+        print(f"Error concatenating audio: {e}")
+        return False
+
+def create_video_from_image_and_audio(image_path, audio_path, output_path, resolution, fps, codec):
+    """Create video from image and audio using FFmpeg"""
+    try:
+        width, height = map(int, resolution.split('x'))
+        
+        # Build FFmpeg command
+        cmd = [
+            FFMPEG_PATH,
+            "-loop", "1",  # Loop the image
+            "-i", image_path,  # Input image
+            "-i", audio_path,  # Input audio
+            "-c:v", codec,  # Video codec
+            "-c:a", "aac",  # Audio codec
+            "-b:a", "384k",  # Audio bitrate
+            "-ar", "48000",  # Audio sample rate
+            "-ac", "2",  # Audio channels
+            "-vf", f"scale={width}:{height}",  # Scale to resolution
+            "-r", str(fps),  # Frame rate
+            "-shortest",  # End when shortest input ends
+            "-y"  # Overwrite output
+        ]
+        
+        # Add codec-specific parameters
+        if codec in ("libx264", "h264_nvenc"):
+            cmd.extend([
+                "-preset", "slow",
+                "-profile:v", "high",
+                "-level:v", "4.2"
+            ])
+        
+        # Add common parameters
+        cmd.extend([
+            "-movflags", "+faststart",
+            "-b:v", "15M",
+            "-maxrate", "20M",
+            "-bufsize", "24M",
+            "-pix_fmt", "yuv420p",
+            "-g", "120",
+            "-bf", "2"
+        ])
+        
+        # Add NVENC-specific parameters
+        if codec == "h264_nvenc":
+            cmd.extend(["-rc", "vbr_hq"])
+        
+        cmd.append(output_path)
+        
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return True
+        
+    except subprocess.CalledProcessError as e:
+        print(f"FFmpeg error: {e.stderr}")
+        return False
+    except Exception as e:
+        print(f"Error creating video: {e}")
+        return False
 
 class WaitingDialog(QDialog):
     def __init__(self, parent=None):
@@ -65,13 +161,16 @@ class VideoWorker(QObject):
     error = pyqtSignal(str)
     finished = pyqtSignal(list)  # leftover_files
 
-    def __init__(self, media_sources, export_name, number, folder):
+    def __init__(self, media_sources, export_name, number, folder, codec="libx264", resolution="1920x1080", fps=24):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
         self.number = number
         self.folder = folder
-        self._stop = False  # Add stop flag
+        self.codec = codec
+        self.resolution = resolution
+        self.fps = fps
+        self._stop = False
 
     def stop(self):
         self._stop = True
@@ -81,54 +180,81 @@ class VideoWorker(QObject):
         try:
             mp3_files = [os.path.join(self.media_sources, f) for f in os.listdir(self.media_sources) if f.lower().endswith('.mp3')]
             image_files = [f for f in os.listdir(self.media_sources) if f.lower().endswith((".jpg", ".png"))]
+            
             if not image_files:
                 self.error.emit("No image files found in the media folder.")
                 return
             if not mp3_files or len(mp3_files) < 3:
                 self.error.emit("Not enough mp3 files in folder (need at least 3 to start batch processing)")
                 return
+                
             try:
                 start_number = int(self.number)
             except Exception:
                 start_number = 1
+                
             current_number = start_number
             used_images = set()
             total_batches = len(mp3_files) // 3
             batch_count = 0
+            
             while len(mp3_files) >= 3:
                 if self._stop:
                     self.finished.emit(mp3_files)
                     return
+                    
                 selected_mp3s = random.sample(mp3_files, 3)
                 available_images = [img for img in image_files if img not in used_images]
+                
                 if not available_images:
                     used_images = set()
                     available_images = image_files[:]
+                    
+                if not available_images:
+                    break
+                    
                 selected_image_name = random.choice(available_images)
                 selected_image = os.path.join(self.media_sources, selected_image_name)
                 used_images.add(selected_image_name)
-                # Merge and create video
-                clips = [AudioFileClip(f) for f in selected_mp3s]
-                final_clip = concatenate_audioclips(clips)
+                
                 output_filename = f"{self.export_name}_{current_number}.mp4"
                 out = os.path.join(self.folder, output_filename)
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
-                    audio_path = tmp.name
-                    final_clip.write_audiofile(audio_path)
+                
+                # Create temporary files
+                temp_audio = None
                 try:
-                    audio = AudioFileClip(audio_path)
-                    image = ImageClip(selected_image).with_duration(audio.duration).resized(height=720)
-                    video = image.with_audio(audio)
-                    video.write_videofile(out, fps=24, codec="libx264", audio_codec="aac")
-                    audio.close()
-                    image.close()
+                    # Create temporary audio file
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+                        temp_audio = tmp.name
+                    
+                    # Concatenate audio files
+                    if not concatenate_audio_files(selected_mp3s, temp_audio):
+                        raise Exception("Failed to concatenate audio files")
+                    
+                    # Create video from image and audio
+                    if not create_video_from_image_and_audio(
+                        selected_image, temp_audio, out, 
+                        self.resolution, self.fps, self.codec
+                    ):
+                        raise Exception("Failed to create video")
+                    
+                except Exception as e:
+                    # Cleanup on error
+                    if temp_audio and os.path.exists(temp_audio):
+                        try:
+                            os.remove(temp_audio)
+                        except:
+                            pass
+                    raise e
                 finally:
-                    final_clip.close()
-                    for clip in clips:
-                        clip.close()
-                    if os.path.exists(audio_path):
-                        os.remove(audio_path)
-                # Write log file in media folder
+                    # Always cleanup temp files
+                    if temp_audio and os.path.exists(temp_audio):
+                        try:
+                            os.remove(temp_audio)
+                        except:
+                            pass
+                
+                # Write log file
                 output_base_name = os.path.splitext(output_filename)[0]
                 log_path = os.path.join(self.media_sources, f"{output_base_name}.log")
                 with open(log_path, "w", encoding="utf-8") as logf:
@@ -137,9 +263,12 @@ class VideoWorker(QObject):
                     logf.write("MP3s used:\n")
                     for mp3 in selected_mp3s:
                         logf.write(f"  {mp3}\n")
+                
+                # Move files to bin folder
                 bin_folder = os.path.join(self.media_sources, "bin")
                 os.makedirs(bin_folder, exist_ok=True)
                 shutil.move(log_path, os.path.join(bin_folder, f"{output_base_name}.log"))
+                
                 output_base = os.path.splitext(os.path.basename(out))[0]
                 for idx, mp3 in enumerate(selected_mp3s, 1):
                     new_name = f"{output_base}+{idx}.mp3"
@@ -148,6 +277,7 @@ class VideoWorker(QObject):
                         mp3_files.remove(mp3)
                     except Exception as move_err:
                         print(f"Failed to move {mp3}: {move_err}")
+                        
                 try:
                     img_ext = os.path.splitext(selected_image)[1]
                     img_new_name = f"{output_base}{img_ext}"
@@ -155,11 +285,14 @@ class VideoWorker(QObject):
                     image_files.remove(selected_image_name)
                 except Exception as move_err:
                     print(f"Failed to move {selected_image}: {move_err}")
+                    
                 current_number += 1
                 batch_count += 1
                 self.progress.emit(batch_count, total_batches)
+                
             left_mp3 = len(mp3_files)
             self.finished.emit(mp3_files if left_mp3 > 0 else [])
+            
         except Exception as e:
             self.error.emit(str(e))
 
@@ -192,7 +325,7 @@ class SuperCutUI(QWidget):
         # Set window icon from sources/icon.ico
         self.setWindowIcon(QIcon('sources/icon.ico'))
         self.setWindowTitle("SuperCut Video Maker")
-        self.setFixedSize(500, 300)
+        self.setFixedSize(600, 420)  # Increased size: width=600, height=420
         self.setStyleSheet("""
             QWidget {
                 background-color: #f5f7fa;
@@ -217,6 +350,35 @@ class SuperCutUI(QWidget):
             }
             QPushButton:hover {
                 background-color: #357ABD;
+            }
+            QComboBox {
+                background-color: #ffffff;
+                border: 1px solid #d0d0d0;
+                border-radius: 6px;
+                padding: 6px 12px;
+                font-size: 12px;
+                color: #333;
+                font-family: 'Segoe UI', sans-serif;                               
+            }
+            QComboBox:hover {
+                border: 2px solid #4687f4;
+            }
+            QComboBox::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 30px;
+                border-left: 1px solid #ccc;
+            }
+            QComboBox::down-arrow {
+                image: url(sources/down_arrow.svg);
+                width: 16px;
+                height: 16px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #ffffff;
+                selection-background-color: #3f92e3;
+                border: 1px solid #ccc;
+                outline: none;
             }
         """)
         self.output_folder_manual = False
@@ -291,6 +453,57 @@ class SuperCutUI(QWidget):
         part_layout.addWidget(QLabel("Number:"))
         part_layout.addWidget(self.part2_edit)
         layout.addLayout(part_layout)
+
+        # Codec selection (with arrow icon for dropdown button)
+        codec_layout = QHBoxLayout()
+        codec_label = QLabel("Video Codec:")
+        codec_label.setFixedWidth(90)
+        self.codec_combo = QtWidgets.QComboBox()
+        self.codec_combo.setFixedWidth(140)
+        self.codec_combo.setMinimumHeight(28)
+        self.codec_combo.setMaximumHeight(28)
+        self.codec_combo.addItem("H.264 NVENC", "h264_nvenc")
+        self.codec_combo.addItem("H.264 libx264", "libx264")
+        self.codec_combo.setCurrentIndex(0)
+        codec_layout.addWidget(codec_label)
+        codec_layout.addWidget(self.codec_combo)
+        codec_layout.addStretch()
+        layout.addLayout(codec_layout)
+
+        # Video resolution selection
+        resolution_layout = QHBoxLayout()
+        resolution_label = QLabel("Video Size:")
+        resolution_label.setFixedWidth(90)
+        self.resolution_combo = QtWidgets.QComboBox()
+        self.resolution_combo.setFixedWidth(140)
+        self.resolution_combo.setMinimumHeight(28)
+        self.resolution_combo.setMaximumHeight(28)
+        self.resolution_combo.addItem("Full HD (1080p)", "1920x1080")
+        self.resolution_combo.addItem("4K UHD (2160p)", "3840x2160")
+        self.resolution_combo.addItem("Vertical (9:16)", "1080x1920")
+        self.resolution_combo.addItem("Square (1:1)", "1080x1080")
+        self.resolution_combo.setCurrentIndex(0)
+        resolution_layout.addWidget(resolution_label)
+        resolution_layout.addWidget(self.resolution_combo)
+        resolution_layout.addStretch()
+        layout.addLayout(resolution_layout)
+
+        # FPS selection
+        fps_layout = QHBoxLayout()
+        fps_label = QLabel("FPS:")
+        fps_label.setFixedWidth(90)
+        self.fps_combo = QtWidgets.QComboBox()
+        self.fps_combo.setFixedWidth(140)
+        self.fps_combo.setMinimumHeight(28)
+        self.fps_combo.setMaximumHeight(28)
+        self.fps_combo.addItem("24 FPS", 24)
+        self.fps_combo.addItem("30 FPS", 30)
+        self.fps_combo.addItem("60 FPS", 60)
+        self.fps_combo.setCurrentIndex(0)
+        fps_layout.addWidget(fps_label)
+        fps_layout.addWidget(self.fps_combo)
+        fps_layout.addStretch()
+        layout.addLayout(fps_layout)
 
         # Create button
         self.create_btn = QPushButton("🚀 Create Video")
@@ -371,6 +584,9 @@ class SuperCutUI(QWidget):
         # Sanitize export name
         export_name = self.sanitize_filename(export_name)
         folder = self.folder_edit.text().strip() or os.getcwd()
+        codec = self.codec_combo.currentData()  # Get the codec value, not the label
+        resolution = self.resolution_combo.currentData()  # Get the resolution value
+        fps = self.fps_combo.currentData()  # Get the FPS value
         if not media_sources:
             QMessageBox.warning(self, "⚠️ Missing Input", "Please select the media folder.", QMessageBox.Ok)
             return
@@ -411,7 +627,7 @@ class SuperCutUI(QWidget):
 
         # Set up worker and thread
         self._thread = QThread()
-        self._worker = VideoWorker(media_sources, export_name, number, folder)
+        self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps)  # <-- Pass codec, resolution, and fps
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.progress.connect(self.on_worker_progress)
@@ -568,9 +784,7 @@ class SuperCutUI(QWidget):
                     msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
                     layout.addWidget(msg)
 
-                    # Batch info
-                    batch_count = self.parent().progress_bar.value() if hasattr(self.parent(), 'progress_bar') else 0
-                    total_batches = self.parent().progress_bar.maximum() if hasattr(self.parent(), 'progress_bar') else 0
+                    # Batch info - use the parameters passed to constructor
                     unsuccessful = max(0, total_batches - batch_count)
                     batch_info = QLabel(f"Batches completed: {batch_count} / {total_batches}<br>Unsuccessful: {unsuccessful}")
                     batch_info.setObjectName("batchLabel")

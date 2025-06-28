@@ -1,0 +1,22 @@
+# SuperCut Video Maker - Requirements
+# 
+# This application now uses direct FFmpeg calls instead of MoviePy
+# for better performance and reliability.
+
+# Core GUI framework
+PyQt5>=5.15.0
+
+# Standard library dependencies (included with Python)
+# - os, sys, random, json, subprocess, shutil, tempfile, ctypes, re
+
+# External dependencies
+# - FFmpeg (must be installed separately in C:/SuperCut/ffmpeg/bin/)
+#   - ffmpeg.exe
+#   - ffprobe.exe
+#   - ffplay.exe (optional)
+
+# Installation instructions:
+# 1. Install PyQt5: pip install PyQt5
+# 2. Download FFmpeg from https://ffmpeg.org/download.html
+# 3. Extract to C:/SuperCut/ffmpeg/bin/
+# 4. Run the application: python "supercut-ui -rework.py" 
