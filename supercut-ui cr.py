@@ -15,6 +15,8 @@ import ctypes
 import re
 import json
 import atexit
+import threading
+import time
 
 # Set FFMPEG paths (use local ffmpeg folder)
 os.environ["FFMPEG_BINARY"] = os.path.abspath("C:/SuperCut/ffmpeg/bin/ffmpeg.exe")
@@ -73,11 +75,9 @@ def merge_mp3s_with_ffmpeg(input_files, output_file):
         return False
 
 def create_video_with_ffmpeg(image_path, audio_path, output_path, resolution, fps, codec):
-    """Create video from image and audio using ffmpeg"""
+    """Create video from image and audio using ffmpeg, print percent, frame, and ETA."""
     try:
         width, height = map(int, resolution.split('x'))
-        
-        # Build ffmpeg command
         cmd = [
             os.environ["FFMPEG_BINARY"],
             "-loop", "1",
@@ -91,30 +91,75 @@ def create_video_with_ffmpeg(image_path, audio_path, output_path, resolution, fp
             "-vf", f"scale={width}:{height}",
             "-r", str(fps),
             "-shortest",
-            "-y"  # Overwrite output file
+            "-y"
         ]
-        
-        # Add codec-specific parameters
         if codec in ("libx264", "h264_nvenc"):
-            cmd.extend(["-preset", "slow"])
-            cmd.extend(["-profile:v", "high"])
-            cmd.extend(["-level:v", "4.2"])
-        
-        cmd.extend(["-movflags", "+faststart"])
-        cmd.extend(["-b:v", "15M"])
-        cmd.extend(["-maxrate", "20M"])
-        cmd.extend(["-bufsize", "24M"])
-        cmd.extend(["-pix_fmt", "yuv420p"])
-        cmd.extend(["-g", "120"])
-        cmd.extend(["-bf", "2"])
-        
+            cmd.extend(["-preset", "slow", "-profile:v", "high", "-level:v", "4.2"])
+        cmd.extend([
+            "-movflags", "+faststart", "-b:v", "15M", "-maxrate", "20M",
+            "-bufsize", "24M", "-pix_fmt", "yuv420p", "-g", "120", "-bf", "2"
+        ])
         if codec == "h264_nvenc":
             cmd.extend(["-rc", "vbr_hq"])
-        
         cmd.append(output_path)
+
+        audio_duration = get_audio_duration(audio_path)
+        total_frames = int(audio_duration * fps)
+        process = subprocess.Popen(cmd, stderr=subprocess.PIPE, universal_newlines=True, bufsize=1)
+
+        start_time = time.time()
+        last_seconds = 0.0
+        last_update = time.time()
         
-        subprocess.run(cmd, check=True, capture_output=True)
-        return True
+        def print_progress(seconds):
+            current_frame = int(seconds * fps)
+            percent = min(100.0, (current_frame / total_frames) * 100) if total_frames > 0 else 0
+            elapsed = time.time() - start_time
+            speed = (current_frame / elapsed) if elapsed > 0 else 0
+            remaining_frames = total_frames - current_frame
+            eta_sec = int(remaining_frames / speed) if speed > 0 else 0
+            eta_str = time.strftime('%H:%M:%S', time.gmtime(eta_sec)) if eta_sec > 0 else "--:--:--"
+            
+            sys.stdout.write(
+                f"\r  {percent:5.1f}% | Frame: {current_frame}/{total_frames} | ETA: {eta_str} "
+            )
+            sys.stdout.flush()
+
+        # Read ffmpeg output and interpolate between updates
+        seconds = 0.0
+        while True:
+            if process.stderr is None:
+                break
+            line = process.stderr.readline()
+            if not line:
+                break
+            match = re.search(r'time=(\d+):(\d+):(\d+\.\d+)', line)
+            if match:
+                h, m, s = map(float, match.groups())
+                seconds = h * 3600 + m * 60 + s
+                last_seconds = seconds
+                last_update = time.time()
+                print_progress(seconds)
+                
+                # Interpolate progress every 0.1s until next ffmpeg update
+                now = time.time()
+                while (now - last_update) < 0.3:  # Interpolate for 0.3s
+                    interp_seconds = last_seconds + (now - last_update)
+                    if interp_seconds > audio_duration:
+                        interp_seconds = audio_duration
+                    print_progress(interp_seconds)
+                    time.sleep(0.1)
+                    now = time.time()
+                    
+        process.wait()
+        
+        # Final update
+        sys.stdout.write(
+            f"\r  100.0% | Frame: {total_frames}/{total_frames} | ETA: 00:00:00 \n"
+        )
+        sys.stdout.flush()
+
+        return process.returncode == 0
     except Exception as e:
         print(f"Error creating video: {e}")
         return False
@@ -190,6 +235,17 @@ class VideoWorker(QObject):
             used_images = set()
             total_batches = len(mp3_files) // 3
             batch_count = 0
+
+            # Before the batch loop, print export summary:
+            print("\n----- EXPORT SUMMARY -----")
+            print(f"Export Name   : {self.export_name}")
+            print(f"Output Folder : {self.folder}")
+            print(f"Codec        : {self.codec}")
+            print(f"Resolution   : {self.resolution}")
+            print(f"FPS          : {self.fps}")
+            print(f"Total Batches: {total_batches}")
+            print("--------------------------\n")
+
             while len(mp3_files) >= 3:
                 if self._stop:
                     self.finished.emit(mp3_files)
@@ -200,20 +256,23 @@ class VideoWorker(QObject):
                     used_images = set()
                     available_images = image_files[:]
                 if not available_images:
-                    # No images left, cannot continue
                     break
                 selected_image_name = random.choice(available_images)
                 selected_image = os.path.join(self.media_sources, selected_image_name)
                 used_images.add(selected_image_name)
-                
+                output_filename = f"{self.export_name}_{current_number}.mp4"
+                out = os.path.join(self.folder, output_filename)
+
+                print(f"\n--- Batch {batch_count + 1}/{total_batches} ---")
+                print(f"Output: {output_filename}")
+                print(f"Image: {os.path.basename(selected_image)}")
+                print("MP3s:", ", ".join(os.path.basename(mp3) for mp3 in selected_mp3s))
+
                 # Merge MP3s using ffmpeg
                 merged_audio_path, audio_duration = merge_random_mp3s(selected_mp3s)
                 if not merged_audio_path or audio_duration <= 0:
                     self.error.emit(f"Failed to merge MP3 files or get duration")
                     return
-                
-                output_filename = f"{self.export_name}_{current_number}.mp4"
-                out = os.path.join(self.folder, output_filename)
                 
                 try:
                     # Create video using ffmpeg
@@ -964,12 +1023,48 @@ class SuperCutUI(QWidget):
         self.part2_edit.setText("")
 
     def closeEvent(self, event):
+        # If a video creation thread is running, warn the user
+        if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
+            reply = QMessageBox.question(
+                self,
+                "Quit Program",
+                "Video creation is running. Are you sure you want to quit?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            if reply == QMessageBox.Yes:
+                # Show waiting dialog
+                waiting_dialog = QMessageBox(self)
+                waiting_dialog.setWindowTitle("Please Wait")
+                waiting_dialog.setText("Waiting for current batch to finish...")
+                waiting_dialog.setStandardButtons(QMessageBox.NoButton)
+                waiting_dialog.show()
+                # Request stop
+                if hasattr(self, "_worker") and self._worker is not None:
+                    stop_method = getattr(self._worker, 'stop', None)
+                    if callable(stop_method):
+                        try:
+                            stop_method()
+                        except RuntimeError:
+                            pass
+                # Wait for thread to finish in a background thread, then close app after 3s
+                def wait_and_close():
+                    if self._thread is not None:
+                        self._thread.wait()
+                    time.sleep(3)
+                    waiting_dialog.close()
+                    app_instance = QApplication.instance()
+                    if app_instance is not None:
+                        app_instance.quit()
+                threading.Thread(target=wait_and_close, daemon=True).start()
+                event.ignore()
+                return
+            else:
+                event.ignore()
+                return
+        # Save window position and close as normal
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
-        # Fix: Only call isRunning if self._thread is not None
-        if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
-            self._thread.quit()
-            self._thread.wait()
         super().closeEvent(event)
 
 def set_low_priority():
