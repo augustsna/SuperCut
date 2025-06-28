@@ -25,17 +25,6 @@ if not os.path.exists(os.environ["FFMPEG_BINARY"]):
     QMessageBox.critical(None, "FFmpeg Not Found", "Could not find C:/SuperCut/ffmpeg/bin/ffmpeg.exe. Please ensure ffmpeg is present in the ffmpeg folder.")
     sys.exit(1)
 
-def make_video(image_path, audio_path, output_path, codec="libx264"):
-    audio = AudioFileClip(audio_path)
-    image = ImageClip(image_path).with_duration(audio.duration).resized(height=720)
-    video = image.with_audio(audio)
-    try:
-        video.write_videofile(output_path, fps=24, codec=codec, audio_codec="aac")
-    finally:
-        audio.close()
-        image.close()
-        video.close()
-
 def merge_random_mp3s(selected_mp3s):
     clips = [AudioFileClip(f) for f in selected_mp3s]
     final_clip = concatenate_audioclips(clips)
@@ -68,13 +57,15 @@ class VideoWorker(QObject):
     error = pyqtSignal(str)
     finished = pyqtSignal(list)  # leftover_files
 
-    def __init__(self, media_sources, export_name, number, folder, codec="libx264"):
+    def __init__(self, media_sources, export_name, number, folder, codec="libx264", resolution="1920x1080", fps=24):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
         self.number = number
         self.folder = folder
         self.codec = codec
+        self.resolution = resolution
+        self.fps = fps
         self._stop = False  # Add stop flag
 
     def stop(self):
@@ -108,6 +99,9 @@ class VideoWorker(QObject):
                 if not available_images:
                     used_images = set()
                     available_images = image_files[:]
+                if not available_images:
+                    # No images left, cannot continue
+                    break
                 selected_image_name = random.choice(available_images)
                 selected_image = os.path.join(self.media_sources, selected_image_name)
                 used_images.add(selected_image_name)
@@ -116,22 +110,68 @@ class VideoWorker(QObject):
                 final_clip = concatenate_audioclips(clips)
                 output_filename = f"{self.export_name}_{current_number}.mp4"
                 out = os.path.join(self.folder, output_filename)
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
-                    audio_path = tmp.name
-                    final_clip.write_audiofile(audio_path)
+                
+                audio_path = None
                 try:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+                        audio_path = tmp.name
+                        final_clip.write_audiofile(audio_path)
+                    
                     audio = AudioFileClip(audio_path)
-                    image = ImageClip(selected_image).with_duration(audio.duration).resized(height=720)
+                    width, height = map(int, self.resolution.split('x'))
+                    image = ImageClip(selected_image).with_duration(audio.duration).resized((width, height))
                     video = image.with_audio(audio)
-                    video.write_videofile(out, fps=24, codec=self.codec, audio_codec="aac")  # <-- Use self.codec
+                    
+                    ffmpeg_params = []
+                    if self.codec in ("libx264", "h264_nvenc"):
+                        ffmpeg_params += ["-preset", "slow"]
+                    if self.codec in ("libx264", "h264_nvenc"):
+                        ffmpeg_params += ["-profile:v", "high"]
+                        ffmpeg_params += ["-level:v", "4.2"]
+                    ffmpeg_params += ["-movflags", "+faststart"]
+                    ffmpeg_params += ["-b:v", "15M"]
+                    ffmpeg_params += ["-maxrate", "20M"]
+                    ffmpeg_params += ["-bufsize", "24M"]
+                    ffmpeg_params += ["-pix_fmt", "yuv420p"]
+                    ffmpeg_params += ["-g", "120"]
+                    ffmpeg_params += ["-bf", "2"]                    
+                    ffmpeg_params += ["-ac", "2"]  # Force audio to 2 channels (stereo)
+                    if self.codec == "h264_nvenc":
+                        ffmpeg_params += ["-rc", "vbr_hq"]
+
+                    video.write_videofile(
+                        out,
+                        fps=self.fps,
+                        codec=self.codec,
+                        audio_codec="aac",
+                        audio_bitrate="384k",
+                        audio_fps=48000,
+                        ffmpeg_params=ffmpeg_params
+                    )
+                    
+                    # Close all clips properly
                     audio.close()
                     image.close()
+                    video.close()
+                    
+                except Exception as e:
+                    # Ensure cleanup even if error occurs
+                    if audio_path and os.path.exists(audio_path):
+                        try:
+                            os.remove(audio_path)
+                        except:
+                            pass  # Ignore cleanup errors
+                    raise e
                 finally:
+                    # Always cleanup
                     final_clip.close()
                     for clip in clips:
                         clip.close()
-                    if os.path.exists(audio_path):
-                        os.remove(audio_path)
+                    if audio_path and os.path.exists(audio_path):
+                        try:
+                            os.remove(audio_path)
+                        except:
+                            pass  # Ignore cleanup errors
                 # Write log file in media folder
                 output_base_name = os.path.splitext(output_filename)[0]
                 log_path = os.path.join(self.media_sources, f"{output_base_name}.log")
@@ -196,7 +236,7 @@ class SuperCutUI(QWidget):
         # Set window icon from sources/icon.ico
         self.setWindowIcon(QIcon('sources/icon.ico'))
         self.setWindowTitle("SuperCut Video Maker")
-        self.setFixedSize(500, 300)
+        self.setFixedSize(600, 420)  # Increased size: width=600, height=420
         self.setStyleSheet("""
             QWidget {
                 background-color: #f5f7fa;
@@ -229,11 +269,7 @@ class SuperCutUI(QWidget):
                 padding: 6px 12px;
                 font-size: 12px;
                 color: #333;
-                font-family: 'Segoe UI', sans-serif;
-                min-height: 20px;
-                max-height: 20px;
-                min-width: 106px;
-                max-width: 106px;
+                font-family: 'Segoe UI', sans-serif;                               
             }
             QComboBox:hover {
                 border: 2px solid #4687f4;
@@ -338,14 +374,47 @@ class SuperCutUI(QWidget):
         self.codec_combo.setMinimumHeight(28)
         self.codec_combo.setMaximumHeight(28)
         self.codec_combo.addItem("H.264 NVENC", "h264_nvenc")
-        self.codec_combo.addItem("H.265 NVENC", "hevc_nvenc")
         self.codec_combo.addItem("H.264 libx264", "libx264")
-        self.codec_combo.addItem("H.265 HEVC", "libx265")
         self.codec_combo.setCurrentIndex(0)
         codec_layout.addWidget(codec_label)
         codec_layout.addWidget(self.codec_combo)
         codec_layout.addStretch()
         layout.addLayout(codec_layout)
+
+        # Video resolution selection
+        resolution_layout = QHBoxLayout()
+        resolution_label = QLabel("Video Size:")
+        resolution_label.setFixedWidth(90)
+        self.resolution_combo = QtWidgets.QComboBox()
+        self.resolution_combo.setFixedWidth(140)
+        self.resolution_combo.setMinimumHeight(28)
+        self.resolution_combo.setMaximumHeight(28)
+        self.resolution_combo.addItem("Full HD (1080p)", "1920x1080")
+        self.resolution_combo.addItem("4K UHD (2160p)", "3840x2160")
+        self.resolution_combo.addItem("Vertical (9:16)", "1080x1920")
+        self.resolution_combo.addItem("Square (1:1)", "1080x1080")
+        self.resolution_combo.setCurrentIndex(0)
+        resolution_layout.addWidget(resolution_label)
+        resolution_layout.addWidget(self.resolution_combo)
+        resolution_layout.addStretch()
+        layout.addLayout(resolution_layout)
+
+        # FPS selection
+        fps_layout = QHBoxLayout()
+        fps_label = QLabel("FPS:")
+        fps_label.setFixedWidth(90)
+        self.fps_combo = QtWidgets.QComboBox()
+        self.fps_combo.setFixedWidth(140)
+        self.fps_combo.setMinimumHeight(28)
+        self.fps_combo.setMaximumHeight(28)
+        self.fps_combo.addItem("24 FPS", 24)
+        self.fps_combo.addItem("30 FPS", 30)
+        self.fps_combo.addItem("60 FPS", 60)
+        self.fps_combo.setCurrentIndex(0)
+        fps_layout.addWidget(fps_label)
+        fps_layout.addWidget(self.fps_combo)
+        fps_layout.addStretch()
+        layout.addLayout(fps_layout)
 
         # Create button
         self.create_btn = QPushButton("🚀 Create Video")
@@ -427,6 +496,8 @@ class SuperCutUI(QWidget):
         export_name = self.sanitize_filename(export_name)
         folder = self.folder_edit.text().strip() or os.getcwd()
         codec = self.codec_combo.currentData()  # Get the codec value, not the label
+        resolution = self.resolution_combo.currentData()  # Get the resolution value
+        fps = self.fps_combo.currentData()  # Get the FPS value
         if not media_sources:
             QMessageBox.warning(self, "⚠️ Missing Input", "Please select the media folder.", QMessageBox.Ok)
             return
@@ -467,7 +538,7 @@ class SuperCutUI(QWidget):
 
         # Set up worker and thread
         self._thread = QThread()
-        self._worker = VideoWorker(media_sources, export_name, number, folder, codec)  # <-- Pass codec
+        self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps)  # <-- Pass codec, resolution, and fps
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.progress.connect(self.on_worker_progress)
