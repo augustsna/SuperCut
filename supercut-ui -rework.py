@@ -25,6 +25,26 @@ if not os.path.exists(FFMPEG_PATH):
     QMessageBox.critical(None, "FFmpeg Not Found", "Could not find C:/SuperCut/ffmpeg/bin/ffmpeg.exe. Please ensure ffmpeg is present in the ffmpeg folder.")
     sys.exit(1)
 
+def check_available_encoders():
+    """Check which encoders are available"""
+    encoders = {"h264_nvenc": False, "libx264": False}
+    
+    try:
+        # Check for NVENC (GPU encoding)
+        result = subprocess.run([FFMPEG_PATH, "-hide_banner", "-encoders"], 
+                              capture_output=True, text=True, check=True)
+        if "h264_nvenc" in result.stdout:
+            encoders["h264_nvenc"] = True
+            
+        # Check for libx264 (CPU encoding)
+        if "libx264" in result.stdout:
+            encoders["libx264"] = True
+            
+    except Exception as e:
+        print(f"⚠️  Could not check encoders: {e}")
+    
+    return encoders
+
 def get_audio_duration(file_path):
     """Get audio duration using ffprobe"""
     try:
@@ -45,6 +65,8 @@ def get_audio_duration(file_path):
 def concatenate_audio_files(input_files, output_file):
     """Concatenate multiple audio files using FFmpeg"""
     try:
+        print(f"🎵 Concatenating {len(input_files)} audio files...", end='', flush=True)
+        
         # Create a temporary file list for FFmpeg
         with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
             temp_list_file = f.name
@@ -69,19 +91,29 @@ def concatenate_audio_files(input_files, output_file):
             os.unlink(temp_list_file)
         except:
             pass
-            
+        
+        print(" ✅")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"FFmpeg error: {e.stderr}")
+        print(" ❌")
+        print(f"❌ FFmpeg error during concatenation: {e}")
         return False
     except Exception as e:
-        print(f"Error concatenating audio: {e}")
+        print(" ❌")
+        print(f"❌ Error concatenating audio: {e}")
         return False
 
 def create_video_from_image_and_audio(image_path, audio_path, output_path, resolution, fps, codec):
     """Create video from image and audio using FFmpeg"""
     try:
         width, height = map(int, resolution.split('x'))
+        
+        # Get audio duration to calculate total frames
+        audio_duration = get_audio_duration(audio_path)
+        total_frames = int(audio_duration * fps)
+        
+        # Determine encoding type
+        encoding_type = "GPU" if codec == "h264_nvenc" else "CPU"
         
         # Build FFmpeg command
         cmd = [
@@ -97,6 +129,7 @@ def create_video_from_image_and_audio(image_path, audio_path, output_path, resol
             "-vf", f"scale={width}:{height}",  # Scale to resolution
             "-r", str(fps),  # Frame rate
             "-shortest",  # End when shortest input ends
+            "-progress", "pipe:1",  # Output progress to stdout
             "-y"  # Overwrite output
         ]
         
@@ -125,14 +158,78 @@ def create_video_from_image_and_audio(image_path, audio_path, output_path, resol
         
         cmd.append(output_path)
         
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        return True
+        print(f"🎬 Creating video with {encoding_type} encoding ({codec})...")
+        
+        # Run FFmpeg and capture progress
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, universal_newlines=True)
+        
+        current_frame = 0
+        fps_processing = 0
+        start_time = None
+        
+        if process.stdout:
+            for line in process.stdout:
+                if line.startswith('frame='):
+                    # Extract frame number
+                    try:
+                        frame_part = line.split('frame=')[1].split()[0]
+                        current_frame = int(frame_part)
+                    except (ValueError, IndexError):
+                        pass
+                elif line.startswith('fps='):
+                    # Extract processing FPS
+                    try:
+                        fps_part = line.split('fps=')[1].split()[0]
+                        fps_processing = float(fps_part)
+                    except (ValueError, IndexError):
+                        pass
+                elif line.startswith('time='):
+                    # Extract time for speed calculation
+                    try:
+                        time_part = line.split('time=')[1].split()[0]
+                        if start_time is None:
+                            start_time = time_part
+                    except (ValueError, IndexError):
+                        pass
+                
+                # Update progress display
+                if current_frame > 0 and total_frames > 0:
+                    # Calculate time elapsed and remaining
+                    time_info = ""
+                    if fps_processing > 0:
+                        elapsed_seconds = current_frame / fps_processing
+                        remaining_frames = total_frames - current_frame
+                        remaining_seconds = remaining_frames / fps_processing
+                        
+                        # Format time
+                        if elapsed_seconds < 60:
+                            elapsed_str = f"{elapsed_seconds:.0f}s"
+                        else:
+                            elapsed_str = f"{elapsed_seconds/60:.0f}m"
+                            
+                        if remaining_seconds < 60:
+                            remaining_str = f"{remaining_seconds:.0f}s"
+                        else:
+                            remaining_str = f"{remaining_seconds/60:.0f}m"
+                            
+                        time_info = f" [{elapsed_str}<{remaining_str}, {fps_processing:.2f}it/s]"
+                    
+                    print(f"\r{current_frame}/{total_frames}{time_info}", end='', flush=True)
+        
+        process.wait()
+        
+        if process.returncode == 0:
+            print(f"\n✅ Video created: {os.path.basename(output_path)} ({encoding_type})")
+            return True
+        else:
+            print(f"\n❌ FFmpeg failed with return code: {process.returncode}")
+            return False
         
     except subprocess.CalledProcessError as e:
-        print(f"FFmpeg error: {e.stderr}")
+        print(f"\n❌ FFmpeg error during video creation: {e}")
         return False
     except Exception as e:
-        print(f"Error creating video: {e}")
+        print(f"\n❌ Error creating video: {e}")
         return False
 
 class WaitingDialog(QDialog):
@@ -203,6 +300,9 @@ class VideoWorker(QObject):
                     self.finished.emit(mp3_files)
                     return
                     
+                batch_count += 1
+                print(f"\n🔄 Batch {batch_count}/{total_batches}")
+                
                 selected_mp3s = random.sample(mp3_files, 3)
                 available_images = [img for img in image_files if img not in used_images]
                 
@@ -287,7 +387,6 @@ class VideoWorker(QObject):
                     print(f"Failed to move {selected_image}: {move_err}")
                     
                 current_number += 1
-                batch_count += 1
                 self.progress.emit(batch_count, total_batches)
                 
             left_mp3 = len(mp3_files)
@@ -996,7 +1095,34 @@ def set_low_priority():
         pass
 
 if __name__ == "__main__":
+    print("🚀 SuperCut Video Maker - FFmpeg Edition")
+    print("=" * 50)
+    print(f"📁 FFmpeg path: {FFMPEG_PATH}")
+    print(f"🔍 FFprobe path: {FFPROBE_PATH}")
+    
+    # Check available encoders
+    print("\n🔧 Checking available encoders...")
+    encoders = check_available_encoders()
+    
+    if encoders["h264_nvenc"]:
+        print("✅ GPU encoding (NVENC) available")
+    else:
+        print("❌ GPU encoding (NVENC) not available")
+        
+    if encoders["libx264"]:
+        print("✅ CPU encoding (libx264) available")
+    else:
+        print("❌ CPU encoding (libx264) not available")
+    
+    print("=" * 50)
+    
     app = QApplication(sys.argv)
     window = SuperCutUI()
     window.show()
+    
+    print("✅ Application started successfully!")
+    print("💡 Use the GUI to select folders and create videos")
+    print("📝 Processing details will be shown in this terminal")
+    print("-" * 50)
+    
     sys.exit(app.exec_())
