@@ -25,12 +25,12 @@ if not os.path.exists(os.environ["FFMPEG_BINARY"]):
     QMessageBox.critical(None, "FFmpeg Not Found", "Could not find C:/SuperCut/ffmpeg/bin/ffmpeg.exe. Please ensure ffmpeg is present in the ffmpeg folder.")
     sys.exit(1)
 
-def make_video(image_path, audio_path, output_path):
+def make_video(image_path, audio_path, output_path, codec="libx264"):
     audio = AudioFileClip(audio_path)
     image = ImageClip(image_path).with_duration(audio.duration).resized(height=720)
     video = image.with_audio(audio)
     try:
-        video.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
+        video.write_videofile(output_path, fps=24, codec=codec, audio_codec="aac")
     finally:
         audio.close()
         image.close()
@@ -68,12 +68,13 @@ class VideoWorker(QObject):
     error = pyqtSignal(str)
     finished = pyqtSignal(list)  # leftover_files
 
-    def __init__(self, media_sources, export_name, number, folder):
+    def __init__(self, media_sources, export_name, number, folder, codec="libx264"):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
         self.number = number
         self.folder = folder
+        self.codec = codec
         self._stop = False  # Add stop flag
 
     def stop(self):
@@ -122,7 +123,7 @@ class VideoWorker(QObject):
                     audio = AudioFileClip(audio_path)
                     image = ImageClip(selected_image).with_duration(audio.duration).resized(height=720)
                     video = image.with_audio(audio)
-                    video.write_videofile(out, fps=24, codec="libx264", audio_codec="aac")
+                    video.write_videofile(out, fps=24, codec=self.codec, audio_codec="aac")  # <-- Use self.codec
                     audio.close()
                     image.close()
                 finally:
@@ -295,6 +296,63 @@ class SuperCutUI(QWidget):
         part_layout.addWidget(self.part2_edit)
         layout.addLayout(part_layout)
 
+        # Codec selection (with arrow icon for dropdown button)
+        codec_layout = QHBoxLayout()
+        codec_label = QLabel("Video Codec:")
+        codec_label.setFixedWidth(90)
+        self.codec_combo = QtWidgets.QComboBox()
+        self.codec_combo.setFixedWidth(140)
+        self.codec_combo.setMinimumHeight(28)
+        self.codec_combo.setMaximumHeight(28)
+        self.codec_combo.setStyleSheet("""
+            QComboBox {
+                font-size: 13px;
+                padding: 2px 24px 2px 8px;
+                min-height: 28px;
+                max-height: 28px;
+                min-width: 100px;
+                max-width: 100px;
+                border-radius: 6px;
+                border: 1px solid #ccc;
+                background: #fff;
+                selection-background-color: #e3f1ff;
+            }
+            QComboBox::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 22px;
+                border-left: 1px solid #ccc;
+                border-top-right-radius: 6px;
+                border-bottom-right-radius: 6px;
+                background: transparent;
+            }
+            QComboBox::down-arrow {
+                image: url("sources/down_arrow.svg");
+                width: 14px;
+                height: 14px;
+            }
+            QComboBox:hover, QComboBox:focus {
+                border: 1.5px solid #4a90e2;
+                background: #f0f7ff;
+            }
+            QComboBox QAbstractItemView {
+                font-size: 13px;
+                border-radius: 6px;
+                background: #fff;
+                selection-background-color: #e3f1ff;
+                border: 1px solid #ccc;
+            }
+        """)
+        self.codec_combo.addItem("H.264 NVENC", "h264_nvenc")
+        self.codec_combo.addItem("H.265 NVENC", "hevc_nvenc")
+        self.codec_combo.addItem("H.264 libx264", "libx264")
+        self.codec_combo.addItem("H.265 HEVC", "libx265")
+        self.codec_combo.setCurrentIndex(0)
+        codec_layout.addWidget(codec_label)
+        codec_layout.addWidget(self.codec_combo)
+        codec_layout.addStretch()
+        layout.addLayout(codec_layout)
+
         # Create button
         self.create_btn = QPushButton("🚀 Create Video")
         self.create_btn.setFixedHeight(35)
@@ -374,6 +432,7 @@ class SuperCutUI(QWidget):
         # Sanitize export name
         export_name = self.sanitize_filename(export_name)
         folder = self.folder_edit.text().strip() or os.getcwd()
+        codec = self.codec_combo.currentData()  # Get the codec value, not the label
         if not media_sources:
             QMessageBox.warning(self, "⚠️ Missing Input", "Please select the media folder.", QMessageBox.Ok)
             return
@@ -414,7 +473,7 @@ class SuperCutUI(QWidget):
 
         # Set up worker and thread
         self._thread = QThread()
-        self._worker = VideoWorker(media_sources, export_name, number, folder)
+        self._worker = VideoWorker(media_sources, export_name, number, folder, codec)  # <-- Pass codec
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.progress.connect(self.on_worker_progress)
