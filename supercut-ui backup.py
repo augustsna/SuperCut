@@ -16,8 +16,8 @@ import ctypes
 import re
 
 # Set FFMPEG paths (use local ffmpeg folder)
-os.environ["FFMPEG_BINARY"] = os.path.abspath("ffmpeg/bin/ffmpeg.exe")
-os.environ["FFPLAY_BINARY"] = os.path.abspath("ffmpeg/bin/ffplay.exe")
+os.environ["FFMPEG_BINARY"] = os.path.abspath("C:/SuperCut/ffmpeg/bin/ffmpeg.exe")
+os.environ["FFPLAY_BINARY"] = os.path.abspath("C:/SuperCut/ffmpeg/bin/ffplay.exe")
 
 # Check if ffmpeg exists
 if not os.path.exists(os.environ["FFMPEG_BINARY"]):
