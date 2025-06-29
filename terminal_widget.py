@@ -110,7 +110,7 @@ class TerminalWidget(QWidget):
     def init_ui(self):
         """Initialize the terminal UI"""
         # Remove title bar and make frameless
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.FramelessWindowHint)
         self.setFixedSize(600, 400)
         
         # Set modern styling
@@ -229,7 +229,7 @@ class TerminalWidget(QWidget):
         self.terminal_output.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         
         # Set monospace font
-        font = QFont("Consolas", 10)
+        font = QFont("Consolas", 11)
         font.setStyleHint(QFont.Monospace)
         self.terminal_output.setFont(font)
         

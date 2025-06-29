@@ -106,7 +106,9 @@ def create_video_with_ffmpeg(
 
         # Display FFmpeg command
         print(f"FFmpeg Video Creation Command:")
-        print(f"  {' '.join(cmd)}")
+        # Show command with just 'ffmpeg' instead of full path
+        display_cmd = ['ffmpeg'] + cmd[1:]
+        print(f"  {' '.join(display_cmd)}")
         print()
 
         # Get audio duration for progress calculation
