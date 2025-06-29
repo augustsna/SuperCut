@@ -10,14 +10,13 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QPushButton, 
     QLabel, QFrame, QSizePolicy, QScrollBar, QApplication
 )
-from PyQt5.QtCore import QTimer, pyqtSignal, QThread, pyqtSlot, QPoint
+from PyQt5.QtCore import (
+    QTimer, pyqtSignal, QThread, pyqtSlot, QPoint, Qt
+)
 from PyQt5.QtGui import QFont, QTextCursor, QPalette, QColor, QIcon, QCursor, QMouseEvent
 import queue
 import threading
 import time
-
-# Import specific Qt constants to avoid linter errors
-from PyQt5.QtCore import Qt
 
 class ConsoleCapture:
     """Captures stdout and stderr to a queue"""
@@ -224,7 +223,10 @@ class TerminalWidget(QWidget):
         # Terminal output area
         self.terminal_output = QTextEdit()
         self.terminal_output.setReadOnly(True)
-        self.terminal_output.setLineWrapMode(QTextEdit.NoWrap)
+        self.terminal_output.setLineWrapMode(QTextEdit.WidgetWidth)
+        
+        # Disable horizontal scrollbar
+        self.terminal_output.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         
         # Set monospace font
         font = QFont("Consolas", 10)
@@ -306,9 +308,6 @@ class TerminalWidget(QWidget):
             parts = text.split('\r')
             if len(parts) > 1:
                 new_content = parts[-1]
-                # Limit line length to 75 characters
-                if len(new_content) > 75:
-                    new_content = new_content[:72] + "..."
                 # Replace the current line with new content
                 cursor.insertText(new_content)
             else:
@@ -319,9 +318,7 @@ class TerminalWidget(QWidget):
             cursor.movePosition(QTextCursor.End)
             self.terminal_output.setTextCursor(cursor)
             
-            # Limit line length to 75 characters
-            if len(text) > 75:
-                text = text[:72] + "..."
+            # Insert the full text without truncation
             self.terminal_output.insertPlainText(text)
         
         # Auto-scroll if enabled
