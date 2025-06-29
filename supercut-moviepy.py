@@ -7,16 +7,13 @@ from PyQt5.QtWidgets import (
     QPushButton, QVBoxLayout, QWidget, QHBoxLayout, QDialog, QSpacerItem, QSizePolicy
 )
 from PyQt5.QtCore import Qt, QSettings, QObject, QThread, pyqtSignal
+from moviepy import AudioFileClip, ImageClip, concatenate_audioclips
 import subprocess
 import shutil
 from PyQt5.QtGui import QIntValidator, QIcon, QMovie
 import tempfile
 import ctypes
 import re
-import json
-import atexit
-import threading
-import time
 
 # Set FFMPEG paths (use local ffmpeg folder)
 os.environ["FFMPEG_BINARY"] = os.path.abspath("C:/SuperCut/ffmpeg/bin/ffmpeg.exe")
@@ -28,153 +25,11 @@ if not os.path.exists(os.environ["FFMPEG_BINARY"]):
     QMessageBox.critical(None, "FFmpeg Not Found", "Could not find C:/SuperCut/ffmpeg/bin/ffmpeg.exe. Please ensure ffmpeg is present in the ffmpeg folder.")
     sys.exit(1)
 
-def get_audio_duration(file_path):
-    """Get audio duration using ffprobe"""
-    try:
-        cmd = [
-            os.environ["FFMPEG_BINARY"].replace("ffmpeg.exe", "ffprobe.exe"),
-            "-v", "quiet",
-            "-show_entries", "format=duration",
-            "-of", "json",
-            file_path
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        data = json.loads(result.stdout)
-        return float(data['format']['duration'])
-    except Exception as e:
-        print(f"Error getting duration for {file_path}: {e}")
-        return 0.0
-
-def merge_mp3s_with_ffmpeg(input_files, output_file):
-    """Merge multiple MP3 files using ffmpeg"""
-    try:
-        # Create a file list for ffmpeg
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
-            for file_path in input_files:
-                f.write(f"file '{file_path}'\n")
-            file_list_path = f.name
-        
-        # Use ffmpeg to concatenate
-        cmd = [
-            os.environ["FFMPEG_BINARY"],
-            "-f", "concat",
-            "-safe", "0",
-            "-i", file_list_path,
-            "-c", "copy",
-            output_file,
-            "-y"  # Overwrite output file
-        ]
-        
-        subprocess.run(cmd, check=True, capture_output=True)
-        
-        # Clean up file list
-        os.unlink(file_list_path)
-        return True
-    except Exception as e:
-        print(f"Error merging MP3s: {e}")
-        return False
-
-def create_video_with_ffmpeg(image_path, audio_path, output_path, resolution, fps, codec):
-    """Create video from image and audio using ffmpeg, print percent, frame, and ETA."""
-    try:
-        width, height = map(int, resolution.split('x'))
-        cmd = [
-            os.environ["FFMPEG_BINARY"],
-            "-loop", "1",
-            "-i", image_path,
-            "-i", audio_path,
-            "-c:v", codec,
-            "-c:a", "aac",
-            "-b:a", "384k",
-            "-ar", "48000",
-            "-ac", "2",
-            "-vf", f"scale={width}:{height}",
-            "-r", str(fps),
-            "-shortest",
-            "-y"
-        ]
-        if codec in ("libx264", "h264_nvenc"):
-            cmd.extend(["-preset", "slow", "-profile:v", "high", "-level:v", "4.2"])
-        cmd.extend([
-            "-movflags", "+faststart", "-b:v", "15M", "-maxrate", "20M",
-            "-bufsize", "24M", "-pix_fmt", "yuv420p", "-g", "120", "-bf", "2"
-        ])
-        if codec == "h264_nvenc":
-            cmd.extend(["-rc", "vbr_hq"])
-        cmd.append(output_path)
-
-        audio_duration = get_audio_duration(audio_path)
-        total_frames = int(audio_duration * fps)
-        process = subprocess.Popen(cmd, stderr=subprocess.PIPE, universal_newlines=True, bufsize=1)
-
-        start_time = time.time()
-        last_seconds = 0.0
-        last_update = time.time()
-        
-        def print_progress(seconds):
-            current_frame = int(seconds * fps)
-            percent = min(100.0, (current_frame / total_frames) * 100) if total_frames > 0 else 0
-            elapsed = time.time() - start_time
-            speed = (current_frame / elapsed) if elapsed > 0 else 0
-            remaining_frames = total_frames - current_frame
-            eta_sec = int(remaining_frames / speed) if speed > 0 else 0
-            eta_str = time.strftime('%H:%M:%S', time.gmtime(eta_sec)) if eta_sec > 0 else "--:--:--"
-            
-            sys.stdout.write(
-                f"\r  {percent:5.1f}% | Frame: {current_frame}/{total_frames} | ETA: {eta_str} "
-            )
-            sys.stdout.flush()
-
-        # Read ffmpeg output and interpolate between updates
-        seconds = 0.0
-        while True:
-            if process.stderr is None:
-                break
-            line = process.stderr.readline()
-            if not line:
-                break
-            match = re.search(r'time=(\d+):(\d+):(\d+\.\d+)', line)
-            if match:
-                h, m, s = map(float, match.groups())
-                seconds = h * 3600 + m * 60 + s
-                last_seconds = seconds
-                last_update = time.time()
-                print_progress(seconds)
-                
-                # Interpolate progress every 0.1s until next ffmpeg update
-                now = time.time()
-                while (now - last_update) < 0.3:  # Interpolate for 0.3s
-                    interp_seconds = last_seconds + (now - last_update)
-                    if interp_seconds > audio_duration:
-                        interp_seconds = audio_duration
-                    print_progress(interp_seconds)
-                    time.sleep(0.1)
-                    now = time.time()
-                    
-        process.wait()
-        
-        # Final update
-        sys.stdout.write(
-            f"\r  100.0% | Frame: {total_frames}/{total_frames} | ETA: 00:00:00 \n"
-        )
-        sys.stdout.flush()
-
-        return process.returncode == 0
-    except Exception as e:
-        print(f"Error creating video: {e}")
-        return False
-
 def merge_random_mp3s(selected_mp3s):
-    """Merge MP3 files using ffmpeg - returns output path and duration"""
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
-        output_path = tmp.name
-        TEMP_FILES.add(output_path)
-    
-    if merge_mp3s_with_ffmpeg(selected_mp3s, output_path):
-        duration = get_audio_duration(output_path)
-        return output_path, duration
-    else:
-        return None, 0.0
+    clips = [AudioFileClip(f) for f in selected_mp3s]
+    final_clip = concatenate_audioclips(clips)
+    # Do NOT close the clips here! Return them for later cleanup.
+    return final_clip, clips
 
 class WaitingDialog(QDialog):
     def __init__(self, parent=None):
@@ -235,17 +90,6 @@ class VideoWorker(QObject):
             used_images = set()
             total_batches = len(mp3_files) // 3
             batch_count = 0
-
-            # Before the batch loop, print export summary:
-            print("\n----- EXPORT SUMMARY -----")
-            print(f"Export Name   : {self.export_name}")
-            print(f"Output Folder : {self.folder}")
-            print(f"Codec        : {self.codec}")
-            print(f"Resolution   : {self.resolution}")
-            print(f"FPS          : {self.fps}")
-            print(f"Total Batches: {total_batches}")
-            print("--------------------------\n")
-
             while len(mp3_files) >= 3:
                 if self._stop:
                     self.finished.emit(mp3_files)
@@ -256,50 +100,76 @@ class VideoWorker(QObject):
                     used_images = set()
                     available_images = image_files[:]
                 if not available_images:
+                    # No images left, cannot continue
                     break
                 selected_image_name = random.choice(available_images)
                 selected_image = os.path.join(self.media_sources, selected_image_name)
                 used_images.add(selected_image_name)
+                # Merge and create video
+                clips = [AudioFileClip(f) for f in selected_mp3s]
+                final_clip = concatenate_audioclips(clips)
                 output_filename = f"{self.export_name}_{current_number}.mp4"
                 out = os.path.join(self.folder, output_filename)
-
-                print(f"\n--- Batch {batch_count + 1}/{total_batches} ---")
-                print(f"Output: {output_filename}")
-                print(f"Image: {os.path.basename(selected_image)}")
-                print("MP3s:", ", ".join(os.path.basename(mp3) for mp3 in selected_mp3s))
-
-                # Merge MP3s using ffmpeg
-                merged_audio_path, audio_duration = merge_random_mp3s(selected_mp3s)
-                if not merged_audio_path or audio_duration <= 0:
-                    self.error.emit(f"Failed to merge MP3 files or get duration")
-                    return
                 
+                audio_path = None
                 try:
-                    # Create video using ffmpeg
-                    if not create_video_with_ffmpeg(
-                        selected_image, 
-                        merged_audio_path, 
-                        out, 
-                        self.resolution, 
-                        self.fps, 
-                        self.codec
-                    ):
-                        self.error.emit(f"Failed to create video: {output_filename}")
-                        return
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+                        audio_path = tmp.name
+                        final_clip.write_audiofile(audio_path)
+                    
+                    audio = AudioFileClip(audio_path)
+                    width, height = map(int, self.resolution.split('x'))
+                    image = ImageClip(selected_image).with_duration(audio.duration).resized((width, height))
+                    video = image.with_audio(audio)
+                    
+                    ffmpeg_params = []
+                    if self.codec in ("libx264", "h264_nvenc"):
+                        ffmpeg_params += ["-preset", "slow"]
+                    if self.codec in ("libx264", "h264_nvenc"):
+                        ffmpeg_params += ["-profile:v", "high"]
+                        ffmpeg_params += ["-level:v", "4.2"]
+                    ffmpeg_params += ["-movflags", "+faststart"]
+                    ffmpeg_params += ["-b:v", "15M"]
+                    ffmpeg_params += ["-maxrate", "20M"]
+                    ffmpeg_params += ["-bufsize", "24M"]
+                    ffmpeg_params += ["-pix_fmt", "yuv420p"]
+                    ffmpeg_params += ["-g", "120"]
+                    ffmpeg_params += ["-bf", "2"]                    
+                    ffmpeg_params += ["-ac", "2"]  # Force audio to 2 channels (stereo)
+                    if self.codec == "h264_nvenc":
+                        ffmpeg_params += ["-rc", "vbr_hq"]
+
+                    video.write_videofile(
+                        out,
+                        fps=self.fps,
+                        codec=self.codec,
+                        audio_codec="aac",
+                        audio_bitrate="384k",
+                        audio_fps=48000,
+                        ffmpeg_params=ffmpeg_params
+                    )
+                    
+                    # Close all clips properly
+                    audio.close()
+                    image.close()
+                    video.close()
                     
                 except Exception as e:
                     # Ensure cleanup even if error occurs
-                    if merged_audio_path and os.path.exists(merged_audio_path):
+                    if audio_path and os.path.exists(audio_path):
                         try:
-                            os.remove(merged_audio_path)
+                            os.remove(audio_path)
                         except:
                             pass  # Ignore cleanup errors
                     raise e
                 finally:
-                    # Always cleanup temporary audio file
-                    if merged_audio_path and os.path.exists(merged_audio_path):
+                    # Always cleanup
+                    final_clip.close()
+                    for clip in clips:
+                        clip.close()
+                    if audio_path and os.path.exists(audio_path):
                         try:
-                            os.remove(merged_audio_path)
+                            os.remove(audio_path)
                         except:
                             pass  # Ignore cleanup errors
                 # Write log file in media folder
@@ -326,11 +196,9 @@ class VideoWorker(QObject):
                     img_ext = os.path.splitext(selected_image)[1]
                     img_new_name = f"{output_base}{img_ext}"
                     shutil.move(selected_image, os.path.join(bin_folder, img_new_name))
+                    image_files.remove(selected_image_name)
                 except Exception as move_err:
                     print(f"Failed to move {selected_image}: {move_err}")
-                finally:
-                    if selected_image_name in image_files:
-                        image_files.remove(selected_image_name)
                 current_number += 1
                 batch_count += 1
                 self.progress.emit(batch_count, total_batches)
@@ -1023,48 +891,12 @@ class SuperCutUI(QWidget):
         self.part2_edit.setText("")
 
     def closeEvent(self, event):
-        # If a video creation thread is running, warn the user
-        if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
-            reply = QMessageBox.question(
-                self,
-                "Quit Program",
-                "Video creation is running. Are you sure you want to quit?",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No
-            )
-            if reply == QMessageBox.Yes:
-                # Show waiting dialog
-                waiting_dialog = QMessageBox(self)
-                waiting_dialog.setWindowTitle("Please Wait")
-                waiting_dialog.setText("Waiting for current batch to finish...")
-                waiting_dialog.setStandardButtons(QMessageBox.NoButton)
-                waiting_dialog.show()
-                # Request stop
-                if hasattr(self, "_worker") and self._worker is not None:
-                    stop_method = getattr(self._worker, 'stop', None)
-                    if callable(stop_method):
-                        try:
-                            stop_method()
-                        except RuntimeError:
-                            pass
-                # Wait for thread to finish in a background thread, then close app after 3s
-                def wait_and_close():
-                    if self._thread is not None:
-                        self._thread.wait()
-                    time.sleep(3)
-                    waiting_dialog.close()
-                    app_instance = QApplication.instance()
-                    if app_instance is not None:
-                        app_instance.quit()
-                threading.Thread(target=wait_and_close, daemon=True).start()
-                event.ignore()
-                return
-            else:
-                event.ignore()
-                return
-        # Save window position and close as normal
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
+        # Fix: Only call isRunning if self._thread is not None
+        if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
+            self._thread.quit()
+            self._thread.wait()
         super().closeEvent(event)
 
 def set_low_priority():
@@ -1073,19 +905,6 @@ def set_low_priority():
         ctypes.windll.kernel32.SetPriorityClass(p, 0x00004000)  # BELOW_NORMAL_PRIORITY_CLASS
     except Exception:
         pass
-
-TEMP_FILES = set()
-
-def cleanup_temp_files():
-    for f in list(TEMP_FILES):
-        try:
-            if os.path.exists(f):
-                os.remove(f)
-        except Exception:
-            pass
-        TEMP_FILES.discard(f)
-
-atexit.register(cleanup_temp_files)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
