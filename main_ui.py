@@ -250,7 +250,11 @@ class SuperCutUI(QWidget):
 
     def setup_shortcuts(self):
         """Setup keyboard shortcuts"""
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.close)
+        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.close_window)
+
+    def close_window(self):
+        """Wrapper method for close() to fix PyQt slot type error"""
+        self.close()
 
     def show_terminal(self):
         """Show or create the terminal widget"""
@@ -260,8 +264,15 @@ class SuperCutUI(QWidget):
             self.terminal_widget.closed.connect(self.on_terminal_closed)
             # Position terminal intelligently based on main window position
             self.position_terminal_widget()
-        
-        self.terminal_widget.show_and_raise()
+            self.terminal_widget.show_and_raise()
+            # Update button text to show terminal is on
+            self.terminal_btn.setText("💻 Terminal ON")
+        else:
+            # Terminal exists, toggle it off
+            self.terminal_widget.close()
+            self.terminal_widget = None
+            # Update button text to show terminal is off
+            self.terminal_btn.setText("💻 Terminal")
 
     def position_terminal_widget(self):
         """Position the terminal widget intelligently based on main window position and screen space"""
@@ -334,6 +345,8 @@ class SuperCutUI(QWidget):
     def on_terminal_closed(self):
         """Handle terminal widget closed signal"""
         self.terminal_widget = None
+        # Reset button text when terminal is closed manually
+        self.terminal_btn.setText("💻 Terminal")
 
     def select_media_sources_folder(self):
         """Select media sources folder"""

@@ -8,12 +8,12 @@ import sys
 import os
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QPushButton, 
-    QLabel, QFrame, QSizePolicy, QScrollBar, QApplication
+    QLabel, QFrame, QSizePolicy, QScrollBar, QApplication, QShortcut
 )
 from PyQt5.QtCore import (
     QTimer, pyqtSignal, QThread, pyqtSlot, QPoint, Qt
 )
-from PyQt5.QtGui import QFont, QTextCursor, QPalette, QColor, QIcon, QCursor, QMouseEvent
+from PyQt5.QtGui import QFont, QTextCursor, QPalette, QColor, QIcon, QCursor, QMouseEvent, QKeySequence
 import queue
 import threading
 import time
@@ -116,35 +116,35 @@ class TerminalWidget(QWidget):
         # Set modern styling
         self.setStyleSheet("""
             QWidget {
-                background-color: #1e1e1e;
+                background-color: #2e2e2e;
                 color: #ffffff;
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                 font-size: 11px;
             }
             QTextEdit {
-                background-color: #0d1117;
-                border: 1px solid #30363d;
+                background-color: #1e1e1e;
+                border: 1px solid #404040;
                 border-radius: 6px;
                 padding: 8px;
                 selection-background-color: #58a6ff;
             }
             QPushButton {
-                background-color: #21262d;
-                border: 1px solid #30363d;
+                background-color: #404040;
+                border: 1px solid #505050;
                 border-radius: 4px;
                 padding: 6px 12px;
                 color: #ffffff;
                 font-weight: 500;
             }
             QPushButton:hover {
-                background-color: #30363d;
+                background-color: #505050;
                 border-color: #58a6ff;
             }
             QPushButton:pressed {
                 background-color: #1f6feb;
             }
             QLabel {
-                color: #8b949e;
+                color: #b0b0b0;
                 font-weight: 500;
             }
             #exitButton {
@@ -164,8 +164,8 @@ class TerminalWidget(QWidget):
                 border-color: #da3633;
             }
             #headerArea {
-                background-color: #21262d;
-                border-bottom: 1px solid #30363d;
+                background-color: #404040;
+                border-bottom: 1px solid #505050;
                 padding: 8px 12px;
             }
         """)
@@ -240,10 +240,6 @@ class TerminalWidget(QWidget):
         self.clear_btn.clicked.connect(self.clear_output)
         self.clear_btn.setFixedWidth(80)
         
-        self.copy_btn = QPushButton("Copy All")
-        self.copy_btn.clicked.connect(self.copy_output)
-        self.copy_btn.setFixedWidth(80)
-        
         self.auto_scroll_btn = QPushButton("Auto-scroll: ON")
         self.auto_scroll_btn.setCheckable(True)
         self.auto_scroll_btn.setChecked(True)
@@ -251,7 +247,6 @@ class TerminalWidget(QWidget):
         self.auto_scroll_btn.setFixedWidth(140)
         
         button_layout.addWidget(self.clear_btn)
-        button_layout.addWidget(self.copy_btn)
         button_layout.addStretch()
         button_layout.addWidget(self.auto_scroll_btn)
         
@@ -269,6 +264,9 @@ class TerminalWidget(QWidget):
         self.append_output("SuperCut Terminal initialized...\n")
         self.append_output("Console output will appear here.\n")
         self.append_output("-" * 50 + "\n")
+        
+        # Setup keyboard shortcuts
+        QShortcut(QKeySequence("Ctrl+W"), self, self.close_terminal)
         
     def close_terminal(self):
         """Close the terminal widget"""
@@ -329,13 +327,6 @@ class TerminalWidget(QWidget):
         """Clear terminal output"""
         self.terminal_output.clear()
         self.append_output("Terminal cleared.\n")
-        
-    def copy_output(self):
-        """Copy all terminal output to clipboard"""
-        text = self.terminal_output.toPlainText()
-        # For now, just show a message about the text length
-        self.append_output(f"Output text ({len(text)} characters) ready for manual copy.\n")
-        self.append_output("Select the text above and use Ctrl+C to copy.\n")
         
     def toggle_auto_scroll(self):
         """Toggle auto-scroll functionality"""

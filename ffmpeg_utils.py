@@ -122,6 +122,7 @@ def create_video_with_ffmpeg(
         start_time = time.time()
         last_seconds = 0.0
         last_update = time.time()
+        current_its = "--"  # Track current it/s value
         
         def print_progress(seconds: float):
             """Print progress information"""
@@ -134,7 +135,7 @@ def create_video_with_ffmpeg(
             eta_str = time.strftime('%H:%M:%S', time.gmtime(eta_sec)) if eta_sec > 0 else "--:--:--"
             
             sys.stdout.write(
-                f"\r  {percent:5.1f}% | Frame: {current_frame}/{total_frames} | ETA: {eta_str} "
+                f"\r  {percent:5.1f}% | Frame: {current_frame}/{total_frames} | ETA: {eta_str} | it/s: {current_its} "
             )
             sys.stdout.flush()
 
@@ -146,6 +147,23 @@ def create_video_with_ffmpeg(
             line = process.stderr.readline()
             if not line:
                 break
+                
+            # Parse it/s from ffmpeg output
+            its_patterns = [
+                r'speed=(\d+\.?\d*)x',  # speed=2.5x format
+                r'fps=(\d+\.?\d*)',     # fps=25.5 format
+                r'(\d+\.?\d*)\s*it/s',  # 25.5 it/s format
+            ]
+            
+            for pattern in its_patterns:
+                match = re.search(pattern, line)
+                if match:
+                    try:
+                        its_value = float(match.group(1))
+                        current_its = f"{its_value:.1f}"
+                        break
+                    except ValueError:
+                        continue
                 
             # Parse time from ffmpeg output
             match = re.search(r'time=(\d+):(\d+):(\d+\.\d+)', line)
@@ -170,7 +188,7 @@ def create_video_with_ffmpeg(
         
         # Final progress update
         sys.stdout.write(
-            f"\r  100.0% | Frame: {total_frames}/{total_frames} | ETA: 00:00:00 \n"
+            f"\r  100.0% | Frame: {total_frames}/{total_frames} | ETA: 00:00:00 | it/s: {current_its} \n"
         )
         sys.stdout.flush()
 
