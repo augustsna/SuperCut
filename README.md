@@ -1,151 +1,80 @@
-# SuperCut Video Maker - Modular Version
+# SuperCut Video Maker
 
-A modular video creation application that combines images and audio files into videos using FFmpeg.
+A powerful video creation tool that combines images with audio files to generate videos in batch processing mode.
 
-## Project Structure
+## Features
 
-The application has been deconstructed into smaller, focused modules:
+- **Batch Video Creation**: Process multiple videos simultaneously using 3 MP3 files per video
+- **Drag & Drop Interface**: Easy folder selection with drag and drop support
+- **Customizable Export Settings**: Control video codec, resolution, and FPS
+- **File Management**: Automatic organization of processed files into bin folders
+- **Cross-Platform**: Works on Windows, macOS, and Linux
 
-### Core Modules
+## Installation
 
-- **`main.py`** - Main entry point and application startup
-- **`config.py`** - Configuration settings, constants, and FFmpeg paths
-- **`utils.py`** - Utility functions for file operations, validation, and system utilities
-- **`ffmpeg_utils.py`** - FFmpeg-specific operations (audio merging, video creation, progress tracking)
-- **`video_worker.py`** - Background worker for video processing
-- **`ui_components.py`** - Reusable UI components and dialogs
-- **`main_ui.py`** - Main application window and UI logic
+### Prerequisites
+- Python 3.7 or higher
+- PyQt5
+- FFmpeg (automatically extracted on first run)
 
-### Module Responsibilities
-
-#### `config.py`
-- FFmpeg binary paths and environment setup
-- UI configuration (window size, styles, etc.)
-- Video encoding settings and defaults
-- File extension definitions
-- Style sheet definitions
-
-#### `utils.py`
-- File type detection and validation
-- Temporary file management
-- System utilities (desktop folder, file explorer)
-- Input validation functions
-- Filename sanitization
-
-#### `ffmpeg_utils.py`
-- Audio duration extraction using ffprobe
-- MP3 file merging with progress tracking
-- Video creation from image + audio
-- Real-time progress reporting
-- FFmpeg command building
-
-#### `video_worker.py`
-- Background video processing
-- Batch processing logic
-- File organization and cleanup
-- Progress signaling to UI
-- Error handling and recovery
-
-#### `ui_components.py`
-- Custom drag-and-drop line edit
-- Progress dialogs (waiting, stopped, success)
-- Reusable dialog components
-- Consistent styling
-
-#### `main_ui.py`
-- Main application window
-- UI layout and component management
-- User interaction handling
-- Thread management
-- Settings persistence
-
-## Benefits of Modular Structure
-
-1. **Maintainability** - Each module has a single responsibility
-2. **Testability** - Individual modules can be tested in isolation
-3. **Reusability** - Components can be reused in other projects
-4. **Readability** - Code is organized logically and easy to navigate
-5. **Scalability** - New features can be added without affecting existing code
+### Setup
+1. Clone or download the repository
+2. Install required Python packages:
+   ```bash
+   pip install PyQt5
+   ```
+3. Run the application:
+   ```bash
+   python main_ui.py
+   ```
 
 ## Usage
 
-### Running the Application
+### Basic Workflow
+1. **Select Media Folder**: Choose a folder containing your MP3 and image files
+2. **Set Export Name**: Enter a base name for your videos (e.g., "MyVideo")
+3. **Set Start Number**: Enter the starting number for video naming (e.g., 1)
+4. **Choose Output Folder**: Select where to save the generated videos
+5. **Configure Settings**: Adjust codec, resolution, and FPS as needed
+6. **Create Videos**: Click "Create Video" to start batch processing
 
-```bash
-python main.py
-```
+### File Requirements
+- **MP3 Files**: At least 3 MP3 files per video (processed in groups of 3)
+- **Image Files**: JPG or PNG files (one per video)
+- **Output**: MP4 videos with merged audio
 
-### Requirements
-
-- Python 3.6+
-- PyQt5
-- FFmpeg (must be installed in `C:/SuperCut/ffmpeg/bin/`)
-
-### Features
-
-- **Drag & Drop** - Drop folders directly into the UI
-- **Batch Processing** - Process multiple videos automatically
-- **Progress Tracking** - Real-time progress with ETA
-- **Multiple Codecs** - Support for H.264 NVENC and libx264
-- **Various Resolutions** - Full HD, 4K, Vertical, Square formats
-- **File Organization** - Automatic organization of processed files
-- **Error Handling** - Comprehensive error handling and recovery
-
-## File Organization
-
-The application automatically organizes files:
-
-- **Input**: MP3 and image files in the media folder
-- **Output**: MP4 videos in the output folder
-- **Bin Folder**: Processed files moved to `bin/` subfolder with logs
+### Batch Processing
+- Each video uses 3 MP3 files and 1 image
+- Files are automatically moved to a "bin" folder after processing
+- Log files are created for each video showing which files were used
 
 ## Configuration
 
-Edit `config.py` to modify:
-- FFmpeg paths
-- Default video settings
-- UI styling
-- File extensions
-- Window properties
+### Video Settings
+- **Codec**: libx264 (default), libx265, or other FFmpeg codecs
+- **Resolution**: 1920x1080, 1280x720, 854x480, or custom
+- **FPS**: 24, 30, 60, or custom frame rates
+
+## Troubleshooting
+
+### Common Issues
+1. **No image files found**: Ensure your media folder contains JPG or PNG files
+2. **Not enough MP3 files**: You need at least 3 MP3 files to start processing
+3. **FFmpeg not found**: The application will automatically extract FFmpeg on first run
+
+### Error Handling
+- Error messages provide specific information about what went wrong
+- Temporary files are automatically cleaned up on errors
 
 ## Development
 
-### Adding New Features
+### Architecture
+- **main_ui.py**: Main application interface
+- **ui_components.py**: UI components and dialogs
+- **video_worker.py**: Background video processing
+- **ffmpeg_utils.py**: FFmpeg integration utilities
+- **utils.py**: General utility functions
 
-1. **UI Components** - Add to `ui_components.py`
-2. **FFmpeg Operations** - Add to `ffmpeg_utils.py`
-3. **Utility Functions** - Add to `utils.py`
-4. **Configuration** - Add to `config.py`
-5. **Main Logic** - Add to `main_ui.py` or `video_worker.py`
+## License
 
-### Testing Individual Modules
-
-Each module can be tested independently:
-
-```python
-# Test utils
-from utils import validate_inputs
-result, error = validate_inputs("folder", "name", "123")
-print(result, error)
-
-# Test ffmpeg utils
-from ffmpeg_utils import get_audio_duration
-duration = get_audio_duration("audio.mp3")
-print(duration)
-```
-
-## Error Handling
-
-The application includes comprehensive error handling:
-- FFmpeg installation validation
-- Input validation
-- File existence checks
-- Process interruption handling
-- Temporary file cleanup
-
-## Performance
-
-- Background processing prevents UI freezing
-- Low priority process setting for better system performance
-- Efficient file handling and cleanup
-- Progress tracking with minimal overhead 
+This project is open source and available under the MIT License. 

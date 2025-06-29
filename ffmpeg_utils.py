@@ -18,6 +18,7 @@ def get_audio_duration(file_path: str) -> float:
             "-of", "json",
             file_path
         ]
+        
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         data = json.loads(result.stdout)
         return float(data['format']['duration'])
@@ -102,6 +103,11 @@ def create_video_with_ffmpeg(
             cmd.extend(["-rc", "vbr_hq"])
         
         cmd.append(output_path)
+
+        # Display FFmpeg command
+        print(f"FFmpeg Video Creation Command:")
+        print(f"  {' '.join(cmd)}")
+        print()
 
         # Get audio duration for progress calculation
         audio_duration = get_audio_duration(audio_path)

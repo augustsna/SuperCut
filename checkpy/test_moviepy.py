@@ -5,5 +5,4 @@ os.environ["FFPLAY_BINARY"] = os.path.abspath("ffmpeg/bin/ffplay.exe")
 
 from moviepy import *
 
-print("MoviePy is working!")
-
+print("MoviePy is working!") 

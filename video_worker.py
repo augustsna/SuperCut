@@ -77,12 +77,17 @@ class VideoWorker(QObject):
                 batch_count += 1
                 self.progress.emit(batch_count, total_batches)
                 
-            # Return leftover files
-            left_mp3 = len(mp3_files)
-            self.finished.emit(mp3_files if left_mp3 > 0 else [])
+            # Print final completion message
+            print(f"\n🎉 All {total_batches} batches completed successfully!")
+            print(f"Output folder: {self.folder}")
+            
+            # Emit finished signal with leftover files
+            self.finished.emit(mp3_files)
             
         except Exception as e:
-            self.error.emit(str(e))
+            error_msg = f"Error during video creation: {str(e)}"
+            print(f"❌ {error_msg}")
+            self.error.emit(error_msg)
 
     def _print_export_summary(self, total_batches: int):
         """Print export configuration summary"""
@@ -155,6 +160,12 @@ class VideoWorker(QObject):
             output_filename, output_path, selected_image, 
             selected_mp3s, mp3_files, image_files, selected_image_name
         )
+        
+        # Emit progress signal
+        self.progress.emit(batch_count + 1, total_batches)
+        
+        # Print completion message
+        print(f"✓ Batch {batch_count + 1}/{total_batches} completed: {output_filename}")
         
         return True
 

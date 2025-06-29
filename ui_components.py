@@ -1,12 +1,14 @@
 import os
 import sys
+import time
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import (
     QDialog, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, 
-    QSpacerItem, QSizePolicy, QLineEdit, QProgressBar
+    QSpacerItem, QSizePolicy, QLineEdit, QProgressBar, QWidget,
+    QScrollArea, QFrame, QTextEdit, QTableWidget, QTableWidgetItem, QHeaderView
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QMovie, QIcon
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QMovie, QIcon, QFont
 
 class FolderDropLineEdit(QLineEdit):
     """Custom QLineEdit that accepts folder drag and drop"""
@@ -38,7 +40,7 @@ class WaitingDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Running...")
         self.setModal(True)
-        self.setFixedSize(180, 120)
+        self.setFixedSize(180, 150)
         
         layout = QVBoxLayout(self)
         
@@ -58,6 +60,12 @@ class WaitingDialog(QDialog):
         self.spinner.setMovie(self.movie)
         layout.addWidget(self.spinner)
         self.movie.start()
+        
+        # OK button
+        self.ok_button = QPushButton("OK")
+        self.ok_button.setFixedHeight(30)
+        self.ok_button.clicked.connect(self.accept)
+        layout.addWidget(self.ok_button)
 
 class PleaseWaitDialog(QDialog):
     """Dialog shown when stopping video creation"""

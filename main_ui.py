@@ -5,10 +5,14 @@ import time
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QPushButton, QFileDialog, QMessageBox, QSpacerItem, QSizePolicy
+    QPushButton, QFileDialog, QMessageBox, QSpacerItem, QSizePolicy, QDesktopWidget
 )
 from PyQt5.QtCore import Qt, QSettings, QThread
 from PyQt5.QtGui import QIntValidator, QIcon
+
+# Force console output to be visible
+sys.stdout.flush()
+sys.stderr.flush()
 
 from config import (
     WINDOW_SIZE, WINDOW_TITLE, ICON_PATH, STYLE_SHEET,
@@ -25,6 +29,7 @@ from ui_components import (
     StoppedDialog, SuccessDialog
 )
 from video_worker import VideoWorker
+from terminal_widget import TerminalWidget
 
 class SuperCutUI(QWidget):
     """Main application window for SuperCut Video Maker"""
@@ -37,6 +42,7 @@ class SuperCutUI(QWidget):
         self._stopped_by_user = False
         self._auto_close_on_stop = False
         self._stopping_msgbox = None
+        self.terminal_widget = None
         
         self.init_ui()
         self.restore_window_position()
@@ -126,6 +132,7 @@ class SuperCutUI(QWidget):
         
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
+        self.folder_edit.textChanged.connect(self.update_output_name)
         
         part_layout.addWidget(QLabel("Export name:"))
         part_layout.addWidget(self.part1_edit)
@@ -194,10 +201,21 @@ class SuperCutUI(QWidget):
 
     def create_action_buttons(self, layout):
         """Create action buttons"""
+        button_layout = QHBoxLayout()
+        
         self.create_btn = QPushButton("🚀 Create Video")
         self.create_btn.setFixedHeight(35)
         self.create_btn.clicked.connect(self.create_video)
-        layout.addWidget(self.create_btn)
+        button_layout.addWidget(self.create_btn)
+        
+        # Add terminal button
+        self.terminal_btn = QPushButton("💻 Terminal")
+        self.terminal_btn.setFixedHeight(35)
+        self.terminal_btn.setFixedWidth(100)
+        self.terminal_btn.clicked.connect(self.show_terminal)
+        button_layout.addWidget(self.terminal_btn)
+        
+        layout.addLayout(button_layout)
 
     def create_progress_controls(self, layout):
         """Create progress bar and stop button"""
@@ -226,10 +244,96 @@ class SuperCutUI(QWidget):
         pos = settings.value('window_position')
         if pos:
             self.move(pos)
+        else:
+            # Set initial position to top-left corner (0,0)
+            self.move(0, 0)
 
     def setup_shortcuts(self):
         """Setup keyboard shortcuts"""
         QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.close)
+
+    def show_terminal(self):
+        """Show or create the terminal widget"""
+        if self.terminal_widget is None:
+            self.terminal_widget = TerminalWidget()
+            # Connect to the closed signal
+            self.terminal_widget.closed.connect(self.on_terminal_closed)
+            # Position terminal intelligently based on main window position
+            self.position_terminal_widget()
+        
+        self.terminal_widget.show_and_raise()
+
+    def position_terminal_widget(self):
+        """Position the terminal widget intelligently based on main window position and screen space"""
+        if not self.terminal_widget:
+            return
+            
+        # Get main window position and size
+        main_pos = self.pos()
+        main_width = self.width()
+        main_height = self.height()
+        
+        # Get terminal widget size
+        terminal_width = self.terminal_widget.width()
+        terminal_height = self.terminal_widget.height()
+        
+        # Get screen geometry
+        desktop = QDesktopWidget()
+        screen_geometry = desktop.screenGeometry(self)
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
+        
+        # Calculate available space on left and right
+        space_on_right = screen_width - (main_pos.x() + main_width)
+        space_on_left = main_pos.x()
+        
+        # Determine optimal position
+        if space_on_right >= terminal_width + 10:
+            # Enough space on the right - position there
+            terminal_x = main_pos.x() + main_width + 10
+            terminal_y = main_pos.y()
+            position_side = "right"
+        elif space_on_left >= terminal_width + 10:
+            # Enough space on the left - position there
+            terminal_x = main_pos.x() - terminal_width - 10
+            terminal_y = main_pos.y()
+            position_side = "left"
+        else:
+            # Not enough space on either side, try to fit it
+            if space_on_right > space_on_left:
+                # More space on right, try to fit there
+                terminal_x = main_pos.x() + main_width + 5
+                terminal_y = main_pos.y()
+                position_side = "right (tight)"
+            else:
+                # More space on left, try to fit there
+                terminal_x = main_pos.x() - terminal_width - 5
+                terminal_y = main_pos.y()
+                position_side = "left (tight)"
+        
+        # Ensure terminal doesn't go off-screen vertically
+        if terminal_y + terminal_height > screen_height:
+            terminal_y = screen_height - terminal_height - 10
+        
+        if terminal_y < 0:
+            terminal_y = 10
+        
+        # Ensure terminal doesn't go off-screen horizontally
+        if terminal_x + terminal_width > screen_width:
+            terminal_x = screen_width - terminal_width - 10
+        
+        if terminal_x < 0:
+            terminal_x = 10
+        
+        # Position the terminal widget
+        self.terminal_widget.move(terminal_x, terminal_y)
+        
+        # Update terminal title to show positioning
+        self.terminal_widget.setWindowTitle(f"SuperCut Terminal [{position_side}]")
+
+    def on_terminal_closed(self):
+        """Handle terminal widget closed signal"""
+        self.terminal_widget = None
 
     def select_media_sources_folder(self):
         """Select media sources folder"""
@@ -473,6 +577,11 @@ class SuperCutUI(QWidget):
 
     def closeEvent(self, event):
         """Handle window close event"""
+        # Close terminal widget if it exists
+        if hasattr(self, 'terminal_widget') and self.terminal_widget is not None:
+            self.terminal_widget.close()
+            self.terminal_widget = None
+            
         # If a video creation thread is running, warn the user
         if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
             reply = QMessageBox.question(
@@ -519,4 +628,39 @@ class SuperCutUI(QWidget):
         # Save window position and close as normal
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
-        super().closeEvent(event) 
+        super().closeEvent(event)
+
+    def moveEvent(self, event):
+        """Handle window move event to reposition terminal widget"""
+        super().moveEvent(event)
+        # Reposition terminal widget if it exists and is visible
+        if (hasattr(self, 'terminal_widget') and 
+            self.terminal_widget is not None and 
+            self.terminal_widget.isVisible()):
+            self.position_terminal_widget()
+
+def main():
+    """Main application entry point"""
+    # Ensure console output is visible
+    print("Starting SuperCut Video Maker...")
+    print("Console output will be visible here during video processing.")
+    
+    app = QApplication(sys.argv)
+    app.setApplicationName("SuperCut")
+    app.setApplicationVersion("1.0")
+    
+    # Check FFmpeg installation
+    if not check_ffmpeg_installation():
+        print("Warning: FFmpeg not found. The application will attempt to extract it on first use.")
+    
+    window = SuperCutUI()
+    window.show()
+    
+    print("Application started successfully!")
+    print("You can now use the GUI to create videos.")
+    print("Console output will show during video processing...")
+    
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main() 
