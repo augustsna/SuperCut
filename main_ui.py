@@ -43,6 +43,7 @@ class SuperCutUI(QWidget):
         self._auto_close_on_stop = False
         self._stopping_msgbox = None
         self.terminal_widget = None
+        self.settings = QSettings('SuperCut', 'SuperCutUI')
         
         self.init_ui()
         self.restore_window_position()
@@ -189,9 +190,15 @@ class SuperCutUI(QWidget):
         self.fps_combo.setMaximumHeight(28)
         for label, value in DEFAULT_FPS_OPTIONS:
             self.fps_combo.addItem(label, value)
-        # Set default to 60 FPS if available
-        default_fps_index = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == 30), 0)
-        self.fps_combo.setCurrentIndex(default_fps_index)
+        # Restore last used FPS from settings if available
+        last_fps = self.settings.value('last_fps', type=int)
+        if last_fps is not None:
+            fps_index = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == last_fps), 0)
+            self.fps_combo.setCurrentIndex(fps_index)
+        else:
+            default_fps_index = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == 24), 0)
+            self.fps_combo.setCurrentIndex(default_fps_index)
+        self.fps_combo.currentIndexChanged.connect(self.save_fps_setting)
         settings_layout.addWidget(fps_label)
         settings_layout.addSpacing(6)
         settings_layout.addWidget(self.fps_combo)
@@ -635,6 +642,9 @@ class SuperCutUI(QWidget):
 
     def closeEvent(self, event):
         """Handle window close event"""
+        # Save FPS setting on close
+        if hasattr(self, 'fps_combo'):
+            self.save_fps_setting()
         # Close terminal widget if it exists
         if hasattr(self, 'terminal_widget') and self.terminal_widget is not None:
             self.terminal_widget.close()
@@ -703,6 +713,11 @@ class SuperCutUI(QWidget):
         if folder and not self.folder_edit.text().strip():
             self.folder_edit.setText(folder)
             self.update_output_name()
+
+    def save_fps_setting(self):
+        """Save the currently selected FPS to settings"""
+        fps = self.fps_combo.currentData()
+        self.settings.setValue('last_fps', fps)
 
 def main():
     """Main application entry point"""
