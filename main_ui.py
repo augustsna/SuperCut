@@ -70,6 +70,8 @@ class SuperCutUI(QWidget):
         
         self.setLayout(layout)
         self.update_output_name()
+        # Connect drag/drop or text change for media_sources_edit
+        self.media_sources_edit.editingFinished.connect(self.on_media_folder_changed)
 
     def create_folder_inputs(self, layout):
         """Create folder selection inputs"""
@@ -93,6 +95,7 @@ class SuperCutUI(QWidget):
         media_sources_btn = QPushButton("Select Folder")
         media_sources_btn.setFixedWidth(folder_row_style["btn_width"])
         media_sources_btn.clicked.connect(self.select_media_sources_folder)
+        self.media_sources_select_btn = media_sources_btn
         
         media_sources_layout.addWidget(label_media)
         media_sources_layout.addWidget(self.media_sources_edit)
@@ -113,6 +116,7 @@ class SuperCutUI(QWidget):
         folder_btn = QPushButton("Select Folder")
         folder_btn.setFixedWidth(folder_row_style["btn_width"])
         folder_btn.clicked.connect(self.select_output_folder)
+        self.output_folder_select_btn = folder_btn
         
         folder_layout.addWidget(label_output)
         folder_layout.addWidget(self.folder_edit)
@@ -185,7 +189,9 @@ class SuperCutUI(QWidget):
         self.fps_combo.setMaximumHeight(28)
         for label, value in DEFAULT_FPS_OPTIONS:
             self.fps_combo.addItem(label, value)
-        self.fps_combo.setCurrentIndex(0)
+        # Set default to 60 FPS if available
+        default_fps_index = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == 60), 0)
+        self.fps_combo.setCurrentIndex(default_fps_index)
         settings_layout.addWidget(fps_label)
         settings_layout.addSpacing(6)
         settings_layout.addWidget(self.fps_combo)
@@ -417,7 +423,10 @@ class SuperCutUI(QWidget):
         # Sanitize export name
         export_name = sanitize_filename(export_name)
         
-        folder = self.folder_edit.text().strip() or os.getcwd()
+        folder = self.folder_edit.text().strip()
+        if not folder:
+            QMessageBox.warning(self, "⚠️ Missing Output Folder", "Please select or enter an output folder.", QMessageBox.Ok)
+            return
         codec = self.codec_combo.currentData()
         resolution = self.resolution_combo.currentData()
         fps = self.fps_combo.currentData()
@@ -444,7 +453,17 @@ class SuperCutUI(QWidget):
         self.stop_btn.setVisible(True)
         self.running_widget.setVisible(True)
         self.spinner_movie.start()
-        # self.create_btn.setEnabled(False)  # Disabled for now
+        # Disable all relevant controls during video creation
+        self.create_btn.setEnabled(False)
+        self.codec_combo.setEnabled(False)
+        self.resolution_combo.setEnabled(False)
+        self.fps_combo.setEnabled(False)
+        self.media_sources_edit.setEnabled(False)
+        self.folder_edit.setEnabled(False)
+        self.part1_edit.setEnabled(False)
+        self.part2_edit.setEnabled(False)
+        self.media_sources_select_btn.setEnabled(False)
+        self.output_folder_select_btn.setEnabled(False)
 
         # Track original files for leftovers
         original_mp3_files = set(mp3_files)
@@ -486,6 +505,15 @@ class SuperCutUI(QWidget):
         self.running_widget.setVisible(False)
         self.spinner_movie.stop()
         self.create_btn.setEnabled(True)
+        self.codec_combo.setEnabled(True)
+        self.resolution_combo.setEnabled(True)
+        self.fps_combo.setEnabled(True)
+        self.media_sources_edit.setEnabled(True)
+        self.folder_edit.setEnabled(True)
+        self.part1_edit.setEnabled(True)
+        self.part2_edit.setEnabled(True)
+        self.media_sources_select_btn.setEnabled(True)
+        self.output_folder_select_btn.setEnabled(True)
         QMessageBox.critical(self, "❌ Error", message)
         self._worker = None
         self._thread = None
@@ -527,6 +555,15 @@ class SuperCutUI(QWidget):
         self.running_widget.setVisible(False)
         self.spinner_movie.stop()
         self.create_btn.setEnabled(True)
+        self.codec_combo.setEnabled(True)
+        self.resolution_combo.setEnabled(True)
+        self.fps_combo.setEnabled(True)
+        self.media_sources_edit.setEnabled(True)
+        self.folder_edit.setEnabled(True)
+        self.part1_edit.setEnabled(True)
+        self.part2_edit.setEnabled(True)
+        self.media_sources_select_btn.setEnabled(True)
+        self.output_folder_select_btn.setEnabled(True)
         
         # Calculate leftover images
         used_mp3s = set(original_mp3_files) - set(leftover_mp3s)
@@ -659,6 +696,13 @@ class SuperCutUI(QWidget):
             self.terminal_widget is not None and 
             self.terminal_widget.isVisible()):
             self.position_terminal_widget()
+
+    def on_media_folder_changed(self):
+        """When media folder is changed, set output folder to same only if output folder is empty"""
+        folder = self.media_sources_edit.text().strip()
+        if folder and not self.folder_edit.text().strip():
+            self.folder_edit.setText(folder)
+            self.update_output_name()
 
 def main():
     """Main application entry point"""
