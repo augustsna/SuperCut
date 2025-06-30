@@ -52,14 +52,14 @@ class VideoWorker(QObject):
                 
             current_number = start_number
             used_images = set()
-            total_batches = len(mp3_files) // 3
+            total_batches = min(len(image_files), len(mp3_files) // 3)
             batch_count = 0
 
             # Print export summary
             self._print_export_summary(total_batches)
 
             # Process batches
-            while len(mp3_files) >= 3:
+            while len(mp3_files) >= 3 and batch_count < total_batches:
                 if self._stop:
                     self.finished.emit(mp3_files)
                     return
