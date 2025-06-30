@@ -78,7 +78,7 @@ class VideoWorker(QObject):
                 self.progress.emit(batch_count, total_batches)
                 
             # Print final completion message
-            print(f"\n🎉 All {total_batches} batches completed successfully!")
+            print(f"\n💫 All {total_batches} batches completed successfully!")
             print(f"Output folder: {self.folder}")
             
             # Emit finished signal with leftover files

@@ -197,18 +197,37 @@ class SuperCutUI(QWidget):
         """Create action buttons"""
         button_layout = QHBoxLayout()
 
-        # Add terminal button first
+        # Add terminal button first, fixed to the left
         self.terminal_btn = QPushButton("💻 Terminal")
         self.terminal_btn.setFixedHeight(35)
         self.terminal_btn.setFixedWidth(100)
         self.terminal_btn.clicked.connect(self.show_terminal)
         button_layout.addWidget(self.terminal_btn)
 
-        # Then add create video button
+        # Then add create video button, always after terminal
         self.create_btn = QPushButton("🚀 Create Video")
         self.create_btn.setFixedHeight(35)
+        self.create_btn.setFixedWidth(380)
         self.create_btn.clicked.connect(self.create_video)
         button_layout.addWidget(self.create_btn)
+
+        button_layout.addStretch()  # Pushes spinner to the far right
+
+        # Add spinner widget (always visible)
+        self.running_widget = QtWidgets.QWidget()
+        running_layout = QHBoxLayout(self.running_widget)
+        running_layout.setContentsMargins(0, 0, 0, 0)
+        running_layout.setSpacing(0)
+        # Spinner GIF only
+        self.spinner_label = QLabel()
+        self.spinner_movie = QtGui.QMovie(os.path.join(os.path.dirname(__file__), "sources/spinner.gif"))
+        self.spinner_label.setMovie(self.spinner_movie)
+        self.spinner_label.setFixedSize(35, 35)
+        running_layout.addWidget(self.spinner_label)
+        self.running_widget.setFixedHeight(40)
+        self.running_widget.setFixedWidth(50)
+        self.running_widget.setVisible(True)
+        button_layout.addWidget(self.running_widget)
 
         layout.addLayout(button_layout)
 
@@ -421,20 +440,15 @@ class SuperCutUI(QWidget):
         self.progress_bar.setValue(0)
         self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
         self.progress_bar.setVisible(True)
+        self.stop_btn.setEnabled(True)
+        self.stop_btn.setVisible(True)
+        self.running_widget.setVisible(True)
+        self.spinner_movie.start()
+        # self.create_btn.setEnabled(False)  # Disabled for now
 
         # Track original files for leftovers
         original_mp3_files = set(mp3_files)
         original_image_files = set(image_files)
-
-        # Show waiting dialog
-        self.waiting_dialog = WaitingDialog(self)
-        self.waiting_dialog.show()
-        QtWidgets.QApplication.processEvents()
-        
-        # Enable stop button
-        self.stop_btn.setEnabled(True)
-        self.stop_btn.setVisible(True)
-        self.create_btn.setEnabled(False)
 
         # Set up worker and thread
         self._thread = QThread()
@@ -467,9 +481,10 @@ class SuperCutUI(QWidget):
     def on_worker_error(self, message):
         """Handle worker errors"""
         self.progress_bar.setVisible(False)
-        self.waiting_dialog.close()
         self.stop_btn.setEnabled(False)
         self.stop_btn.setVisible(False)
+        self.running_widget.setVisible(False)
+        self.spinner_movie.stop()
         self.create_btn.setEnabled(True)
         QMessageBox.critical(self, "❌ Error", message)
         self._worker = None
@@ -499,9 +514,6 @@ class SuperCutUI(QWidget):
         self._stopping_msgbox = PleaseWaitDialog(self)
         self._stopping_msgbox.show()
         
-        if hasattr(self, "waiting_dialog") and self.waiting_dialog is not None:
-            self.waiting_dialog.close()
-            
         self.progress_bar.setVisible(False)
         self.create_btn.setEnabled(True)
         self._auto_close_on_stop = False
@@ -510,9 +522,10 @@ class SuperCutUI(QWidget):
     def on_worker_finished_with_leftovers(self, leftover_mp3s, original_mp3_files, original_image_files):
         """Handle worker completion with leftover files"""
         self.progress_bar.setVisible(False)
-        self.waiting_dialog.close()
         self.stop_btn.setEnabled(False)
         self.stop_btn.setVisible(False)
+        self.running_widget.setVisible(False)
+        self.spinner_movie.stop()
         self.create_btn.setEnabled(True)
         
         # Calculate leftover images

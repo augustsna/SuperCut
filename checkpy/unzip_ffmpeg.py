@@ -51,7 +51,7 @@ def show_success_dialog(base_dir, bin_dir):
         root.withdraw()  # Hide the main window
         
         # Show success message
-        message = f"""🎉 FFmpeg Setup Complete!
+        message = f"""💫 FFmpeg Setup Complete!
 
 All files have been extracted successfully!
 
@@ -123,7 +123,7 @@ def main():
     # Show final results
     print("=" * 40)
     if success_count == len(tasks):
-        print("🎉 All files extracted successfully!")
+        print("💫 All files extracted successfully!")
         print(f"📂 FFmpeg components are now available in: {base_dir}")
         print(f"🔧 Executables are located in: {bin_dir}")
         

@@ -62,7 +62,7 @@ The program will:
 ✓ Successfully extracted FFprobe executable to C:\SuperCut\ffmpeg\bin
 
 ========================================
-🎉 All files extracted successfully!
+💫 All files extracted successfully!
 📂 FFmpeg components are now available in: C:\SuperCut\ffmpeg
 🔧 Executables are located in: C:\SuperCut\ffmpeg\bin
 
