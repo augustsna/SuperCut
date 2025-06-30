@@ -79,24 +79,23 @@ def create_video_with_ffmpeg(
             "-ar", VIDEO_SETTINGS["audio_sample_rate"],
             "-ac", VIDEO_SETTINGS["audio_channels"],
             "-vf", f"scale={width}:{height}",
-            "-r", str(fps),
-            "-shortest",
-            "-y"
+            "-b:v", VIDEO_SETTINGS["video_bitrate"],
+            "-maxrate", VIDEO_SETTINGS["max_bitrate"],
+            "-bufsize", VIDEO_SETTINGS["buffer_size"],
+            "-pix_fmt", VIDEO_SETTINGS["pixel_format"]         
         ]
         
         # Add codec-specific settings
         if codec in ("libx264", "h264_nvenc"):
             cmd.extend(["-preset", "slow", "-profile:v", "high", "-level:v", "4.2"])
-        
+              
         # Add common video settings
-        cmd.extend([
-            "-movflags", "+faststart",
-            "-b:v", VIDEO_SETTINGS["video_bitrate"],
-            "-maxrate", VIDEO_SETTINGS["max_bitrate"],
-            "-bufsize", VIDEO_SETTINGS["buffer_size"],
-            "-pix_fmt", VIDEO_SETTINGS["pixel_format"],
+        cmd.extend([            
             "-g", VIDEO_SETTINGS["gop_size"],
-            "-bf", VIDEO_SETTINGS["bframes"]
+            "-bf", VIDEO_SETTINGS["bframes"],
+            "-r", str(fps),
+            "-movflags", "+faststart", "-shortest",
+            "-y"
         ])
         
         if codec == "h264_nvenc":
