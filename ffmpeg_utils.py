@@ -100,21 +100,32 @@ def create_video_with_ffmpeg(
             "-i", image_path_for_ffmpeg,
             "-i", audio_path,
             "-c:v", codec,
+            "-preset", VIDEO_SETTINGS["preset"]                      
+        ]
+
+        if codec == "h264_nvenc":
+            cmd.extend(["-rc", "vbr_hq"])
+
+        cmd.extend([   
+            "-b:v", VIDEO_SETTINGS["video_bitrate"],
+            "-maxrate", VIDEO_SETTINGS["max_bitrate"],
+            "-bufsize", VIDEO_SETTINGS["buffer_size"],        
             "-c:a", VIDEO_SETTINGS["audio_codec"],
             "-b:a", VIDEO_SETTINGS["audio_bitrate"],
             "-ar", VIDEO_SETTINGS["audio_sample_rate"],
             "-ac", VIDEO_SETTINGS["audio_channels"],
-            "-vf", f"scale={width}:{height}",
-            "-b:v", VIDEO_SETTINGS["video_bitrate"],
-            "-maxrate", VIDEO_SETTINGS["max_bitrate"],
-            "-bufsize", VIDEO_SETTINGS["buffer_size"],
-            "-pix_fmt", VIDEO_SETTINGS["pixel_format"]         
-        ]
-        
-        # Add codec-specific settings
-        if codec in ("libx264", "h264_nvenc"):
-            cmd.extend(["-preset", "slow", "-profile:v", "high", "-level:v", "4.2"])
-              
+            "-vf", f"scale={width}:{height}",            
+            "-r", str(fps),
+            "-g", VIDEO_SETTINGS["gop_size"],
+            "-bf", VIDEO_SETTINGS["bframes"],
+            "-profile:v", VIDEO_SETTINGS["profile"],
+            "-level:v", VIDEO_SETTINGS["level"],
+            "-pix_fmt", VIDEO_SETTINGS["pixel_format"],            
+            "-movflags", "+faststart", 
+            "-shortest",
+            "-y"
+        ])
+               
         # Add common video settings
         cmd.extend([            
             "-g", VIDEO_SETTINGS["gop_size"],
@@ -123,9 +134,6 @@ def create_video_with_ffmpeg(
             "-movflags", "+faststart", "-shortest",
             "-y"
         ])
-        
-        if codec == "h264_nvenc":
-            cmd.extend(["-rc", "vbr_hq"])
         
         cmd.append(output_path)
 

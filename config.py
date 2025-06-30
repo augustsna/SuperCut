@@ -53,12 +53,15 @@ VIDEO_SETTINGS = {
     "audio_bitrate": "384k",
     "audio_sample_rate": "48000",
     "audio_channels": "2",
-    "video_bitrate": "15M",
-    "max_bitrate": "20M",
+    "video_bitrate": "12M",
+    "max_bitrate": "16M",
     "buffer_size": "24M",
     "pixel_format": "yuv420p",
     "gop_size": "120",
-    "bframes": "2"
+    "bframes": "2",
+    "preset": "slow",
+    "profile": "high",
+    "level": "4.2",
 }
 
 # UI Styles
@@ -122,4 +125,4 @@ def check_ffmpeg_installation():
     """Check if FFmpeg is properly installed"""
     if not os.path.exists(FFMPEG_BINARY):
         return False, f"Could not find {FFMPEG_BINARY}. Please ensure ffmpeg is present in the ffmpeg folder."
-    return True, None 
+    return True, None

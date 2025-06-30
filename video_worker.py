@@ -5,6 +5,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from typing import List
 from ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg
 from utils import set_low_priority
+import time
 
 class VideoWorker(QObject):
     """Worker class for processing video creation in background thread"""
@@ -103,6 +104,7 @@ class VideoWorker(QObject):
     def _process_batch(self, mp3_files: List[str], image_files: List[str], 
                       used_images: set, current_number: int, batch_count: int, total_batches: int) -> bool:
         """Process a single batch of video creation"""
+        batch_start_time = time.time()
         # Select random MP3s
         selected_mp3s = random.sample(mp3_files, 3)
         
@@ -164,8 +166,15 @@ class VideoWorker(QObject):
         # Emit progress signal
         self.progress.emit(batch_count + 1, total_batches)
         
-        # Print completion message
-        print(f"✓ Batch {batch_count + 1}/{total_batches} completed: {output_filename}")
+        # Print completion message with time spent
+        batch_time_spent = time.time() - batch_start_time
+        if batch_time_spent >= 60:
+            mins = int(batch_time_spent // 60)
+            secs = int(batch_time_spent % 60)
+            time_str = f"{mins}m {secs}s"
+        else:
+            time_str = f"{int(batch_time_spent)}s"
+        print(f"✓ Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str})")
         
         return True
 
