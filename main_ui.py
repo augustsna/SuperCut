@@ -142,79 +142,74 @@ class SuperCutUI(QWidget):
 
     def create_video_settings(self, layout):
         """Create video settings controls"""
+        # Combined layout for codec, resolution, and fps
+        settings_layout = QHBoxLayout()
+        settings_layout.setSpacing(0)  # We'll add custom spacing
+
         # Codec selection
-        codec_layout = QHBoxLayout()
-        codec_label = QLabel("Video Codec:")
-        codec_label.setFixedWidth(90)
-        
+        codec_label = QLabel("Codec:")
+        codec_label.setFixedWidth(50)
         self.codec_combo = QtWidgets.QComboBox()
-        self.codec_combo.setFixedWidth(140)
+        self.codec_combo.setFixedWidth(130)
         self.codec_combo.setMinimumHeight(28)
         self.codec_combo.setMaximumHeight(28)
-        
         for label, value in DEFAULT_CODECS:
             self.codec_combo.addItem(label, value)
         self.codec_combo.setCurrentIndex(0)
-        
-        codec_layout.addWidget(codec_label)
-        codec_layout.addWidget(self.codec_combo)
-        codec_layout.addStretch()
-        layout.addLayout(codec_layout)
+        settings_layout.addWidget(codec_label)
+        settings_layout.addSpacing(5)  # Small space between label and combo
+        settings_layout.addWidget(self.codec_combo)
+        settings_layout.addSpacing(18)  # Space between groups
 
         # Video resolution selection
-        resolution_layout = QHBoxLayout()
-        resolution_label = QLabel("Video Size:")
-        resolution_label.setFixedWidth(90)
-        
+        resolution_label = QLabel("Size:")
+        resolution_label.setFixedWidth(35)
         self.resolution_combo = QtWidgets.QComboBox()
         self.resolution_combo.setFixedWidth(140)
         self.resolution_combo.setMinimumHeight(28)
         self.resolution_combo.setMaximumHeight(28)
-        
         for label, value in DEFAULT_RESOLUTIONS:
             self.resolution_combo.addItem(label, value)
         self.resolution_combo.setCurrentIndex(0)
-        
-        resolution_layout.addWidget(resolution_label)
-        resolution_layout.addWidget(self.resolution_combo)
-        resolution_layout.addStretch()
-        layout.addLayout(resolution_layout)
+        settings_layout.addWidget(resolution_label)
+        settings_layout.addSpacing(3)
+        settings_layout.addWidget(self.resolution_combo)
+        settings_layout.addSpacing(28)
 
         # FPS selection
-        fps_layout = QHBoxLayout()
         fps_label = QLabel("FPS:")
-        fps_label.setFixedWidth(90)
-        
+        fps_label.setFixedWidth(30)
         self.fps_combo = QtWidgets.QComboBox()
-        self.fps_combo.setFixedWidth(140)
+        self.fps_combo.setFixedWidth(100)
         self.fps_combo.setMinimumHeight(28)
         self.fps_combo.setMaximumHeight(28)
-        
         for label, value in DEFAULT_FPS_OPTIONS:
             self.fps_combo.addItem(label, value)
         self.fps_combo.setCurrentIndex(0)
-        
-        fps_layout.addWidget(fps_label)
-        fps_layout.addWidget(self.fps_combo)
-        fps_layout.addStretch()
-        layout.addLayout(fps_layout)
+        settings_layout.addWidget(fps_label)
+        settings_layout.addSpacing(6)
+        settings_layout.addWidget(self.fps_combo)
+
+        settings_layout.addStretch()
+        layout.addLayout(settings_layout)
 
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
-        
-        self.create_btn = QPushButton("🚀 Create Video")
-        self.create_btn.setFixedHeight(35)
-        self.create_btn.clicked.connect(self.create_video)
-        button_layout.addWidget(self.create_btn)
-        
-        # Add terminal button
+
+        # Add terminal button first
         self.terminal_btn = QPushButton("💻 Terminal")
         self.terminal_btn.setFixedHeight(35)
         self.terminal_btn.setFixedWidth(100)
         self.terminal_btn.clicked.connect(self.show_terminal)
         button_layout.addWidget(self.terminal_btn)
-        
+
+        # Then add create video button
+        self.create_btn = QPushButton("🚀 Create Video")
+        self.create_btn.setFixedHeight(35)
+        self.create_btn.clicked.connect(self.create_video)
+        button_layout.addWidget(self.create_btn)
+
         layout.addLayout(button_layout)
 
     def create_progress_controls(self, layout):

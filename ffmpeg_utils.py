@@ -69,7 +69,7 @@ def create_video_with_ffmpeg(
         # If input is JPG, convert to PNG using ffmpeg
         if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg'):
             import tempfile
-            temp_png = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+            temp_png = tempfile.NamedTemporaryFile(suffix='.png', prefix='supercut_', delete=False)
             temp_png_path = temp_png.name
             temp_png.close()
             convert_cmd = [

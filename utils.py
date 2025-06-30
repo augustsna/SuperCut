@@ -26,16 +26,18 @@ def set_low_priority():
 
 def create_temp_file(suffix: str = "", prefix: str = "") -> str:
     """Create a temporary file and track it for cleanup"""
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix, prefix=prefix) as tmp:
+    unique_prefix = "supercut_"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix, prefix=unique_prefix) as tmp:
         temp_path = tmp.name
         TEMP_FILES.add(temp_path)
         return temp_path
 
 def cleanup_temp_files():
-    """Clean up all tracked temporary files"""
+    """Clean up all tracked temporary files that start with our unique prefix"""
+    unique_prefix = "supercut_"
     for file_path in list(TEMP_FILES):
         try:
-            if os.path.exists(file_path):
+            if os.path.exists(file_path) and os.path.basename(file_path).startswith(unique_prefix):
                 os.remove(file_path)
         except Exception:
             pass
