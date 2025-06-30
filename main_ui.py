@@ -190,7 +190,7 @@ class SuperCutUI(QWidget):
         for label, value in DEFAULT_FPS_OPTIONS:
             self.fps_combo.addItem(label, value)
         # Set default to 60 FPS if available
-        default_fps_index = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == 60), 0)
+        default_fps_index = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == 30), 0)
         self.fps_combo.setCurrentIndex(default_fps_index)
         settings_layout.addWidget(fps_label)
         settings_layout.addSpacing(6)
