@@ -64,8 +64,8 @@ def create_video_with_ffmpeg(
     codec: str
 ) -> bool:
     """Create video from image and audio using ffmpeg with progress tracking"""
+    temp_png_path = None
     try:
-        temp_png_path = None
         # If input is JPG, convert to PNG using ffmpeg
         if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg'):
             import tempfile
@@ -89,8 +89,6 @@ def create_video_with_ffmpeg(
         # Accept only PNG image files
         if not image_path_for_ffmpeg.lower().endswith('.png'):
             print(f"Error: Only PNG image files are accepted. Provided: {image_path_for_ffmpeg}")
-            if temp_png_path:
-                os.unlink(temp_png_path)
             return False
         
         width, height = map(int, resolution.split('x'))
@@ -219,23 +217,17 @@ def create_video_with_ffmpeg(
         )
         sys.stdout.flush()
 
+        return process.returncode == 0
+    except Exception as e:
+        print(f"Error creating video: {e}")
+        return False
+    finally:
         # Clean up temp PNG if created
         if temp_png_path:
             try:
                 os.unlink(temp_png_path)
             except Exception as e:
                 print(f"Warning: Could not remove temp PNG: {e}")
-
-        return process.returncode == 0
-    except Exception as e:
-        print(f"Error creating video: {e}")
-        # Clean up temp PNG if created
-        try:
-            if 'temp_png_path' in locals() and temp_png_path:
-                os.unlink(temp_png_path)
-        except Exception as e2:
-            print(f"Warning: Could not remove temp PNG after error: {e2}")
-        return False
 
 def merge_random_mp3s(selected_mp3s: list) -> Tuple[Optional[str], float]:
     """Merge MP3 files using ffmpeg - returns output path and duration"""

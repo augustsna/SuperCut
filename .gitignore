@@ -114,3 +114,7 @@ dmypy.json
 .Trashes
 ehthumbs.db
 Thumbs.db 
+backup/supercut-ui.py
+backup/supercut-ui cr backup.py
+backup/supercut-ui backup 6am.py
+backup/supercut-moviepy.py
