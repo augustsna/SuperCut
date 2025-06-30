@@ -32,11 +32,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-for idx, (mp3s, img, out) in enumerate(zip(mp3_groups, image_files, output_paths), 1):
-    print(f"Starting batch {idx}: {out}")
-    start_time = time.time()
-    # ... your video creation logic here ...
-    # For example: create_video_with_ffmpeg(img, mp3s, out, ...)
-    elapsed = time.time() - start_time
-    print(f"✓ Batch {idx}/{len(output_paths)} completed: {out}")
-    print(f"Time spent for batch {idx}: {elapsed:.2f} seconds\n")
