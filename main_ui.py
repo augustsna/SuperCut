@@ -203,6 +203,12 @@ class SuperCutUI(QWidget):
         settings_layout.addSpacing(6)
         settings_layout.addWidget(self.fps_combo)
 
+        # Add PNG overlay checkbox
+        self.overlay_checkbox = QtWidgets.QCheckBox("Use PNG Overlay")
+        self.overlay_checkbox.setChecked(False)
+        settings_layout.addSpacing(18)
+        settings_layout.addWidget(self.overlay_checkbox)
+
         settings_layout.addStretch()
         layout.addLayout(settings_layout)
 
@@ -478,7 +484,7 @@ class SuperCutUI(QWidget):
 
         # Set up worker and thread
         self._thread = QThread()
-        self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps)
+        self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps, self.overlay_checkbox.isChecked())
         self._worker.moveToThread(self._thread)
         
         # Connect signals

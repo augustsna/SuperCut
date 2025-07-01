@@ -61,7 +61,8 @@ def create_video_with_ffmpeg(
     output_path: str, 
     resolution: str, 
     fps: int, 
-    codec: str
+    codec: str,
+    use_overlay: bool = False
 ) -> bool:
     """Create video from image and audio using ffmpeg with progress tracking"""
     temp_png_path = None
@@ -98,10 +99,11 @@ def create_video_with_ffmpeg(
             FFMPEG_BINARY,
             "-loop", "1",
             "-i", image_path_for_ffmpeg,
-            "-i", audio_path,
-            "-c:v", codec,
-            "-preset", VIDEO_SETTINGS["preset"]                      
+            "-i", audio_path
         ]
+        if use_overlay:
+            cmd.extend(["-i", os.path.join("sources", "overlay1.png")])
+        cmd.extend(["-c:v", codec, "-preset", VIDEO_SETTINGS["preset"]])
 
         if codec == "h264_nvenc":
             cmd.extend(["-rc", "vbr_hq"])
@@ -113,10 +115,18 @@ def create_video_with_ffmpeg(
             "-c:a", VIDEO_SETTINGS["audio_codec"],
             "-b:a", VIDEO_SETTINGS["audio_bitrate"],
             "-ar", VIDEO_SETTINGS["audio_sample_rate"],
-            "-ac", VIDEO_SETTINGS["audio_channels"],
-            "-filter_complex", f"[0:v]scale={width}:{height}[v];[v]format={VIDEO_SETTINGS['pixel_format']}[vout]", 
-            "-map", "[vout]",
-            "-map", "1:a",
+            "-ac", VIDEO_SETTINGS["audio_channels"]
+        ])
+
+        # Filter complex
+        if use_overlay:
+            filter_complex = f"[0:v]scale={width}:{height}[bg];[bg][2:v]overlay=0:0,format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])
+        else:
+            filter_complex = f"[0:v]scale={width}:{height}[v];[v]format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])
+
+        cmd.extend([
             "-r", str(fps),
             "-g", VIDEO_SETTINGS["gop_size"],
             "-bf", VIDEO_SETTINGS["bframes"],

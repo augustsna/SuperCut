@@ -14,7 +14,7 @@ class VideoWorker(QObject):
     finished = pyqtSignal(list)  # leftover_files
 
     def __init__(self, media_sources: str, export_name: str, number: str, 
-                 folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24):
+                 folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -23,6 +23,7 @@ class VideoWorker(QObject):
         self.codec = codec
         self.resolution = resolution
         self.fps = fps
+        self.use_overlay = use_overlay
         self._stop = False
 
     def stop(self):
@@ -144,7 +145,8 @@ class VideoWorker(QObject):
                 output_path, 
                 self.resolution, 
                 self.fps, 
-                self.codec
+                self.codec,
+                self.use_overlay
             ):
                 self.error.emit(f"Failed to create video: {output_filename}")
                 return False
