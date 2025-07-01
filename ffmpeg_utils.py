@@ -193,7 +193,7 @@ def create_video_with_ffmpeg(
                 if match:
                     try:
                         its_value = float(match.group(1))
-                        current_its = f"{its_value:.1f}"
+                        current_its = f"{its_value:0.2f}"
                         break
                     except ValueError:
                         continue
