@@ -114,26 +114,18 @@ def create_video_with_ffmpeg(
             "-b:a", VIDEO_SETTINGS["audio_bitrate"],
             "-ar", VIDEO_SETTINGS["audio_sample_rate"],
             "-ac", VIDEO_SETTINGS["audio_channels"],
-            "-vf", f"scale={width}:{height}",            
+            "-filter_complex", f"[0:v]scale={width}:{height}[v];[v]format={VIDEO_SETTINGS['pixel_format']}[vout]", 
+            "-map", "[vout]",
+            "-map", "1:a",
             "-r", str(fps),
             "-g", VIDEO_SETTINGS["gop_size"],
             "-bf", VIDEO_SETTINGS["bframes"],
             "-profile:v", VIDEO_SETTINGS["profile"],
             "-level:v", VIDEO_SETTINGS["level"],
-            "-pix_fmt", VIDEO_SETTINGS["pixel_format"],            
             "-movflags", "+faststart", 
             "-shortest",
             "-y"
-        ])
-               
-        # Add common video settings
-        cmd.extend([            
-            "-g", VIDEO_SETTINGS["gop_size"],
-            "-bf", VIDEO_SETTINGS["bframes"],
-            "-r", str(fps),
-            "-movflags", "+faststart", "-shortest",
-            "-y"
-        ])
+        ])              
         
         cmd.append(output_path)
 
