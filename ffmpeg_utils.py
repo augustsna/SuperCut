@@ -128,7 +128,7 @@ def create_video_with_ffmpeg(
         
         # Build ffmpeg command
         cmd = [
-            FFMPEG_BINARY,
+            FFMPEG_BINARY,         
             "-loop", "1",
             "-i", image_path_for_ffmpeg,
             "-i", audio_path
@@ -174,7 +174,6 @@ def create_video_with_ffmpeg(
             "-shortest",
             "-y"
         ])              
-        
         cmd.append(output_path)
 
         # Display FFmpeg command with output video name
@@ -233,12 +232,12 @@ def create_video_with_ffmpeg(
                         last_update = time.time()
                         print_progress(seconds)
                         now = time.time()
-                        while (now - last_update) < 0.2:
+                        while (now - last_update) < 0.3:
                             interp_seconds = last_seconds + (now - last_update)
                             if interp_seconds > audio_duration:
                                 interp_seconds = audio_duration
                             print_progress(interp_seconds)
-                            time.sleep(0.1)
+                            time.sleep(0.3)
                             now = time.time()
         except Exception as e:
             msg = f"Error reading ffmpeg output: {e}"
@@ -283,4 +282,4 @@ def merge_random_mp3s(selected_mp3s: list) -> Tuple[Optional[str], float]:
         duration = get_audio_duration(output_path)
         return output_path, duration
     else:
-        return None, 0.0 
+        return None, 0.0
