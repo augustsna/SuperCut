@@ -330,6 +330,104 @@ class SuperCutUI(QWidget):
         overlay1_layout.addWidget(self.overlay1_size_combo)
         layout.addLayout(overlay1_layout)
 
+        # Overlay 2 controls (similar to Overlay 1)
+        self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2 :")
+        self.overlay2_checkbox.setChecked(False)
+        def update_overlay2_checkbox_style(state):
+            if state == Qt.Checked:
+                self.overlay2_checkbox.setStyleSheet("")
+            else:
+                self.overlay2_checkbox.setStyleSheet("color: grey;")
+        self.overlay2_checkbox.stateChanged.connect(update_overlay2_checkbox_style)
+        update_overlay2_checkbox_style(self.overlay2_checkbox.checkState())
+
+        overlay2_layout = QHBoxLayout()
+        overlay2_layout.setSpacing(4)
+        self.overlay2_edit = ImageDropLineEdit()
+        self.overlay2_edit.setPlaceholderText("Overlay 2 image path (*.gif, *.png)")
+        self.overlay2_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay2_edit.setFixedWidth(125)
+        self.overlay2_path = ""
+        def on_overlay2_changed():
+            self.overlay2_path = self.overlay2_edit.text().strip()
+        self.overlay2_edit.textChanged.connect(on_overlay2_changed)
+        overlay2_btn = QPushButton("Select")
+        overlay2_btn.setFixedWidth(60)
+        def select_overlay2_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 2 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.overlay2_edit.setText(file_path)
+        overlay2_btn.clicked.connect(select_overlay2_image)
+        overlay2_size_label = QLabel("S:")
+        overlay2_size_label.setFixedWidth(18)
+        self.overlay2_size_combo = QtWidgets.QComboBox()
+        self.overlay2_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.overlay2_size_combo.addItem(str(percent), percent)
+        self.overlay2_size_combo.setCurrentIndex(1)  # Default 10%
+        self.overlay2_size_percent = 10
+        def on_overlay2_size_changed(idx):
+            self.overlay2_size_percent = self.overlay2_size_combo.itemData(idx)
+            if idx >= 0:
+                self.overlay2_size_combo.setEditText(f"{self.overlay2_size_percent}%")
+        self.overlay2_size_combo.setEditable(True)
+        self.overlay2_size_combo.lineEdit().setReadOnly(True)
+        self.overlay2_size_combo.lineEdit().setAlignment(Qt.AlignCenter)
+        self.overlay2_size_combo.currentIndexChanged.connect(on_overlay2_size_changed)
+        on_overlay2_size_changed(self.overlay2_size_combo.currentIndex())
+        overlay2_position_label = QLabel("P:")
+        overlay2_position_label.setFixedWidth(18)
+        self.overlay2_position_combo = QtWidgets.QComboBox()
+        self.overlay2_position_combo.setFixedWidth(130)
+        positions = [
+            ("Top Left", "top_left"),
+            ("Top Right", "top_right"),
+            ("Bottom Left", "bottom_left"),
+            ("Bottom Right", "bottom_right")
+        ]
+        for label, value in positions:
+            self.overlay2_position_combo.addItem(label, value)
+        self.overlay2_position_combo.setCurrentIndex(0)
+        self.overlay2_position = "top_left"
+        def on_overlay2_position_changed(idx):
+            self.overlay2_position = self.overlay2_position_combo.itemData(idx)
+        self.overlay2_position_combo.currentIndexChanged.connect(on_overlay2_position_changed)
+        on_overlay2_position_changed(self.overlay2_position_combo.currentIndex())
+        def set_overlay2_enabled(state):
+            enabled = state == Qt.Checked
+            self.overlay2_edit.setEnabled(enabled)
+            overlay2_btn.setEnabled(enabled)
+            self.overlay2_size_combo.setEnabled(enabled)
+            self.overlay2_position_combo.setEnabled(enabled)
+            if enabled:
+                overlay2_btn.setStyleSheet("")
+                self.overlay2_edit.setStyleSheet("")
+                self.overlay2_size_combo.setStyleSheet("")
+                self.overlay2_position_combo.setStyleSheet("")
+                overlay2_size_label.setStyleSheet("")
+                overlay2_position_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                overlay2_btn.setStyleSheet(grey_btn_style)
+                self.overlay2_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay2_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay2_position_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                overlay2_size_label.setStyleSheet("color: grey;")
+                overlay2_position_label.setStyleSheet("color: grey;")
+        self.overlay2_checkbox.stateChanged.connect(set_overlay2_enabled)
+        set_overlay2_enabled(self.overlay2_checkbox.checkState())
+        overlay2_layout.addWidget(self.overlay2_checkbox)
+        overlay2_layout.addWidget(self.overlay2_edit)
+        overlay2_layout.addSpacing(6)
+        overlay2_layout.addWidget(overlay2_btn)
+        overlay2_layout.addSpacing(6)
+        overlay2_layout.addWidget(overlay2_position_label)
+        overlay2_layout.addWidget(self.overlay2_position_combo)
+        overlay2_layout.addSpacing(6)
+        overlay2_layout.addWidget(overlay2_size_label)
+        overlay2_layout.addWidget(self.overlay2_size_combo)
+        layout.addLayout(overlay2_layout)
+
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
@@ -552,6 +650,12 @@ class SuperCutUI(QWidget):
             if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png']:
                 QMessageBox.warning(self, "⚠️ Overlay Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 1.", QMessageBox.Ok)
                 return
+        # Overlay 2 validation
+        if self.overlay2_checkbox.isChecked():
+            overlay2_path = self.overlay2_edit.text().strip()
+            if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png']:
+                QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 2.", QMessageBox.Ok)
+                return
         inputs = self._gather_and_validate_inputs()
         if not inputs:
             return
@@ -623,7 +727,8 @@ class SuperCutUI(QWidget):
         self._thread = QThread()
         self._worker = VideoWorker(
             media_sources, export_name, number, folder, codec, resolution, fps,
-            self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position
+            self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
+            self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)

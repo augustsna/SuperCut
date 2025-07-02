@@ -75,11 +75,21 @@ def create_video_with_ffmpeg(
     use_overlay: bool = False,
     overlay1_path: str = "",
     overlay1_size_percent: int = 100,
-    overlay1_position: str = "top_left"
+    overlay1_position: str = "top_left",
+    use_overlay2: bool = False,
+    overlay2_path: str = "",
+    overlay2_size_percent: int = 10,
+    overlay2_position: str = "top_left"
 ) -> Tuple[bool, Optional[str]]:
-    """Create video from image and audio using ffmpeg with progress tracking. If use_overlay is True, overlay1_path must be a GIF or PNG file. overlay1_size_percent sets overlay size (5-100). overlay1_position sets overlay position. Returns (success, error_message)."""
+    """Create video from image and audio using ffmpeg with progress tracking. Supports up to two overlays. Returns (success, error_message)."""
     temp_png_path = None
     try:
+        # Debug: Print all file paths
+        print("[DEBUG] Background image:", image_path)
+        print("[DEBUG] Audio path:", audio_path)
+        print("[DEBUG] Output path:", output_path)
+        print("[DEBUG] Overlay 1 path:", overlay1_path)
+        print("[DEBUG] Overlay 2 path:", overlay2_path)
         # Estimate required output file size
         audio_duration = get_audio_duration(audio_path)
         video_bitrate_str = VIDEO_SETTINGS["video_bitrate"]
@@ -129,43 +139,64 @@ def create_video_with_ffmpeg(
         
         width, height = map(int, resolution.split('x'))
         
-        # Build ffmpeg command
+        # Build ffmpeg command with dynamic inputs
         cmd = [
             FFMPEG_BINARY,
             "-loop", "1",
             "-i", image_path_for_ffmpeg,
             "-i", audio_path
         ]
-        if use_overlay:
-            # Only accept GIF or PNG overlays
-            ext = os.path.splitext(overlay1_path)[1].lower()
-            if not overlay1_path or not os.path.isfile(overlay1_path) or ext not in ['.gif', '.png']:
-                msg = f"Error: Overlay 1 must be a valid GIF or PNG file (*.gif, *.png). Provided: {overlay1_path}"
-                logger.error(msg)
-                return False, msg
-            overlay_img = overlay1_path
-            if ext == '.gif':
-                cmd.extend(["-stream_loop", "-1", "-i", overlay_img])
+        ext1 = os.path.splitext(overlay1_path)[1].lower() if overlay1_path else ''
+        ext2 = os.path.splitext(overlay2_path)[1].lower() if overlay2_path else ''
+        overlay1_idx = None
+        overlay2_idx = None
+        input_idx = 2
+        if use_overlay and overlay1_path and ext1 in ['.gif', '.png']:
+            if ext1 == '.gif':
+                cmd.extend(["-stream_loop", "-1", "-i", overlay1_path])
             else:
-                cmd.extend(["-i", overlay_img])
-        # Filter complex
-        if use_overlay:
-            # Calculate overlay size
-            scale_factor = overlay1_size_percent / 100.0
-            ow = f"iw*{scale_factor:.3f}"
-            oh = f"ih*{scale_factor:.3f}"
-            # Determine overlay position
+                cmd.extend(["-i", overlay1_path])
+            overlay1_idx = input_idx
+            input_idx += 1
+        if use_overlay2 and overlay2_path and ext2 in ['.gif', '.png']:
+            if ext2 == '.gif':
+                cmd.extend(["-stream_loop", "-1", "-i", overlay2_path])
+            else:
+                cmd.extend(["-i", overlay2_path])
+            overlay2_idx = input_idx
+            input_idx += 1
+        # Build filter graph with correct indices
+        if use_overlay or use_overlay2:
+            scale_factor1 = overlay1_size_percent / 100.0
+            ow1 = f"iw*{scale_factor1:.3f}"
+            oh1 = f"ih*{scale_factor1:.3f}"
+            scale_factor2 = overlay2_size_percent / 100.0
+            ow2 = f"iw*{scale_factor2:.3f}"
+            oh2 = f"ih*{scale_factor2:.3f}"
             position_map = {
                 "top_left": ("0", "0"),
                 "top_right": (f"W-w", "0"),
                 "bottom_left": ("0", f"H-h"),
                 "bottom_right": (f"W-w", f"H-h")
             }
-            ox, oy = position_map.get(overlay1_position, ("0", "0"))
-            if ext == '.gif':
-                filter_complex = f"[0:v]scale={width}:{height}[bg];[2:v]scale={ow}:{oh}[ol];[bg][ol]overlay={ox}:{oy}:enable='gte(t,5)',format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            ox1, oy1 = position_map.get(overlay1_position, ("0", "0"))
+            ox2, oy2 = position_map.get(overlay2_position, ("0", "0"))
+            filter_bg = f"[0:v]scale={width}:{height}[bg]"
+            filter_overlay1 = f"[{overlay1_idx}:v]scale={ow1}:{oh1}[ol1]" if overlay1_idx is not None else ""
+            filter_overlay2 = f"[{overlay2_idx}:v]scale={ow2}:{oh2}[ol2]" if overlay2_idx is not None else ""
+            filter_complex = f"{filter_bg};"
+            if filter_overlay1:
+                filter_complex += filter_overlay1 + ";"
+            if filter_overlay2:
+                filter_complex += filter_overlay2 + ";"
+            if overlay1_idx is not None and overlay2_idx is not None:
+                filter_complex += f"[bg][ol1]overlay={ox1}:{oy1}:enable='gte(t,5)'[tmp1];[tmp1][ol2]overlay={ox2}:{oy2}:enable='gte(t,5)'[v1];[v1]format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            elif overlay1_idx is not None:
+                filter_complex += f"[bg][ol1]overlay={ox1}:{oy1}:enable='gte(t,5)'[v1];[v1]format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            elif overlay2_idx is not None:
+                filter_complex += f"[bg][ol2]overlay={ox2}:{oy2}:enable='gte(t,5)'[v1];[v1]format={VIDEO_SETTINGS['pixel_format']}[vout]"
             else:
-                filter_complex = f"[0:v]scale={width}:{height}[bg];[2:v]scale={ow}:{oh}[ol];[bg][ol]overlay={ox}:{oy}:enable='gte(t,5)',format={VIDEO_SETTINGS['pixel_format']}[vout]"
+                filter_complex += f"[bg]format={VIDEO_SETTINGS['pixel_format']}[vout]"
             cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])
         else:
             filter_complex = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
