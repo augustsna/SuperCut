@@ -7,6 +7,7 @@ import re
 import sys
 from typing import Optional, Tuple
 from config import FFMPEG_BINARY, FFPROBE_BINARY, VIDEO_SETTINGS
+from logger import logger
 
 def get_audio_duration(file_path: str) -> float:
     """Get audio duration using ffprobe"""
@@ -23,7 +24,7 @@ def get_audio_duration(file_path: str) -> float:
         data = json.loads(result.stdout)
         return float(data['format']['duration'])
     except Exception as e:
-        print(f"Error getting duration for {file_path}: {e}")
+        logger.error(f"Error getting duration for {file_path}: {e}")
         return 0.0
 
 def merge_mp3s_with_ffmpeg(input_files: list, output_file: str) -> bool:
@@ -52,7 +53,7 @@ def merge_mp3s_with_ffmpeg(input_files: list, output_file: str) -> bool:
         os.unlink(file_list_path)
         return True
     except Exception as e:
-        print(f"Error merging MP3s: {e}")
+        logger.error(f"Error merging MP3s: {e}")
         return False
 
 def create_video_with_ffmpeg(
@@ -81,7 +82,7 @@ def create_video_with_ffmpeg(
             ]
             result = subprocess.run(convert_cmd, capture_output=True, text=True)
             if result.returncode != 0:
-                print(f"Error converting JPG to PNG: {result.stderr}")
+                logger.error(f"Error converting JPG to PNG: {result.stderr}")
                 return False
             image_path_for_ffmpeg = temp_png_path
         else:
@@ -89,7 +90,7 @@ def create_video_with_ffmpeg(
 
         # Accept only PNG image files
         if not image_path_for_ffmpeg.lower().endswith('.png'):
-            print(f"Error: Only PNG image files are accepted. Provided: {image_path_for_ffmpeg}")
+            logger.error(f"Error: Only PNG image files are accepted. Provided: {image_path_for_ffmpeg}")
             return False
         
         width, height = map(int, resolution.split('x'))
@@ -145,12 +146,16 @@ def create_video_with_ffmpeg(
         
         cmd.append(output_path)
 
-        # Display FFmpeg command
-        print(f"FFmpeg Video Creation Command:")
+        # Display FFmpeg command with output video name
+        video_name = os.path.basename(output_path)
+        logger.info(f"FFmpeg Video Creation Command for {video_name}:")
+        print(f"FFmpeg Video Creation Command for {video_name}:")
         # Show command with just 'ffmpeg' instead of full path
         display_cmd = ['ffmpeg'] + cmd[1:]
+        logger.info(f"  {' '.join(display_cmd)}")
         print(f"  {' '.join(display_cmd)}")
-        print()
+        logger.info("")
+        print("")
 
         # Get audio duration for progress calculation
         audio_duration = get_audio_duration(audio_path)
@@ -235,7 +240,7 @@ def create_video_with_ffmpeg(
 
         return process.returncode == 0
     except Exception as e:
-        print(f"Error creating video: {e}")
+        logger.error(f"Error creating video: {e}")
         return False
     finally:
         # Clean up temp PNG if created
@@ -243,7 +248,7 @@ def create_video_with_ffmpeg(
             try:
                 os.unlink(temp_png_path)
             except Exception as e:
-                print(f"Warning: Could not remove temp PNG: {e}")
+                logger.warning(f"Warning: Could not remove temp PNG: {e}")
 
 def merge_random_mp3s(selected_mp3s: list) -> Tuple[Optional[str], float]:
     """Merge MP3 files using ffmpeg - returns output path and duration"""

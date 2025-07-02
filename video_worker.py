@@ -6,6 +6,7 @@ from typing import List
 from ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg
 from utils import set_low_priority
 import time
+from logger import logger
 
 class VideoWorker(QObject):
     """Worker class for processing video creation in background thread"""
@@ -49,7 +50,8 @@ class VideoWorker(QObject):
             # Parse start number
             try:
                 start_number = int(self.number)
-            except Exception:
+            except Exception as e:
+                logger.warning(f"Invalid start number '{self.number}': {e}")
                 start_number = 1
                 
             current_number = start_number
@@ -185,8 +187,8 @@ class VideoWorker(QObject):
         if audio_path and os.path.exists(audio_path):
             try:
                 os.remove(audio_path)
-            except:
-                pass  # Ignore cleanup errors
+            except Exception as e:
+                logger.warning(f"Failed to remove temp audio file {audio_path}: {e}")
 
     def _create_log_and_move_files(self, output_filename: str, output_path: str, 
                                   selected_image: str, selected_mp3s: List[str], 

@@ -4,6 +4,7 @@ import ctypes
 import tempfile
 import atexit
 from typing import Set
+from logger import logger
 
 # Global set to track temporary files
 TEMP_FILES: Set[str] = set()
@@ -21,8 +22,8 @@ def set_low_priority():
     try:
         p = ctypes.windll.kernel32.GetCurrentProcess()
         ctypes.windll.kernel32.SetPriorityClass(p, 0x00004000)  # BELOW_NORMAL_PRIORITY_CLASS
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Failed to set low priority: {e}")
 
 def create_temp_file(suffix: str = "", prefix: str = "") -> str:
     """Create a temporary file and track it for cleanup"""
@@ -39,8 +40,8 @@ def cleanup_temp_files():
         try:
             if os.path.exists(file_path) and os.path.basename(file_path).startswith(unique_prefix):
                 os.remove(file_path)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to remove temp file {file_path}: {e}")
         TEMP_FILES.discard(file_path)
 
 def open_folder_in_explorer(folder_path: str):
@@ -75,10 +76,9 @@ def is_video_file(filename: str) -> bool:
     return get_file_extension(filename) in VIDEO_EXTENSIONS
 
 def get_files_by_type(folder_path: str, file_type: str) -> list:
-    """Get all files of a specific type from a folder"""
+    """Get all files of a specific type from a folder. Always return full file paths."""
     if not os.path.exists(folder_path):
         return []
-    
     files = []
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
@@ -86,10 +86,9 @@ def get_files_by_type(folder_path: str, file_type: str) -> list:
             if file_type == "audio" and is_audio_file(filename):
                 files.append(file_path)
             elif file_type == "image" and is_image_file(filename):
-                files.append(filename)  # Return just filename for images
+                files.append(file_path)  # Return full path for images
             elif file_type == "video" and is_video_file(filename):
                 files.append(file_path)
-    
     return files
 
 def format_time(seconds: int) -> str:

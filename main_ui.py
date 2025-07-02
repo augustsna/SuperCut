@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QSettings, QThread
 from PyQt5.QtGui import QIntValidator, QIcon
+from logger import logger
 
 # Force console output to be visible
 sys.stdout.flush()
@@ -424,70 +425,69 @@ class SuperCutUI(QWidget):
 
     def create_video(self):
         """Start video creation process"""
-        # Get input values
+        # Step 1: Gather and validate inputs
+        inputs = self._gather_and_validate_inputs()
+        if not inputs:
+            return
+        media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files = inputs
+
+        # Step 2: Prepare UI for processing
+        self._set_ui_processing_state(True, total_batches=min(len(original_image_files), len(original_mp3_files) // 3))
+
+        # Step 3: Set up worker and thread
+        self._setup_worker_and_thread(media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files)
+
+    def _gather_and_validate_inputs(self):
+        """Gather and validate user inputs. Return tuple or None if invalid."""
         media_sources = self.media_sources_edit.text()
         export_name = self.part1_edit.text().strip()
         number = self.part2_edit.text().strip()
-        
-        # Default to 1 if blank or zero
         if not number or number == '0':
             number = '1'
-        
-        # Sanitize export name
         export_name = sanitize_filename(export_name)
-        
         folder = self.folder_edit.text().strip()
         if not folder:
             QMessageBox.warning(self, "⚠️ Missing Output Folder", "Please select or enter an output folder.", QMessageBox.Ok)
-            return
+            return None
         codec = self.codec_combo.currentData()
         resolution = self.resolution_combo.currentData()
         fps = self.fps_combo.currentData()
-
-        # Validate inputs
         is_valid, error_msg = validate_inputs(media_sources, export_name, number)
         if not is_valid:
             QMessageBox.warning(self, "⚠️ Missing Input", error_msg, QMessageBox.Ok)
-            return
-
-        # Validate media files
+            return None
         is_valid, error_msg, mp3_files, image_files = validate_media_files(media_sources)
         if not is_valid:
             QMessageBox.critical(self, "❌ Error", error_msg)
-            return
+            return None
+        return (media_sources, export_name, number, folder, codec, resolution, fps, set(mp3_files), set(image_files))
 
-        # Calculate total batches
-        total_batches = min(len(image_files), len(mp3_files) // 3)
+    def _set_ui_processing_state(self, processing, total_batches=0):
+        """Enable/disable UI controls for processing state."""
         self.progress_bar.setMaximum(total_batches)
         self.progress_bar.setValue(0)
         self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
-        self.progress_bar.setVisible(True)
-        self.stop_btn.setEnabled(True)
-        self.stop_btn.setVisible(True)
-        self.running_widget.setVisible(True)
-        self.spinner_movie.start()
-        # Disable all relevant controls during video creation
-        self.create_btn.setEnabled(False)
-        self.codec_combo.setEnabled(False)
-        self.resolution_combo.setEnabled(False)
-        self.fps_combo.setEnabled(False)
-        self.media_sources_edit.setEnabled(False)
-        self.folder_edit.setEnabled(False)
-        self.part1_edit.setEnabled(False)
-        self.part2_edit.setEnabled(False)
-        self.media_sources_select_btn.setEnabled(False)
-        self.output_folder_select_btn.setEnabled(False)
+        self.progress_bar.setVisible(processing)
+        self.stop_btn.setEnabled(processing)
+        self.stop_btn.setVisible(processing)
+        self.running_widget.setVisible(processing)
+        if processing:
+            self.spinner_movie.start()
+        else:
+            self.spinner_movie.stop()
+        controls = [
+            self.create_btn, self.codec_combo, self.resolution_combo, self.fps_combo,
+            self.media_sources_edit, self.folder_edit, self.part1_edit, self.part2_edit,
+            self.media_sources_select_btn, self.output_folder_select_btn
+        ]
+        for ctrl in controls:
+            ctrl.setEnabled(not processing)
 
-        # Track original files for leftovers
-        original_mp3_files = set(mp3_files)
-        original_image_files = set(image_files)
-
-        # Set up worker and thread
+    def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files):
+        """Set up the VideoWorker and QThread, connect signals, and start processing."""
         self._thread = QThread()
         self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps, self.overlay_checkbox.isChecked())
         self._worker.moveToThread(self._thread)
-        
-        # Connect signals
         self._thread.started.connect(self._worker.run)
         self._worker.progress.connect(self.on_worker_progress)
         self._worker.error.connect(self.on_worker_error)
@@ -499,8 +499,6 @@ class SuperCutUI(QWidget):
         self._worker.finished.connect(self._thread.quit)
         self._worker.finished.connect(self._worker.deleteLater)
         self._thread.finished.connect(self._thread.deleteLater)
-        
-        # Start processing
         self._thread.start()
 
     def on_worker_progress(self, batch_count, total_batches):
@@ -624,9 +622,9 @@ class SuperCutUI(QWidget):
                 QtWidgets.QApplication.beep()
             else:
                 QtWidgets.QApplication.beep()
-        except Exception:
-            pass
-            
+        except Exception as e:
+            logger.warning(f"Failed to play notification sound: {e}")
+        
         dlg = SuccessDialog(
             self, 
             open_folder=self.open_result_folder, 
