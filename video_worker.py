@@ -15,7 +15,7 @@ class VideoWorker(QObject):
     finished = pyqtSignal(list, list, list)  # leftover_mp3s, used_images, failed_moves
 
     def __init__(self, media_sources: str, export_name: str, number: str, 
-                 folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False):
+                 folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False, min_mp3_count: int = 3):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -25,6 +25,7 @@ class VideoWorker(QObject):
         self.resolution = resolution
         self.fps = fps
         self.use_overlay = use_overlay
+        self.min_mp3_count = min_mp3_count
         self._stop = False
         self._used_images = set()
 
@@ -44,8 +45,8 @@ class VideoWorker(QObject):
             if not image_files:
                 self.error.emit("No image files found in the media folder.")
                 return
-            if not mp3_files or len(mp3_files) < 3:
-                self.error.emit("Not enough mp3 files in folder (need at least 3 to start batch processing)")
+            if not mp3_files or len(mp3_files) < self.min_mp3_count:
+                self.error.emit(f"Not enough mp3 files in folder (need at least {self.min_mp3_count} to start batch processing)")
                 return
             
             # Parse start number
@@ -57,14 +58,14 @@ class VideoWorker(QObject):
                 
             current_number = start_number
             used_images = set()
-            total_batches = min(len(image_files), len(mp3_files) // 3)
+            total_batches = min(len(image_files), len(mp3_files) // self.min_mp3_count)
             batch_count = 0
 
             # Print export summary
             self._print_export_summary(total_batches)
 
             all_failed_moves = []
-            while len(mp3_files) >= 3 and batch_count < total_batches:
+            while len(mp3_files) >= self.min_mp3_count and batch_count < total_batches:
                 if self._stop:
                     self.finished.emit(mp3_files, list(self._used_images), all_failed_moves)
                     return
@@ -104,7 +105,7 @@ class VideoWorker(QObject):
         """Process a single batch of video creation"""
         batch_start_time = time.time()
         # Select random MP3s
-        selected_mp3s = random.sample(mp3_files, 3)
+        selected_mp3s = random.sample(mp3_files, self.min_mp3_count)
         
         # Select available image
         available_images = [img for img in image_files if img not in used_images]

@@ -189,7 +189,7 @@ class StoppedDialog(QDialog):
 
 class SuccessDialog(QDialog):
     """Dialog shown when video creation completes successfully"""
-    def __init__(self, parent=None, open_folder=None, leftover_files=None, leftover_images=None):
+    def __init__(self, parent=None, open_folder=None, leftover_files=None, leftover_images=None, min_mp3_count=3):
         super().__init__(parent)
         self.open_folder = open_folder
         self.setWindowTitle("Task Completed")
@@ -276,7 +276,7 @@ class SuccessDialog(QDialog):
 
         # Leftover MP3 files section
         if leftover_files:
-            leftover_label = QLabel(f"{len(leftover_files)} MP3 files left over (not enough for a group):")
+            leftover_label = QLabel(f"{len(leftover_files)} MP3 files left over (not enough for a group of {min_mp3_count}):")
             leftover_label.setObjectName("leftoverLabel")
             leftover_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
             vbox.addWidget(leftover_label)

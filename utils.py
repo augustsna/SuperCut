@@ -151,16 +151,14 @@ def validate_inputs(media_sources: str, export_name: str, number: str) -> tuple[
         return False, "Number must be a valid integer."
     return True, ""
 
-def validate_media_files(media_sources: str) -> tuple[bool, str, list, list]:
+def validate_media_files(media_sources: str, min_mp3_count: int = 3) -> tuple[bool, str, list, list]:
     """Validate media files and return (is_valid, error_message, mp3_files, image_files)"""
     mp3_files = get_files_by_type(media_sources, "audio")
     image_files = get_files_by_type(media_sources, "image")
-    
     if not image_files:
         return False, "No image files found in the media folder.", [], []
-    if not mp3_files or len(mp3_files) < 3:
-        return False, "Not enough mp3 files in folder (need at least 3 to start batch processing)", [], []
-    
+    if not mp3_files or len(mp3_files) < min_mp3_count:
+        return False, f"Not enough mp3 files in folder (need at least {min_mp3_count} to start batch processing)", [], []
     return True, "", mp3_files, image_files
 
 # Register cleanup function to run at exit

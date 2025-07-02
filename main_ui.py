@@ -19,7 +19,8 @@ from config import (
     WINDOW_SIZE, WINDOW_TITLE, ICON_PATH, STYLE_SHEET,
     DEFAULT_CODECS, DEFAULT_RESOLUTIONS, DEFAULT_FPS_OPTIONS,
     DEFAULT_EXPORT_NAME, DEFAULT_START_NUMBER, DEFAULT_FPS,
-    DEFAULT_RESOLUTION, DEFAULT_CODEC, check_ffmpeg_installation
+    DEFAULT_RESOLUTION, DEFAULT_CODEC, check_ffmpeg_installation,
+    DEFAULT_MIN_MP3_COUNT
 )
 from utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
@@ -129,24 +130,30 @@ class SuperCutUI(QWidget):
         layout.addLayout(folder_layout)
 
     def create_export_inputs(self, layout):
-        """Create export name and number inputs"""
+        """Create export name, number, and mp3 per video inputs"""
         part_layout = QHBoxLayout()
-        
         self.part1_edit = QLineEdit(DEFAULT_EXPORT_NAME)
         self.part1_edit.setPlaceholderText("Export Name")
-        
         self.part2_edit = QLineEdit(DEFAULT_START_NUMBER)
         self.part2_edit.setPlaceholderText("12345")
         self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
-        
+        self.mp3_count_checkbox = QtWidgets.QCheckBox("MP3 Per Video")
+        self.mp3_count_checkbox.setChecked(False)
+        self.mp3_count_edit = QLineEdit(str(DEFAULT_MIN_MP3_COUNT))
+        self.mp3_count_edit.setPlaceholderText("MP3")
+        self.mp3_count_edit.setValidator(QIntValidator(1, 999, self))
+        self.mp3_count_edit.setEnabled(False)
+        self.mp3_count_edit.setFixedWidth(50)
+        self.mp3_count_checkbox.stateChanged.connect(lambda state: self.mp3_count_edit.setEnabled(state == Qt.Checked))
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.update_output_name)
-        
-        part_layout.addWidget(QLabel("Export name:"))
+        part_layout.addWidget(QLabel("Export Name:"))
         part_layout.addWidget(self.part1_edit)
         part_layout.addWidget(QLabel("Number:"))
         part_layout.addWidget(self.part2_edit)
+        part_layout.addWidget(self.mp3_count_checkbox)
+        part_layout.addWidget(self.mp3_count_edit)
         layout.addLayout(part_layout)
 
     def create_video_settings(self, layout):
@@ -435,13 +442,13 @@ class SuperCutUI(QWidget):
         inputs = self._gather_and_validate_inputs()
         if not inputs:
             return
-        media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files = inputs
+        media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count = inputs
 
         # Step 2: Prepare UI for processing
-        self._set_ui_processing_state(True, total_batches=min(len(original_image_files), len(original_mp3_files) // 3))
+        self._set_ui_processing_state(True, total_batches=min(len(original_image_files), len(original_mp3_files) // min_mp3_count))
 
         # Step 3: Set up worker and thread
-        self._setup_worker_and_thread(media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files)
+        self._setup_worker_and_thread(media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count)
 
     def _gather_and_validate_inputs(self):
         """Gather and validate user inputs. Return tuple or None if invalid."""
@@ -458,15 +465,24 @@ class SuperCutUI(QWidget):
         codec = self.codec_combo.currentData()
         resolution = self.resolution_combo.currentData()
         fps = self.fps_combo.currentData()
+        if self.mp3_count_checkbox.isChecked():
+            try:
+                min_mp3_count = int(self.mp3_count_edit.text())
+                if min_mp3_count < 1:
+                    min_mp3_count = DEFAULT_MIN_MP3_COUNT
+            except Exception:
+                min_mp3_count = DEFAULT_MIN_MP3_COUNT
+        else:
+            min_mp3_count = DEFAULT_MIN_MP3_COUNT
         is_valid, error_msg = validate_inputs(media_sources, export_name, number)
         if not is_valid:
             QMessageBox.warning(self, "⚠️ Missing Input", error_msg, QMessageBox.Ok)
             return None
-        is_valid, error_msg, mp3_files, image_files = validate_media_files(media_sources)
+        is_valid, error_msg, mp3_files, image_files = validate_media_files(media_sources, min_mp3_count)
         if not is_valid:
             QMessageBox.critical(self, "❌ Error", error_msg)
             return None
-        return (media_sources, export_name, number, folder, codec, resolution, fps, set(mp3_files), set(image_files))
+        return (media_sources, export_name, number, folder, codec, resolution, fps, set(mp3_files), set(image_files), min_mp3_count)
 
     def _set_ui_processing_state(self, processing, total_batches=0):
         """Enable/disable UI controls for processing state."""
@@ -489,10 +505,10 @@ class SuperCutUI(QWidget):
         for ctrl in controls:
             ctrl.setEnabled(not processing)
 
-    def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files):
+    def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count):
         """Set up the VideoWorker and QThread, connect signals, and start processing."""
         self._thread = QThread()
-        self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps, self.overlay_checkbox.isChecked())
+        self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps, self.overlay_checkbox.isChecked(), min_mp3_count)
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.progress.connect(self.on_worker_progress)
@@ -597,6 +613,16 @@ class SuperCutUI(QWidget):
         self.overlay_checkbox.setEnabled(True)
         # Calculate leftover images using used_images
         leftover_images = list(set(original_image_files) - set(used_images))
+        # Get min_mp3_count from input
+        if self.mp3_count_checkbox.isChecked():
+            try:
+                min_mp3_count = int(self.mp3_count_edit.text())
+                if min_mp3_count < 1:
+                    min_mp3_count = DEFAULT_MIN_MP3_COUNT
+            except Exception:
+                min_mp3_count = DEFAULT_MIN_MP3_COUNT
+        else:
+            min_mp3_count = DEFAULT_MIN_MP3_COUNT
         # Show appropriate dialog
         if hasattr(self, '_stopped_by_user') and self._stopped_by_user:
             self._stopped_by_user = False  # reset for next run
@@ -611,9 +637,9 @@ class SuperCutUI(QWidget):
             dlg.exec_()
         else:
             if leftover_mp3s or leftover_images:
-                self.show_success_options(leftover_files=leftover_mp3s, leftover_images=leftover_images)
+                self.show_success_options(leftover_files=leftover_mp3s, leftover_images=leftover_images, min_mp3_count=min_mp3_count)
             else:
-                self.show_success_options()
+                self.show_success_options(min_mp3_count=min_mp3_count)
         # Show warning if any files failed to move
         if failed_moves:
             QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(failed_moves))
@@ -628,19 +654,29 @@ class SuperCutUI(QWidget):
                 QtWidgets.QApplication.processEvents()
                 self._stopping_msgbox = None
 
-    def show_success_options(self, leftover_files=None, leftover_images=None):
+    def show_success_options(self, leftover_files=None, leftover_images=None, min_mp3_count=None):
         """Show success dialog with options. All UI updates are performed in the main thread via signals/slots."""
         # Play notification sound
         try:
             QtWidgets.QApplication.beep()
         except RuntimeError as e:
             logger.warning(f"Failed to play notification sound: {e}")
-        
+        if min_mp3_count is None:
+            if self.mp3_count_checkbox.isChecked():
+                try:
+                    min_mp3_count = int(self.mp3_count_edit.text())
+                    if min_mp3_count < 1:
+                        min_mp3_count = DEFAULT_MIN_MP3_COUNT
+                except Exception:
+                    min_mp3_count = DEFAULT_MIN_MP3_COUNT
+            else:
+                min_mp3_count = DEFAULT_MIN_MP3_COUNT
         dlg = SuccessDialog(
             self, 
             open_folder=self.open_result_folder, 
             leftover_files=leftover_files, 
-            leftover_images=leftover_images
+            leftover_images=leftover_images,
+            min_mp3_count=min_mp3_count
         )
         dlg.exec_()
 
