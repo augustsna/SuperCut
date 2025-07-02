@@ -5,9 +5,9 @@ import time
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QPushButton, QFileDialog, QMessageBox, QSpacerItem, QSizePolicy, QDesktopWidget
+    QPushButton, QFileDialog, QMessageBox, QDesktopWidget
 )
-from PyQt5.QtCore import Qt, QSettings, QThread
+from PyQt5.QtCore import Qt, QSettings, QThread, QPoint
 from PyQt5.QtGui import QIntValidator, QIcon
 from logger import logger
 
@@ -49,6 +49,7 @@ class SuperCutUI(QWidget):
         self.init_ui()
         self.restore_window_position()
         self.setup_shortcuts()
+        self.update_output_name()
 
     def init_ui(self):
         """Initialize the user interface"""
@@ -72,8 +73,10 @@ class SuperCutUI(QWidget):
         
         self.setLayout(layout)
         self.update_output_name()
-        # Connect drag/drop or text change for media_sources_edit
-        self.media_sources_edit.editingFinished.connect(self.on_media_folder_changed)
+        # Connect text change for media_sources_edit and folder_edit
+        self.media_sources_edit.textChanged.connect(self.on_media_folder_changed)
+        self.folder_edit.textChanged.connect(self.update_output_name)
+        self.folder_edit.textChanged.connect(self.on_output_folder_changed)
 
     def create_folder_inputs(self, layout):
         """Create folder selection inputs"""
@@ -276,8 +279,10 @@ class SuperCutUI(QWidget):
         """Restore window position from settings"""
         settings = QSettings('SuperCut', 'SuperCutUI')
         pos = settings.value('window_position')
-        if pos:
+        if isinstance(pos, QPoint):
             self.move(pos)
+        elif isinstance(pos, (tuple, list)) and len(pos) == 2:
+            self.move(QPoint(pos[0], pos[1]))
         else:
             # Set initial position to top-left corner (0,0)
             self.move(0, 0)
@@ -392,7 +397,8 @@ class SuperCutUI(QWidget):
                 self.folder_edit.setText(folder)
             self.update_output_name()
         else:
-            self.folder_edit.setText("")
+            if not self.output_folder_manual:
+                self.folder_edit.setText("")
 
     def select_output_folder(self):
         """Select output folder"""
@@ -492,8 +498,8 @@ class SuperCutUI(QWidget):
         self._worker.progress.connect(self.on_worker_progress)
         self._worker.error.connect(self.on_worker_error)
         self._worker.finished.connect(
-            lambda leftover_mp3s: self.on_worker_finished_with_leftovers(
-                leftover_mp3s, original_mp3_files, original_image_files
+            lambda leftover_mp3s, used_images, failed_moves: self.on_worker_finished_with_leftovers(
+                leftover_mp3s, used_images, original_mp3_files, original_image_files, failed_moves
             )
         )
         self._worker.finished.connect(self._thread.quit)
@@ -558,7 +564,7 @@ class SuperCutUI(QWidget):
         self._auto_close_on_stop = False
         self._stopped_by_user = True
 
-    def on_worker_finished_with_leftovers(self, leftover_mp3s, original_mp3_files, original_image_files):
+    def on_worker_finished_with_leftovers(self, leftover_mp3s, used_images, original_mp3_files, original_image_files, failed_moves=None):
         """Handle worker completion with leftover files"""
         self.progress_bar.setVisible(False)
         self.stop_btn.setEnabled(False)
@@ -575,25 +581,14 @@ class SuperCutUI(QWidget):
         self.part2_edit.setEnabled(True)
         self.media_sources_select_btn.setEnabled(True)
         self.output_folder_select_btn.setEnabled(True)
-        
-        # Calculate leftover images
-        used_mp3s = set(original_mp3_files) - set(leftover_mp3s)
-        used_images = set()
-        folder = self.media_sources_edit.text().strip()
-        for img in original_image_files:
-            if not os.path.exists(os.path.join(folder, img)):
-                used_images.add(img)
-        leftover_images = list(original_image_files - used_images)
-        
+        # Calculate leftover images using used_images
+        leftover_images = list(set(original_image_files) - set(used_images))
         # Show appropriate dialog
         if hasattr(self, '_stopped_by_user') and self._stopped_by_user:
             self._stopped_by_user = False  # reset for next run
-
-            # Close PleaseWaitDialog if open
             if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
                 self._stopping_msgbox.close()
                 self._stopping_msgbox = None
-
             batch_count = self.progress_bar.value() if hasattr(self, 'progress_bar') else 0
             total_batches = self.progress_bar.maximum() if hasattr(self, 'progress_bar') else 0
             dlg = StoppedDialog(self, batch_count=batch_count, total_batches=total_batches)
@@ -603,11 +598,12 @@ class SuperCutUI(QWidget):
                 self.show_success_options(leftover_files=leftover_mp3s, leftover_images=leftover_images)
             else:
                 self.show_success_options()
-                
+        # Show warning if any files failed to move
+        if failed_moves:
+            QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(failed_moves))
         self.clear_inputs()
         self._worker = None
         self._thread = None
-        
         if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
             self._auto_close_on_stop = False
             if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
@@ -615,14 +611,11 @@ class SuperCutUI(QWidget):
                 self._stopping_msgbox = None
 
     def show_success_options(self, leftover_files=None, leftover_images=None):
-        """Show success dialog with options"""
+        """Show success dialog with options. All UI updates are performed in the main thread via signals/slots."""
         # Play notification sound
         try:
-            if sys.platform.startswith('win'):
-                QtWidgets.QApplication.beep()
-            else:
-                QtWidgets.QApplication.beep()
-        except Exception as e:
+            QtWidgets.QApplication.beep()
+        except RuntimeError as e:
             logger.warning(f"Failed to play notification sound: {e}")
         
         dlg = SuccessDialog(
@@ -716,7 +709,13 @@ class SuperCutUI(QWidget):
         folder = self.media_sources_edit.text().strip()
         if folder and not self.folder_edit.text().strip():
             self.folder_edit.setText(folder)
+            self.output_folder_manual = False  # Auto-set, so mark as not manual
             self.update_output_name()
+
+    def on_output_folder_changed(self, text):
+        """Reset manual flag if output folder is cleared"""
+        if not text.strip():
+            self.output_folder_manual = False
 
     def save_fps_setting(self):
         """Save the currently selected FPS to settings"""
@@ -734,8 +733,9 @@ def main():
     app.setApplicationVersion("1.0")
     
     # Check FFmpeg installation
-    if not check_ffmpeg_installation():
-        print("Warning: FFmpeg not found. The application will attempt to extract it on first use.")
+    ffmpeg_ok, error_msg = check_ffmpeg_installation()
+    if not ffmpeg_ok:
+        print(f"Warning: FFmpeg not found. {error_msg or 'The application will attempt to extract it on first use.'}")
     
     window = SuperCutUI()
     window.show()

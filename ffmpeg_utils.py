@@ -8,6 +8,7 @@ import sys
 from typing import Optional, Tuple
 from config import FFMPEG_BINARY, FFPROBE_BINARY, VIDEO_SETTINGS
 from logger import logger
+from utils import has_enough_disk_space, create_temp_file
 
 def get_audio_duration(file_path: str) -> float:
     """Get audio duration using ffprobe"""
@@ -23,7 +24,7 @@ def get_audio_duration(file_path: str) -> float:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         data = json.loads(result.stdout)
         return float(data['format']['duration'])
-    except Exception as e:
+    except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError, ValueError) as e:
         logger.error(f"Error getting duration for {file_path}: {e}")
         return 0.0
 
@@ -31,10 +32,10 @@ def merge_mp3s_with_ffmpeg(input_files: list, output_file: str) -> bool:
     """Merge multiple MP3 files using ffmpeg"""
     try:
         # Create a file list for ffmpeg
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+        file_list_path = create_temp_file(suffix='.txt')
+        with open(file_list_path, 'w') as f:
             for file_path in input_files:
                 f.write(f"file '{file_path}'\n")
-            file_list_path = f.name
         
         # Use ffmpeg to concatenate
         cmd = [
@@ -50,9 +51,17 @@ def merge_mp3s_with_ffmpeg(input_files: list, output_file: str) -> bool:
         subprocess.run(cmd, check=True, capture_output=True)
         
         # Clean up file list
-        os.unlink(file_list_path)
+        if file_list_path and os.path.exists(file_list_path):
+            try:
+                os.unlink(file_list_path)
+            except FileNotFoundError:
+                logger.warning(f"Temp file list {file_list_path} not found for removal.")
+            except PermissionError:
+                logger.warning(f"No permission to remove temp file list {file_list_path}.")
+            except OSError as e:
+                logger.warning(f"OS error removing temp file list {file_list_path}: {e}")
         return True
-    except Exception as e:
+    except (subprocess.CalledProcessError, OSError, ValueError) as e:
         logger.error(f"Error merging MP3s: {e}")
         return False
 
@@ -68,12 +77,33 @@ def create_video_with_ffmpeg(
     """Create video from image and audio using ffmpeg with progress tracking"""
     temp_png_path = None
     try:
+        # Estimate required output file size
+        audio_duration = get_audio_duration(audio_path)
+        # Use video bitrate from VIDEO_SETTINGS (e.g., '12M' -> 12*1024*1024 bps)
+        video_bitrate_str = VIDEO_SETTINGS["video_bitrate"]
+        if video_bitrate_str.lower().endswith('m'):
+            video_bitrate = int(float(video_bitrate_str[:-1]) * 1024 * 1024)
+        elif video_bitrate_str.lower().endswith('k'):
+            video_bitrate = int(float(video_bitrate_str[:-1]) * 1024)
+        else:
+            video_bitrate = int(video_bitrate_str)
+        # Add audio bitrate
+        audio_bitrate_str = VIDEO_SETTINGS["audio_bitrate"]
+        if audio_bitrate_str.lower().endswith('k'):
+            audio_bitrate = int(float(audio_bitrate_str[:-1]) * 1024)
+        else:
+            audio_bitrate = int(audio_bitrate_str)
+        total_bitrate = video_bitrate + audio_bitrate
+        estimated_size = int((total_bitrate / 8) * audio_duration)  # bytes
+        min_required = max(estimated_size * 2, 100 * 1024 * 1024)  # at least 2x estimated, or 100MB
+        output_dir = os.path.dirname(os.path.abspath(output_path)) or os.getcwd()
+        if not has_enough_disk_space(output_dir, min_required):
+            logger.error(f"Not enough disk space to create output video in {output_dir}. At least {min_required // (1024*1024)}MB required.")
+            print(f"❌ Not enough disk space to create output video in {output_dir}. At least {min_required // (1024*1024)}MB required.")
+            return False
         # If input is JPG, convert to PNG using ffmpeg
         if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg'):
-            import tempfile
-            temp_png = tempfile.NamedTemporaryFile(suffix='.png', prefix='supercut_', delete=False)
-            temp_png_path = temp_png.name
-            temp_png.close()
+            temp_png_path = create_temp_file(suffix='.png', prefix='supercut_')
             convert_cmd = [
                 FFMPEG_BINARY,
                 '-y',
@@ -186,52 +216,52 @@ def create_video_with_ffmpeg(
             sys.stdout.flush()
 
         # Read ffmpeg output and track progress
-        seconds = 0.0
-        while True:
-            if process.stderr is None:
-                break
-            line = process.stderr.readline()
-            if not line:
-                break
-                
-            # Parse it/s from ffmpeg output
-            its_patterns = [
-                r'speed=(\d+\.?\d*)x',  # speed=2.5x format
-                r'fps=(\d+\.?\d*)',     # fps=25.5 format
-                r'(\d+\.?\d*)\s*it/s',  # 25.5 it/s format
-            ]
-            
-            for pattern in its_patterns:
-                match = re.search(pattern, line)
-                if match:
-                    try:
-                        its_value = float(match.group(1))
-                        current_its = f"{its_value:0.2f}"
-                        break
-                    except ValueError:
-                        continue
-                
-            # Parse time from ffmpeg output
-            match = re.search(r'time=(\d+):(\d+):(\d+\.\d+)', line)
-            if match:
-                h, m, s = map(float, match.groups())
-                seconds = h * 3600 + m * 60 + s
-                last_seconds = seconds
-                last_update = time.time()
-                print_progress(seconds)
-                
-                # Interpolate progress every 0.1s until next ffmpeg update
-                now = time.time()
-                while (now - last_update) < 0.3:  # Interpolate for 0.3s
-                    interp_seconds = last_seconds + (now - last_update)
-                    if interp_seconds > audio_duration:
-                        interp_seconds = audio_duration
-                    print_progress(interp_seconds)
-                    time.sleep(0.1)
-                    now = time.time()
+        try:
+            if process.stderr is not None:
+                for line in process.stderr:
+                    # Parse it/s from ffmpeg output
+                    its_patterns = [
+                        r'speed=(\d+\.?\d*)x',  # speed=2.5x format
+                        r'fps=(\d+\.?\d*)',     # fps=25.5 format
+                        r'(\d+\.?\d*)\s*it/s',  # 25.5 it/s format
+                    ]
                     
-        process.wait()
-        
+                    for pattern in its_patterns:
+                        match = re.search(pattern, line)
+                        if match:
+                            try:
+                                its_value = float(match.group(1))
+                                current_its = f"{its_value:0.2f}"
+                                break
+                            except ValueError:
+                                continue
+                    
+                    # Parse time from ffmpeg output
+                    match = re.search(r'time=(\d+):(\d+):(\d+\.\d+)', line)
+                    if match:
+                        h, m, s = map(float, match.groups())
+                        seconds = h * 3600 + m * 60 + s
+                        last_seconds = seconds
+                        last_update = time.time()
+                        print_progress(seconds)
+                        
+                        # Interpolate progress every 0.1s until next ffmpeg update
+                        now = time.time()
+                        while (now - last_update) < 0.3:  # Interpolate for 0.3s
+                            interp_seconds = last_seconds + (now - last_update)
+                            if interp_seconds > audio_duration:
+                                interp_seconds = audio_duration
+                            print_progress(interp_seconds)
+                            time.sleep(0.1)
+                            now = time.time()
+        except Exception as e:
+            logger.error(f"Error reading ffmpeg output: {e}")
+        finally:
+            if process.stderr is not None:
+                process.stderr.close()
+            process.wait()
+            sys.stdout.flush()
+
         # Final progress update
         sys.stdout.write(
             f"\r  100.0% | Frame: {total_frames}/{total_frames} | ETA: 00:00:00 | it/s: {current_its} \n"
@@ -239,16 +269,20 @@ def create_video_with_ffmpeg(
         sys.stdout.flush()
 
         return process.returncode == 0
-    except Exception as e:
+    except (OSError, ValueError, subprocess.CalledProcessError) as e:
         logger.error(f"Error creating video: {e}")
         return False
     finally:
         # Clean up temp PNG if created
-        if temp_png_path:
+        if temp_png_path and os.path.exists(temp_png_path):
             try:
                 os.unlink(temp_png_path)
-            except Exception as e:
-                logger.warning(f"Warning: Could not remove temp PNG: {e}")
+            except FileNotFoundError:
+                logger.warning(f"Temp PNG {temp_png_path} not found for removal.")
+            except PermissionError:
+                logger.warning(f"No permission to remove temp PNG {temp_png_path}.")
+            except OSError as e:
+                logger.warning(f"OS error removing temp PNG {temp_png_path}: {e}")
 
 def merge_random_mp3s(selected_mp3s: list) -> Tuple[Optional[str], float]:
     """Merge MP3 files using ffmpeg - returns output path and duration"""

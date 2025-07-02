@@ -12,7 +12,7 @@ class VideoWorker(QObject):
     """Worker class for processing video creation in background thread"""
     progress = pyqtSignal(int, int)  # batch_count, total_batches
     error = pyqtSignal(str)
-    finished = pyqtSignal(list)  # leftover_files
+    finished = pyqtSignal(list, list, list)  # leftover_mp3s, used_images, failed_moves
 
     def __init__(self, media_sources: str, export_name: str, number: str, 
                  folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False):
@@ -26,6 +26,7 @@ class VideoWorker(QObject):
         self.fps = fps
         self.use_overlay = use_overlay
         self._stop = False
+        self._used_images = set()
 
     def stop(self):
         """Stop the video processing"""
@@ -50,7 +51,7 @@ class VideoWorker(QObject):
             # Parse start number
             try:
                 start_number = int(self.number)
-            except Exception as e:
+            except ValueError as e:
                 logger.warning(f"Invalid start number '{self.number}': {e}")
                 start_number = 1
                 
@@ -62,31 +63,25 @@ class VideoWorker(QObject):
             # Print export summary
             self._print_export_summary(total_batches)
 
-            # Process batches
+            all_failed_moves = []
             while len(mp3_files) >= 3 and batch_count < total_batches:
                 if self._stop:
-                    self.finished.emit(mp3_files)
+                    self.finished.emit(mp3_files, list(self._used_images), all_failed_moves)
                     return
-                    
-                # Process single batch
-                success = self._process_batch(
+                success, failed_moves = self._process_batch(
                     mp3_files, image_files, used_images, 
                     current_number, batch_count, total_batches
                 )
-                
+                all_failed_moves.extend(failed_moves)
                 if not success:
+                    self.finished.emit(mp3_files, list(self._used_images), all_failed_moves)
                     return
-                    
                 current_number += 1
                 batch_count += 1
                 self.progress.emit(batch_count, total_batches)
-                
-            # Print final completion message
             print(f"\n💫 All {total_batches} batches completed successfully!")
             print(f"Output folder: {self.folder}")
-            
-            # Emit finished signal with leftover files
-            self.finished.emit(mp3_files)
+            self.finished.emit(mp3_files, list(self._used_images), all_failed_moves)
             
         except Exception as e:
             error_msg = f"Error during video creation: {str(e)}"
@@ -105,7 +100,7 @@ class VideoWorker(QObject):
         print("--------------------------\n")
 
     def _process_batch(self, mp3_files: List[str], image_files: List[str], 
-                      used_images: set, current_number: int, batch_count: int, total_batches: int) -> bool:
+                      used_images: set, current_number: int, batch_count: int, total_batches: int) -> tuple[bool, list]:
         """Process a single batch of video creation"""
         batch_start_time = time.time()
         # Select random MP3s
@@ -117,11 +112,11 @@ class VideoWorker(QObject):
             used_images.clear()
             available_images = image_files[:]
         if not available_images:
-            return False
+            return False, []
             
-        selected_image_name = random.choice(available_images)
-        selected_image = os.path.join(self.media_sources, selected_image_name)
-        used_images.add(selected_image_name)
+        selected_image = random.choice(available_images)  # This is now a full path
+        used_images.add(selected_image)  # Store full path
+        self._used_images.add(selected_image)
         
         # Create output filename
         output_filename = f"{self.export_name}_{current_number}.mp4"
@@ -134,11 +129,16 @@ class VideoWorker(QObject):
         print("MP3s:", ", ".join(os.path.basename(mp3) for mp3 in selected_mp3s))
 
         # Merge MP3s
-        merged_audio_path, audio_duration = merge_random_mp3s(selected_mp3s)
+        try:
+            merged_audio_path, audio_duration = merge_random_mp3s(selected_mp3s)
+        except (OSError, ValueError) as e:
+            self.error.emit(f"Exception merging MP3 files: {e}")
+            return False, []
+
         if not merged_audio_path or audio_duration <= 0:
             self.error.emit(f"Failed to merge MP3 files or get duration")
-            return False
-        
+            return False, []
+
         try:
             # Create video
             if not create_video_with_ffmpeg(
@@ -151,24 +151,19 @@ class VideoWorker(QObject):
                 self.use_overlay
             ):
                 self.error.emit(f"Failed to create video: {output_filename}")
-                return False
-                
-        except Exception as e:
-            # Cleanup on error
-            self._cleanup_temp_audio(merged_audio_path)
-            raise e
+                return False, []
+        except (OSError, ValueError) as e:
+            self.error.emit(f"Exception creating video: {e}")
+            return False, []
         finally:
             # Always cleanup temporary audio file
             self._cleanup_temp_audio(merged_audio_path)
             
         # Create log and move files
-        self._create_log_and_move_files(
+        failed_moves = self._create_log_and_move_files(
             output_filename, output_path, selected_image, 
-            selected_mp3s, mp3_files, image_files, selected_image_name
+            selected_mp3s, mp3_files, image_files, selected_image
         )
-        
-        # Emit progress signal
-        self.progress.emit(batch_count + 1, total_batches)
         
         # Print completion message with time spent
         batch_time_spent = time.time() - batch_start_time
@@ -178,23 +173,27 @@ class VideoWorker(QObject):
             time_str = f"{mins}m {secs}s"
         else:
             time_str = f"{int(batch_time_spent)}s"
-        print(f"✓ Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str})")
+        print(f"\u2713 Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str})")
         
-        return True
+        return True, failed_moves
 
     def _cleanup_temp_audio(self, audio_path: str):
         """Clean up temporary audio file"""
         if audio_path and os.path.exists(audio_path):
             try:
                 os.remove(audio_path)
-            except Exception as e:
-                logger.warning(f"Failed to remove temp audio file {audio_path}: {e}")
+            except FileNotFoundError:
+                logger.warning(f"Temp audio file {audio_path} not found for removal.")
+            except PermissionError:
+                logger.warning(f"No permission to remove temp audio file {audio_path}.")
+            except OSError as e:
+                logger.warning(f"OS error removing temp audio file {audio_path}: {e}")
 
     def _create_log_and_move_files(self, output_filename: str, output_path: str, 
                                   selected_image: str, selected_mp3s: List[str], 
                                   mp3_files: List[str], image_files: List[str], 
-                                  selected_image_name: str):
-        """Create log file and move processed files to bin folder"""
+                                  selected_image_path: str) -> list:
+        """Create log file and move processed files to bin folder. Returns list of failed moves."""
         # Create log file
         output_base_name = os.path.splitext(output_filename)[0]
         log_path = os.path.join(self.media_sources, f"{output_base_name}.log")
@@ -213,23 +212,41 @@ class VideoWorker(QObject):
         # Move log file
         shutil.move(log_path, os.path.join(bin_folder, f"{output_base_name}.log"))
         
+        failed_moves = []
         # Move MP3 files
         output_base = os.path.splitext(os.path.basename(output_path))[0]
         for idx, mp3 in enumerate(selected_mp3s, 1):
             new_name = f"{output_base}+{idx}.mp3"
             try:
                 shutil.move(mp3, os.path.join(bin_folder, new_name))
-                mp3_files.remove(mp3)
-            except Exception as move_err:
-                print(f"Failed to move {mp3}: {move_err}")
-        
+                if mp3 in mp3_files:
+                    mp3_files.remove(mp3)
+            except FileNotFoundError:
+                logger.error(f"File {mp3} not found for moving.")
+                failed_moves.append(mp3)
+            except PermissionError:
+                logger.error(f"No permission to move file {mp3}.")
+                failed_moves.append(mp3)
+            except OSError as move_err:
+                logger.error(f"OS error moving {mp3} to {os.path.join(bin_folder, new_name)}: {move_err}")
+                failed_moves.append(mp3)
         # Move image file
         try:
-            img_ext = os.path.splitext(selected_image)[1]
+            img_ext = os.path.splitext(selected_image_path)[1]
             img_new_name = f"{output_base}{img_ext}"
-            shutil.move(selected_image, os.path.join(bin_folder, img_new_name))
-        except Exception as move_err:
-            print(f"Failed to move {selected_image}: {move_err}")
+            shutil.move(selected_image_path, os.path.join(bin_folder, img_new_name))
+        except FileNotFoundError:
+            logger.error(f"File {selected_image_path} not found for moving.")
+            failed_moves.append(selected_image_path)
+        except PermissionError:
+            logger.error(f"No permission to move file {selected_image_path}.")
+            failed_moves.append(selected_image_path)
+        except OSError as move_err:
+            logger.error(f"OS error moving {selected_image_path} to {os.path.join(bin_folder, img_new_name)}: {move_err}")
+            failed_moves.append(selected_image_path)
         finally:
-            if selected_image_name in image_files:
-                image_files.remove(selected_image_name) 
+            if selected_image_path in image_files:
+                image_files.remove(selected_image_path)
+        if failed_moves:
+            logger.warning(f"Some files could not be moved to bin: {failed_moves}")
+        return failed_moves 

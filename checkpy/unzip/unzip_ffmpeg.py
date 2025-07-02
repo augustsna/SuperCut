@@ -18,8 +18,14 @@ def create_directory_if_not_exists(directory_path):
         Path(directory_path).mkdir(parents=True, exist_ok=True)
         print(f"✓ Directory created/verified: {directory_path}")
         return True
-    except Exception as e:
-        print(f"✗ Error creating directory {directory_path}: {e}")
+    except FileNotFoundError:
+        print(f"✗ Directory path not found: {directory_path}")
+        return False
+    except PermissionError:
+        print(f"✗ No permission to create directory: {directory_path}")
+        return False
+    except OSError as e:
+        print(f"✗ OS error creating directory {directory_path}: {e}")
         return False
 
 
@@ -38,8 +44,17 @@ def unzip_file(zip_path, extract_path, description):
         print(f"✓ Successfully extracted {description} to {extract_path}")
         return True
         
-    except Exception as e:
-        print(f"✗ Error extracting {description}: {e}")
+    except FileNotFoundError:
+        print(f"✗ Zip file not found: {zip_path}")
+        return False
+    except PermissionError:
+        print(f"✗ No permission to extract zip file: {zip_path}")
+        return False
+    except zipfile.BadZipFile as e:
+        print(f"✗ Bad zip file {zip_path}: {e}")
+        return False
+    except OSError as e:
+        print(f"✗ OS error extracting {description}: {e}")
         return False
 
 
@@ -65,7 +80,7 @@ FFmpeg is now ready to use!"""
         # Destroy the root window
         root.destroy()
         
-    except Exception as e:
+    except tk.TclError as e:
         print(f"Could not show dialog: {e}")
         # Fallback to console message if dialog fails
 
