@@ -35,7 +35,7 @@ class VideoWorker(QObject):
 
     def run(self):
         """Main processing method"""
-        set_low_priority()
+        # set_low_priority()  # Removed to keep normal priority
         try:
             # Get media files
             from utils import get_files_by_type

@@ -142,6 +142,15 @@ class SuperCutUI(QWidget):
         self.mp3_count_edit.setEnabled(False)
         self.mp3_count_edit.setFixedWidth(50)
         self.mp3_count_checkbox.stateChanged.connect(lambda state: self.mp3_count_edit.setEnabled(state == Qt.Checked))
+        # Set label color grey when unchecked, black when checked
+        def update_mp3_checkbox_style(state):
+            if state == Qt.Checked:
+                self.mp3_count_checkbox.setStyleSheet("")  # Default
+            else:
+                self.mp3_count_checkbox.setStyleSheet("color: grey;")
+        self.mp3_count_checkbox.stateChanged.connect(update_mp3_checkbox_style)
+        # Initialize style
+        update_mp3_checkbox_style(self.mp3_count_checkbox.checkState())
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.update_output_name)
