@@ -484,7 +484,7 @@ class SuperCutUI(QWidget):
         controls = [
             self.create_btn, self.codec_combo, self.resolution_combo, self.fps_combo,
             self.media_sources_edit, self.folder_edit, self.part1_edit, self.part2_edit,
-            self.media_sources_select_btn, self.output_folder_select_btn
+            self.media_sources_select_btn, self.output_folder_select_btn, self.overlay_checkbox
         ]
         for ctrl in controls:
             ctrl.setEnabled(not processing)
@@ -531,6 +531,7 @@ class SuperCutUI(QWidget):
         self.part2_edit.setEnabled(True)
         self.media_sources_select_btn.setEnabled(True)
         self.output_folder_select_btn.setEnabled(True)
+        self.overlay_checkbox.setEnabled(True)
         QMessageBox.critical(self, "❌ Error", message)
         self._worker = None
         self._thread = None
@@ -539,6 +540,8 @@ class SuperCutUI(QWidget):
             self._auto_close_on_stop = False
             if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
                 self._stopping_msgbox.close()
+                self._stopping_msgbox.hide()
+                QtWidgets.QApplication.processEvents()
                 self._stopping_msgbox = None
             self.close()
 
@@ -561,6 +564,16 @@ class SuperCutUI(QWidget):
         
         self.progress_bar.setVisible(False)
         self.create_btn.setEnabled(True)
+        self.codec_combo.setEnabled(True)
+        self.resolution_combo.setEnabled(True)
+        self.fps_combo.setEnabled(True)
+        self.media_sources_edit.setEnabled(True)
+        self.folder_edit.setEnabled(True)
+        self.part1_edit.setEnabled(True)
+        self.part2_edit.setEnabled(True)
+        self.media_sources_select_btn.setEnabled(True)
+        self.output_folder_select_btn.setEnabled(True)
+        self.overlay_checkbox.setEnabled(True)
         self._auto_close_on_stop = False
         self._stopped_by_user = True
 
@@ -581,6 +594,7 @@ class SuperCutUI(QWidget):
         self.part2_edit.setEnabled(True)
         self.media_sources_select_btn.setEnabled(True)
         self.output_folder_select_btn.setEnabled(True)
+        self.overlay_checkbox.setEnabled(True)
         # Calculate leftover images using used_images
         leftover_images = list(set(original_image_files) - set(used_images))
         # Show appropriate dialog
@@ -588,6 +602,8 @@ class SuperCutUI(QWidget):
             self._stopped_by_user = False  # reset for next run
             if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
                 self._stopping_msgbox.close()
+                self._stopping_msgbox.hide()
+                QtWidgets.QApplication.processEvents()
                 self._stopping_msgbox = None
             batch_count = self.progress_bar.value() if hasattr(self, 'progress_bar') else 0
             total_batches = self.progress_bar.maximum() if hasattr(self, 'progress_bar') else 0
@@ -608,6 +624,8 @@ class SuperCutUI(QWidget):
             self._auto_close_on_stop = False
             if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
                 self._stopping_msgbox.close()
+                self._stopping_msgbox.hide()
+                QtWidgets.QApplication.processEvents()
                 self._stopping_msgbox = None
 
     def show_success_options(self, leftover_files=None, leftover_images=None):

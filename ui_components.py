@@ -84,19 +84,23 @@ class PleaseWaitDialog(QDialog):
                 color: #333;
             }
         """)
-        
+        # Disable the close (X) button
+        self.setWindowFlag(Qt.WindowCloseButtonHint, False)
+        # Optionally, also disable the context help button
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         vbox = QVBoxLayout(self)
         vbox.setContentsMargins(16, 16, 16, 16)
         vbox.setSpacing(10)
-        
         label = QLabel("Wait, current batch to finish")
         font = label.font()
         font.setBold(True)
         label.setFont(font)
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         vbox.addWidget(label)
-        
         self.setLayout(vbox)
+    def closeEvent(self, event):
+        # Ignore close events to prevent closing via Alt+F4 or other means
+        event.ignore()
 
 class StoppedDialog(QDialog):
     """Dialog shown when video creation is stopped by user"""
@@ -176,8 +180,12 @@ class StoppedDialog(QDialog):
         layout.addLayout(btn_row)
 
         # Shortcut
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.close)
+        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self._close_dialog)
         self.adjustSize()
+
+    def _close_dialog(self):
+        self.close()
+        return None
 
 class SuccessDialog(QDialog):
     """Dialog shown when video creation completes successfully"""
@@ -308,9 +316,13 @@ class SuccessDialog(QDialog):
         vbox.addLayout(btn_row)
 
         # Shortcut
-        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self.close)
+        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, self._close_dialog)
 
     def on_folder(self):
         """Open result folder when folder button is clicked"""
         if self.open_folder:
-            self.open_folder() 
+            self.open_folder()
+
+    def _close_dialog(self):
+        self.close()
+        return None 

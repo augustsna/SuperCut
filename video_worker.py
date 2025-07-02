@@ -141,7 +141,7 @@ class VideoWorker(QObject):
 
         try:
             # Create video
-            if not create_video_with_ffmpeg(
+            success, error_msg = create_video_with_ffmpeg(
                 selected_image, 
                 merged_audio_path, 
                 output_path, 
@@ -149,8 +149,9 @@ class VideoWorker(QObject):
                 self.fps, 
                 self.codec,
                 self.use_overlay
-            ):
-                self.error.emit(f"Failed to create video: {output_filename}")
+            )
+            if not success:
+                self.error.emit(error_msg or f"Failed to create video: {output_filename}")
                 return False, []
         except (OSError, ValueError) as e:
             self.error.emit(f"Exception creating video: {e}")

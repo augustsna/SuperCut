@@ -73,13 +73,12 @@ def create_video_with_ffmpeg(
     fps: int, 
     codec: str,
     use_overlay: bool = False
-) -> bool:
-    """Create video from image and audio using ffmpeg with progress tracking"""
+) -> Tuple[bool, Optional[str]]:
+    """Create video from image and audio using ffmpeg with progress tracking. Returns (success, error_message)."""
     temp_png_path = None
     try:
         # Estimate required output file size
         audio_duration = get_audio_duration(audio_path)
-        # Use video bitrate from VIDEO_SETTINGS (e.g., '12M' -> 12*1024*1024 bps)
         video_bitrate_str = VIDEO_SETTINGS["video_bitrate"]
         if video_bitrate_str.lower().endswith('m'):
             video_bitrate = int(float(video_bitrate_str[:-1]) * 1024 * 1024)
@@ -87,7 +86,6 @@ def create_video_with_ffmpeg(
             video_bitrate = int(float(video_bitrate_str[:-1]) * 1024)
         else:
             video_bitrate = int(video_bitrate_str)
-        # Add audio bitrate
         audio_bitrate_str = VIDEO_SETTINGS["audio_bitrate"]
         if audio_bitrate_str.lower().endswith('k'):
             audio_bitrate = int(float(audio_bitrate_str[:-1]) * 1024)
@@ -98,9 +96,10 @@ def create_video_with_ffmpeg(
         min_required = max(estimated_size * 2, 100 * 1024 * 1024)  # at least 2x estimated, or 100MB
         output_dir = os.path.dirname(os.path.abspath(output_path)) or os.getcwd()
         if not has_enough_disk_space(output_dir, min_required):
-            logger.error(f"Not enough disk space to create output video in {output_dir}. At least {min_required // (1024*1024)}MB required.")
-            print(f"❌ Not enough disk space to create output video in {output_dir}. At least {min_required // (1024*1024)}MB required.")
-            return False
+            msg = f"❌ Not enough disk space to create output video in {output_dir}. At least {min_required // (1024*1024)}MB required."
+            logger.error(msg)
+            print(msg)
+            return False, msg
         # If input is JPG, convert to PNG using ffmpeg
         if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg'):
             temp_png_path = create_temp_file(suffix='.png', prefix='supercut_')
@@ -112,16 +111,18 @@ def create_video_with_ffmpeg(
             ]
             result = subprocess.run(convert_cmd, capture_output=True, text=True)
             if result.returncode != 0:
-                logger.error(f"Error converting JPG to PNG: {result.stderr}")
-                return False
+                msg = f"Error converting JPG to PNG: {result.stderr}"
+                logger.error(msg)
+                return False, msg
             image_path_for_ffmpeg = temp_png_path
         else:
             image_path_for_ffmpeg = image_path
 
         # Accept only PNG image files
         if not image_path_for_ffmpeg.lower().endswith('.png'):
-            logger.error(f"Error: Only PNG image files are accepted. Provided: {image_path_for_ffmpeg}")
-            return False
+            msg = f"Error: Only PNG image files are accepted. Provided: {image_path_for_ffmpeg}"
+            logger.error(msg)
+            return False, msg
         
         width, height = map(int, resolution.split('x'))
         
@@ -146,7 +147,7 @@ def create_video_with_ffmpeg(
         cmd.extend(["-c:v", codec, "-preset", VIDEO_SETTINGS["preset"]])       
 
         if codec == "h264_nvenc":
-            cmd.extend(["-rc", "vbr_hq"])            
+            cmd.extend(["-rc", "vbr_hq"])
 
         # Video settings
         cmd.extend([   
@@ -180,28 +181,22 @@ def create_video_with_ffmpeg(
         video_name = os.path.basename(output_path)
         logger.info(f"FFmpeg Video Creation Command for {video_name}:")
         print(f"FFmpeg Video Creation Command for {video_name}:")
-        # Show command with just 'ffmpeg' instead of full path
         display_cmd = ['ffmpeg'] + cmd[1:]
         logger.info(f"  {' '.join(display_cmd)}")
         print(f"  {' '.join(display_cmd)}")
         logger.info("")
         print("")
 
-        # Get audio duration for progress calculation
         audio_duration = get_audio_duration(audio_path)
         total_frames = int(audio_duration * fps)
         
-        # Start ffmpeg process
         process = subprocess.Popen(cmd, stderr=subprocess.PIPE, universal_newlines=True, bufsize=1)
 
-        # Progress tracking
         start_time = time.time()
         last_seconds = 0.0
         last_update = time.time()
-        current_its = "--"  # Track current it/s value
-        
+        current_its = "--"
         def print_progress(seconds: float):
-            """Print progress information"""
             current_frame = int(seconds * fps)
             percent = min(100.0, (current_frame / total_frames) * 100) if total_frames > 0 else 0
             elapsed = time.time() - start_time
@@ -209,34 +204,27 @@ def create_video_with_ffmpeg(
             remaining_frames = total_frames - current_frame
             eta_sec = int(remaining_frames / speed) if speed > 0 else 0
             eta_str = time.strftime('%H:%M:%S', time.gmtime(eta_sec)) if eta_sec > 0 else "--:--:--"
-            
             sys.stdout.write(
                 f"\r  {percent:5.1f}% | Frame: {current_frame}/{total_frames} | ETA: {eta_str} | it/s: {current_its} "
             )
             sys.stdout.flush()
-
-        # Read ffmpeg output and track progress
         try:
             if process.stderr is not None:
                 for line in process.stderr:
-                    # Parse it/s from ffmpeg output
                     its_patterns = [
-                        r'speed=(\d+\.?\d*)x',  # speed=2.5x format
-                        r'fps=(\d+\.?\d*)',     # fps=25.5 format
-                        r'(\d+\.?\d*)\s*it/s',  # 25.5 it/s format
+                        r'speed=(\d+\.?\d*)x',
+                        r'fps=(\d+\.?\d*)',
+                        r'(\d+\.?\d*)\s*it/s',
                     ]
-                    
                     for pattern in its_patterns:
                         match = re.search(pattern, line)
                         if match:
                             try:
                                 its_value = float(match.group(1))
-                                current_its = f"{its_value:0.2f}"
+                                current_its = f"{its_value:0.3f}"
                                 break
                             except ValueError:
                                 continue
-                    
-                    # Parse time from ffmpeg output
                     match = re.search(r'time=(\d+):(\d+):(\d+\.\d+)', line)
                     if match:
                         h, m, s = map(float, match.groups())
@@ -244,10 +232,8 @@ def create_video_with_ffmpeg(
                         last_seconds = seconds
                         last_update = time.time()
                         print_progress(seconds)
-                        
-                        # Interpolate progress every 0.1s until next ffmpeg update
                         now = time.time()
-                        while (now - last_update) < 0.3:  # Interpolate for 0.3s
+                        while (now - last_update) < 0.2:
                             interp_seconds = last_seconds + (now - last_update)
                             if interp_seconds > audio_duration:
                                 interp_seconds = audio_duration
@@ -255,25 +241,28 @@ def create_video_with_ffmpeg(
                             time.sleep(0.1)
                             now = time.time()
         except Exception as e:
-            logger.error(f"Error reading ffmpeg output: {e}")
+            msg = f"Error reading ffmpeg output: {e}"
+            logger.error(msg)
+            return False, msg
         finally:
             if process.stderr is not None:
                 process.stderr.close()
             process.wait()
             sys.stdout.flush()
-
-        # Final progress update
         sys.stdout.write(
             f"\r  100.0% | Frame: {total_frames}/{total_frames} | ETA: 00:00:00 | it/s: {current_its} \n"
         )
         sys.stdout.flush()
-
-        return process.returncode == 0
+        if process.returncode != 0:
+            msg = f"FFmpeg failed with return code {process.returncode}."
+            logger.error(msg)
+            return False, msg
+        return True, None
     except (OSError, ValueError, subprocess.CalledProcessError) as e:
-        logger.error(f"Error creating video: {e}")
-        return False
+        msg = f"Error creating video: {e}"
+        logger.error(msg)
+        return False, msg
     finally:
-        # Clean up temp PNG if created
         if temp_png_path and os.path.exists(temp_png_path):
             try:
                 os.unlink(temp_png_path)
