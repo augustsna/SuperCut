@@ -26,7 +26,7 @@ from utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
     validate_inputs, validate_media_files
 )
-from ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, ScrollableErrorDialog
+from ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, ScrollableErrorDialog, ImageDropLineEdit
 from video_worker import VideoWorker
 from terminal_widget import TerminalWidget
 
@@ -220,14 +220,42 @@ class SuperCutUI(QWidget):
         settings_layout.addSpacing(6)
         settings_layout.addWidget(self.fps_combo)
 
-        # Add PNG overlay checkbox
-        self.overlay_checkbox = QtWidgets.QCheckBox("Use PNG Overlay")
-        self.overlay_checkbox.setChecked(False)
-        settings_layout.addSpacing(18)
-        settings_layout.addWidget(self.overlay_checkbox)
-
         settings_layout.addStretch()
         layout.addLayout(settings_layout)
+
+        # Move PNG overlay checkbox below video settings
+        self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1")
+        self.overlay_checkbox.setChecked(False)
+        # Set label color grey when unchecked, black when checked
+        def update_overlay_checkbox_style(state):
+            if state == Qt.Checked:
+                self.overlay_checkbox.setStyleSheet("")  # Default
+            else:
+                self.overlay_checkbox.setStyleSheet("color: grey;")
+        self.overlay_checkbox.stateChanged.connect(update_overlay_checkbox_style)
+        # Initialize style
+        update_overlay_checkbox_style(self.overlay_checkbox.checkState())
+
+        # Overlay 1 image input (text, drag & drop, select button)
+        overlay1_layout = QHBoxLayout()
+        self.overlay1_edit = ImageDropLineEdit()
+        self.overlay1_edit.setPlaceholderText("Overlay 1 image path (*.gif, *.png)")
+        self.overlay1_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay1_path = ""
+        def on_overlay1_changed():
+            self.overlay1_path = self.overlay1_edit.text().strip()
+        self.overlay1_edit.textChanged.connect(on_overlay1_changed)
+        overlay1_btn = QPushButton("Select Image")
+        overlay1_btn.setFixedWidth(110)
+        def select_overlay1_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 1 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.overlay1_edit.setText(file_path)
+        overlay1_btn.clicked.connect(select_overlay1_image)
+        overlay1_layout.addWidget(self.overlay_checkbox)
+        overlay1_layout.addWidget(self.overlay1_edit)
+        overlay1_layout.addWidget(overlay1_btn)
+        layout.addLayout(overlay1_layout)
 
     def create_action_buttons(self, layout):
         """Create action buttons"""
@@ -445,6 +473,12 @@ class SuperCutUI(QWidget):
     def create_video(self):
         """Start video creation process"""
         # Step 1: Gather and validate inputs
+        # Overlay 1 validation
+        if self.overlay_checkbox.isChecked():
+            overlay_path = self.overlay1_edit.text().strip()
+            if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png']:
+                QMessageBox.warning(self, "⚠️ Overlay Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 1.", QMessageBox.Ok)
+                return
         inputs = self._gather_and_validate_inputs()
         if not inputs:
             return
@@ -514,7 +548,7 @@ class SuperCutUI(QWidget):
     def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count):
         """Set up the VideoWorker and QThread, connect signals, and start processing."""
         self._thread = QThread()
-        self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps, self.overlay_checkbox.isChecked(), min_mp3_count)
+        self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps, self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path)
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.progress.connect(self.on_worker_progress)

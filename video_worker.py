@@ -9,13 +9,13 @@ import time
 from logger import logger
 
 class VideoWorker(QObject):
-    """Worker class for processing video creation in background thread"""
+    """Worker class for processing video creation in background thread. Supports GIF overlay for Overlay 1."""
     progress = pyqtSignal(int, int)  # batch_count, total_batches
     error = pyqtSignal(str)
     finished = pyqtSignal(list, list, list)  # leftover_mp3s, used_images, failed_moves
 
     def __init__(self, media_sources: str, export_name: str, number: str, 
-                 folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False, min_mp3_count: int = 3):
+                 folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False, min_mp3_count: int = 3, overlay1_path: str = ""):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -26,6 +26,7 @@ class VideoWorker(QObject):
         self.fps = fps
         self.use_overlay = use_overlay
         self.min_mp3_count = min_mp3_count
+        self.overlay1_path = overlay1_path  # Should be a GIF file if used
         self._stop = False
         self._used_images = set()
 
@@ -141,7 +142,7 @@ class VideoWorker(QObject):
             return False, []
 
         try:
-            # Create video
+            # Create video (Overlay 1: GIF only)
             success, error_msg = create_video_with_ffmpeg(
                 selected_image, 
                 merged_audio_path, 
@@ -149,7 +150,8 @@ class VideoWorker(QObject):
                 self.resolution, 
                 self.fps, 
                 self.codec,
-                self.use_overlay
+                self.use_overlay,
+                self.overlay1_path
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")

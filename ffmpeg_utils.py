@@ -72,9 +72,10 @@ def create_video_with_ffmpeg(
     resolution: str, 
     fps: int, 
     codec: str,
-    use_overlay: bool = False
+    use_overlay: bool = False,
+    overlay1_path: str = ""
 ) -> Tuple[bool, Optional[str]]:
-    """Create video from image and audio using ffmpeg with progress tracking. Returns (success, error_message)."""
+    """Create video from image and audio using ffmpeg with progress tracking. If use_overlay is True, overlay1_path must be a GIF file. Returns (success, error_message)."""
     temp_png_path = None
     try:
         # Estimate required output file size
@@ -134,11 +135,23 @@ def create_video_with_ffmpeg(
             "-i", audio_path
         ]
         if use_overlay:
-            cmd.extend(["-i", os.path.join("sources", "overlay1.png")])
-
+            # Only accept GIF or PNG overlays
+            ext = os.path.splitext(overlay1_path)[1].lower()
+            if not overlay1_path or not os.path.isfile(overlay1_path) or ext not in ['.gif', '.png']:
+                msg = f"Error: Overlay 1 must be a valid GIF or PNG file (*.gif, *.png). Provided: {overlay1_path}"
+                logger.error(msg)
+                return False, msg
+            overlay_img = overlay1_path
+            if ext == '.gif':
+                cmd.extend(["-stream_loop", "-1", "-i", overlay_img])
+            else:
+                cmd.extend(["-i", overlay_img])
         # Filter complex
         if use_overlay:
-            filter_complex = f"[0:v]scale={width}:{height}[bg];[bg][2:v]overlay=0:0,format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            if ext == '.gif':
+                filter_complex = f"[0:v]scale={width}:{height}[bg];[bg][2:v]overlay=0:0:enable='gte(t,5)',format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            else:
+                filter_complex = f"[0:v]scale={width}:{height}[bg];[bg][2:v]overlay=0:0:enable='gte(t,5)',format={VIDEO_SETTINGS['pixel_format']}[vout]"
             cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])
         else:
             filter_complex = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"

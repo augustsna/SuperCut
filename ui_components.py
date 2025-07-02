@@ -34,6 +34,30 @@ class FolderDropLineEdit(QLineEdit):
                 self.setText(path)
                 self.editingFinished.emit()
 
+class ImageDropLineEdit(QLineEdit):
+    """Custom QLineEdit that accepts GIF or PNG file drag and drop (*.gif, *.png)"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            if urls and urls[0].isLocalFile():
+                path = urls[0].toLocalFile()
+                if os.path.isfile(path) and os.path.splitext(path)[1].lower() in ['.gif', '.png']:
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def dropEvent(self, event):
+        urls = event.mimeData().urls()
+        if urls and urls[0].isLocalFile():
+            path = urls[0].toLocalFile()
+            if os.path.isfile(path) and os.path.splitext(path)[1].lower() in ['.gif', '.png']:
+                self.setText(path)
+                self.editingFinished.emit()
+
 class WaitingDialog(QDialog):
     """Dialog shown while processing video creation"""
     def __init__(self, parent=None):
