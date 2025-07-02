@@ -103,29 +103,35 @@ def create_video_with_ffmpeg(
         ]
         if use_overlay:
             cmd.extend(["-i", os.path.join("sources", "overlay1.png")])
-        cmd.extend(["-c:v", codec, "-preset", VIDEO_SETTINGS["preset"]])
-
-        if codec == "h264_nvenc":
-            cmd.extend(["-rc", "vbr_hq"])
-
-        cmd.extend([   
-            "-b:v", VIDEO_SETTINGS["video_bitrate"],
-            "-maxrate", VIDEO_SETTINGS["max_bitrate"],
-            "-bufsize", VIDEO_SETTINGS["buffer_size"],        
-            "-c:a", VIDEO_SETTINGS["audio_codec"],
-            "-b:a", VIDEO_SETTINGS["audio_bitrate"],
-            "-ar", VIDEO_SETTINGS["audio_sample_rate"],
-            "-ac", VIDEO_SETTINGS["audio_channels"]
-        ])
 
         # Filter complex
         if use_overlay:
             filter_complex = f"[0:v]scale={width}:{height}[bg];[bg][2:v]overlay=0:0,format={VIDEO_SETTINGS['pixel_format']}[vout]"
             cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])
         else:
-            filter_complex = f"[0:v]scale={width}:{height}[v];[v]format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            filter_complex = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
             cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])
 
+        cmd.extend(["-c:v", codec, "-preset", VIDEO_SETTINGS["preset"]])       
+
+        if codec == "h264_nvenc":
+            cmd.extend(["-rc", "vbr_hq"])            
+
+        # Video settings
+        cmd.extend([   
+            "-b:v", VIDEO_SETTINGS["video_bitrate"],
+            "-maxrate", VIDEO_SETTINGS["max_bitrate"],
+            "-bufsize", VIDEO_SETTINGS["buffer_size"]     
+        ])
+
+        # Audio settings
+        cmd.extend([   
+            "-c:a", VIDEO_SETTINGS["audio_codec"],
+            "-b:a", VIDEO_SETTINGS["audio_bitrate"],
+            "-ar", VIDEO_SETTINGS["audio_sample_rate"],
+            "-ac", VIDEO_SETTINGS["audio_channels"]
+        ])
+       
         cmd.extend([
             "-r", str(fps),
             "-g", VIDEO_SETTINGS["gop_size"],
