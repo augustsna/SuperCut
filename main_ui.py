@@ -26,10 +26,7 @@ from utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
     validate_inputs, validate_media_files
 )
-from ui_components import (
-    FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, 
-    StoppedDialog, SuccessDialog
-)
+from ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, ScrollableErrorDialog
 from video_worker import VideoWorker
 from terminal_widget import TerminalWidget
 
@@ -548,7 +545,8 @@ class SuperCutUI(QWidget):
         self.media_sources_select_btn.setEnabled(True)
         self.output_folder_select_btn.setEnabled(True)
         self.overlay_checkbox.setEnabled(True)
-        QMessageBox.critical(self, "❌ Error", message)
+        dlg = ScrollableErrorDialog(self, title="❌ Error", message=message)
+        dlg.exec_()
         self._worker = None
         self._thread = None
         

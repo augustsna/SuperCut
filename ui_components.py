@@ -325,4 +325,77 @@ class SuccessDialog(QDialog):
 
     def _close_dialog(self):
         self.close()
-        return None 
+        return None
+
+class ScrollableErrorDialog(QDialog):
+    """Dialog for displaying long error messages/logs in a scrollable area."""
+    def __init__(self, parent=None, title="Error Log", message=""):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.setModal(True)
+        self.setMinimumSize(520, 320)
+        self.setMaximumSize(900, 700)
+        self.resize(600, 400)
+        self.setStyleSheet("""
+            QDialog {
+                background: #f5f7fa;
+                border-radius: 10px;
+            }
+            QLabel#titleLabel {
+                font-size: 16px;
+                color: #b00;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+            QTextEdit {
+                background: #fff;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                font-family: Consolas, 'Courier New', monospace;
+                font-size: 12px;
+                color: #222;
+                padding: 8px;
+            }
+            QPushButton {
+                background-color: #4a90e2;
+                color: white;
+                border-radius: 6px;
+                padding: 7px 18px;
+                font-size: 13px;
+                min-width: 90px;
+                margin-top: 8px;
+            }
+            QPushButton:hover {
+                background-color: #357ABD;
+            }
+        """)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(10)
+
+        # Title label
+        title_label = QLabel(title)
+        title_label.setObjectName("titleLabel")
+        title_label.setAlignment(Qt.AlignHCenter)
+        layout.addWidget(title_label)
+
+        # Scrollable error log
+        self.text_edit = QTextEdit()
+        self.text_edit.setReadOnly(True)
+        self.text_edit.setText(message)
+        self.text_edit.setLineWrapMode(QTextEdit.NoWrap)
+        self.text_edit.setMinimumHeight(200)
+        layout.addWidget(self.text_edit, 1)
+
+        # OK button
+        btn_row = QHBoxLayout()
+        btn_row.addStretch()
+        ok_btn = QPushButton("OK")
+        ok_btn.setDefault(True)
+        ok_btn.clicked.connect(self.accept)
+        btn_row.addWidget(ok_btn)
+        btn_row.addStretch()
+        layout.addLayout(btn_row)
+
+        # Shortcut
+        QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self, lambda: (self.close(), None)[-1]) 
