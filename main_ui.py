@@ -240,23 +240,25 @@ class SuperCutUI(QWidget):
 
         # Overlay 1 image input (text, drag & drop, select button)
         overlay1_layout = QHBoxLayout()
+        overlay1_layout.setSpacing(4)  # Reduce spacing between widgets
         self.overlay1_edit = ImageDropLineEdit()
         self.overlay1_edit.setPlaceholderText("Overlay 1 image path (*.gif, *.png)")
         self.overlay1_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay1_edit.setFixedWidth(125)  # Make the text box shorter
         self.overlay1_path = ""
         def on_overlay1_changed():
             self.overlay1_path = self.overlay1_edit.text().strip()
         self.overlay1_edit.textChanged.connect(on_overlay1_changed)
-        overlay1_btn = QPushButton("Select Image")
-        overlay1_btn.setFixedWidth(110)
+        overlay1_btn = QPushButton("Select")
+        overlay1_btn.setFixedWidth(60)
         def select_overlay1_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 1 Image", "", "Image Files (*.gif *.png)")
             if file_path:
                 self.overlay1_edit.setText(file_path)
         overlay1_btn.clicked.connect(select_overlay1_image)
         # Overlay 1 size option (5% to 100%)
-        overlay1_size_label = QLabel("Size:")
-        overlay1_size_label.setFixedWidth(33)
+        overlay1_size_label = QLabel("S:")
+        overlay1_size_label.setFixedWidth(18)
         self.overlay1_size_combo = QtWidgets.QComboBox()
         self.overlay1_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
@@ -273,27 +275,57 @@ class SuperCutUI(QWidget):
         self.overlay1_size_combo.lineEdit().setAlignment(Qt.AlignCenter)
         self.overlay1_size_combo.currentIndexChanged.connect(on_overlay1_size_changed)
         on_overlay1_size_changed(self.overlay1_size_combo.currentIndex())
+        # Add overlay position option
+        overlay1_position_label = QLabel("P:")
+        overlay1_position_label.setFixedWidth(18)
+        self.overlay1_position_combo = QtWidgets.QComboBox()
+        self.overlay1_position_combo.setFixedWidth(130)
+        positions = [
+            ("Top Left", "top_left"),
+            ("Top Right", "top_right"),
+            ("Bottom Left", "bottom_left"),
+            ("Bottom Right", "bottom_right")
+        ]
+        for label, value in positions:
+            self.overlay1_position_combo.addItem(label, value)
+        self.overlay1_position_combo.setCurrentIndex(0)
+        self.overlay1_position = "top_left"
+        def on_overlay1_position_changed(idx):
+            self.overlay1_position = self.overlay1_position_combo.itemData(idx)
+        self.overlay1_position_combo.currentIndexChanged.connect(on_overlay1_position_changed)
+        on_overlay1_position_changed(self.overlay1_position_combo.currentIndex())
         # Enable/disable overlay1_edit, overlay1_btn, and overlay1_size_combo based on checkbox
         def set_overlay1_enabled(state):
             enabled = state == Qt.Checked
             self.overlay1_edit.setEnabled(enabled)
             overlay1_btn.setEnabled(enabled)
             self.overlay1_size_combo.setEnabled(enabled)
+            self.overlay1_position_combo.setEnabled(enabled)
             if enabled:
                 overlay1_btn.setStyleSheet("")  # Default style
                 self.overlay1_edit.setStyleSheet("")  # Default style
                 self.overlay1_size_combo.setStyleSheet("")
+                self.overlay1_position_combo.setStyleSheet("")
                 overlay1_size_label.setStyleSheet("")  # Default
+                overlay1_position_label.setStyleSheet("")
             else:
-                overlay1_btn.setStyleSheet("background-color: #e0e0e0; color: #888;")  # Lighter grey
-                self.overlay1_edit.setStyleSheet("background-color: #f2f2f2; color: #888;")  # Lighter grey for textbox
-                self.overlay1_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888;")
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                overlay1_btn.setStyleSheet(grey_btn_style)
+                self.overlay1_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")  # Lighter grey for textbox
+                self.overlay1_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay1_position_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 overlay1_size_label.setStyleSheet("color: grey;")
+                overlay1_position_label.setStyleSheet("color: grey;")
         self.overlay_checkbox.stateChanged.connect(set_overlay1_enabled)
         set_overlay1_enabled(self.overlay_checkbox.checkState())
         overlay1_layout.addWidget(self.overlay_checkbox)
         overlay1_layout.addWidget(self.overlay1_edit)
+        overlay1_layout.addSpacing(6)  # Space before select button
         overlay1_layout.addWidget(overlay1_btn)
+        overlay1_layout.addSpacing(6)  # Space before position label
+        overlay1_layout.addWidget(overlay1_position_label)
+        overlay1_layout.addWidget(self.overlay1_position_combo)
+        overlay1_layout.addSpacing(6) 
         overlay1_layout.addWidget(overlay1_size_label)
         overlay1_layout.addWidget(self.overlay1_size_combo)
         layout.addLayout(overlay1_layout)
