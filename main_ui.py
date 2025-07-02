@@ -275,7 +275,7 @@ class SuperCutUI(QWidget):
         self.overlay1_size_combo.lineEdit().setAlignment(Qt.AlignCenter)
         self.overlay1_size_combo.currentIndexChanged.connect(on_overlay1_size_changed)
         on_overlay1_size_changed(self.overlay1_size_combo.currentIndex())
-        # Add overlay position option
+        # Overlay 1 position option
         overlay1_position_label = QLabel("P:")
         overlay1_position_label.setFixedWidth(18)
         self.overlay1_position_combo = QtWidgets.QComboBox()
@@ -288,8 +288,8 @@ class SuperCutUI(QWidget):
         ]
         for label, value in positions:
             self.overlay1_position_combo.addItem(label, value)
-        self.overlay1_position_combo.setCurrentIndex(0)
-        self.overlay1_position = "top_left"
+        self.overlay1_position_combo.setCurrentIndex(3)  # Default Bottom Right
+        self.overlay1_position = "bottom_right"
         def on_overlay1_position_changed(idx):
             self.overlay1_position = self.overlay1_position_combo.itemData(idx)
         self.overlay1_position_combo.currentIndexChanged.connect(on_overlay1_position_changed)
@@ -375,6 +375,7 @@ class SuperCutUI(QWidget):
         self.overlay2_size_combo.lineEdit().setAlignment(Qt.AlignCenter)
         self.overlay2_size_combo.currentIndexChanged.connect(on_overlay2_size_changed)
         on_overlay2_size_changed(self.overlay2_size_combo.currentIndex())
+        # Overlay 2 position option
         overlay2_position_label = QLabel("P:")
         overlay2_position_label.setFixedWidth(18)
         self.overlay2_position_combo = QtWidgets.QComboBox()
@@ -387,8 +388,8 @@ class SuperCutUI(QWidget):
         ]
         for label, value in positions:
             self.overlay2_position_combo.addItem(label, value)
-        self.overlay2_position_combo.setCurrentIndex(0)
-        self.overlay2_position = "top_left"
+        self.overlay2_position_combo.setCurrentIndex(1)  # Default Top Right
+        self.overlay2_position = "top_right"
         def on_overlay2_position_changed(idx):
             self.overlay2_position = self.overlay2_position_combo.itemData(idx)
         self.overlay2_position_combo.currentIndexChanged.connect(on_overlay2_position_changed)
