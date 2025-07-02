@@ -15,7 +15,7 @@ class VideoWorker(QObject):
     finished = pyqtSignal(list, list, list)  # leftover_mp3s, used_images, failed_moves
 
     def __init__(self, media_sources: str, export_name: str, number: str, 
-                 folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False, min_mp3_count: int = 3, overlay1_path: str = ""):
+                 folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False, min_mp3_count: int = 3, overlay1_path: str = "", overlay1_size_percent: int = 100):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -26,7 +26,8 @@ class VideoWorker(QObject):
         self.fps = fps
         self.use_overlay = use_overlay
         self.min_mp3_count = min_mp3_count
-        self.overlay1_path = overlay1_path  # Should be a GIF file if used
+        self.overlay1_path = overlay1_path  # Should be a GIF or PNG file if used
+        self.overlay1_size_percent = overlay1_size_percent
         self._stop = False
         self._used_images = set()
 
@@ -142,7 +143,7 @@ class VideoWorker(QObject):
             return False, []
 
         try:
-            # Create video (Overlay 1: GIF only)
+            # Create video (Overlay 1: GIF/PNG, with size)
             success, error_msg = create_video_with_ffmpeg(
                 selected_image, 
                 merged_audio_path, 
@@ -151,7 +152,8 @@ class VideoWorker(QObject):
                 self.fps, 
                 self.codec,
                 self.use_overlay,
-                self.overlay1_path
+                self.overlay1_path,
+                self.overlay1_size_percent
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")

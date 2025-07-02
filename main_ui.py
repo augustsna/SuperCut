@@ -254,23 +254,48 @@ class SuperCutUI(QWidget):
             if file_path:
                 self.overlay1_edit.setText(file_path)
         overlay1_btn.clicked.connect(select_overlay1_image)
-        # Enable/disable overlay1_edit and overlay1_btn based on checkbox
+        # Overlay 1 size option (5% to 100%)
+        overlay1_size_label = QLabel("Size:")
+        overlay1_size_label.setFixedWidth(32)
+        self.overlay1_size_combo = QtWidgets.QComboBox()
+        self.overlay1_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.overlay1_size_combo.addItem(str(percent), percent)
+        self.overlay1_size_combo.setCurrentIndex(19)  # Default 100%
+        self.overlay1_size_percent = 100
+        def on_overlay1_size_changed(idx):
+            self.overlay1_size_percent = self.overlay1_size_combo.itemData(idx)
+            # Set display text with %
+            if idx >= 0:
+                self.overlay1_size_combo.setEditText(f"{self.overlay1_size_percent}%")
+        self.overlay1_size_combo.setEditable(True)
+        self.overlay1_size_combo.lineEdit().setReadOnly(True)
+        self.overlay1_size_combo.lineEdit().setAlignment(Qt.AlignCenter)
+        self.overlay1_size_combo.currentIndexChanged.connect(on_overlay1_size_changed)
+        on_overlay1_size_changed(self.overlay1_size_combo.currentIndex())
+        # Enable/disable overlay1_edit, overlay1_btn, and overlay1_size_combo based on checkbox
         def set_overlay1_enabled(state):
             enabled = state == Qt.Checked
             self.overlay1_edit.setEnabled(enabled)
             overlay1_btn.setEnabled(enabled)
+            self.overlay1_size_combo.setEnabled(enabled)
             if enabled:
                 overlay1_btn.setStyleSheet("")  # Default style
                 self.overlay1_edit.setStyleSheet("")  # Default style
+                self.overlay1_size_combo.setStyleSheet("")
+                overlay1_size_label.setStyleSheet("")  # Default
             else:
                 overlay1_btn.setStyleSheet("background-color: #e0e0e0; color: #888;")  # Lighter grey
                 self.overlay1_edit.setStyleSheet("background-color: #f2f2f2; color: #888;")  # Lighter grey for textbox
+                self.overlay1_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888;")
+                overlay1_size_label.setStyleSheet("color: grey;")
         self.overlay_checkbox.stateChanged.connect(set_overlay1_enabled)
-        # Initialize enabled state on startup
         set_overlay1_enabled(self.overlay_checkbox.checkState())
         overlay1_layout.addWidget(self.overlay_checkbox)
         overlay1_layout.addWidget(self.overlay1_edit)
         overlay1_layout.addWidget(overlay1_btn)
+        overlay1_layout.addWidget(overlay1_size_label)
+        overlay1_layout.addWidget(self.overlay1_size_combo)
         layout.addLayout(overlay1_layout)
 
     def create_action_buttons(self, layout):
@@ -564,7 +589,7 @@ class SuperCutUI(QWidget):
     def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count):
         """Set up the VideoWorker and QThread, connect signals, and start processing."""
         self._thread = QThread()
-        self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps, self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path)
+        self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps, self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent)
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.progress.connect(self.on_worker_progress)
