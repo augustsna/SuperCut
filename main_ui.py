@@ -263,8 +263,8 @@ class SuperCutUI(QWidget):
         self.overlay1_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
             self.overlay1_size_combo.addItem(str(percent), percent)
-        self.overlay1_size_combo.setCurrentIndex(19)  # Default 100%
-        self.overlay1_size_percent = 100
+        self.overlay1_size_combo.setCurrentIndex(1)  # Default 10%
+        self.overlay1_size_percent = 10
         def on_overlay1_size_changed(idx):
             self.overlay1_size_percent = self.overlay1_size_combo.itemData(idx)
             # Set display text with %
@@ -621,7 +621,10 @@ class SuperCutUI(QWidget):
     def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count):
         """Set up the VideoWorker and QThread, connect signals, and start processing."""
         self._thread = QThread()
-        self._worker = VideoWorker(media_sources, export_name, number, folder, codec, resolution, fps, self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent)
+        self._worker = VideoWorker(
+            media_sources, export_name, number, folder, codec, resolution, fps,
+            self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position
+        )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.progress.connect(self.on_worker_progress)

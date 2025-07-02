@@ -74,9 +74,10 @@ def create_video_with_ffmpeg(
     codec: str,
     use_overlay: bool = False,
     overlay1_path: str = "",
-    overlay1_size_percent: int = 100
+    overlay1_size_percent: int = 100,
+    overlay1_position: str = "top_left"
 ) -> Tuple[bool, Optional[str]]:
-    """Create video from image and audio using ffmpeg with progress tracking. If use_overlay is True, overlay1_path must be a GIF or PNG file. overlay1_size_percent sets overlay size (5-100). Returns (success, error_message)."""
+    """Create video from image and audio using ffmpeg with progress tracking. If use_overlay is True, overlay1_path must be a GIF or PNG file. overlay1_size_percent sets overlay size (5-100). overlay1_position sets overlay position. Returns (success, error_message)."""
     temp_png_path = None
     try:
         # Estimate required output file size
@@ -153,10 +154,18 @@ def create_video_with_ffmpeg(
             scale_factor = overlay1_size_percent / 100.0
             ow = f"iw*{scale_factor:.3f}"
             oh = f"ih*{scale_factor:.3f}"
+            # Determine overlay position
+            position_map = {
+                "top_left": ("0", "0"),
+                "top_right": (f"W-w", "0"),
+                "bottom_left": ("0", f"H-h"),
+                "bottom_right": (f"W-w", f"H-h")
+            }
+            ox, oy = position_map.get(overlay1_position, ("0", "0"))
             if ext == '.gif':
-                filter_complex = f"[0:v]scale={width}:{height}[bg];[2:v]scale={ow}:{oh}[ol];[bg][ol]overlay=0:0:enable='gte(t,5)',format={VIDEO_SETTINGS['pixel_format']}[vout]"
+                filter_complex = f"[0:v]scale={width}:{height}[bg];[2:v]scale={ow}:{oh}[ol];[bg][ol]overlay={ox}:{oy}:enable='gte(t,5)',format={VIDEO_SETTINGS['pixel_format']}[vout]"
             else:
-                filter_complex = f"[0:v]scale={width}:{height}[bg];[2:v]scale={ow}:{oh}[ol];[bg][ol]overlay=0:0:enable='gte(t,5)',format={VIDEO_SETTINGS['pixel_format']}[vout]"
+                filter_complex = f"[0:v]scale={width}:{height}[bg];[2:v]scale={ow}:{oh}[ol];[bg][ol]overlay={ox}:{oy}:enable='gte(t,5)',format={VIDEO_SETTINGS['pixel_format']}[vout]"
             cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])
         else:
             filter_complex = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
