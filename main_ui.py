@@ -108,7 +108,7 @@ class SuperCutUI(QWidget):
         # Output folder selection
         folder_layout = QHBoxLayout()
         label_output = QLabel("Output Folder:")
-        label_output.setFixedWidth(folder_row_style["label_width"])
+        label_output.setFixedWidth(folder_row_style["label_width"] + 1)
         
         self.folder_edit = FolderDropLineEdit()
         self.folder_edit.setReadOnly(False)
@@ -226,7 +226,7 @@ class SuperCutUI(QWidget):
         layout.addLayout(settings_layout)
 
         # Move PNG overlay checkbox below video settings
-        self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1")
+        self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1 :")
         self.overlay_checkbox.setChecked(False)
         # Set label color grey when unchecked, black when checked
         def update_overlay_checkbox_style(state):
@@ -256,7 +256,7 @@ class SuperCutUI(QWidget):
         overlay1_btn.clicked.connect(select_overlay1_image)
         # Overlay 1 size option (5% to 100%)
         overlay1_size_label = QLabel("Size:")
-        overlay1_size_label.setFixedWidth(32)
+        overlay1_size_label.setFixedWidth(33)
         self.overlay1_size_combo = QtWidgets.QComboBox()
         self.overlay1_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
