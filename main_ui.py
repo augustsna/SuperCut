@@ -146,8 +146,10 @@ class SuperCutUI(QWidget):
         def update_mp3_checkbox_style(state):
             if state == Qt.Checked:
                 self.mp3_count_checkbox.setStyleSheet("")  # Default
+                self.mp3_count_edit.setStyleSheet("")  # Default
             else:
                 self.mp3_count_checkbox.setStyleSheet("color: grey;")
+                self.mp3_count_edit.setStyleSheet("background-color: #f2f2f2; color: #888;")  # Lighter grey for textbox
         self.mp3_count_checkbox.stateChanged.connect(update_mp3_checkbox_style)
         # Initialize style
         update_mp3_checkbox_style(self.mp3_count_checkbox.checkState())
@@ -252,6 +254,20 @@ class SuperCutUI(QWidget):
             if file_path:
                 self.overlay1_edit.setText(file_path)
         overlay1_btn.clicked.connect(select_overlay1_image)
+        # Enable/disable overlay1_edit and overlay1_btn based on checkbox
+        def set_overlay1_enabled(state):
+            enabled = state == Qt.Checked
+            self.overlay1_edit.setEnabled(enabled)
+            overlay1_btn.setEnabled(enabled)
+            if enabled:
+                overlay1_btn.setStyleSheet("")  # Default style
+                self.overlay1_edit.setStyleSheet("")  # Default style
+            else:
+                overlay1_btn.setStyleSheet("background-color: #e0e0e0; color: #888;")  # Lighter grey
+                self.overlay1_edit.setStyleSheet("background-color: #f2f2f2; color: #888;")  # Lighter grey for textbox
+        self.overlay_checkbox.stateChanged.connect(set_overlay1_enabled)
+        # Initialize enabled state on startup
+        set_overlay1_enabled(self.overlay_checkbox.checkState())
         overlay1_layout.addWidget(self.overlay_checkbox)
         overlay1_layout.addWidget(self.overlay1_edit)
         overlay1_layout.addWidget(overlay1_btn)
