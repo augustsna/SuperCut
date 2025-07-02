@@ -60,7 +60,7 @@ VIDEO_SETTINGS = {
     "pixel_format": "yuv420p",
     "gop_size": "120",
     "bframes": "2",
-    "preset": "p4",
+    "preset": "slow",
     "profile": "high",
     "level": "4.2",
 }

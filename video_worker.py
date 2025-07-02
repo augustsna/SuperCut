@@ -7,8 +7,6 @@ from ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg
 from utils import set_low_priority
 import time
 from logger import logger
-import cProfile
-import pstats
 
 class VideoWorker(QObject):
     """Worker class for processing video creation in background thread"""
@@ -37,8 +35,7 @@ class VideoWorker(QObject):
 
     def run(self):
         """Main processing method"""
-        profiler = cProfile.Profile()
-        profiler.enable()
+        set_low_priority()
         try:
             # Get media files
             from utils import get_files_by_type
@@ -91,12 +88,6 @@ class VideoWorker(QObject):
             error_msg = f"Error during video creation: {str(e)}"
             print(f"❌ {error_msg}")
             self.error.emit(error_msg)
-        finally:
-            profiler.disable()
-            with open("video_worker_profile.txt", "w") as f:
-                ps = pstats.Stats(profiler, stream=f)
-                ps.sort_stats("cumulative")
-                ps.print_stats()
 
     def _print_export_summary(self, total_batches: int):
         """Print export configuration summary"""
