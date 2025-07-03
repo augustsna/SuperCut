@@ -16,7 +16,8 @@ class VideoWorker(QObject):
 
     def __init__(self, media_sources: str, export_name: str, number: str, 
                  folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False, min_mp3_count: int = 3, overlay1_path: str = "", overlay1_size_percent: int = 100, overlay1_position: str = "top_left",
-                 use_overlay2: bool = False, overlay2_path: str = "", overlay2_size_percent: int = 10, overlay2_position: str = "top_left"):
+                 use_overlay2: bool = False, overlay2_path: str = "", overlay2_size_percent: int = 10, overlay2_position: str = "top_left",
+                 use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_position: str = "center"):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -34,6 +35,10 @@ class VideoWorker(QObject):
         self.overlay2_path = overlay2_path
         self.overlay2_size_percent = overlay2_size_percent
         self.overlay2_position = overlay2_position
+        self.use_intro = use_intro
+        self.intro_path = intro_path
+        self.intro_size_percent = intro_size_percent
+        self.intro_position = intro_position
         self._stop = False
         self._used_images = set()
 
@@ -164,7 +169,11 @@ class VideoWorker(QObject):
                 self.use_overlay2,
                 self.overlay2_path,
                 self.overlay2_size_percent,
-                self.overlay2_position
+                self.overlay2_position,
+                self.use_intro,
+                self.intro_path,
+                self.intro_size_percent,
+                self.intro_position
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")

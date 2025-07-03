@@ -225,6 +225,106 @@ class SuperCutUI(QWidget):
         settings_layout.addStretch()
         layout.addLayout(settings_layout)
 
+        # --- INTRO OVERLAY CONTROLS ---
+        self.intro_checkbox = QtWidgets.QCheckBox("Intro :")
+        self.intro_checkbox.setChecked(False)
+        def update_intro_checkbox_style(state):
+            if state == Qt.Checked:
+                self.intro_checkbox.setStyleSheet("")
+            else:
+                self.intro_checkbox.setStyleSheet("color: grey;")
+        self.intro_checkbox.stateChanged.connect(update_intro_checkbox_style)
+        update_intro_checkbox_style(self.intro_checkbox.checkState())
+
+        intro_layout = QHBoxLayout()
+        intro_layout.setSpacing(4)
+        self.intro_edit = ImageDropLineEdit()
+        self.intro_edit.setPlaceholderText("Intro image path (*.gif, *.png)")
+        self.intro_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.intro_edit.setFixedWidth(125)
+        self.intro_path = ""
+        def on_intro_changed():
+            self.intro_path = self.intro_edit.text().strip()
+        self.intro_edit.textChanged.connect(on_intro_changed)
+        intro_btn = QPushButton("Select")
+        intro_btn.setFixedWidth(60)
+        def select_intro_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Intro Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.intro_edit.setText(file_path)
+        intro_btn.clicked.connect(select_intro_image)
+        intro_size_label = QLabel("S:")
+        intro_size_label.setFixedWidth(18)
+        self.intro_size_combo = QtWidgets.QComboBox()
+        self.intro_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.intro_size_combo.addItem(str(percent), percent)
+        self.intro_size_combo.setCurrentIndex(1)  # Default 10%
+        self.intro_size_percent = 10
+        def on_intro_size_changed(idx):
+            self.intro_size_percent = self.intro_size_combo.itemData(idx)
+            if idx >= 0:
+                self.intro_size_combo.setEditText(f"{self.intro_size_percent}%")
+        self.intro_size_combo.setEditable(True)
+        self.intro_size_combo.lineEdit().setReadOnly(True)
+        self.intro_size_combo.lineEdit().setAlignment(Qt.AlignCenter)
+        self.intro_size_combo.currentIndexChanged.connect(on_intro_size_changed)
+        on_intro_size_changed(self.intro_size_combo.currentIndex())
+        # Position option (add Center)
+        intro_position_label = QLabel("P:")
+        intro_position_label.setFixedWidth(18)
+        self.intro_position_combo = QtWidgets.QComboBox()
+        self.intro_position_combo.setFixedWidth(130)
+        intro_positions = [
+            ("Center", "center"),
+            ("Top Left", "top_left"),
+            ("Top Right", "top_right"),
+            ("Bottom Left", "bottom_left"),
+            ("Bottom Right", "bottom_right")
+        ]
+        for label, value in intro_positions:
+            self.intro_position_combo.addItem(label, value)
+        self.intro_position_combo.setCurrentIndex(0)  # Default Center
+        self.intro_position = "center"
+        def on_intro_position_changed(idx):
+            self.intro_position = self.intro_position_combo.itemData(idx)
+        self.intro_position_combo.currentIndexChanged.connect(on_intro_position_changed)
+        on_intro_position_changed(self.intro_position_combo.currentIndex())
+        def set_intro_enabled(state):
+            enabled = state == Qt.Checked
+            self.intro_edit.setEnabled(enabled)
+            intro_btn.setEnabled(enabled)
+            self.intro_size_combo.setEnabled(enabled)
+            self.intro_position_combo.setEnabled(enabled)
+            if enabled:
+                intro_btn.setStyleSheet("")
+                self.intro_edit.setStyleSheet("")
+                self.intro_size_combo.setStyleSheet("")
+                self.intro_position_combo.setStyleSheet("")
+                intro_size_label.setStyleSheet("")
+                intro_position_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                intro_btn.setStyleSheet(grey_btn_style)
+                self.intro_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.intro_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.intro_position_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                intro_size_label.setStyleSheet("color: grey;")
+                intro_position_label.setStyleSheet("color: grey;")
+        self.intro_checkbox.stateChanged.connect(set_intro_enabled)
+        set_intro_enabled(self.intro_checkbox.checkState())
+        intro_layout.addWidget(self.intro_checkbox)
+        intro_layout.addWidget(self.intro_edit)
+        intro_layout.addSpacing(6)
+        intro_layout.addWidget(intro_btn)
+        intro_layout.addSpacing(6)
+        intro_layout.addWidget(intro_position_label)
+        intro_layout.addWidget(self.intro_position_combo)
+        intro_layout.addSpacing(6)
+        intro_layout.addWidget(intro_size_label)
+        intro_layout.addWidget(self.intro_size_combo)
+        layout.addLayout(intro_layout)
+
         # Move PNG overlay checkbox below video settings
         self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1 :")
         self.overlay_checkbox.setChecked(False)
@@ -281,6 +381,7 @@ class SuperCutUI(QWidget):
         self.overlay1_position_combo = QtWidgets.QComboBox()
         self.overlay1_position_combo.setFixedWidth(130)
         positions = [
+            ("Center", "center"),
             ("Top Left", "top_left"),
             ("Top Right", "top_right"),
             ("Bottom Left", "bottom_left"),
@@ -288,8 +389,8 @@ class SuperCutUI(QWidget):
         ]
         for label, value in positions:
             self.overlay1_position_combo.addItem(label, value)
-        self.overlay1_position_combo.setCurrentIndex(3)  # Default Bottom Right
-        self.overlay1_position = "bottom_right"
+        self.overlay1_position_combo.setCurrentIndex(0)  # Default Center
+        self.overlay1_position = "center"
         def on_overlay1_position_changed(idx):
             self.overlay1_position = self.overlay1_position_combo.itemData(idx)
         self.overlay1_position_combo.currentIndexChanged.connect(on_overlay1_position_changed)
@@ -381,6 +482,7 @@ class SuperCutUI(QWidget):
         self.overlay2_position_combo = QtWidgets.QComboBox()
         self.overlay2_position_combo.setFixedWidth(130)
         positions = [
+            ("Center", "center"),
             ("Top Left", "top_left"),
             ("Top Right", "top_right"),
             ("Bottom Left", "bottom_left"),
@@ -388,8 +490,8 @@ class SuperCutUI(QWidget):
         ]
         for label, value in positions:
             self.overlay2_position_combo.addItem(label, value)
-        self.overlay2_position_combo.setCurrentIndex(1)  # Default Top Right
-        self.overlay2_position = "top_right"
+        self.overlay2_position_combo.setCurrentIndex(0)  # Default Center
+        self.overlay2_position = "center"
         def on_overlay2_position_changed(idx):
             self.overlay2_position = self.overlay2_position_combo.itemData(idx)
         self.overlay2_position_combo.currentIndexChanged.connect(on_overlay2_position_changed)
@@ -729,7 +831,8 @@ class SuperCutUI(QWidget):
         self._worker = VideoWorker(
             media_sources, export_name, number, folder, codec, resolution, fps,
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
-            self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position
+            self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position,
+            self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_position
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
