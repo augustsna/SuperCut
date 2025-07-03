@@ -85,7 +85,9 @@ def create_video_with_ffmpeg(
     intro_size_percent: int = 10,
     intro_position: str = "center",
     effect: str = "fadein",
-    effect_time: int = 5
+    effect_time: int = 5,
+    intro_effect: str = "fadeout",
+    intro_duration: int = 5
 ) -> Tuple[bool, Optional[str]]:
     """Create video from image and audio using ffmpeg with progress tracking. Supports up to three overlays (Intro, Overlay 1, Overlay 2). Returns (success, error_message)."""
     temp_png_path = None
@@ -228,9 +230,26 @@ def create_video_with_ffmpeg(
                 chain += f"scale={scale_expr}[{label}]"
                 return chain
 
-            filter_intro = f"[{intro_idx}:v]format=rgba,scale={owi}:{ohi}[oi]" if intro_idx is not None and ext_intro == '.png' else (
-                f"[{intro_idx}:v]fps=30,format=rgba,scale={owi}:{ohi}[oi]" if intro_idx is not None else ""
-            )
+            def intro_effect_chain(idx, scale_expr, label, effect, duration, ext):
+                if idx is None:
+                    return ""
+                chain = f"[{idx}:v]"
+                if ext == ".gif":
+                    chain += "fps=30,"
+                chain += "format=rgba,"
+                fade_alpha = ":alpha=1" if ext == ".png" else ""
+                if effect == "fadein":
+                    chain += f"fade=t=in:st=0:d=1{fade_alpha},"
+                elif effect == "fadeout":
+                    chain += f"fade=t=out:st={duration-1.5}:d=1.5{fade_alpha},"
+                elif effect == "fadeinout":
+                    chain += f"fade=t=in:st=0:d=1.5{fade_alpha},fade=t=out:st={duration-1.5}:d=1.5{fade_alpha},"
+                elif effect == "zoompan":
+                    chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                chain += f"scale={scale_expr}[{label}]"
+                return chain
+
+            filter_intro = intro_effect_chain(intro_idx, f"{owi}:{ohi}", "oi", intro_effect, intro_duration, ext_intro) if intro_idx is not None else ""
             filter_overlay1 = overlay_effect_chain(overlay1_idx, f"{ow1}:{oh1}", "ol1", effect, effect_time, ext1) if overlay1_idx is not None else ""
             filter_overlay2 = overlay_effect_chain(overlay2_idx, f"{ow2}:{oh2}", "ol2", effect, effect_time, ext2) if overlay2_idx is not None else ""
             filter_complex = f"{filter_bg};"
@@ -249,7 +268,7 @@ def create_video_with_ffmpeg(
                 filter_complex += f"{bg_ref}[ol1]overlay={ox1}:{oy1}:enable='gte(t,5)'[tmp1];"
                 bg_ref = "[tmp1]"
             if intro_idx is not None:
-                filter_complex += f"{bg_ref}[oi]overlay={ox_intro}:{oy_intro}:enable='lte(t,5)'[v1];[v1]format={VIDEO_SETTINGS['pixel_format']}[vout]"
+                filter_complex += f"{bg_ref}[oi]overlay={ox_intro}:{oy_intro}:enable='lte(t,{intro_duration})'[v1];[v1]format={VIDEO_SETTINGS['pixel_format']}[vout]"
             else:
                 filter_complex += f"{bg_ref}format={VIDEO_SETTINGS['pixel_format']}[vout]"
             cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])

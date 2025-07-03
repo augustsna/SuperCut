@@ -18,7 +18,8 @@ class VideoWorker(QObject):
                  folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False, min_mp3_count: int = 3, overlay1_path: str = "", overlay1_size_percent: int = 100, overlay1_position: str = "top_left",
                  use_overlay2: bool = False, overlay2_path: str = "", overlay2_size_percent: int = 10, overlay2_position: str = "top_left",
                  use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_position: str = "center",
-                 effect: str = "fadein", effect_time: int = 5):
+                 effect: str = "fadein", effect_time: int = 5,
+                 intro_effect: str = "fadeout", intro_duration: int = 5):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -42,6 +43,8 @@ class VideoWorker(QObject):
         self.intro_position = intro_position
         self.effect = effect
         self.effect_time = effect_time
+        self.intro_effect = intro_effect
+        self.intro_duration = intro_duration
         self._stop = False
         self._used_images = set()
 
@@ -178,7 +181,9 @@ class VideoWorker(QObject):
                 self.intro_size_percent,
                 self.intro_position,
                 self.effect,
-                self.effect_time
+                self.effect_time,
+                self.intro_effect,
+                self.intro_duration
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")
