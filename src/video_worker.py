@@ -3,10 +3,10 @@ import random
 import shutil
 from PyQt5.QtCore import QObject, pyqtSignal
 from typing import List, Optional
-from ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg
-from utils import set_low_priority
+from src.ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg
+from src.utils import set_low_priority
 import time
-from logger import logger
+from src.logger import logger
 
 class VideoWorker(QObject):
     """Worker class for processing video creation in background thread. Supports GIF overlay for Overlay 1. Optionally supports a name list for output naming."""
@@ -59,7 +59,7 @@ class VideoWorker(QObject):
         # set_low_priority()  # Removed to keep normal priority
         try:
             # Get media files
-            from utils import get_files_by_type
+            from src.utils import get_files_by_type
             mp3_files = get_files_by_type(self.media_sources, "audio")
             image_files = get_files_by_type(self.media_sources, "image")
             
@@ -142,7 +142,7 @@ class VideoWorker(QObject):
         
         # Create output filename
         if self.name_list and batch_count < len(self.name_list):
-            from utils import sanitize_filename
+            from src.utils import sanitize_filename
             name = sanitize_filename(self.name_list[batch_count])
             output_filename = f"{name}.mp4"
         else:

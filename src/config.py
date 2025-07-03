@@ -1,6 +1,9 @@
 import os
 import sys
 
+# Project root is one level up from this file
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # FFmpeg Configuration
 FFMPEG_BASE_PATH = "C:/SuperCut/ffmpeg/bin"
 FFMPEG_BINARY = os.path.abspath(os.path.join(FFMPEG_BASE_PATH, "ffmpeg.exe"))
@@ -14,7 +17,62 @@ os.environ["FFPLAY_BINARY"] = FFPLAY_BINARY
 # UI Configuration
 WINDOW_SIZE = (640, 540)
 WINDOW_TITLE = "SuperCut Magic Maker"
-ICON_PATH = "sources/icon.png"
+ICON_PATH = os.path.join(PROJECT_ROOT, "src", "sources", "icon.png")
+STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.path.exists(os.path.join(PROJECT_ROOT, "src", "sources", "style.qss")) else """
+    QWidget {
+        background-color: #f5f7fa;
+        font-family: 'Segoe UI';
+        font-size: 13px;
+    }
+    QLabel {
+        color: #333;
+        padding-right: 5px;
+    }
+    QLineEdit {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px;
+        background-color: white;
+    }
+    QPushButton {
+        background-color: #4a90e2;
+        color: white;
+        border-radius: 6px;
+        padding: 6px 12px;
+    }
+    QPushButton:hover {
+        background-color: #357ABD;
+    }
+    QComboBox {
+        background-color: #ffffff;
+        border: 1px solid #d0d0d0;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 12px;
+        color: #333;
+        font-family: 'Segoe UI', sans-serif;                               
+    }
+    QComboBox:hover {
+        border: 2px solid #4687f4;
+    }
+    QComboBox::drop-down {
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 30px;
+        border-left: 1px solid #ccc;
+    }
+    QComboBox::down-arrow {
+        image: url(src/sources/down_arrow.svg);
+        width: 16px;
+        height: 16px;
+    }
+    QComboBox QAbstractItemView {
+        background-color: #ffffff;
+        selection-background-color: #3f92e3;
+        border: 1px solid #ccc;
+        outline: none;
+    }
+"""
 
 # Video Configuration
 DEFAULT_CODECS = [
@@ -64,63 +122,6 @@ VIDEO_SETTINGS = {
     "profile": "high",
     "level": "4.2",
 }
-
-# UI Styles
-STYLE_SHEET = """
-    QWidget {
-        background-color: #f5f7fa;
-        font-family: 'Segoe UI';
-        font-size: 13px;
-    }
-    QLabel {
-        color: #333;
-        padding-right: 5px;
-    }
-    QLineEdit {
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        padding: 6px;
-        background-color: white;
-    }
-    QPushButton {
-        background-color: #4a90e2;
-        color: white;
-        border-radius: 6px;
-        padding: 6px 12px;
-    }
-    QPushButton:hover {
-        background-color: #357ABD;
-    }
-    QComboBox {
-        background-color: #ffffff;
-        border: 1px solid #d0d0d0;
-        border-radius: 6px;
-        padding: 6px 12px;
-        font-size: 12px;
-        color: #333;
-        font-family: 'Segoe UI', sans-serif;                               
-    }
-    QComboBox:hover {
-        border: 2px solid #4687f4;
-    }
-    QComboBox::drop-down {
-        subcontrol-origin: padding;
-        subcontrol-position: top right;
-        width: 30px;
-        border-left: 1px solid #ccc;
-    }
-    QComboBox::down-arrow {
-        image: url(sources/down_arrow.svg);
-        width: 16px;
-        height: 16px;
-    }
-    QComboBox QAbstractItemView {
-        background-color: #ffffff;
-        selection-background-color: #3f92e3;
-        border: 1px solid #ccc;
-        outline: none;
-    }
-"""
 
 def check_ffmpeg_installation():
     """Check if FFmpeg is properly installed"""

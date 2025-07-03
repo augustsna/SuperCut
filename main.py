@@ -6,9 +6,9 @@ A modular video creation application that combines images and audio files.
 
 import sys
 from PyQt5.QtWidgets import QApplication, QMessageBox
-from config import check_ffmpeg_installation
-from main_ui import SuperCutUI
-from utils import cleanup_temp_files
+from src.config import check_ffmpeg_installation
+from src.main_ui import SuperCutUI
+from src.utils import cleanup_temp_files
 
 def main():
     """Main application entry point"""

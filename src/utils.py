@@ -4,7 +4,7 @@ import ctypes
 import tempfile
 import atexit
 from typing import Set
-from logger import logger
+from src.logger import logger
 import shutil
 
 # Global set to track temporary files
@@ -93,17 +93,17 @@ def get_file_extension(filename: str) -> str:
 
 def is_audio_file(filename: str) -> bool:
     """Check if a file is an audio file"""
-    from config import AUDIO_EXTENSIONS
+    from src.config import AUDIO_EXTENSIONS
     return get_file_extension(filename) in AUDIO_EXTENSIONS
 
 def is_image_file(filename: str) -> bool:
     """Check if a file is an image file"""
-    from config import IMAGE_EXTENSIONS
+    from src.config import IMAGE_EXTENSIONS
     return get_file_extension(filename) in IMAGE_EXTENSIONS
 
 def is_video_file(filename: str) -> bool:
     """Check if a file is a video file"""
-    from config import VIDEO_EXTENSIONS
+    from src.config import VIDEO_EXTENSIONS
     return get_file_extension(filename) in VIDEO_EXTENSIONS
 
 def get_files_by_type(folder_path: str, file_type: str) -> list:

@@ -6,9 +6,9 @@ import time
 import re
 import sys
 from typing import Optional, Tuple
-from config import FFMPEG_BINARY, FFPROBE_BINARY, VIDEO_SETTINGS
-from logger import logger
-from utils import has_enough_disk_space, create_temp_file
+from src.config import FFMPEG_BINARY, FFPROBE_BINARY, VIDEO_SETTINGS
+from src.logger import logger
+from src.utils import has_enough_disk_space, create_temp_file
 
 def get_audio_duration(file_path: str) -> float:
     """Get audio duration using ffprobe"""
@@ -409,7 +409,7 @@ def create_video_with_ffmpeg(
 
 def merge_random_mp3s(selected_mp3s: list) -> Tuple[Optional[str], float]:
     """Merge MP3 files using ffmpeg - returns output path and duration"""
-    from utils import create_temp_file
+    from src.utils import create_temp_file
     
     output_path = create_temp_file(suffix=".mp3")
     

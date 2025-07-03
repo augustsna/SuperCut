@@ -9,26 +9,27 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QSettings, QThread, QPoint, QSize
 from PyQt5.QtGui import QIntValidator, QIcon
-from logger import logger
+from src.logger import logger
 
 # Force console output to be visible
 sys.stdout.flush()
 sys.stderr.flush()
 
-from config import (
+from src.config import (
     WINDOW_SIZE, WINDOW_TITLE, ICON_PATH, STYLE_SHEET,
     DEFAULT_CODECS, DEFAULT_RESOLUTIONS, DEFAULT_FPS_OPTIONS,
     DEFAULT_EXPORT_NAME, DEFAULT_START_NUMBER, DEFAULT_FPS,
     DEFAULT_RESOLUTION, DEFAULT_CODEC, check_ffmpeg_installation,
-    DEFAULT_MIN_MP3_COUNT
+    DEFAULT_MIN_MP3_COUNT,
+    PROJECT_ROOT
 )
-from utils import (
+from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
     validate_inputs, validate_media_files
 )
-from ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, ScrollableErrorDialog, ImageDropLineEdit
-from video_worker import VideoWorker
-from terminal_widget import TerminalWidget
+from src.ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, ScrollableErrorDialog, ImageDropLineEdit
+from src.video_worker import VideoWorker
+from src.terminal_widget import TerminalWidget
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None, settings=None, fps_options=None):
@@ -175,23 +176,23 @@ class SuperCutUI(QWidget):
         title_layout.setSpacing(0)
         # Add PNG logo in front of SuperCut title
         title_icon = QLabel()
-        title_icon.setPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "sources/icon.png")).scaled(45, 45, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        title_icon.setPixmap(QtGui.QPixmap(os.path.join(PROJECT_ROOT, "src", "sources", "icon.png")).scaled(45, 45, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         title_label = QLabel("SuperCut")
         title_label.setStyleSheet("font-size: 35px; font-weight: bold;")
         title_label.setAlignment(Qt.AlignCenter)
         static_icon = QLabel()
-        static_icon.setPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "sources/static.png")))
+        static_icon.setPixmap(QtGui.QPixmap(os.path.join(PROJECT_ROOT, "src", "sources", "static.png")))
         static_icon.setVisible(True)  # Show by default
         self.static_icon = static_icon  # Store as instance variable for later control
         spinner_label = QLabel()
-        spinner_movie = QtGui.QMovie(os.path.join(os.path.dirname(__file__), "sources/spinner.gif"))
+        spinner_movie = QtGui.QMovie(os.path.join(PROJECT_ROOT, "src", "sources", "spinner.gif"))
         spinner_label.setMovie(spinner_movie)       
         spinner_movie.start()
         spinner_label.setVisible(False)  # Hide by default
         self.spinner_label = spinner_label  # Store as instance variable for later control
         # Add loading.gif after spinner gif
         loading_label = QLabel()
-        loading_movie = QtGui.QMovie(os.path.join(os.path.dirname(__file__), "sources/loading.gif"))
+        loading_movie = QtGui.QMovie(os.path.join(PROJECT_ROOT, "src", "sources", "loading.gif"))
         loading_label.setMovie(loading_movie)
         loading_label.setStyleSheet("margin-top: 18px;")
         loading_label.setVisible(False)
@@ -852,7 +853,7 @@ class SuperCutUI(QWidget):
         # Add settings button first, before terminal
         button_layout.addSpacing(10)
         self.settings_btn = QPushButton()
-        icon_path = os.path.join(os.path.dirname(__file__), "sources/settings.png")
+        icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "settings.png")
         self.settings_btn.setIcon(QIcon(icon_path))
         self.settings_btn.setFixedSize(32, 32)
         self.settings_btn.setIconSize(self.settings_btn.size())  # Make icon fill button
@@ -880,7 +881,7 @@ class SuperCutUI(QWidget):
         # Add placeholder button after create video button
         button_layout.addSpacing(5)
         self.placeholder_btn = QPushButton()
-        rocket_icon_path = os.path.join(os.path.dirname(__file__), "sources/rocket.png")
+        rocket_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "rocket.png")
         self.placeholder_btn.setIcon(QIcon(rocket_icon_path))
         self.placeholder_btn.setIconSize(QSize(28, 28))
         self.placeholder_btn.setFixedHeight(32)
@@ -901,7 +902,7 @@ class SuperCutUI(QWidget):
         self.stop_btn.setFixedWidth(24)
         self.stop_btn.setEnabled(False)
         self.stop_btn.setVisible(False)
-        stop_icon_path = os.path.join(os.path.dirname(__file__), "sources/stopbutton.png")
+        stop_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "stopbutton.png")
         self.stop_btn.setIcon(QIcon(stop_icon_path))
         self.stop_btn.setIconSize(QSize(22, 22))
         self.stop_btn.setStyleSheet("QPushButton { background: transparent; border: none; } QPushButton:pressed { background: transparent; }")
