@@ -114,7 +114,25 @@ class SuperCutUI(QWidget):
         layout = QVBoxLayout()
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
-        
+
+        # --- Add program title with icon at the top ---
+        title_widget = QtWidgets.QWidget()
+        title_widget.setFixedHeight(70)
+        title_layout = QtWidgets.QHBoxLayout()
+        title_layout.setContentsMargins(0, 0, 0, 0)
+        title_layout.setSpacing(0)
+        title_label = QLabel("SuperCut")
+        title_label.setStyleSheet("font-size: 28px; font-weight: bold;")
+        title_label.setAlignment(Qt.AlignCenter)
+        title_layout.addStretch()
+        title_layout.addWidget(title_label)
+        title_layout.addStretch()
+        title_widget.setLayout(title_layout)
+        layout.addWidget(title_widget)
+        # Add spacer below title bar to prevent overlap
+        layout.addSpacing(70)
+        # --- End program title ---
+
         # Add UI components
         self.create_folder_inputs(layout)
         self.create_export_inputs(layout)
@@ -739,22 +757,6 @@ class SuperCutUI(QWidget):
 
         button_layout.addStretch()  # Pushes spinner to the far right
 
-        # Add spinner widget (always visible)
-        self.running_widget = QtWidgets.QWidget()
-        running_layout = QHBoxLayout(self.running_widget)
-        running_layout.setContentsMargins(0, 0, 0, 0)
-        running_layout.setSpacing(0)
-        # Spinner GIF only
-        self.spinner_label = QLabel()
-        self.spinner_movie = QtGui.QMovie(os.path.join(os.path.dirname(__file__), "sources/spinner.gif"))
-        self.spinner_label.setMovie(self.spinner_movie)
-        self.spinner_label.setFixedSize(35, 35)
-        running_layout.addWidget(self.spinner_label)
-        self.running_widget.setFixedHeight(40)
-        self.running_widget.setFixedWidth(50)
-        self.running_widget.setVisible(True)
-        button_layout.addWidget(self.running_widget)
-
         layout.addLayout(button_layout)
 
     def create_progress_controls(self, layout):
@@ -1006,11 +1008,6 @@ class SuperCutUI(QWidget):
         self.progress_bar.setVisible(processing)
         self.stop_btn.setEnabled(processing)
         self.stop_btn.setVisible(processing)
-        self.running_widget.setVisible(processing)
-        if processing:
-            self.spinner_movie.start()
-        else:
-            self.spinner_movie.stop()
         controls = [
             self.create_btn, self.codec_combo, self.resolution_combo, self.fps_combo,
             self.media_sources_edit, self.folder_edit, self.part1_edit, self.part2_edit,
@@ -1070,8 +1067,6 @@ class SuperCutUI(QWidget):
         self.progress_bar.setVisible(False)
         self.stop_btn.setEnabled(False)
         self.stop_btn.setVisible(False)
-        self.running_widget.setVisible(False)
-        self.spinner_movie.stop()
         self.create_btn.setEnabled(True)
         self.codec_combo.setEnabled(True)
         self.resolution_combo.setEnabled(True)
