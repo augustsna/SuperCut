@@ -2,14 +2,14 @@ import os
 import random
 import shutil
 from PyQt5.QtCore import QObject, pyqtSignal
-from typing import List
+from typing import List, Optional
 from ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg
 from utils import set_low_priority
 import time
 from logger import logger
 
 class VideoWorker(QObject):
-    """Worker class for processing video creation in background thread. Supports GIF overlay for Overlay 1."""
+    """Worker class for processing video creation in background thread. Supports GIF overlay for Overlay 1. Optionally supports a name list for output naming."""
     progress = pyqtSignal(int, int)  # batch_count, total_batches
     error = pyqtSignal(str)
     finished = pyqtSignal(list, list, list)  # leftover_mp3s, used_images, failed_moves
@@ -19,7 +19,8 @@ class VideoWorker(QObject):
                  use_overlay2: bool = False, overlay2_path: str = "", overlay2_size_percent: int = 10, overlay2_position: str = "top_left",
                  use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_position: str = "center",
                  effect: str = "fadein", effect_time: int = 5,
-                 intro_effect: str = "fadeout", intro_duration: int = 5):
+                 intro_effect: str = "fadeout", intro_duration: int = 5,
+                 name_list: Optional[List[str]] = None):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -45,6 +46,7 @@ class VideoWorker(QObject):
         self.effect_time = effect_time
         self.intro_effect = intro_effect
         self.intro_duration = intro_duration
+        self.name_list = name_list if name_list is not None else []
         self._stop = False
         self._used_images = set()
 
@@ -139,7 +141,12 @@ class VideoWorker(QObject):
         self._used_images.add(selected_image)
         
         # Create output filename
-        output_filename = f"{self.export_name}_{current_number}.mp4"
+        if self.name_list and batch_count < len(self.name_list):
+            from utils import sanitize_filename
+            name = sanitize_filename(self.name_list[batch_count])
+            output_filename = f"{name}.mp4"
+        else:
+            output_filename = f"{self.export_name}_{current_number}.mp4"
         output_path = os.path.join(self.folder, output_filename)
 
         # Print batch info

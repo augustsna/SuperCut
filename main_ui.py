@@ -81,6 +81,57 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_fps', self.selected_fps)
         super().accept()
 
+class NameListDialog(QDialog):
+    def __init__(self, parent=None, initial_names=None):
+        super().__init__(parent)
+        self.setWindowTitle("Enter Name List")
+        self.setModal(True)
+        self.setMinimumSize(400, 350)
+        layout = QVBoxLayout(self)
+        label = QLabel("Enter one name per line (max 180 chars per line). Each name will be used for one video batch.")
+        label.setWordWrap(True)
+        layout.addWidget(label)
+        self.text_edit = QtWidgets.QPlainTextEdit()
+        self.text_edit.setLineWrapMode(QtWidgets.QPlainTextEdit.NoWrap)
+        if initial_names:
+            self.set_names(initial_names)
+        layout.addWidget(self.text_edit)
+        self.error_label = QLabel("")
+        self.error_label.setStyleSheet("color: red;")
+        layout.addWidget(self.error_label)
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+        layout.addWidget(button_box)
+    def set_names(self, names):
+        # Show indicators
+        lines = [f"{i+1}. {name}" for i, name in enumerate(names)]
+        self.text_edit.setPlainText("\n".join(lines))
+    def get_names(self):
+        # Strip indicators
+        lines = self.text_edit.toPlainText().splitlines()
+        names = []
+        for line in lines:
+            if ". " in line:
+                name = line.split(". ", 1)[1].strip()
+            else:
+                name = line.strip()
+            if name:
+                names.append(name)
+        return names
+    def accept(self):
+        # On accept, re-apply indicators for display, but only save names
+        names = self.get_names()
+        for name in names:
+            if len(name) > 180:
+                self.error_label.setText(f"A name exceeds 180 characters: {name[:30]}...")
+                return
+        if not names:
+            self.error_label.setText("Name list cannot be empty.")
+            return
+        self._names = names
+        super().accept()
+
 class SuperCutUI(QWidget):
     """Main application window for SuperCut Video Maker"""
     
@@ -242,6 +293,35 @@ class SuperCutUI(QWidget):
         self.part2_edit = QLineEdit(DEFAULT_START_NUMBER)
         self.part2_edit.setPlaceholderText("12345")
         self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
+        # --- Name list option ---
+        self.name_list_checkbox = QtWidgets.QCheckBox("Name list:")
+        self.name_list_checkbox.setChecked(False)
+        self.name_list_enter_btn = QPushButton("Enter")
+        self.name_list_enter_btn.setFixedWidth(60)
+        self.name_list_enter_btn.setEnabled(False)
+        self.name_list = []  # Store the name list
+        self.name_list_dialog = None
+        def on_name_list_checkbox(state):
+            enabled = state == Qt.Checked
+            self.part1_edit.setEnabled(not enabled)
+            self.part2_edit.setEnabled(not enabled)
+            if enabled:
+                self.name_list_checkbox.setStyleSheet("")
+                self.name_list_enter_btn.setStyleSheet("")
+                self.name_list_enter_btn.setEnabled(True)
+            else:
+                self.name_list_checkbox.setStyleSheet("")
+                self.name_list_enter_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.name_list_enter_btn.setEnabled(False)
+            if not enabled:
+                self.name_list = []
+        self.name_list_checkbox.stateChanged.connect(on_name_list_checkbox)
+        def open_name_list_dialog():
+            dlg = NameListDialog(self, self.name_list)
+            if dlg.exec_() == QDialog.Accepted:
+                self.name_list = dlg.get_names()
+        self.name_list_enter_btn.clicked.connect(open_name_list_dialog)
+        # --- End name list option ---
         self.mp3_count_checkbox = QtWidgets.QCheckBox("MP3 Per Video")
         self.mp3_count_checkbox.setChecked(False)
         self.mp3_count_edit = QLineEdit(str(DEFAULT_MIN_MP3_COUNT))
@@ -268,6 +348,8 @@ class SuperCutUI(QWidget):
         part_layout.addWidget(self.part1_edit)
         part_layout.addWidget(QLabel("Number:"))
         part_layout.addWidget(self.part2_edit)
+        part_layout.addWidget(self.name_list_checkbox)
+        part_layout.addWidget(self.name_list_enter_btn)
         part_layout.addWidget(self.mp3_count_checkbox)
         part_layout.addWidget(self.mp3_count_edit)
         layout.addLayout(part_layout)
@@ -973,22 +1055,24 @@ class SuperCutUI(QWidget):
 
     def update_output_name(self):
         """Update the output filename based on current inputs"""
-        part1 = self.part1_edit.text().strip()
-        part2 = self.part2_edit.text().strip()
-        folder = self.folder_edit.text().strip() or os.getcwd()
-        
-        # Default to 1 if blank or zero
-        if not part2 or part2 == '0':
-            part2 = '1'
-        
-        # Sanitize export name
-        part1 = sanitize_filename(part1)
-        
-        if part1 and part2:
-            filename = f"{part1}_{part2}.mp4"
+        if hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked() and self.name_list:
+            # Use first name for preview, do not append number
+            part1 = self.name_list[0][:180]
+            filename = f"{sanitize_filename(part1)}.mp4"
         else:
-            filename = "output.mp4"
-            
+            part1 = self.part1_edit.text().strip()
+            part2 = self.part2_edit.text().strip()
+            folder = self.folder_edit.text().strip() or os.getcwd()
+            # Default to 1 if blank or zero
+            if not part2 or part2 == '0':
+                part2 = '1'
+            # Sanitize export name
+            part1 = sanitize_filename(part1 or "")
+            if part1 and part2:
+                filename = f"{part1}_{part2}.mp4"
+            else:
+                filename = "output.mp4"
+        folder = self.folder_edit.text().strip() or os.getcwd()
         self.output_path = os.path.join(folder, filename)
 
     def create_video(self):
@@ -1012,25 +1096,40 @@ class SuperCutUI(QWidget):
             if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png']:
                 QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 2.", QMessageBox.Ok)
                 return
+        # --- Name list validation ---
+        use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
+        if use_name_list:
+            if not self.name_list:
+                QMessageBox.warning(self, "⚠️ Name List Required", "Please enter a name list (one name per line) before processing.", QMessageBox.Ok)
+                return
         inputs = self._gather_and_validate_inputs()
         if not inputs:
             return
         media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count = inputs
-
+        # Calculate total batches
+        total_batches = min(len(original_image_files), len(original_mp3_files) // min_mp3_count)
+        if use_name_list:
+            if len(self.name_list) < total_batches:
+                QMessageBox.critical(self, "❌ Not Enough Names", f"You provided {len(self.name_list)} names, but {total_batches} are required for all video batches.", QMessageBox.Ok)
+                return
         # Step 2: Prepare UI for processing
-        self._set_ui_processing_state(True, total_batches=min(len(original_image_files), len(original_mp3_files) // min_mp3_count))
-
+        self._set_ui_processing_state(True, total_batches=total_batches)
         # Step 3: Set up worker and thread
         self._setup_worker_and_thread(media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count)
 
     def _gather_and_validate_inputs(self):
         """Gather and validate user inputs. Return tuple or None if invalid."""
         media_sources = self.media_sources_edit.text()
-        export_name = self.part1_edit.text().strip()
+        use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
+        if use_name_list:
+            export_name = ""  # Will use name list, but pass empty string for validation
+        else:
+            export_name = self.part1_edit.text().strip()
         number = self.part2_edit.text().strip()
         if not number or number == '0':
             number = '1'
-        export_name = sanitize_filename(export_name)
+        if not use_name_list:
+            export_name = sanitize_filename(export_name or "")
         folder = self.folder_edit.text().strip()
         if not folder:
             QMessageBox.warning(self, "⚠️ Missing Output Folder", "Please select or enter an output folder.", QMessageBox.Ok)
@@ -1047,10 +1146,11 @@ class SuperCutUI(QWidget):
                 min_mp3_count = DEFAULT_MIN_MP3_COUNT
         else:
             min_mp3_count = DEFAULT_MIN_MP3_COUNT
-        is_valid, error_msg = validate_inputs(media_sources, export_name, number)
-        if not is_valid:
-            QMessageBox.warning(self, "⚠️ Missing Input", error_msg, QMessageBox.Ok)
-            return None
+        if not use_name_list:
+            is_valid, error_msg = validate_inputs(media_sources, export_name or "", number)
+            if not is_valid:
+                QMessageBox.warning(self, "⚠️ Missing Input", error_msg, QMessageBox.Ok)
+                return None
         is_valid, error_msg, mp3_files, image_files = validate_media_files(media_sources, min_mp3_count)
         if not is_valid:
             QMessageBox.critical(self, "❌ Error", error_msg)
@@ -1103,13 +1203,16 @@ class SuperCutUI(QWidget):
     def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count):
         """Set up the VideoWorker and QThread, connect signals, and start processing."""
         self._thread = QThread()
+        use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
+        name_list = self.name_list if use_name_list else None
         self._worker = VideoWorker(
             media_sources, export_name, number, folder, codec, resolution, fps,
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
             self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position,
             self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_position,
             self.selected_effect, self.overlay_duration,
-            self.intro_effect, self.intro_duration
+            self.intro_effect, self.intro_duration,
+            name_list=name_list
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
@@ -1127,6 +1230,8 @@ class SuperCutUI(QWidget):
 
     def on_worker_progress(self, batch_count, total_batches):
         """Handle worker progress updates"""
+        if not self.isVisible():
+            return
         self.progress_bar.setMaximum(total_batches)
         self.progress_bar.setValue(batch_count)
         self.progress_bar.setFormat(f"Batch: {batch_count}/{total_batches}")
@@ -1134,6 +1239,8 @@ class SuperCutUI(QWidget):
 
     def on_worker_error(self, message):
         """Handle worker errors"""
+        if not self.isVisible():
+            return
         self.progress_bar.setVisible(False)
         self.stop_btn.setEnabled(False)
         self.stop_btn.setVisible(False)
@@ -1157,6 +1264,7 @@ class SuperCutUI(QWidget):
         self.overlay_checkbox.setEnabled(True)
         dlg = ScrollableErrorDialog(self, title="❌ Error", message=message)
         dlg.exec_()
+        self.cleanup_worker_and_thread()
         self._worker = None
         self._thread = None
         
@@ -1203,6 +1311,8 @@ class SuperCutUI(QWidget):
 
     def on_worker_finished_with_leftovers(self, leftover_mp3s, used_images, original_mp3_files, original_image_files, failed_moves=None):
         """Handle worker completion with leftover files"""
+        if not self.isVisible():
+            return
         self._set_ui_processing_state(False)
         # Calculate leftover images using used_images
         leftover_images = list(set(original_image_files) - set(used_images))
@@ -1237,6 +1347,7 @@ class SuperCutUI(QWidget):
         if failed_moves:
             QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(failed_moves))
         self.clear_inputs()
+        self.cleanup_worker_and_thread()
         self._worker = None
         self._thread = None
         if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
@@ -1372,6 +1483,27 @@ class SuperCutUI(QWidget):
         if default_fps is not None:
             idx = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == default_fps), 0)
             self.fps_combo.setCurrentIndex(idx)
+
+    def cleanup_worker_and_thread(self):
+        """Disconnect all signals and clean up worker and thread objects safely."""
+        if hasattr(self, '_worker') and self._worker is not None:
+            try:
+                self._worker.progress.disconnect(self.on_worker_progress)
+            except (TypeError, RuntimeError):
+                pass
+            try:
+                self._worker.error.disconnect(self.on_worker_error)
+            except (TypeError, RuntimeError):
+                pass
+            try:
+                self._worker.finished.disconnect()
+            except (TypeError, RuntimeError):
+                pass
+        if hasattr(self, '_thread') and self._thread is not None:
+            try:
+                self._thread.started.disconnect()
+            except (TypeError, RuntimeError):
+                pass
 
 def main():
     """Main application entry point"""
