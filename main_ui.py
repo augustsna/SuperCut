@@ -332,15 +332,15 @@ class SuperCutUI(QWidget):
         self.intro_effect_combo = QtWidgets.QComboBox()
         self.intro_effect_combo.setFixedWidth(140)
         intro_effect_options = [
+            ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
             ("Fade out", "fadeout"),
-            ("Fade in & out", "fadeinout"),
             ("Zoompan", "zoompan"),
             ("None", "none")
         ]
         for label, value in intro_effect_options:
             self.intro_effect_combo.addItem(label, value)
-        self.intro_effect_combo.setCurrentIndex(2)  # Default to Fade in & out
+        self.intro_effect_combo.setCurrentIndex(0)  # Default to Fade in & out
         self.intro_effect = "fadeinout"
         def on_intro_effect_changed(idx):
             self.intro_effect = self.intro_effect_combo.itemData(idx)
@@ -582,6 +582,7 @@ class SuperCutUI(QWidget):
         self.effect_combo = QtWidgets.QComboBox()
         self.effect_combo.setFixedWidth(140)
         effect_options = [
+            ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
             ("Fade out", "fadeout"),
             ("Zoompan", "zoompan"),
@@ -589,7 +590,7 @@ class SuperCutUI(QWidget):
         ]
         for label, value in effect_options:
             self.effect_combo.addItem(label, value)
-        self.effect_combo.setCurrentIndex(0)
+        self.effect_combo.setCurrentIndex(1)
         self.selected_effect = "fadein"
         def on_effect_changed(idx):
             self.selected_effect = self.effect_combo.itemData(idx)

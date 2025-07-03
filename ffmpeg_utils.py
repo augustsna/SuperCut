@@ -221,7 +221,9 @@ def create_video_with_ffmpeg(
                     chain += "fps=30,"
                 chain += "format=rgba,"
                 fade_alpha = ":alpha=1" if ext == ".png" else ""
-                if effect == "fadein":
+                if effect == "fadeinout":
+                    chain += f"fade=t=in:st={effect_time}:d=1.5{fade_alpha},fade=t=out:st={effect_time+1.5}:d=1.5{fade_alpha},"
+                elif effect == "fadein":
                     chain += f"fade=t=in:st={effect_time}:d=1{fade_alpha},"
                 elif effect == "fadeout":
                     chain += f"fade=t=out:st={effect_time}:d=1{fade_alpha},"
