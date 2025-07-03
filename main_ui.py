@@ -116,21 +116,32 @@ class SuperCutUI(QWidget):
         layout.setSpacing(15)
 
         # --- Add program title with icon at the top ---
+        layout.addSpacing(-10)
         title_widget = QtWidgets.QWidget()
         title_widget.setFixedHeight(70)
         title_layout = QtWidgets.QHBoxLayout()
         title_layout.setContentsMargins(0, 0, 0, 0)
         title_layout.setSpacing(0)
+        # Add PNG logo in front of SuperCut title
+        title_icon = QLabel()
+        title_icon.setPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "sources/icon.png")).scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         title_label = QLabel("SuperCut")
-        title_label.setStyleSheet("font-size: 28px; font-weight: bold;")
+        title_label.setStyleSheet("font-size: 35px; font-weight: bold;")
         title_label.setAlignment(Qt.AlignCenter)
+        static_icon = QLabel()
+        static_icon.setPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "sources/static.png")).scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         title_layout.addStretch()
+        title_layout.addWidget(title_icon)
+        # Add spacing after title label
+        title_layout.addSpacing(20)
         title_layout.addWidget(title_label)
+        title_layout.addSpacing(20)
+        title_layout.addWidget(static_icon)
         title_layout.addStretch()
         title_widget.setLayout(title_layout)
         layout.addWidget(title_widget)
         # Add spacer below title bar to prevent overlap
-        layout.addSpacing(70)
+        layout.addSpacing(30)
         # --- End program title ---
 
         # Add UI components
