@@ -534,7 +534,7 @@ class SuperCutUI(QWidget):
         # --- EFFECT CONTROL FOR INTRO & OVERLAY ---
         label_width = 30
         combo_width = 130
-        edit_width = 40
+        edit_width = 50
 
         intro_effect_label = QLabel("Intro:")
         intro_effect_label.setFixedWidth(40)
@@ -610,12 +610,18 @@ class SuperCutUI(QWidget):
         effect_layout = QHBoxLayout()
         effect_layout.setContentsMargins(0, 0, 0, 0)
         effect_layout.addWidget(intro_effect_label)
+        effect_layout.addSpacing(-10)
         effect_layout.addWidget(self.intro_effect_combo)
+        effect_layout.addSpacing(-10)
         effect_layout.addWidget(intro_duration_label)
+        effect_layout.addSpacing(-10)
         effect_layout.addWidget(self.intro_duration_edit)
         effect_layout.addWidget(effect_label)
+        effect_layout.addSpacing(-10)
         effect_layout.addWidget(self.effect_combo)
+        effect_layout.addSpacing(-10)
         effect_layout.addWidget(overlay_duration_label)
+        effect_layout.addSpacing(-10)
         effect_layout.addWidget(self.overlay_duration_edit)
         effect_layout.addStretch()
         layout.addLayout(effect_layout)
