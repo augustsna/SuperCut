@@ -142,7 +142,7 @@ class SuperCutUI(QWidget):
         loading_label = QLabel()
         loading_movie = QtGui.QMovie(os.path.join(os.path.dirname(__file__), "sources/loading.gif"))
         loading_label.setMovie(loading_movie)
-        loading_label.setFixedSize(40, 40)
+        loading_label.setStyleSheet("margin-top: 18px;")
         loading_label.setVisible(False)
         self.loading_label = loading_label  # Store as instance variable for later control
         title_layout.addStretch()
