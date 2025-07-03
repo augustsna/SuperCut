@@ -325,8 +325,6 @@ class SuperCutUI(QWidget):
         intro_layout.addWidget(self.intro_size_combo)
         layout.addLayout(intro_layout)
 
-
-
         # Move PNG overlay checkbox below video settings
         self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1 :")
         self.overlay_checkbox.setChecked(False)
@@ -534,13 +532,14 @@ class SuperCutUI(QWidget):
         layout.addLayout(overlay2_layout)
 
         # --- EFFECT CONTROL FOR INTRO & OVERLAY ---
-        effect_layout = QHBoxLayout()
-        
-        # Intro Effect controls (first)
+        label_width = 30
+        combo_width = 130
+        edit_width = 40
+
         intro_effect_label = QLabel("Intro:")
-        intro_effect_label.setFixedWidth(110)
+        intro_effect_label.setFixedWidth(40)
         self.intro_effect_combo = QtWidgets.QComboBox()
-        self.intro_effect_combo.setFixedWidth(140)
+        self.intro_effect_combo.setFixedWidth(combo_width)
         intro_effect_options = [
             ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
@@ -550,18 +549,17 @@ class SuperCutUI(QWidget):
         ]
         for label, value in intro_effect_options:
             self.intro_effect_combo.addItem(label, value)
-        self.intro_effect_combo.setCurrentIndex(0)  # Default to Fade in & out
+        self.intro_effect_combo.setCurrentIndex(0)
         self.intro_effect = "fadeinout"
         def on_intro_effect_changed(idx):
             self.intro_effect = self.intro_effect_combo.itemData(idx)
         self.intro_effect_combo.currentIndexChanged.connect(on_intro_effect_changed)
         on_intro_effect_changed(self.intro_effect_combo.currentIndex())
-        
-        # Intro duration input
-        intro_duration_label = QLabel("Duration (s):")
-        intro_duration_label.setFixedWidth(80)
+
+        intro_duration_label = QLabel("For:")
+        intro_duration_label.setFixedWidth(label_width)
         self.intro_duration_edit = QLineEdit("5")
-        self.intro_duration_edit.setFixedWidth(40)
+        self.intro_duration_edit.setFixedWidth(edit_width)
         self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.intro_duration_edit.setPlaceholderText("5")
         self.intro_duration = 5
@@ -572,12 +570,12 @@ class SuperCutUI(QWidget):
                 self.intro_duration = 5
         self.intro_duration_edit.textChanged.connect(on_intro_duration_changed)
         on_intro_duration_changed()
-        
-        # Overlay Effect controls (second)
-        effect_label = QLabel("Overlay Effect:")
-        effect_label.setFixedWidth(110)
+
+        # Overlay Effect controls (match intro effect design)
+        effect_label = QLabel("Overlay:")
+        effect_label.setFixedWidth(55)
         self.effect_combo = QtWidgets.QComboBox()
-        self.effect_combo.setFixedWidth(140)
+        self.effect_combo.setFixedWidth(combo_width)
         effect_options = [
             ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
@@ -593,35 +591,32 @@ class SuperCutUI(QWidget):
             self.selected_effect = self.effect_combo.itemData(idx)
         self.effect_combo.currentIndexChanged.connect(on_effect_changed)
         on_effect_changed(self.effect_combo.currentIndex())
-        
-        # Start time input
-        effect_time_label = QLabel("Start Time (s):")
-        effect_time_label.setFixedWidth(110)
-        self.effect_time_edit = QLineEdit("5")
-        self.effect_time_edit.setFixedWidth(60)
-        self.effect_time_edit.setValidator(QIntValidator(0, 999, self))
-        self.effect_time_edit.setPlaceholderText("5")
-        self.effect_time = 5
-        def on_effect_time_changed():
+
+        overlay_duration_label = QLabel("at")
+        overlay_duration_label.setFixedWidth(20)
+        self.overlay_duration_edit = QLineEdit("5")
+        self.overlay_duration_edit.setFixedWidth(edit_width)
+        self.overlay_duration_edit.setValidator(QIntValidator(0, 999, self))
+        self.overlay_duration_edit.setPlaceholderText("5")
+        self.overlay_duration = 5
+        def on_overlay_duration_changed():
             try:
-                self.effect_time = int(self.effect_time_edit.text())
+                self.overlay_duration = int(self.overlay_duration_edit.text())
             except Exception:
-                self.effect_time = 5
-        self.effect_time_edit.textChanged.connect(on_effect_time_changed)
-        on_effect_time_changed()
-        
-        # Add all widgets to the layout
+                self.overlay_duration = 5
+        self.overlay_duration_edit.textChanged.connect(on_overlay_duration_changed)
+        on_overlay_duration_changed()
+
+        effect_layout = QHBoxLayout()
+        effect_layout.setContentsMargins(0, 0, 0, 0)
         effect_layout.addWidget(intro_effect_label)
         effect_layout.addWidget(self.intro_effect_combo)
-        effect_layout.addSpacing(20)
         effect_layout.addWidget(intro_duration_label)
         effect_layout.addWidget(self.intro_duration_edit)
-        effect_layout.addSpacing(0)
         effect_layout.addWidget(effect_label)
         effect_layout.addWidget(self.effect_combo)
-        effect_layout.addSpacing(20)
-        effect_layout.addWidget(effect_time_label)
-        effect_layout.addWidget(self.effect_time_edit)
+        effect_layout.addWidget(overlay_duration_label)
+        effect_layout.addWidget(self.overlay_duration_edit)
         effect_layout.addStretch()
         layout.addLayout(effect_layout)
 
@@ -933,7 +928,7 @@ class SuperCutUI(QWidget):
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
             self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position,
             self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_position,
-            self.selected_effect, self.effect_time,
+            self.selected_effect, self.overlay_duration,
             self.intro_effect, self.intro_duration
         )
         self._worker.moveToThread(self._thread)
