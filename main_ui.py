@@ -138,6 +138,13 @@ class SuperCutUI(QWidget):
         spinner_movie.start()
         spinner_label.setVisible(False)  # Hide by default
         self.spinner_label = spinner_label  # Store as instance variable for later control
+        # Add loading.gif after spinner gif
+        loading_label = QLabel()
+        loading_movie = QtGui.QMovie(os.path.join(os.path.dirname(__file__), "sources/loading.gif"))
+        loading_label.setMovie(loading_movie)
+        loading_label.setFixedSize(40, 40)
+        loading_label.setVisible(False)
+        self.loading_label = loading_label  # Store as instance variable for later control
         title_layout.addStretch()
         title_layout.addWidget(title_icon)
         # Add spacing after title label
@@ -146,6 +153,7 @@ class SuperCutUI(QWidget):
         title_layout.addSpacing(3)
         title_layout.addWidget(static_icon)
         title_layout.addWidget(spinner_label, alignment=Qt.AlignVCenter)
+        title_layout.addWidget(loading_label, alignment=Qt.AlignVCenter)
         title_layout.addStretch()
         title_widget.setLayout(title_layout)
         layout.addWidget(title_widget)
@@ -1044,6 +1052,12 @@ class SuperCutUI(QWidget):
         self.stop_btn.setVisible(processing)
         if hasattr(self, 'spinner_label'):
             self.spinner_label.setVisible(processing)
+        if hasattr(self, 'loading_label'):
+            self.loading_label.setVisible(processing)
+            if processing:
+                self.loading_label.movie().start()
+            else:
+                self.loading_label.movie().stop()
         if hasattr(self, 'static_icon'):
             self.static_icon.setVisible(not processing)
         controls = [
@@ -1107,6 +1121,9 @@ class SuperCutUI(QWidget):
         self.stop_btn.setVisible(False)
         if hasattr(self, 'spinner_label'):
             self.spinner_label.setVisible(False)
+        if hasattr(self, 'loading_label'):
+            self.loading_label.setVisible(False)
+            self.loading_label.movie().stop()
         if hasattr(self, 'static_icon'):
             self.static_icon.setVisible(True)
         self.create_btn.setEnabled(True)
