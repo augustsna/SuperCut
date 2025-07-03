@@ -124,7 +124,7 @@ class SuperCutUI(QWidget):
         title_layout.setSpacing(0)
         # Add PNG logo in front of SuperCut title
         title_icon = QLabel()
-        title_icon.setPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "sources/icon.png")).scaled(38, 38, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        title_icon.setPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "sources/icon.png")).scaled(45, 45, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         title_label = QLabel("SuperCut")
         title_label.setStyleSheet("font-size: 35px; font-weight: bold;")
         title_label.setAlignment(Qt.AlignCenter)
@@ -145,15 +145,24 @@ class SuperCutUI(QWidget):
         loading_label.setStyleSheet("margin-top: 18px;")
         loading_label.setVisible(False)
         self.loading_label = loading_label  # Store as instance variable for later control
+        title_layout.addSpacing(80)
         title_layout.addStretch()
         title_layout.addWidget(title_icon)
         # Add spacing after title label
-        title_layout.addSpacing(15)
+        title_layout.addSpacing(1)
         title_layout.addWidget(title_label)
-        title_layout.addSpacing(3)
+        title_layout.addSpacing(10)
         title_layout.addWidget(static_icon)
+        # Add empty button holder (placeholder) size 16x4 after static icon
+        self.title_placeholder_btn = QPushButton()
+        self.title_placeholder_btn.setFixedSize(24, 4)
+        self.title_placeholder_btn.setStyleSheet("QPushButton { background: transparent; border: none; }")
+        self.title_placeholder_btn.setEnabled(False)
+        self.title_placeholder_btn.setVisible(self.static_icon.isVisible())
+        title_layout.addWidget(self.title_placeholder_btn)
         title_layout.addWidget(spinner_label, alignment=Qt.AlignVCenter)
         title_layout.addWidget(loading_label, alignment=Qt.AlignVCenter)
+        
         title_layout.addStretch()
         title_widget.setLayout(title_layout)
         layout.addWidget(title_widget)
@@ -795,6 +804,7 @@ class SuperCutUI(QWidget):
         self.placeholder_btn.setFixedHeight(32)
         self.placeholder_btn.setFixedWidth(32)
         self.placeholder_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
+        # self.placeholder_btn.setVisible(self.static_icon.isVisible())  # Ensure always visible
         button_layout.addWidget(self.placeholder_btn)
 
         button_layout.addStretch()  # Pushes spinner to the far right
@@ -1066,6 +1076,8 @@ class SuperCutUI(QWidget):
                 self.loading_label.movie().stop()
         if hasattr(self, 'static_icon'):
             self.static_icon.setVisible(not processing)
+        if hasattr(self, 'title_placeholder_btn'):
+            self.title_placeholder_btn.setVisible(not processing)
         controls = [
             self.create_btn, self.codec_combo, self.resolution_combo, self.fps_combo,
             self.media_sources_edit, self.folder_edit, self.part1_edit, self.part2_edit,
