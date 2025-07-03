@@ -135,7 +135,7 @@ class SuperCutUI(QWidget):
         # Add spacing after title label
         title_layout.addSpacing(20)
         title_layout.addWidget(title_label)
-        title_layout.addSpacing(20)
+        title_layout.addSpacing(3)
         title_layout.addWidget(static_icon)
         title_layout.addStretch()
         title_widget.setLayout(title_layout)
