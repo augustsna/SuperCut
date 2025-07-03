@@ -5,7 +5,7 @@ import time
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QPushButton, QFileDialog, QMessageBox, QDesktopWidget
+    QPushButton, QFileDialog, QMessageBox, QDesktopWidget, QDialog, QComboBox, QDialogButtonBox, QFormLayout
 )
 from PyQt5.QtCore import Qt, QSettings, QThread, QPoint
 from PyQt5.QtGui import QIntValidator, QIcon
@@ -29,6 +29,39 @@ from utils import (
 from ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, ScrollableErrorDialog, ImageDropLineEdit
 from video_worker import VideoWorker
 from terminal_widget import TerminalWidget
+
+class SettingsDialog(QDialog):
+    def __init__(self, parent=None, settings=None, fps_options=None):
+        super().__init__(parent)
+        self.setWindowTitle("Settings")
+        self.setModal(True)
+        self.settings = settings
+        self.fps_options = fps_options or [("24", 24)]
+        self.selected_fps = None
+        layout = QFormLayout(self)
+        self.fps_combo = QComboBox(self)
+        for label, value in self.fps_options:
+            self.fps_combo.addItem(label, value)
+        # Load from settings if available
+        if self.settings is not None:
+            default_fps = self.settings.value('default_fps', type=int)
+        else:
+            default_fps = None
+        if default_fps is not None:
+            idx = next((i for i, (label, value) in enumerate(self.fps_options) if value == default_fps), 0)
+            self.fps_combo.setCurrentIndex(idx)
+        else:
+            self.fps_combo.setCurrentIndex(0)
+        layout.addRow("Default FPS:", self.fps_combo)
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+    def accept(self):
+        self.selected_fps = self.fps_combo.currentData()
+        if self.settings is not None:
+            self.settings.setValue('default_fps', self.selected_fps)
+        super().accept()
 
 class SuperCutUI(QWidget):
     """Main application window for SuperCut Video Maker"""
@@ -70,6 +103,18 @@ class SuperCutUI(QWidget):
         self.create_video_settings(layout)
         self.create_action_buttons(layout)
         self.create_progress_controls(layout)
+        
+        # Add settings button (top right)
+        self.settings_btn = QPushButton()
+        self.settings_btn.setIcon(QIcon(os.path.join(os.path.dirname(__file__), "sources/settings.png")))
+        self.settings_btn.setFixedSize(32, 32)
+        self.settings_btn.setToolTip("Settings")
+        self.settings_btn.clicked.connect(self.show_settings_dialog)
+        # Place settings button at top right
+        settings_layout = QHBoxLayout()
+        settings_layout.addStretch()
+        settings_layout.addWidget(self.settings_btn)
+        layout.insertLayout(0, settings_layout)
         
         self.setLayout(layout)
         self.update_output_name()
@@ -211,15 +256,13 @@ class SuperCutUI(QWidget):
         self.fps_combo.setMaximumHeight(28)
         for label, value in DEFAULT_FPS_OPTIONS:
             self.fps_combo.addItem(label, value)
-        # Restore last used FPS from settings if available
-        last_fps = self.settings.value('last_fps', type=int)
-        if last_fps is not None:
-            fps_index = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == last_fps), 0)
+        # Load default FPS from settings
+        default_fps = self.settings.value('default_fps', type=int)
+        if default_fps is not None:
+            fps_index = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == default_fps), 0)
             self.fps_combo.setCurrentIndex(fps_index)
         else:
-            default_fps_index = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == 24), 0)
-            self.fps_combo.setCurrentIndex(default_fps_index)
-        self.fps_combo.currentIndexChanged.connect(self.save_fps_setting)
+            self.fps_combo.setCurrentIndex(0)
         settings_layout.addWidget(fps_label)
         settings_layout.addSpacing(6)
         settings_layout.addWidget(self.fps_combo)
@@ -1154,9 +1197,6 @@ class SuperCutUI(QWidget):
 
     def closeEvent(self, event):
         """Handle window close event"""
-        # Save FPS setting on close
-        if hasattr(self, 'fps_combo'):
-            self.save_fps_setting()
         # Close terminal widget if it exists
         if hasattr(self, 'terminal_widget') and self.terminal_widget is not None:
             self.terminal_widget.close()
@@ -1232,10 +1272,17 @@ class SuperCutUI(QWidget):
         if not text.strip():
             self.output_folder_manual = False
 
-    def save_fps_setting(self):
-        """Save the currently selected FPS to settings"""
-        fps = self.fps_combo.currentData()
-        self.settings.setValue('last_fps', fps)
+    def show_settings_dialog(self):
+        dlg = SettingsDialog(self, settings=self.settings, fps_options=DEFAULT_FPS_OPTIONS)
+        if dlg.exec_() == QDialog.Accepted:
+            self.apply_settings()
+
+    def apply_settings(self):
+        # Update FPS combo to reflect new default if not set by user yet
+        default_fps = self.settings.value('default_fps', type=int)
+        if default_fps is not None:
+            idx = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == default_fps), 0)
+            self.fps_combo.setCurrentIndex(idx)
 
 def main():
     """Main application entry point"""
