@@ -325,49 +325,7 @@ class SuperCutUI(QWidget):
         intro_layout.addWidget(self.intro_size_combo)
         layout.addLayout(intro_layout)
 
-        # --- INTRO EFFECT CONTROL ---
-        intro_effect_layout = QHBoxLayout()
-        intro_effect_label = QLabel("Intro Effect:")
-        intro_effect_label.setFixedWidth(110)
-        self.intro_effect_combo = QtWidgets.QComboBox()
-        self.intro_effect_combo.setFixedWidth(140)
-        intro_effect_options = [
-            ("Fade in & out", "fadeinout"),
-            ("Fade in", "fadein"),
-            ("Fade out", "fadeout"),
-            ("Zoompan", "zoompan"),
-            ("None", "none")
-        ]
-        for label, value in intro_effect_options:
-            self.intro_effect_combo.addItem(label, value)
-        self.intro_effect_combo.setCurrentIndex(0)  # Default to Fade in & out
-        self.intro_effect = "fadeinout"
-        def on_intro_effect_changed(idx):
-            self.intro_effect = self.intro_effect_combo.itemData(idx)
-        self.intro_effect_combo.currentIndexChanged.connect(on_intro_effect_changed)
-        on_intro_effect_changed(self.intro_effect_combo.currentIndex())
-        # Intro duration input
-        intro_duration_label = QLabel("Intro Duration (s):")
-        intro_duration_label.setFixedWidth(110)
-        self.intro_duration_edit = QLineEdit("5")
-        self.intro_duration_edit.setFixedWidth(60)
-        self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
-        self.intro_duration_edit.setPlaceholderText("5")
-        self.intro_duration = 5
-        def on_intro_duration_changed():
-            try:
-                self.intro_duration = int(self.intro_duration_edit.text())
-            except Exception:
-                self.intro_duration = 5
-        self.intro_duration_edit.textChanged.connect(on_intro_duration_changed)
-        on_intro_duration_changed()
-        intro_effect_layout.addWidget(intro_effect_label)
-        intro_effect_layout.addWidget(self.intro_effect_combo)
-        intro_effect_layout.addSpacing(20)
-        intro_effect_layout.addWidget(intro_duration_label)
-        intro_effect_layout.addWidget(self.intro_duration_edit)
-        intro_effect_layout.addStretch()
-        layout.addLayout(intro_effect_layout)
+
 
         # Move PNG overlay checkbox below video settings
         self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1 :")
@@ -575,8 +533,47 @@ class SuperCutUI(QWidget):
         overlay2_layout.addWidget(self.overlay2_size_combo)
         layout.addLayout(overlay2_layout)
 
-        # --- EFFECT CONTROL FOR OVERLAY 1 & 2 ---
+        # --- EFFECT CONTROL FOR INTRO & OVERLAY ---
         effect_layout = QHBoxLayout()
+        
+        # Intro Effect controls (first)
+        intro_effect_label = QLabel("Intro:")
+        intro_effect_label.setFixedWidth(110)
+        self.intro_effect_combo = QtWidgets.QComboBox()
+        self.intro_effect_combo.setFixedWidth(140)
+        intro_effect_options = [
+            ("Fade in & out", "fadeinout"),
+            ("Fade in", "fadein"),
+            ("Fade out", "fadeout"),
+            ("Zoompan", "zoompan"),
+            ("None", "none")
+        ]
+        for label, value in intro_effect_options:
+            self.intro_effect_combo.addItem(label, value)
+        self.intro_effect_combo.setCurrentIndex(0)  # Default to Fade in & out
+        self.intro_effect = "fadeinout"
+        def on_intro_effect_changed(idx):
+            self.intro_effect = self.intro_effect_combo.itemData(idx)
+        self.intro_effect_combo.currentIndexChanged.connect(on_intro_effect_changed)
+        on_intro_effect_changed(self.intro_effect_combo.currentIndex())
+        
+        # Intro duration input
+        intro_duration_label = QLabel("Duration (s):")
+        intro_duration_label.setFixedWidth(80)
+        self.intro_duration_edit = QLineEdit("5")
+        self.intro_duration_edit.setFixedWidth(40)
+        self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.intro_duration_edit.setPlaceholderText("5")
+        self.intro_duration = 5
+        def on_intro_duration_changed():
+            try:
+                self.intro_duration = int(self.intro_duration_edit.text())
+            except Exception:
+                self.intro_duration = 5
+        self.intro_duration_edit.textChanged.connect(on_intro_duration_changed)
+        on_intro_duration_changed()
+        
+        # Overlay Effect controls (second)
         effect_label = QLabel("Overlay Effect:")
         effect_label.setFixedWidth(110)
         self.effect_combo = QtWidgets.QComboBox()
@@ -596,6 +593,7 @@ class SuperCutUI(QWidget):
             self.selected_effect = self.effect_combo.itemData(idx)
         self.effect_combo.currentIndexChanged.connect(on_effect_changed)
         on_effect_changed(self.effect_combo.currentIndex())
+        
         # Start time input
         effect_time_label = QLabel("Start Time (s):")
         effect_time_label.setFixedWidth(110)
@@ -611,6 +609,14 @@ class SuperCutUI(QWidget):
                 self.effect_time = 5
         self.effect_time_edit.textChanged.connect(on_effect_time_changed)
         on_effect_time_changed()
+        
+        # Add all widgets to the layout
+        effect_layout.addWidget(intro_effect_label)
+        effect_layout.addWidget(self.intro_effect_combo)
+        effect_layout.addSpacing(20)
+        effect_layout.addWidget(intro_duration_label)
+        effect_layout.addWidget(self.intro_duration_edit)
+        effect_layout.addSpacing(0)
         effect_layout.addWidget(effect_label)
         effect_layout.addWidget(self.effect_combo)
         effect_layout.addSpacing(20)
