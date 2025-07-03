@@ -190,7 +190,8 @@ def create_video_with_ffmpeg(
             if filter_overlay2:
                 filter_complex += filter_overlay2 + ";"
             if overlay1_idx is not None and overlay2_idx is not None:
-                filter_complex += f"[bg][ol1]overlay={ox1}:{oy1}:enable='gte(t,5)'[tmp1];[tmp1][ol2]overlay={ox2}:{oy2}:enable='gte(t,5)'[v1];[v1]format={VIDEO_SETTINGS['pixel_format']}[vout]"
+                # Swap order: Overlay 2 first, then Overlay 1
+                filter_complex += f"[bg][ol2]overlay={ox2}:{oy2}:enable='gte(t,5)'[tmp1];[tmp1][ol1]overlay={ox1}:{oy1}:enable='gte(t,5)'[v1];[v1]format={VIDEO_SETTINGS['pixel_format']}[vout]"
             elif overlay1_idx is not None:
                 filter_complex += f"[bg][ol1]overlay={ox1}:{oy1}:enable='gte(t,5)'[v1];[v1]format={VIDEO_SETTINGS['pixel_format']}[vout]"
             elif overlay2_idx is not None:
