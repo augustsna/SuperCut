@@ -804,11 +804,15 @@ class SuperCutUI(QWidget):
     def create_progress_controls(self, layout):
         """Create progress bar and stop button on the same line, with stop button before progress bar. Progress bar should stretch to fill space."""
         progress_row = QtWidgets.QHBoxLayout()
-        self.stop_btn = QPushButton("\U0001F6D1 Stop")
+        self.stop_btn = QPushButton()
         self.stop_btn.setFixedHeight(24)
-        self.stop_btn.setFixedWidth(80)
+        self.stop_btn.setFixedWidth(24)
         self.stop_btn.setEnabled(False)
         self.stop_btn.setVisible(False)
+        stop_icon_path = os.path.join(os.path.dirname(__file__), "sources/stopbutton.png")
+        self.stop_btn.setIcon(QIcon(stop_icon_path))
+        self.stop_btn.setIconSize(QSize(22, 22))
+        self.stop_btn.setStyleSheet("QPushButton { background: transparent; border: none; } QPushButton:pressed { background: transparent; }")
         self.stop_btn.clicked.connect(self.stop_video_creation)
         progress_row.addWidget(self.stop_btn)
 
@@ -816,7 +820,7 @@ class SuperCutUI(QWidget):
         self.progress_bar.setMinimum(0)
         self.progress_bar.setMaximum(1)
         self.progress_bar.setValue(0)
-        self.progress_bar.setTextVisible(True)
+        self.progress_bar.setTextVisible(True)        
         self.progress_bar.setFormat("Batch: 0/0")
         self.progress_bar.setVisible(False)
         self.progress_bar.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
@@ -1047,7 +1051,8 @@ class SuperCutUI(QWidget):
         """Enable/disable UI controls for processing state."""
         self.progress_bar.setMaximum(total_batches)
         self.progress_bar.setValue(0)
-        self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
+        empty_space = " " * 2
+        self.progress_bar.setFormat(f"{empty_space}Batch: 0/{total_batches}")
         self.progress_bar.setVisible(processing)
         self.stop_btn.setEnabled(processing)
         self.stop_btn.setVisible(processing)
