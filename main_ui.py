@@ -835,6 +835,12 @@ class SuperCutUI(QWidget):
     def create_video(self):
         """Start video creation process"""
         # Step 1: Gather and validate inputs
+        # Intro validation
+        if self.intro_checkbox.isChecked():
+            intro_path = self.intro_edit.text().strip()
+            if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png']:
+                QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Intro.", QMessageBox.Ok)
+                return
         # Overlay 1 validation
         if self.overlay_checkbox.isChecked():
             overlay_path = self.overlay1_edit.text().strip()
