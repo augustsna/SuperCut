@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QFileDialog, QMessageBox, QDesktopWidget, QDialog, QComboBox, QDialogButtonBox, QFormLayout
 )
-from PyQt5.QtCore import Qt, QSettings, QThread, QPoint
+from PyQt5.QtCore import Qt, QSettings, QThread, QPoint, QSize
 from PyQt5.QtGui import QIntValidator, QIcon
 from logger import logger
 
@@ -124,19 +124,28 @@ class SuperCutUI(QWidget):
         title_layout.setSpacing(0)
         # Add PNG logo in front of SuperCut title
         title_icon = QLabel()
-        title_icon.setPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "sources/icon.png")).scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        title_icon.setPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "sources/icon.png")).scaled(38, 38, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         title_label = QLabel("SuperCut")
         title_label.setStyleSheet("font-size: 35px; font-weight: bold;")
         title_label.setAlignment(Qt.AlignCenter)
         static_icon = QLabel()
-        static_icon.setPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "sources/static.png")).scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        static_icon.setPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "sources/static.png")))
+        static_icon.setVisible(True)  # Show by default
+        self.static_icon = static_icon  # Store as instance variable for later control
+        spinner_label = QLabel()
+        spinner_movie = QtGui.QMovie(os.path.join(os.path.dirname(__file__), "sources/spinner.gif"))
+        spinner_label.setMovie(spinner_movie)       
+        spinner_movie.start()
+        spinner_label.setVisible(False)  # Hide by default
+        self.spinner_label = spinner_label  # Store as instance variable for later control
         title_layout.addStretch()
         title_layout.addWidget(title_icon)
         # Add spacing after title label
-        title_layout.addSpacing(20)
+        title_layout.addSpacing(15)
         title_layout.addWidget(title_label)
         title_layout.addSpacing(3)
         title_layout.addWidget(static_icon)
+        title_layout.addWidget(spinner_label, alignment=Qt.AlignVCenter)
         title_layout.addStretch()
         title_widget.setLayout(title_layout)
         layout.addWidget(title_widget)
@@ -742,6 +751,7 @@ class SuperCutUI(QWidget):
         button_layout = QHBoxLayout()
 
         # Add settings button first, before terminal
+        button_layout.addSpacing(15)
         self.settings_btn = QPushButton()
         icon_path = os.path.join(os.path.dirname(__file__), "sources/settings.png")
         self.settings_btn.setIcon(QIcon(icon_path))
@@ -753,6 +763,7 @@ class SuperCutUI(QWidget):
         button_layout.addWidget(self.settings_btn)
 
         # Add terminal button next
+        button_layout.addSpacing(10)
         self.terminal_btn = QPushButton("💻 Terminal")
         self.terminal_btn.setFixedHeight(35)
         self.terminal_btn.setFixedWidth(100)
@@ -760,11 +771,23 @@ class SuperCutUI(QWidget):
         button_layout.addWidget(self.terminal_btn)
 
         # Then add create video button, always after terminal
-        self.create_btn = QPushButton("🚀 Create Video")
+        button_layout.addSpacing(5)
+        self.create_btn = QPushButton("Create Video")
         self.create_btn.setFixedHeight(35)
-        self.create_btn.setFixedWidth(380)
+        self.create_btn.setFixedWidth(350)
         self.create_btn.clicked.connect(self.create_video)
         button_layout.addWidget(self.create_btn)
+
+        # Add placeholder button after create video button
+        button_layout.addSpacing(5)
+        self.placeholder_btn = QPushButton()
+        rocket_icon_path = os.path.join(os.path.dirname(__file__), "sources/rocket.png")
+        self.placeholder_btn.setIcon(QIcon(rocket_icon_path))
+        self.placeholder_btn.setIconSize(QSize(28, 28))
+        self.placeholder_btn.setFixedHeight(32)
+        self.placeholder_btn.setFixedWidth(32)
+        self.placeholder_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
+        button_layout.addWidget(self.placeholder_btn)
 
         button_layout.addStretch()  # Pushes spinner to the far right
 
@@ -1019,6 +1042,10 @@ class SuperCutUI(QWidget):
         self.progress_bar.setVisible(processing)
         self.stop_btn.setEnabled(processing)
         self.stop_btn.setVisible(processing)
+        if hasattr(self, 'spinner_label'):
+            self.spinner_label.setVisible(processing)
+        if hasattr(self, 'static_icon'):
+            self.static_icon.setVisible(not processing)
         controls = [
             self.create_btn, self.codec_combo, self.resolution_combo, self.fps_combo,
             self.media_sources_edit, self.folder_edit, self.part1_edit, self.part2_edit,
@@ -1078,6 +1105,10 @@ class SuperCutUI(QWidget):
         self.progress_bar.setVisible(False)
         self.stop_btn.setEnabled(False)
         self.stop_btn.setVisible(False)
+        if hasattr(self, 'spinner_label'):
+            self.spinner_label.setVisible(False)
+        if hasattr(self, 'static_icon'):
+            self.static_icon.setVisible(True)
         self.create_btn.setEnabled(True)
         self.codec_combo.setEnabled(True)
         self.resolution_combo.setEnabled(True)
