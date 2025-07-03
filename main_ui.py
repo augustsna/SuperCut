@@ -43,6 +43,8 @@ class SuperCutUI(QWidget):
         self._stopping_msgbox = None
         self.terminal_widget = None
         self.settings = QSettings('SuperCut', 'SuperCutUI')
+        self._original_size = None  # Store original window size
+        self._expanded_for_progress = False  # Track if expanded
         
         self.init_ui()
         self.restore_window_position()
@@ -577,7 +579,7 @@ class SuperCutUI(QWidget):
         layout.addLayout(overlay2_layout)
 
         # --- EFFECT CONTROL FOR INTRO & OVERLAY ---
-        label_width = 30
+        
         combo_width = 130
         edit_width = 50
 
@@ -618,6 +620,7 @@ class SuperCutUI(QWidget):
 
         effect_layout = QHBoxLayout()
         effect_layout.setContentsMargins(0, 0, 0, 0)
+        effect_layout.addSpacing(20)
         effect_layout.addWidget(intro_effect_label)
         effect_layout.addSpacing(-10)
         effect_layout.addWidget(self.intro_effect_combo)
@@ -625,6 +628,7 @@ class SuperCutUI(QWidget):
         effect_layout.addWidget(intro_duration_label)
         effect_layout.addSpacing(-10)
         effect_layout.addWidget(self.intro_duration_edit)
+        effect_layout.addSpacing(35)
         effect_layout.addWidget(effect_label)
         effect_layout.addSpacing(-10)
         effect_layout.addWidget(self.effect_combo)
@@ -955,6 +959,20 @@ class SuperCutUI(QWidget):
         for ctrl in controls:
             ctrl.setEnabled(not processing)
 
+        # --- Window resize logic ---
+        if processing:
+            if not self._expanded_for_progress:
+                self._original_size = self.size()
+                # Calculate new height: add enough for progress bar + stop button (e.g., 60px)
+                extra_height = 80
+                new_height = self.height() + extra_height
+                self.setFixedSize(self.width(), new_height)
+                self._expanded_for_progress = True
+        else:
+            if self._expanded_for_progress and self._original_size is not None:
+                self.setFixedSize(self._original_size)
+                self._expanded_for_progress = False
+
     def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count):
         """Set up the VideoWorker and QThread, connect signals, and start processing."""
         self._thread = QThread()
@@ -1053,22 +1071,7 @@ class SuperCutUI(QWidget):
 
     def on_worker_finished_with_leftovers(self, leftover_mp3s, used_images, original_mp3_files, original_image_files, failed_moves=None):
         """Handle worker completion with leftover files"""
-        self.progress_bar.setVisible(False)
-        self.stop_btn.setEnabled(False)
-        self.stop_btn.setVisible(False)
-        self.running_widget.setVisible(False)
-        self.spinner_movie.stop()
-        self.create_btn.setEnabled(True)
-        self.codec_combo.setEnabled(True)
-        self.resolution_combo.setEnabled(True)
-        self.fps_combo.setEnabled(True)
-        self.media_sources_edit.setEnabled(True)
-        self.folder_edit.setEnabled(True)
-        self.part1_edit.setEnabled(True)
-        self.part2_edit.setEnabled(True)
-        self.media_sources_select_btn.setEnabled(True)
-        self.output_folder_select_btn.setEnabled(True)
-        self.overlay_checkbox.setEnabled(True)
+        self._set_ui_processing_state(False)
         # Calculate leftover images using used_images
         leftover_images = list(set(original_image_files) - set(used_images))
         # Get min_mp3_count from input
