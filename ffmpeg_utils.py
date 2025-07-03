@@ -83,7 +83,9 @@ def create_video_with_ffmpeg(
     use_intro: bool = False,
     intro_path: str = "",
     intro_size_percent: int = 10,
-    intro_position: str = "center"
+    intro_position: str = "center",
+    effect: str = "fadein",
+    effect_time: int = 5
 ) -> Tuple[bool, Optional[str]]:
     """Create video from image and audio using ffmpeg with progress tracking. Supports up to three overlays (Intro, Overlay 1, Overlay 2). Returns (success, error_message)."""
     temp_png_path = None
@@ -94,6 +96,8 @@ def create_video_with_ffmpeg(
         print("[DEBUG] Output path:", output_path)
         print("[DEBUG] Overlay 1 path:", overlay1_path)
         print("[DEBUG] Overlay 2 path:", overlay2_path)
+        print("[DEBUG] Overlay Effect:", effect)
+        print("[DEBUG] Overlay Effect Start Time:", effect_time)
         # Estimate required output file size
         audio_duration = get_audio_duration(audio_path)
         video_bitrate_str = VIDEO_SETTINGS["video_bitrate"]
@@ -160,6 +164,8 @@ def create_video_with_ffmpeg(
         if use_intro and intro_path and ext_intro in ['.gif', '.png']:
             if ext_intro == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", intro_path])
+            elif ext_intro == '.png':
+                cmd.extend(["-loop", "1", "-i", intro_path])
             else:
                 cmd.extend(["-i", intro_path])
             intro_idx = input_idx
@@ -167,6 +173,8 @@ def create_video_with_ffmpeg(
         if use_overlay and overlay1_path and ext1 in ['.gif', '.png']:
             if ext1 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay1_path])
+            elif ext1 == '.png':
+                cmd.extend(["-loop", "1", "-i", overlay1_path])
             else:
                 cmd.extend(["-i", overlay1_path])
             overlay1_idx = input_idx
@@ -174,6 +182,8 @@ def create_video_with_ffmpeg(
         if use_overlay2 and overlay2_path and ext2 in ['.gif', '.png']:
             if ext2 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay2_path])
+            elif ext2 == '.png':
+                cmd.extend(["-loop", "1", "-i", overlay2_path])
             else:
                 cmd.extend(["-i", overlay2_path])
             overlay2_idx = input_idx
@@ -200,9 +210,29 @@ def create_video_with_ffmpeg(
             ox1, oy1 = position_map.get(overlay1_position, ("0", "0"))
             ox2, oy2 = position_map.get(overlay2_position, ("0", "0"))
             filter_bg = f"[0:v]scale={width}:{height}[bg]"
-            filter_intro = f"[{intro_idx}:v]fps=30,scale={owi}:{ohi}[oi]" if intro_idx is not None else ""
-            filter_overlay1 = f"[{overlay1_idx}:v]fps=30,scale={ow1}:{oh1}[ol1]" if overlay1_idx is not None else ""
-            filter_overlay2 = f"[{overlay2_idx}:v]fps=30,scale={ow2}:{oh2}[ol2]" if overlay2_idx is not None else ""
+            # Effect logic for overlays
+            def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext):
+                if idx is None:
+                    return ""
+                chain = f"[{idx}:v]"
+                if ext == ".gif":
+                    chain += "fps=30,"
+                chain += "format=rgba,"
+                fade_alpha = ":alpha=1" if ext == ".png" else ""
+                if effect == "fadein":
+                    chain += f"fade=t=in:st={effect_time}:d=1{fade_alpha},"
+                elif effect == "fadeout":
+                    chain += f"fade=t=out:st={effect_time}:d=1{fade_alpha},"
+                elif effect == "zoompan":
+                    chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                chain += f"scale={scale_expr}[{label}]"
+                return chain
+
+            filter_intro = f"[{intro_idx}:v]format=rgba,scale={owi}:{ohi}[oi]" if intro_idx is not None and ext_intro == '.png' else (
+                f"[{intro_idx}:v]fps=30,format=rgba,scale={owi}:{ohi}[oi]" if intro_idx is not None else ""
+            )
+            filter_overlay1 = overlay_effect_chain(overlay1_idx, f"{ow1}:{oh1}", "ol1", effect, effect_time, ext1) if overlay1_idx is not None else ""
+            filter_overlay2 = overlay_effect_chain(overlay2_idx, f"{ow2}:{oh2}", "ol2", effect, effect_time, ext2) if overlay2_idx is not None else ""
             filter_complex = f"{filter_bg};"
             if filter_intro:
                 filter_complex += filter_intro + ";"

@@ -531,6 +531,49 @@ class SuperCutUI(QWidget):
         overlay2_layout.addWidget(self.overlay2_size_combo)
         layout.addLayout(overlay2_layout)
 
+        # --- EFFECT CONTROL FOR OVERLAY 1 & 2 ---
+        effect_layout = QHBoxLayout()
+        effect_label = QLabel("Overlay Effect:")
+        effect_label.setFixedWidth(110)
+        self.effect_combo = QtWidgets.QComboBox()
+        self.effect_combo.setFixedWidth(140)
+        effect_options = [
+            ("Fade in", "fadein"),
+            ("Fade out", "fadeout"),
+            ("Zoompan", "zoompan"),
+            ("None", "none")
+        ]
+        for label, value in effect_options:
+            self.effect_combo.addItem(label, value)
+        self.effect_combo.setCurrentIndex(0)
+        self.selected_effect = "fadein"
+        def on_effect_changed(idx):
+            self.selected_effect = self.effect_combo.itemData(idx)
+        self.effect_combo.currentIndexChanged.connect(on_effect_changed)
+        on_effect_changed(self.effect_combo.currentIndex())
+        # Start time input
+        effect_time_label = QLabel("Start Time (s):")
+        effect_time_label.setFixedWidth(110)
+        self.effect_time_edit = QLineEdit("5")
+        self.effect_time_edit.setFixedWidth(60)
+        self.effect_time_edit.setValidator(QIntValidator(0, 999, self))
+        self.effect_time_edit.setPlaceholderText("5")
+        self.effect_time = 5
+        def on_effect_time_changed():
+            try:
+                self.effect_time = int(self.effect_time_edit.text())
+            except Exception:
+                self.effect_time = 5
+        self.effect_time_edit.textChanged.connect(on_effect_time_changed)
+        on_effect_time_changed()
+        effect_layout.addWidget(effect_label)
+        effect_layout.addWidget(self.effect_combo)
+        effect_layout.addSpacing(20)
+        effect_layout.addWidget(effect_time_label)
+        effect_layout.addWidget(self.effect_time_edit)
+        effect_layout.addStretch()
+        layout.addLayout(effect_layout)
+
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
@@ -832,7 +875,8 @@ class SuperCutUI(QWidget):
             media_sources, export_name, number, folder, codec, resolution, fps,
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
             self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position,
-            self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_position
+            self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_position,
+            self.selected_effect, self.effect_time
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
