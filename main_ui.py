@@ -35,10 +35,13 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Settings")
         self.setModal(True)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.settings = settings
         self.fps_options = fps_options or [("24", 24)]
         self.selected_fps = None
-        layout = QFormLayout(self)
+        # Use a vertical layout for the whole dialog
+        main_layout = QtWidgets.QVBoxLayout(self)
+        form_layout = QFormLayout()
         self.fps_combo = QComboBox(self)
         for label, value in self.fps_options:
             self.fps_combo.addItem(label, value)
@@ -52,11 +55,26 @@ class SettingsDialog(QDialog):
             self.fps_combo.setCurrentIndex(idx)
         else:
             self.fps_combo.setCurrentIndex(0)
-        layout.addRow("Default FPS:", self.fps_combo)
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
-        buttons.accepted.connect(self.accept)
-        buttons.rejected.connect(self.reject)
-        layout.addWidget(buttons)
+        form_layout.addRow("Default FPS:", self.fps_combo)
+        main_layout.addLayout(form_layout)
+        main_layout.addStretch()
+        # Button layout at the very bottom, with space below
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        self.save_btn = QPushButton("Save")
+        self.cancel_btn = QPushButton("Cancel")
+        self.save_btn.setFixedSize(100, 32)
+        self.cancel_btn.setFixedSize(100, 32)
+        button_layout.addWidget(self.save_btn)
+        button_layout.addSpacing(20)
+        button_layout.addWidget(self.cancel_btn)
+        button_layout.addStretch()
+        # Add button layout and then a spacer below
+        main_layout.addLayout(button_layout)
+        main_layout.addSpacing(24)  # Space from bottom
+        self.save_btn.clicked.connect(self.accept)
+        self.cancel_btn.clicked.connect(self.reject)
+        self.setFixedSize(450, 300)
     def accept(self):
         self.selected_fps = self.fps_combo.currentData()
         if self.settings is not None:
@@ -103,18 +121,6 @@ class SuperCutUI(QWidget):
         self.create_video_settings(layout)
         self.create_action_buttons(layout)
         self.create_progress_controls(layout)
-        
-        # Add settings button (top right)
-        self.settings_btn = QPushButton()
-        self.settings_btn.setIcon(QIcon(os.path.join(os.path.dirname(__file__), "sources/settings.png")))
-        self.settings_btn.setFixedSize(32, 32)
-        self.settings_btn.setToolTip("Settings")
-        self.settings_btn.clicked.connect(self.show_settings_dialog)
-        # Place settings button at top right
-        settings_layout = QHBoxLayout()
-        settings_layout.addStretch()
-        settings_layout.addWidget(self.settings_btn)
-        layout.insertLayout(0, settings_layout)
         
         self.setLayout(layout)
         self.update_output_name()
@@ -706,7 +712,18 @@ class SuperCutUI(QWidget):
         """Create action buttons"""
         button_layout = QHBoxLayout()
 
-        # Add terminal button first, fixed to the left
+        # Add settings button first, before terminal
+        self.settings_btn = QPushButton()
+        icon_path = os.path.join(os.path.dirname(__file__), "sources/settings.png")
+        self.settings_btn.setIcon(QIcon(icon_path))
+        self.settings_btn.setFixedSize(32, 32)
+        self.settings_btn.setIconSize(self.settings_btn.size())  # Make icon fill button
+        self.settings_btn.setToolTip("Settings")
+        self.settings_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
+        self.settings_btn.clicked.connect(self.show_settings_dialog)
+        button_layout.addWidget(self.settings_btn)
+
+        # Add terminal button next
         self.terminal_btn = QPushButton("💻 Terminal")
         self.terminal_btn.setFixedHeight(35)
         self.terminal_btn.setFixedWidth(100)
