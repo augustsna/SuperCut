@@ -227,12 +227,10 @@ class SuperCutUI(QWidget):
 
         # --- INTRO OVERLAY CONTROLS ---
         self.intro_checkbox = QtWidgets.QCheckBox("Intro :")
+        self.intro_checkbox.setFixedWidth(65)
         self.intro_checkbox.setChecked(False)
         def update_intro_checkbox_style(state):
-            if state == Qt.Checked:
-                self.intro_checkbox.setStyleSheet("")
-            else:
-                self.intro_checkbox.setStyleSheet("color: grey;")
+            self.intro_checkbox.setStyleSheet("")  # Always default color
         self.intro_checkbox.stateChanged.connect(update_intro_checkbox_style)
         update_intro_checkbox_style(self.intro_checkbox.checkState())
 
@@ -290,29 +288,81 @@ class SuperCutUI(QWidget):
             self.intro_position = self.intro_position_combo.itemData(idx)
         self.intro_position_combo.currentIndexChanged.connect(on_intro_position_changed)
         on_intro_position_changed(self.intro_position_combo.currentIndex())
+
+        # (1) Create all intro widgets first
+        combo_width = 130
+        intro_effect_label = QLabel("Intro:")
+        intro_effect_label.setFixedWidth(40)
+        self.intro_effect_combo = QtWidgets.QComboBox()
+        self.intro_effect_combo.setFixedWidth(combo_width)
+        intro_effect_options = [
+            ("Fade in & out", "fadeinout"),
+            ("Fade in", "fadein"),
+            ("Fade out", "fadeout"),
+            ("Zoompan", "zoompan"),
+            ("None", "none")
+        ]
+        for label, value in intro_effect_options:
+            self.intro_effect_combo.addItem(label, value)
+        self.intro_effect_combo.setCurrentIndex(0)
+        self.intro_effect = "fadeinout"
+        def on_intro_effect_changed(idx):
+            self.intro_effect = self.intro_effect_combo.itemData(idx)
+        self.intro_effect_combo.currentIndexChanged.connect(on_intro_effect_changed)
+        on_intro_effect_changed(self.intro_effect_combo.currentIndex())
+
+        intro_duration_label = QLabel("For:")
+        intro_duration_label.setFixedWidth(30)
+        self.intro_duration_edit = QLineEdit("5")
+        self.intro_duration_edit.setFixedWidth(40)
+        self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.intro_duration_edit.setPlaceholderText("5")
+        self.intro_duration = 5
+        def on_intro_duration_changed():
+            try:
+                self.intro_duration = int(self.intro_duration_edit.text())
+            except Exception:
+                self.intro_duration = 5
+        self.intro_duration_edit.textChanged.connect(on_intro_duration_changed)
+        on_intro_duration_changed()
+
+        # (2) Now define set_intro_enabled and connect
         def set_intro_enabled(state):
             enabled = state == Qt.Checked
             self.intro_edit.setEnabled(enabled)
             intro_btn.setEnabled(enabled)
             self.intro_size_combo.setEnabled(enabled)
             self.intro_position_combo.setEnabled(enabled)
+            self.intro_effect_combo.setEnabled(enabled)
+            intro_duration_label.setEnabled(enabled)
+            self.intro_duration_edit.setEnabled(enabled)
             if enabled:
                 intro_btn.setStyleSheet("")
                 self.intro_edit.setStyleSheet("")
                 self.intro_size_combo.setStyleSheet("")
                 self.intro_position_combo.setStyleSheet("")
+                self.intro_effect_combo.setStyleSheet("")
+                intro_duration_label.setStyleSheet("")
+                self.intro_duration_edit.setStyleSheet("")
                 intro_size_label.setStyleSheet("")
                 intro_position_label.setStyleSheet("")
+                intro_effect_label.setStyleSheet("")
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 intro_btn.setStyleSheet(grey_btn_style)
                 self.intro_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.intro_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.intro_position_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.intro_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                intro_duration_label.setStyleSheet("color: grey;")
+                self.intro_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 intro_size_label.setStyleSheet("color: grey;")
                 intro_position_label.setStyleSheet("color: grey;")
+                intro_effect_label.setStyleSheet("color: grey;")
         self.intro_checkbox.stateChanged.connect(set_intro_enabled)
         set_intro_enabled(self.intro_checkbox.checkState())
+
+        intro_layout.addSpacing(15)
         intro_layout.addWidget(self.intro_checkbox)
         intro_layout.addWidget(self.intro_edit)
         intro_layout.addSpacing(6)
@@ -326,14 +376,11 @@ class SuperCutUI(QWidget):
         layout.addLayout(intro_layout)
 
         # Move PNG overlay checkbox below video settings
-        self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1 :")
+        self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1:")
+        self.overlay_checkbox.setFixedWidth(80)
         self.overlay_checkbox.setChecked(False)
-        # Set label color grey when unchecked, black when checked
         def update_overlay_checkbox_style(state):
-            if state == Qt.Checked:
-                self.overlay_checkbox.setStyleSheet("")  # Default
-            else:
-                self.overlay_checkbox.setStyleSheet("color: grey;")
+            self.overlay_checkbox.setStyleSheet("")  # Always default color
         self.overlay_checkbox.stateChanged.connect(update_overlay_checkbox_style)
         # Initialize style
         update_overlay_checkbox_style(self.overlay_checkbox.checkState())
@@ -432,13 +479,11 @@ class SuperCutUI(QWidget):
         layout.addLayout(overlay1_layout)
 
         # Overlay 2 controls (similar to Overlay 1)
-        self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2 :")
+        self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2:")
+        self.overlay2_checkbox.setFixedWidth(80)
         self.overlay2_checkbox.setChecked(False)
         def update_overlay2_checkbox_style(state):
-            if state == Qt.Checked:
-                self.overlay2_checkbox.setStyleSheet("")
-            else:
-                self.overlay2_checkbox.setStyleSheet("color: grey;")
+            self.overlay2_checkbox.setStyleSheet("")  # Always default color
         self.overlay2_checkbox.stateChanged.connect(update_overlay2_checkbox_style)
         update_overlay2_checkbox_style(self.overlay2_checkbox.checkState())
 
@@ -536,42 +581,6 @@ class SuperCutUI(QWidget):
         combo_width = 130
         edit_width = 50
 
-        intro_effect_label = QLabel("Intro:")
-        intro_effect_label.setFixedWidth(40)
-        self.intro_effect_combo = QtWidgets.QComboBox()
-        self.intro_effect_combo.setFixedWidth(combo_width)
-        intro_effect_options = [
-            ("Fade in & out", "fadeinout"),
-            ("Fade in", "fadein"),
-            ("Fade out", "fadeout"),
-            ("Zoompan", "zoompan"),
-            ("None", "none")
-        ]
-        for label, value in intro_effect_options:
-            self.intro_effect_combo.addItem(label, value)
-        self.intro_effect_combo.setCurrentIndex(0)
-        self.intro_effect = "fadeinout"
-        def on_intro_effect_changed(idx):
-            self.intro_effect = self.intro_effect_combo.itemData(idx)
-        self.intro_effect_combo.currentIndexChanged.connect(on_intro_effect_changed)
-        on_intro_effect_changed(self.intro_effect_combo.currentIndex())
-
-        intro_duration_label = QLabel("For:")
-        intro_duration_label.setFixedWidth(label_width)
-        self.intro_duration_edit = QLineEdit("5")
-        self.intro_duration_edit.setFixedWidth(edit_width)
-        self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
-        self.intro_duration_edit.setPlaceholderText("5")
-        self.intro_duration = 5
-        def on_intro_duration_changed():
-            try:
-                self.intro_duration = int(self.intro_duration_edit.text())
-            except Exception:
-                self.intro_duration = 5
-        self.intro_duration_edit.textChanged.connect(on_intro_duration_changed)
-        on_intro_duration_changed()
-
-        # Overlay Effect controls (match intro effect design)
         effect_label = QLabel("Overlay:")
         effect_label.setFixedWidth(55)
         self.effect_combo = QtWidgets.QComboBox()
@@ -625,6 +634,26 @@ class SuperCutUI(QWidget):
         effect_layout.addWidget(self.overlay_duration_edit)
         effect_layout.addStretch()
         layout.addLayout(effect_layout)
+
+        # --- Overlay effect label greying logic ---
+        def update_overlay_effect_label_style():
+            if not (self.overlay_checkbox.isChecked() or self.overlay2_checkbox.isChecked()):
+                effect_label.setStyleSheet("color: grey;")
+                self.effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.effect_combo.setEnabled(False)
+                overlay_duration_label.setStyleSheet("color: grey;")
+                self.overlay_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay_duration_edit.setEnabled(False)
+            else:
+                effect_label.setStyleSheet("")
+                self.effect_combo.setStyleSheet("")
+                self.effect_combo.setEnabled(True)
+                overlay_duration_label.setStyleSheet("")
+                self.overlay_duration_edit.setStyleSheet("")
+                self.overlay_duration_edit.setEnabled(True)
+        self.overlay_checkbox.stateChanged.connect(update_overlay_effect_label_style)
+        self.overlay2_checkbox.stateChanged.connect(update_overlay_effect_label_style)
+        update_overlay_effect_label_style()
 
     def create_action_buttons(self, layout):
         """Create action buttons"""
