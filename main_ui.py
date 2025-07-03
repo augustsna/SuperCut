@@ -116,9 +116,9 @@ class SuperCutUI(QWidget):
         layout.setSpacing(15)
 
         # --- Add program title with icon at the top ---
-        layout.addSpacing(-10)
+        layout.addSpacing(-5)
         title_widget = QtWidgets.QWidget()
-        title_widget.setFixedHeight(70)
+        title_widget.setFixedHeight(75)
         title_layout = QtWidgets.QHBoxLayout()
         title_layout.setContentsMargins(0, 0, 0, 0)
         title_layout.setSpacing(0)
@@ -158,7 +158,7 @@ class SuperCutUI(QWidget):
         title_widget.setLayout(title_layout)
         layout.addWidget(title_widget)
         # Add spacer below title bar to prevent overlap
-        layout.addSpacing(30)
+        layout.addSpacing(0)
         # --- End program title ---
 
         # Add UI components
@@ -759,7 +759,7 @@ class SuperCutUI(QWidget):
         button_layout = QHBoxLayout()
 
         # Add settings button first, before terminal
-        button_layout.addSpacing(15)
+        button_layout.addSpacing(10)
         self.settings_btn = QPushButton()
         icon_path = os.path.join(os.path.dirname(__file__), "sources/settings.png")
         self.settings_btn.setIcon(QIcon(icon_path))
@@ -779,7 +779,7 @@ class SuperCutUI(QWidget):
         button_layout.addWidget(self.terminal_btn)
 
         # Then add create video button, always after terminal
-        button_layout.addSpacing(5)
+        button_layout.addSpacing(0)
         self.create_btn = QPushButton("Create Video")
         self.create_btn.setFixedHeight(35)
         self.create_btn.setFixedWidth(350)
@@ -802,8 +802,16 @@ class SuperCutUI(QWidget):
         layout.addLayout(button_layout)
 
     def create_progress_controls(self, layout):
-        """Create progress bar and stop button"""
-        # Progress bar
+        """Create progress bar and stop button on the same line, with stop button before progress bar. Progress bar should stretch to fill space."""
+        progress_row = QtWidgets.QHBoxLayout()
+        self.stop_btn = QPushButton("\U0001F6D1 Stop")
+        self.stop_btn.setFixedHeight(24)
+        self.stop_btn.setFixedWidth(80)
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.setVisible(False)
+        self.stop_btn.clicked.connect(self.stop_video_creation)
+        progress_row.addWidget(self.stop_btn)
+
         self.progress_bar = QtWidgets.QProgressBar()
         self.progress_bar.setMinimum(0)
         self.progress_bar.setMaximum(1)
@@ -811,16 +819,9 @@ class SuperCutUI(QWidget):
         self.progress_bar.setTextVisible(True)
         self.progress_bar.setFormat("Batch: 0/0")
         self.progress_bar.setVisible(False)
-        layout.addWidget(self.progress_bar)
-
-        # Stop button
-        self.stop_btn = QPushButton("🛑 Stop")
-        self.stop_btn.setFixedHeight(24)
-        self.stop_btn.setFixedWidth(70)
-        self.stop_btn.setEnabled(False)
-        self.stop_btn.setVisible(False)
-        self.stop_btn.clicked.connect(self.stop_video_creation)
-        layout.addWidget(self.stop_btn)
+        self.progress_bar.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        progress_row.addWidget(self.progress_bar)
+        layout.addLayout(progress_row)
 
     def restore_window_position(self):
         """Restore window position from settings"""
@@ -1073,7 +1074,7 @@ class SuperCutUI(QWidget):
             if not self._expanded_for_progress:
                 self._original_size = self.size()
                 # Calculate new height: add enough for progress bar + stop button (e.g., 60px)
-                extra_height = 80
+                extra_height = 40
                 new_height = self.height() + extra_height
                 self.setFixedSize(self.width(), new_height)
                 self._expanded_for_progress = True

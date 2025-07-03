@@ -12,7 +12,7 @@ os.environ["FFMPEG_BINARY"] = FFMPEG_BINARY
 os.environ["FFPLAY_BINARY"] = FFPLAY_BINARY
 
 # UI Configuration
-WINDOW_SIZE = (650, 500)
+WINDOW_SIZE = (640, 540)
 WINDOW_TITLE = "SuperCut Video Maker"
 ICON_PATH = "sources/icon.ico"
 
