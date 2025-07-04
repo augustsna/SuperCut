@@ -14,17 +14,17 @@ def main():
     """Main application entry point"""
     # Clean up temp files on startup
     cleanup_temp_files()
+    app = QApplication(sys.argv)
     # Check FFmpeg installation first
     ffmpeg_ok, error_msg = check_ffmpeg_installation()
     if not ffmpeg_ok:
-        app = QApplication(sys.argv)
         QMessageBox.critical(None, "FFmpeg Not Found", error_msg or "FFmpeg installation not found")
         sys.exit(1)
-    # Only create QApplication after checks pass
-    app = QApplication(sys.argv)
+    
     # Create and show main window
     window = SuperCutUI()
     window.show()
+    
     # Start application event loop
     sys.exit(app.exec_())
 

@@ -17,7 +17,7 @@ os.environ["FFPLAY_BINARY"] = FFPLAY_BINARY
 # UI Configuration
 WINDOW_SIZE = (640, 540)
 WINDOW_TITLE = "SuperCut Magic Maker"
-ICON_PATH = os.path.join(PROJECT_ROOT, "src", "sources", "icon.ico")
+ICON_PATH = os.path.join(PROJECT_ROOT, "src", "sources", "icon.png")
 STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.path.exists(os.path.join(PROJECT_ROOT, "src", "sources", "style.qss")) else """
     QWidget {
         background-color: #f5f7fa;
@@ -126,5 +126,5 @@ VIDEO_SETTINGS = {
 def check_ffmpeg_installation():
     """Check if FFmpeg is properly installed"""
     if not os.path.exists(FFMPEG_BINARY):
-        return False, f"Could not find {FFMPEG_BINARY}. Please run /src/unzip_ffmpeg.exe"
+        return False, f"Could not find {FFMPEG_BINARY}. Please ensure ffmpeg is present in the ffmpeg folder."
     return True, None
