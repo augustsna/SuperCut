@@ -50,6 +50,11 @@ class SettingsDialog(QDialog):
         self.fps_options = fps_options or [("24", 24)]
         self.selected_fps = None
         main_layout = QtWidgets.QVBoxLayout(self)
+        # Add Settings label at the top
+        settings_label = QLabel("Settings")
+        settings_label.setStyleSheet("font-size: 22px; font-weight: bold; margin-bottom: 10px;")
+        settings_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(settings_label)
         form_layout = QFormLayout()
         self.fps_combo = QComboBox(self)
         self.fps_combo.setFixedWidth(120)
@@ -186,8 +191,8 @@ class SettingsDialog(QDialog):
         form_layout_container = QtWidgets.QVBoxLayout()
         form_layout_container.addWidget(form_widget, alignment=Qt.AlignCenter)
         main_layout.addLayout(form_layout_container)
-        # Remove main_layout.addLayout(form_layout)
-        # main_layout.addStretch()  # Already removed for compactness
+        # Add more space before the button row
+        main_layout.addSpacing(7)
         button_layout = QHBoxLayout()
         button_layout.addStretch()
         self.save_btn = QPushButton("Save")
@@ -468,6 +473,8 @@ class SuperCutUI(QWidget):
             if not enabled:
                 self.name_list = []
         self.name_list_checkbox.stateChanged.connect(on_name_list_checkbox)
+        # Apply logic for initial state
+        on_name_list_checkbox(self.name_list_checkbox.checkState())
         def open_name_list_dialog():
             dlg = NameListDialog(self, self.name_list)
             if dlg.exec_() == QDialog.Accepted:
@@ -575,7 +582,7 @@ class SuperCutUI(QWidget):
         layout.addLayout(settings_layout)
 
         # --- INTRO OVERLAY CONTROLS ---
-        self.intro_checkbox = QtWidgets.QCheckBox("Intro :")
+        self.intro_checkbox = QtWidgets.QCheckBox(" Intro :")
         self.intro_checkbox.setFixedWidth(65)
         self.intro_checkbox.setChecked(True)
         def update_intro_checkbox_style(state):
