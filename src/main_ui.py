@@ -307,7 +307,7 @@ class SuperCutUI(QWidget):
         self.part2_edit.setFixedWidth(60)   # Make Number textbox smaller
         # --- Name list option ---
         self.name_list_checkbox = QtWidgets.QCheckBox("List name:")
-        self.name_list_checkbox.setChecked(False)
+        self.name_list_checkbox.setChecked(True)
         self.name_list_enter_btn = QPushButton("Enter")
         self.name_list_enter_btn.setFixedWidth(60)
         self.name_list_enter_btn.setEnabled(self.name_list_checkbox.isChecked())  # Sync with checkbox state
@@ -448,7 +448,7 @@ class SuperCutUI(QWidget):
         # --- INTRO OVERLAY CONTROLS ---
         self.intro_checkbox = QtWidgets.QCheckBox("Intro :")
         self.intro_checkbox.setFixedWidth(65)
-        self.intro_checkbox.setChecked(False)
+        self.intro_checkbox.setChecked(True)
         def update_intro_checkbox_style(state):
             self.intro_checkbox.setStyleSheet("")  # Always default color
         self.intro_checkbox.stateChanged.connect(update_intro_checkbox_style)
@@ -598,7 +598,7 @@ class SuperCutUI(QWidget):
         # Move PNG overlay checkbox below video settings
         self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1:")
         self.overlay_checkbox.setFixedWidth(80)
-        self.overlay_checkbox.setChecked(False)
+        self.overlay_checkbox.setChecked(True)
         def update_overlay_checkbox_style(state):
             self.overlay_checkbox.setStyleSheet("")  # Always default color
         self.overlay_checkbox.stateChanged.connect(update_overlay_checkbox_style)
@@ -701,7 +701,7 @@ class SuperCutUI(QWidget):
         # Overlay 2 controls (similar to Overlay 1)
         self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2:")
         self.overlay2_checkbox.setFixedWidth(80)
-        self.overlay2_checkbox.setChecked(False)
+        self.overlay2_checkbox.setChecked(True)
         def update_overlay2_checkbox_style(state):
             self.overlay2_checkbox.setStyleSheet("")  # Always default color
         self.overlay2_checkbox.stateChanged.connect(update_overlay2_checkbox_style)
