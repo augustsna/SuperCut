@@ -55,6 +55,16 @@ class SettingsDialog(QDialog):
         settings_label.setStyleSheet("font-size: 22px; font-weight: bold; margin-bottom: 10px;")
         settings_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(settings_label)
+        # Add Default button below Settings label
+        self.reset_btn = QPushButton("Default")
+        self.reset_btn.setFixedSize(100, 28)
+        self.reset_btn.setStyleSheet("QPushButton { background: white; border: 1px solid #ccc; color: #333; } QPushButton:hover { background: #f5f5f5; }")
+        self.reset_btn.clicked.connect(self.reset_to_defaults)
+        reset_btn_layout = QHBoxLayout()
+        reset_btn_layout.addStretch()
+        reset_btn_layout.addWidget(self.reset_btn)
+        reset_btn_layout.addStretch()
+        main_layout.addLayout(reset_btn_layout)
         form_layout = QFormLayout()
         self.fps_combo = QComboBox(self)
         self.fps_combo.setFixedWidth(120)
@@ -222,6 +232,25 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_overlay2_position', self.default_overlay2_position_combo.currentData())
             self.settings.setValue('default_overlay2_size', self.default_overlay2_size_combo.currentData())
         super().accept()
+
+    def reset_to_defaults(self):
+        # FPS
+        self.fps_combo.setCurrentIndex(0)
+        # Intro
+        self.default_intro_path_edit.setText("")
+        self.default_intro_position_combo.setCurrentIndex(0)  # Center
+        idx_intro_size = (50 // 5) - 1  # 50% size
+        self.default_intro_size_combo.setCurrentIndex(idx_intro_size)
+        # Overlay 1
+        self.default_overlay1_path_edit.setText("")
+        self.default_overlay1_position_combo.setCurrentIndex(3)  # Bottom Left
+        idx_overlay1_size = (15 // 5) - 1  # 15% size
+        self.default_overlay1_size_combo.setCurrentIndex(idx_overlay1_size)
+        # Overlay 2
+        self.default_overlay2_path_edit.setText("")
+        self.default_overlay2_position_combo.setCurrentIndex(2)  # Top Right
+        idx_overlay2_size = (15 // 5) - 1  # 15% size
+        self.default_overlay2_size_combo.setCurrentIndex(idx_overlay2_size)
 
 class NameListDialog(QDialog):
     def __init__(self, parent=None, initial_names=None):
