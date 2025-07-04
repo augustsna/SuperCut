@@ -25,7 +25,6 @@ def main():
     # Create and show main window
     window = SuperCutUI()
     window.show()
-    
     # Start application event loop
     sys.exit(app.exec_())
 
