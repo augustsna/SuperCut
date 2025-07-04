@@ -300,9 +300,11 @@ class SuperCutUI(QWidget):
         part_layout = QHBoxLayout()
         self.part1_edit = QLineEdit(DEFAULT_EXPORT_NAME)
         self.part1_edit.setPlaceholderText("Export Name")
+        self.part1_edit.setFixedWidth(100)  # Make Name textbox wider
         self.part2_edit = QLineEdit(DEFAULT_START_NUMBER)
         self.part2_edit.setPlaceholderText("12345")
         self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
+        self.part2_edit.setFixedWidth(60)   # Make Number textbox smaller
         # --- Name list option ---
         self.name_list_checkbox = QtWidgets.QCheckBox("List name")
         self.name_list_checkbox.setChecked(False)
@@ -354,14 +356,23 @@ class SuperCutUI(QWidget):
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.update_output_name)
+        part_layout.addSpacing(20)
         part_layout.addWidget(self.name_list_checkbox)
+        part_layout.addSpacing(-50)
         part_layout.addWidget(self.name_list_enter_btn)
+        part_layout.addSpacing(20)
         part_layout.addWidget(QLabel("Name"))
+        part_layout.addSpacing(-90)  # Reduce space between label and textbox
         part_layout.addWidget(self.part1_edit)
+        part_layout.addSpacing(-10)
         part_layout.addWidget(QLabel("#"))
+        part_layout.addSpacing(-120) 
         part_layout.addWidget(self.part2_edit)
+        part_layout.addSpacing(15)
         part_layout.addWidget(self.mp3_count_checkbox)
+        part_layout.addSpacing(-70)
         part_layout.addWidget(self.mp3_count_edit)
+        part_layout.addSpacing(15)
         layout.addLayout(part_layout)
 
     def create_video_settings(self, layout):
