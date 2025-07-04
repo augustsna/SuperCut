@@ -1,7 +1,4 @@
 import os
-import sys
-import threading
-import time
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
@@ -11,9 +8,18 @@ from PyQt5.QtCore import Qt, QSettings, QThread, QPoint, QSize
 from PyQt5.QtGui import QIntValidator, QIcon
 from src.logger import logger
 
-# Force console output to be visible
-sys.stdout.flush()
-sys.stderr.flush()
+# Force console output to be visible (safe for .pyw)
+import sys
+if getattr(sys, 'stdout', None) is not None:
+    try:
+        sys.stdout.flush()
+    except Exception:
+        pass
+if getattr(sys, 'stderr', None) is not None:
+    try:
+        sys.stderr.flush()
+    except Exception:
+        pass
 
 from src.config import (
     WINDOW_SIZE, WINDOW_TITLE, ICON_PATH, STYLE_SHEET,
@@ -30,6 +36,9 @@ from src.utils import (
 from src.ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, ScrollableErrorDialog, ImageDropLineEdit
 from src.video_worker import VideoWorker
 from src.terminal_widget import TerminalWidget
+
+import time
+import threading
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None, settings=None, fps_options=None):
@@ -703,6 +712,7 @@ class SuperCutUI(QWidget):
         self.overlay2_size_percent = 10
         def on_overlay2_size_changed(idx):
             self.overlay2_size_percent = self.overlay2_size_combo.itemData(idx)
+            # Set display text with %
             if idx >= 0:
                 self.overlay2_size_combo.setEditText(f"{self.overlay2_size_percent}%")
         self.overlay2_size_combo.setEditable(True)
@@ -1531,4 +1541,4 @@ def main():
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    main() 
+    main()
