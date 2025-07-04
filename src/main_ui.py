@@ -1,5 +1,5 @@
 import os
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QFileDialog, QMessageBox, QDesktopWidget, QDialog, QComboBox, QDialogButtonBox, QFormLayout
@@ -49,14 +49,17 @@ class SettingsDialog(QDialog):
         self.settings = settings
         self.fps_options = fps_options or [("24", 24)]
         self.selected_fps = None
-        # Use a vertical layout for the whole dialog
         main_layout = QtWidgets.QVBoxLayout(self)
+        # Add a bold, centered 'Settings' label at the top
+        settings_title = QtWidgets.QLabel("Settings")
+        settings_title.setAlignment(Qt.AlignCenter)
+        settings_title.setStyleSheet("font-size: 22px; font-weight: bold; margin-bottom: 2px;")
+        main_layout.addWidget(settings_title)
         form_layout = QFormLayout()
         self.fps_combo = QComboBox(self)
         self.fps_combo.setFixedWidth(120)
         for label, value in self.fps_options:
             self.fps_combo.addItem(label, value)
-        # Load from settings if available
         if self.settings is not None:
             default_fps = self.settings.value('default_fps', type=int)
         else:
@@ -67,9 +70,129 @@ class SettingsDialog(QDialog):
         else:
             self.fps_combo.setCurrentIndex(0)
         form_layout.addRow("Default FPS:", self.fps_combo)
-        main_layout.addLayout(form_layout)
-        main_layout.addStretch()
-        # Button layout at the very bottom, with space below
+        # --- Default Intro Path ---
+        intro_path_layout = QHBoxLayout()
+        self.default_intro_path_edit = QLineEdit()
+        self.default_intro_path_edit.setFixedWidth(120)
+        if self.settings is not None:
+            self.default_intro_path_edit.setText(self.settings.value('default_intro_path', '', type=str))
+        self.default_intro_path_btn = QPushButton('...')
+        self.default_intro_path_btn.setFixedWidth(32)
+        def pick_intro_path():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Intro Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.default_intro_path_edit.setText(file_path)
+        self.default_intro_path_btn.clicked.connect(pick_intro_path)
+        intro_path_layout.addWidget(self.default_intro_path_edit)
+        intro_path_layout.addWidget(self.default_intro_path_btn)
+        form_layout.addRow("Default Intro Path:", intro_path_layout)
+        # --- Default Intro Position ---
+        self.default_intro_position_combo = QComboBox()
+        self.default_intro_position_combo.setFixedWidth(120)
+        intro_positions = [
+            ("Center", "center"),
+            ("Top Left", "top_left"),
+            ("Top Right", "top_right"),
+            ("Bottom Left", "bottom_left"),
+            ("Bottom Right", "bottom_right")
+        ]
+        for label, value in intro_positions:
+            self.default_intro_position_combo.addItem(label, value)
+        if self.settings is not None:
+            default_intro_position = self.settings.value('default_intro_position', 'center', type=str)
+            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_intro_position), 0)
+            self.default_intro_position_combo.setCurrentIndex(idx)
+        form_layout.addRow("Default Intro Position:", self.default_intro_position_combo)
+        # --- Default Intro Size ---
+        self.default_intro_size_combo = QComboBox()
+        self.default_intro_size_combo.setFixedWidth(120)
+        for percent in range(5, 101, 5):
+            self.default_intro_size_combo.addItem(f"{percent}%", percent)
+        if self.settings is not None:
+            default_intro_size = self.settings.value('default_intro_size', 10, type=int)
+            idx = (default_intro_size // 5) - 1 if 5 <= default_intro_size <= 100 else 1
+            self.default_intro_size_combo.setCurrentIndex(idx)
+        form_layout.addRow("Default Intro Size:", self.default_intro_size_combo)
+        # --- Default Overlay 1 Path ---
+        overlay1_path_layout = QHBoxLayout()
+        self.default_overlay1_path_edit = QLineEdit()
+        self.default_overlay1_path_edit.setFixedWidth(120)
+        if self.settings is not None:
+            self.default_overlay1_path_edit.setText(self.settings.value('default_overlay1_path', '', type=str))
+        self.default_overlay1_path_btn = QPushButton('...')
+        self.default_overlay1_path_btn.setFixedWidth(32)
+        def pick_overlay1_path():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 1 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.default_overlay1_path_edit.setText(file_path)
+        self.default_overlay1_path_btn.clicked.connect(pick_overlay1_path)
+        overlay1_path_layout.addWidget(self.default_overlay1_path_edit)
+        overlay1_path_layout.addWidget(self.default_overlay1_path_btn)
+        form_layout.addRow("Default Overlay 1 Path:", overlay1_path_layout)
+        # --- Default Overlay 1 Position ---
+        self.default_overlay1_position_combo = QComboBox()
+        self.default_overlay1_position_combo.setFixedWidth(120)
+        for label, value in intro_positions:
+            self.default_overlay1_position_combo.addItem(label, value)
+        if self.settings is not None:
+            default_overlay1_position = self.settings.value('default_overlay1_position', 'center', type=str)
+            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay1_position), 0)
+            self.default_overlay1_position_combo.setCurrentIndex(idx)
+        form_layout.addRow("Default Overlay 1 Position:", self.default_overlay1_position_combo)
+        # --- Default Overlay 1 Size ---
+        self.default_overlay1_size_combo = QComboBox()
+        self.default_overlay1_size_combo.setFixedWidth(120)
+        for percent in range(5, 101, 5):
+            self.default_overlay1_size_combo.addItem(f"{percent}%", percent)
+        if self.settings is not None:
+            default_overlay1_size = self.settings.value('default_overlay1_size', 10, type=int)
+            idx = (default_overlay1_size // 5) - 1 if 5 <= default_overlay1_size <= 100 else 1
+            self.default_overlay1_size_combo.setCurrentIndex(idx)
+        form_layout.addRow("Default Overlay 1 Size:", self.default_overlay1_size_combo)
+        # --- Default Overlay 2 Path ---
+        overlay2_path_layout = QHBoxLayout()
+        self.default_overlay2_path_edit = QLineEdit()
+        self.default_overlay2_path_edit.setFixedWidth(120)
+        if self.settings is not None:
+            self.default_overlay2_path_edit.setText(self.settings.value('default_overlay2_path', '', type=str))
+        self.default_overlay2_path_btn = QPushButton('...')
+        self.default_overlay2_path_btn.setFixedWidth(32)
+        def pick_overlay2_path():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 2 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.default_overlay2_path_edit.setText(file_path)
+        self.default_overlay2_path_btn.clicked.connect(pick_overlay2_path)
+        overlay2_path_layout.addWidget(self.default_overlay2_path_edit)
+        overlay2_path_layout.addWidget(self.default_overlay2_path_btn)
+        form_layout.addRow("Default Overlay 2 Path:", overlay2_path_layout)
+        # --- Default Overlay 2 Position ---
+        self.default_overlay2_position_combo = QComboBox()
+        self.default_overlay2_position_combo.setFixedWidth(120)
+        for label, value in intro_positions:
+            self.default_overlay2_position_combo.addItem(label, value)
+        if self.settings is not None:
+            default_overlay2_position = self.settings.value('default_overlay2_position', 'center', type=str)
+            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay2_position), 0)
+            self.default_overlay2_position_combo.setCurrentIndex(idx)
+        form_layout.addRow("Default Overlay 2 Position:", self.default_overlay2_position_combo)
+        # --- Default Overlay 2 Size ---
+        self.default_overlay2_size_combo = QComboBox()
+        self.default_overlay2_size_combo.setFixedWidth(120)
+        for percent in range(5, 101, 5):
+            self.default_overlay2_size_combo.addItem(f"{percent}%", percent)
+        if self.settings is not None:
+            default_overlay2_size = self.settings.value('default_overlay2_size', 10, type=int)
+            idx = (default_overlay2_size // 5) - 1 if 5 <= default_overlay2_size <= 100 else 1
+            self.default_overlay2_size_combo.setCurrentIndex(idx)
+        form_layout.addRow("Default Overlay 2 Size:", self.default_overlay2_size_combo)
+        # Center the form layout in the dialog
+        form_widget = QtWidgets.QWidget()
+        form_widget.setLayout(form_layout)
+        form_layout_container = QtWidgets.QVBoxLayout()
+        form_layout_container.addWidget(form_widget, alignment=Qt.AlignCenter)
+        main_layout.addLayout(form_layout_container)
+        # Add a small vertical spacer between last form item and buttons
+        main_layout.addSpacing(8)
         button_layout = QHBoxLayout()
         button_layout.addStretch()
         self.save_btn = QPushButton("Save")
@@ -80,16 +203,24 @@ class SettingsDialog(QDialog):
         button_layout.addSpacing(20)
         button_layout.addWidget(self.cancel_btn)
         button_layout.addStretch()
-        # Add button layout and then a spacer below
         main_layout.addLayout(button_layout)
-        main_layout.addSpacing(24)  # Space from bottom
+        main_layout.addSpacing(12)
         self.save_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
-        self.setFixedSize(450, 300)
+        self.setFixedSize(450, 520)
     def accept(self):
         self.selected_fps = self.fps_combo.currentData()
         if self.settings is not None:
             self.settings.setValue('default_fps', self.selected_fps)
+            self.settings.setValue('default_intro_path', self.default_intro_path_edit.text())
+            self.settings.setValue('default_intro_position', self.default_intro_position_combo.currentData())
+            self.settings.setValue('default_intro_size', self.default_intro_size_combo.currentData())
+            self.settings.setValue('default_overlay1_path', self.default_overlay1_path_edit.text())
+            self.settings.setValue('default_overlay1_position', self.default_overlay1_position_combo.currentData())
+            self.settings.setValue('default_overlay1_size', self.default_overlay1_size_combo.currentData())
+            self.settings.setValue('default_overlay2_path', self.default_overlay2_path_edit.text())
+            self.settings.setValue('default_overlay2_position', self.default_overlay2_position_combo.currentData())
+            self.settings.setValue('default_overlay2_size', self.default_overlay2_size_combo.currentData())
         super().accept()
 
 class NameListDialog(QDialog):
@@ -241,6 +372,8 @@ class SuperCutUI(QWidget):
         
         self.setLayout(layout)
         self.update_output_name()
+        # Apply intro defaults on startup
+        self.apply_settings()
         # Connect text change for media_sources_edit and folder_edit
         self.media_sources_edit.textChanged.connect(self.on_media_folder_changed)
         self.folder_edit.textChanged.connect(self.update_output_name)
@@ -583,7 +716,8 @@ class SuperCutUI(QWidget):
         self.intro_checkbox.stateChanged.connect(set_intro_enabled)
         set_intro_enabled(self.intro_checkbox.checkState())
 
-        intro_layout.addSpacing(15)
+        intro_layout = QHBoxLayout()
+        intro_layout.setSpacing(15)
         intro_layout.addWidget(self.intro_checkbox)
         intro_layout.addWidget(self.intro_edit)
         intro_layout.addSpacing(6)
@@ -1517,6 +1651,39 @@ class SuperCutUI(QWidget):
         if default_fps is not None:
             idx = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == default_fps), 0)
             self.fps_combo.setCurrentIndex(idx)
+        # Apply default intro settings if intro is checked and fields are empty
+        default_intro_path = self.settings.value('default_intro_path', '', type=str)
+        default_intro_position = self.settings.value('default_intro_position', 'center', type=str)
+        default_intro_size = self.settings.value('default_intro_size', 10, type=int)
+        if self.intro_checkbox.isChecked():
+            if not self.intro_edit.text().strip():
+                self.intro_edit.setText(default_intro_path)
+            idx = next((i for i in range(self.intro_position_combo.count()) if self.intro_position_combo.itemData(i) == default_intro_position), 0)
+            self.intro_position_combo.setCurrentIndex(idx)
+            idx = next((i for i in range(self.intro_size_combo.count()) if self.intro_size_combo.itemData(i) == default_intro_size), 1)
+            self.intro_size_combo.setCurrentIndex(idx)
+        # Apply default overlay 1 settings if overlay 1 is checked and fields are empty
+        default_overlay1_path = self.settings.value('default_overlay1_path', '', type=str)
+        default_overlay1_position = self.settings.value('default_overlay1_position', 'center', type=str)
+        default_overlay1_size = self.settings.value('default_overlay1_size', 10, type=int)
+        if self.overlay_checkbox.isChecked():
+            if not self.overlay1_edit.text().strip():
+                self.overlay1_edit.setText(default_overlay1_path)
+            idx = next((i for i in range(self.overlay1_position_combo.count()) if self.overlay1_position_combo.itemData(i) == default_overlay1_position), 0)
+            self.overlay1_position_combo.setCurrentIndex(idx)
+            idx = next((i for i in range(self.overlay1_size_combo.count()) if self.overlay1_size_combo.itemData(i) == default_overlay1_size), 1)
+            self.overlay1_size_combo.setCurrentIndex(idx)
+        # Apply default overlay 2 settings if overlay 2 is checked and fields are empty
+        default_overlay2_path = self.settings.value('default_overlay2_path', '', type=str)
+        default_overlay2_position = self.settings.value('default_overlay2_position', 'center', type=str)
+        default_overlay2_size = self.settings.value('default_overlay2_size', 10, type=int)
+        if self.overlay2_checkbox.isChecked():
+            if not self.overlay2_edit.text().strip():
+                self.overlay2_edit.setText(default_overlay2_path)
+            idx = next((i for i in range(self.overlay2_position_combo.count()) if self.overlay2_position_combo.itemData(i) == default_overlay2_position), 0)
+            self.overlay2_position_combo.setCurrentIndex(idx)
+            idx = next((i for i in range(self.overlay2_size_combo.count()) if self.overlay2_size_combo.itemData(i) == default_overlay2_size), 1)
+            self.overlay2_size_combo.setCurrentIndex(idx)
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""
