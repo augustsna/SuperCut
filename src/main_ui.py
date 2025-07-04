@@ -53,6 +53,7 @@ class SettingsDialog(QDialog):
         main_layout = QtWidgets.QVBoxLayout(self)
         form_layout = QFormLayout()
         self.fps_combo = QComboBox(self)
+        self.fps_combo.setFixedWidth(120)
         for label, value in self.fps_options:
             self.fps_combo.addItem(label, value)
         # Load from settings if available
@@ -426,7 +427,7 @@ class SuperCutUI(QWidget):
         fps_label = QLabel("FPS:")
         fps_label.setFixedWidth(30)
         self.fps_combo = QtWidgets.QComboBox()
-        self.fps_combo.setFixedWidth(100)
+        self.fps_combo.setFixedWidth(120)
         self.fps_combo.setMinimumHeight(28)
         self.fps_combo.setMaximumHeight(28)
         for label, value in DEFAULT_FPS_OPTIONS:
