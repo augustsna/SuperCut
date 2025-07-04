@@ -1,5 +1,5 @@
 import os
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QFileDialog, QMessageBox, QDesktopWidget, QDialog, QComboBox, QDialogButtonBox, QFormLayout
@@ -50,11 +50,6 @@ class SettingsDialog(QDialog):
         self.fps_options = fps_options or [("24", 24)]
         self.selected_fps = None
         main_layout = QtWidgets.QVBoxLayout(self)
-        # Add a bold, centered 'Settings' label at the top
-        settings_title = QtWidgets.QLabel("Settings")
-        settings_title.setAlignment(Qt.AlignCenter)
-        settings_title.setStyleSheet("font-size: 22px; font-weight: bold; margin-bottom: 2px;")
-        main_layout.addWidget(settings_title)
         form_layout = QFormLayout()
         self.fps_combo = QComboBox(self)
         self.fps_combo.setFixedWidth(120)
@@ -191,8 +186,8 @@ class SettingsDialog(QDialog):
         form_layout_container = QtWidgets.QVBoxLayout()
         form_layout_container.addWidget(form_widget, alignment=Qt.AlignCenter)
         main_layout.addLayout(form_layout_container)
-        # Add a small vertical spacer between last form item and buttons
-        main_layout.addSpacing(8)
+        # Remove main_layout.addLayout(form_layout)
+        # main_layout.addStretch()  # Already removed for compactness
         button_layout = QHBoxLayout()
         button_layout.addStretch()
         self.save_btn = QPushButton("Save")
@@ -717,12 +712,13 @@ class SuperCutUI(QWidget):
         set_intro_enabled(self.intro_checkbox.checkState())
 
         intro_layout = QHBoxLayout()
-        intro_layout.setSpacing(15)
+        intro_layout.setSpacing(4)
         intro_layout.addWidget(self.intro_checkbox)
+        intro_layout.addSpacing(10)
         intro_layout.addWidget(self.intro_edit)
         intro_layout.addSpacing(6)
         intro_layout.addWidget(intro_btn)
-        intro_layout.addSpacing(6)
+        intro_layout.addSpacing(0)
         intro_layout.addWidget(intro_position_label)
         intro_layout.addWidget(self.intro_position_combo)
         intro_layout.addSpacing(6)
