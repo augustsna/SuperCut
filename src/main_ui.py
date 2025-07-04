@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QPushButton, QFileDialog, QMessageBox, QDesktopWidget, QDialog, QComboBox, QDialogButtonBox, QFormLayout
 )
 from PyQt5.QtCore import Qt, QSettings, QThread, QPoint, QSize
-from PyQt5.QtGui import QIntValidator, QIcon
+from PyQt5.QtGui import QIntValidator, QIcon, QPixmap, QMovie, QImage
 from src.logger import logger
 
 # Force console output to be visible (safe for .pyw)
@@ -304,7 +304,7 @@ class SuperCutUI(QWidget):
         self.part2_edit.setPlaceholderText("12345")
         self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
         # --- Name list option ---
-        self.name_list_checkbox = QtWidgets.QCheckBox("Name list:")
+        self.name_list_checkbox = QtWidgets.QCheckBox("List name")
         self.name_list_checkbox.setChecked(False)
         self.name_list_enter_btn = QPushButton("Enter")
         self.name_list_enter_btn.setFixedWidth(60)
@@ -332,7 +332,7 @@ class SuperCutUI(QWidget):
                 self.name_list = dlg.get_names()
         self.name_list_enter_btn.clicked.connect(open_name_list_dialog)
         # --- End name list option ---
-        self.mp3_count_checkbox = QtWidgets.QCheckBox("MP3 Per Video")
+        self.mp3_count_checkbox = QtWidgets.QCheckBox("MP3 #")
         self.mp3_count_checkbox.setChecked(False)
         self.mp3_count_edit = QLineEdit(str(DEFAULT_MIN_MP3_COUNT))
         self.mp3_count_edit.setPlaceholderText("MP3")
@@ -354,12 +354,12 @@ class SuperCutUI(QWidget):
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.update_output_name)
-        part_layout.addWidget(QLabel("Export Name:"))
-        part_layout.addWidget(self.part1_edit)
-        part_layout.addWidget(QLabel("Number:"))
-        part_layout.addWidget(self.part2_edit)
         part_layout.addWidget(self.name_list_checkbox)
         part_layout.addWidget(self.name_list_enter_btn)
+        part_layout.addWidget(QLabel("Name"))
+        part_layout.addWidget(self.part1_edit)
+        part_layout.addWidget(QLabel("#"))
+        part_layout.addWidget(self.part2_edit)
         part_layout.addWidget(self.mp3_count_checkbox)
         part_layout.addWidget(self.mp3_count_edit)
         layout.addLayout(part_layout)
