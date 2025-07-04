@@ -66,13 +66,6 @@ class SettingsDialog(QDialog):
         else:
             self.fps_combo.setCurrentIndex(0)
         form_layout.addRow("Default FPS:", self.fps_combo)
-        # --- Add MP3 per video visibility option ---
-        self.show_mp3_checkbox = QtWidgets.QCheckBox("Show 'MP3 #' option")
-        show_mp3_default = False
-        if self.settings is not None:
-            show_mp3_default = self.settings.value('show_mp3_checkbox', False, type=bool)
-        self.show_mp3_checkbox.setChecked(show_mp3_default)
-        form_layout.addRow("MP3 Option:", self.show_mp3_checkbox)
         main_layout.addLayout(form_layout)
         main_layout.addStretch()
         # Button layout at the very bottom, with space below
@@ -96,7 +89,6 @@ class SettingsDialog(QDialog):
         self.selected_fps = self.fps_combo.currentData()
         if self.settings is not None:
             self.settings.setValue('default_fps', self.selected_fps)
-            self.settings.setValue('show_mp3_checkbox', self.show_mp3_checkbox.isChecked())
         super().accept()
 
 class NameListDialog(QDialog):
@@ -317,7 +309,7 @@ class SuperCutUI(QWidget):
         self.name_list_checkbox = QtWidgets.QCheckBox("List name:")
         self.name_list_checkbox.setChecked(False)
         self.name_list_enter_btn = QPushButton("Enter")
-        self.name_list_enter_btn.setFixedWidth(100)
+        self.name_list_enter_btn.setFixedWidth(60)
         self.name_list_enter_btn.setEnabled(self.name_list_checkbox.isChecked())  # Sync with checkbox state
         # Set initial style for name_list_enter_btn
         if not self.name_list_checkbox.isChecked():
@@ -372,40 +364,25 @@ class SuperCutUI(QWidget):
         self.mp3_count_checkbox.stateChanged.connect(update_mp3_checkbox_style)
         # Initialize style
         update_mp3_checkbox_style(self.mp3_count_checkbox.checkState())
-        # --- MP3 # visibility based on settings ---
-        show_mp3_checkbox = False
-        if hasattr(self, 'settings') and self.settings is not None:
-            show_mp3_checkbox = self.settings.value('show_mp3_checkbox', False, type=bool)
-        self.mp3_count_checkbox.setVisible(show_mp3_checkbox)
-        self.mp3_count_edit.setVisible(show_mp3_checkbox)
-        # Store for later toggling
-        self._show_mp3_checkbox = show_mp3_checkbox
-        # Store spacers for dynamic show/hide
-        self._mp3_spacer1 = QtWidgets.QSpacerItem(15, 0, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        self._mp3_spacer2 = QtWidgets.QSpacerItem(-70, 0, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.update_output_name)
         part_layout.addSpacing(20)
         part_layout.addWidget(self.name_list_checkbox)
-        part_layout.addSpacing(-20)
+        part_layout.addSpacing(-50)
         part_layout.addWidget(self.name_list_enter_btn)
-        part_layout.addSpacing(10)
+        part_layout.addSpacing(20)
         part_layout.addWidget(QLabel("Name:"))
-        part_layout.addSpacing(-58)  # Reduce space between label and textbox
+        part_layout.addSpacing(-90)  # Reduce space between label and textbox
         part_layout.addWidget(self.part1_edit)
-        part_layout.addSpacing(-15)
+        part_layout.addSpacing(-10)
         part_layout.addWidget(QLabel("#"))
-        part_layout.addSpacing(-88) 
+        part_layout.addSpacing(-120) 
         part_layout.addWidget(self.part2_edit)
-        # Add MP3 widgets and spacers only if visible
-        if show_mp3_checkbox:
-            part_layout.addItem(self._mp3_spacer1)
-            part_layout.addWidget(self.mp3_count_checkbox)
-            part_layout.addSpacing(27)
-            part_layout.addItem(self._mp3_spacer2)
-            part_layout.addWidget(self.mp3_count_edit)
-        self._part_layout = part_layout
+        part_layout.addSpacing(15)
+        part_layout.addWidget(self.mp3_count_checkbox)
+        part_layout.addSpacing(-70)
+        part_layout.addWidget(self.mp3_count_edit)
         part_layout.addSpacing(15)
         layout.addLayout(part_layout)
 
@@ -554,8 +531,8 @@ class SuperCutUI(QWidget):
         self.intro_effect_combo.currentIndexChanged.connect(on_intro_effect_changed)
         on_intro_effect_changed(self.intro_effect_combo.currentIndex())
 
-        intro_duration_label = QLabel(" For (s): ")
-        intro_duration_label.setFixedWidth(48)
+        intro_duration_label = QLabel("For (s): ")
+        intro_duration_label.setFixedWidth(45)
         self.intro_duration_edit = QLineEdit("5")
         self.intro_duration_edit.setFixedWidth(40)
         self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
@@ -845,7 +822,7 @@ class SuperCutUI(QWidget):
         self.effect_combo.currentIndexChanged.connect(on_effect_changed)
         on_effect_changed(self.effect_combo.currentIndex())
 
-        overlay_duration_label = QLabel(" at (s):")
+        overlay_duration_label = QLabel("at (s):")
         overlay_duration_label.setFixedWidth(40)
         self.overlay_duration_edit = QLineEdit("5")
         self.overlay_duration_edit.setFixedWidth(edit_width)
@@ -1539,24 +1516,6 @@ class SuperCutUI(QWidget):
         if default_fps is not None:
             idx = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == default_fps), 0)
             self.fps_combo.setCurrentIndex(idx)
-        # Update MP3 # visibility
-        show_mp3_checkbox = self.settings.value('show_mp3_checkbox', False, type=bool)
-        self.mp3_count_checkbox.setVisible(show_mp3_checkbox)
-        self.mp3_count_edit.setVisible(show_mp3_checkbox)
-        # Dynamically add/remove MP3 widgets and spacers
-        if hasattr(self, '_part_layout'):
-            layout = self._part_layout
-            # Remove MP3 widgets and spacers if present
-            for widget in [self.mp3_count_checkbox, self.mp3_count_edit]:
-                layout.removeWidget(widget)
-            for spacer in [self._mp3_spacer1, self._mp3_spacer2]:
-                layout.removeItem(spacer)
-            if show_mp3_checkbox:
-                layout.insertItem(12, self._mp3_spacer1)
-                layout.insertWidget(13, self.mp3_count_checkbox)
-                layout.insertItem(14, self._mp3_spacer2)
-                layout.insertWidget(15, self.mp3_count_edit)
-        self._show_mp3_checkbox = show_mp3_checkbox
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""
