@@ -1024,6 +1024,8 @@ class SuperCutUI(QWidget):
         effect_layout.addWidget(self.overlay_duration_edit)
         effect_layout.addStretch()
         layout.addLayout(effect_layout)
+        # Add extra vertical spacing before the action buttons
+        layout.addSpacing(6)
 
         # --- Overlay effect label greying logic ---
         def update_overlay_effect_label_style():
