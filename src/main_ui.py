@@ -109,8 +109,8 @@ class SettingsDialog(QDialog):
         for percent in range(5, 101, 5):
             self.default_intro_size_combo.addItem(f"{percent}%", percent)
         if self.settings is not None:
-            default_intro_size = self.settings.value('default_intro_size', 10, type=int)
-            idx = (default_intro_size // 5) - 1 if 5 <= default_intro_size <= 100 else 1
+            default_intro_size = self.settings.value('default_intro_size', 50, type=int)
+            idx = (default_intro_size // 5) - 1 if 5 <= default_intro_size <= 100 else 9
             self.default_intro_size_combo.setCurrentIndex(idx)
         form_layout.addRow("Default Intro Size:", self.default_intro_size_combo)
         # --- Default Overlay 1 Path ---
@@ -135,8 +135,8 @@ class SettingsDialog(QDialog):
         for label, value in intro_positions:
             self.default_overlay1_position_combo.addItem(label, value)
         if self.settings is not None:
-            default_overlay1_position = self.settings.value('default_overlay1_position', 'center', type=str)
-            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay1_position), 0)
+            default_overlay1_position = self.settings.value('default_overlay1_position', 'bottom_left', type=str)
+            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay1_position), 3)
             self.default_overlay1_position_combo.setCurrentIndex(idx)
         form_layout.addRow("Default Overlay 1 Position:", self.default_overlay1_position_combo)
         # --- Default Overlay 1 Size ---
@@ -145,8 +145,8 @@ class SettingsDialog(QDialog):
         for percent in range(5, 101, 5):
             self.default_overlay1_size_combo.addItem(f"{percent}%", percent)
         if self.settings is not None:
-            default_overlay1_size = self.settings.value('default_overlay1_size', 10, type=int)
-            idx = (default_overlay1_size // 5) - 1 if 5 <= default_overlay1_size <= 100 else 1
+            default_overlay1_size = self.settings.value('default_overlay1_size', 15, type=int)
+            idx = (default_overlay1_size // 5) - 1 if 5 <= default_overlay1_size <= 100 else 2
             self.default_overlay1_size_combo.setCurrentIndex(idx)
         form_layout.addRow("Default Overlay 1 Size:", self.default_overlay1_size_combo)
         # --- Default Overlay 2 Path ---
@@ -171,8 +171,8 @@ class SettingsDialog(QDialog):
         for label, value in intro_positions:
             self.default_overlay2_position_combo.addItem(label, value)
         if self.settings is not None:
-            default_overlay2_position = self.settings.value('default_overlay2_position', 'center', type=str)
-            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay2_position), 0)
+            default_overlay2_position = self.settings.value('default_overlay2_position', 'top_right', type=str)
+            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay2_position), 2)
             self.default_overlay2_position_combo.setCurrentIndex(idx)
         form_layout.addRow("Default Overlay 2 Position:", self.default_overlay2_position_combo)
         # --- Default Overlay 2 Size ---
@@ -181,8 +181,8 @@ class SettingsDialog(QDialog):
         for percent in range(5, 101, 5):
             self.default_overlay2_size_combo.addItem(f"{percent}%", percent)
         if self.settings is not None:
-            default_overlay2_size = self.settings.value('default_overlay2_size', 10, type=int)
-            idx = (default_overlay2_size // 5) - 1 if 5 <= default_overlay2_size <= 100 else 1
+            default_overlay2_size = self.settings.value('default_overlay2_size', 15, type=int)
+            idx = (default_overlay2_size // 5) - 1 if 5 <= default_overlay2_size <= 100 else 2
             self.default_overlay2_size_combo.setCurrentIndex(idx)
         form_layout.addRow("Default Overlay 2 Size:", self.default_overlay2_size_combo)
         # Center the form layout in the dialog
@@ -1657,35 +1657,35 @@ class SuperCutUI(QWidget):
         # Apply default intro settings if intro is checked and fields are empty
         default_intro_path = self.settings.value('default_intro_path', '', type=str)
         default_intro_position = self.settings.value('default_intro_position', 'center', type=str)
-        default_intro_size = self.settings.value('default_intro_size', 10, type=int)
+        default_intro_size = self.settings.value('default_intro_size', 50, type=int)
         if self.intro_checkbox.isChecked():
             if not self.intro_edit.text().strip():
                 self.intro_edit.setText(default_intro_path)
             idx = next((i for i in range(self.intro_position_combo.count()) if self.intro_position_combo.itemData(i) == default_intro_position), 0)
             self.intro_position_combo.setCurrentIndex(idx)
-            idx = next((i for i in range(self.intro_size_combo.count()) if self.intro_size_combo.itemData(i) == default_intro_size), 1)
+            idx = next((i for i in range(self.intro_size_combo.count()) if self.intro_size_combo.itemData(i) == default_intro_size), 9)
             self.intro_size_combo.setCurrentIndex(idx)
         # Apply default overlay 1 settings if overlay 1 is checked and fields are empty
         default_overlay1_path = self.settings.value('default_overlay1_path', '', type=str)
-        default_overlay1_position = self.settings.value('default_overlay1_position', 'center', type=str)
-        default_overlay1_size = self.settings.value('default_overlay1_size', 10, type=int)
+        default_overlay1_position = self.settings.value('default_overlay1_position', 'bottom_left', type=str)
+        default_overlay1_size = self.settings.value('default_overlay1_size', 15, type=int)
         if self.overlay_checkbox.isChecked():
             if not self.overlay1_edit.text().strip():
                 self.overlay1_edit.setText(default_overlay1_path)
-            idx = next((i for i in range(self.overlay1_position_combo.count()) if self.overlay1_position_combo.itemData(i) == default_overlay1_position), 0)
+            idx = next((i for i in range(self.overlay1_position_combo.count()) if self.overlay1_position_combo.itemData(i) == default_overlay1_position), 3)
             self.overlay1_position_combo.setCurrentIndex(idx)
-            idx = next((i for i in range(self.overlay1_size_combo.count()) if self.overlay1_size_combo.itemData(i) == default_overlay1_size), 1)
+            idx = next((i for i in range(self.overlay1_size_combo.count()) if self.overlay1_size_combo.itemData(i) == default_overlay1_size), 2)
             self.overlay1_size_combo.setCurrentIndex(idx)
         # Apply default overlay 2 settings if overlay 2 is checked and fields are empty
         default_overlay2_path = self.settings.value('default_overlay2_path', '', type=str)
-        default_overlay2_position = self.settings.value('default_overlay2_position', 'center', type=str)
-        default_overlay2_size = self.settings.value('default_overlay2_size', 10, type=int)
+        default_overlay2_position = self.settings.value('default_overlay2_position', 'top_right', type=str)
+        default_overlay2_size = self.settings.value('default_overlay2_size', 15, type=int)
         if self.overlay2_checkbox.isChecked():
             if not self.overlay2_edit.text().strip():
                 self.overlay2_edit.setText(default_overlay2_path)
-            idx = next((i for i in range(self.overlay2_position_combo.count()) if self.overlay2_position_combo.itemData(i) == default_overlay2_position), 0)
+            idx = next((i for i in range(self.overlay2_position_combo.count()) if self.overlay2_position_combo.itemData(i) == default_overlay2_position), 2)
             self.overlay2_position_combo.setCurrentIndex(idx)
-            idx = next((i for i in range(self.overlay2_size_combo.count()) if self.overlay2_size_combo.itemData(i) == default_overlay2_size), 1)
+            idx = next((i for i in range(self.overlay2_size_combo.count()) if self.overlay2_size_combo.itemData(i) == default_overlay2_size), 2)
             self.overlay2_size_combo.setCurrentIndex(idx)
 
     def cleanup_worker_and_thread(self):
