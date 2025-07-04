@@ -306,11 +306,16 @@ class SuperCutUI(QWidget):
         self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
         self.part2_edit.setFixedWidth(60)   # Make Number textbox smaller
         # --- Name list option ---
-        self.name_list_checkbox = QtWidgets.QCheckBox("List name")
+        self.name_list_checkbox = QtWidgets.QCheckBox("List name:")
         self.name_list_checkbox.setChecked(False)
         self.name_list_enter_btn = QPushButton("Enter")
         self.name_list_enter_btn.setFixedWidth(60)
-        self.name_list_enter_btn.setEnabled(False)
+        self.name_list_enter_btn.setEnabled(self.name_list_checkbox.isChecked())  # Sync with checkbox state
+        # Set initial style for name_list_enter_btn
+        if not self.name_list_checkbox.isChecked():
+            self.name_list_enter_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        else:
+            self.name_list_enter_btn.setStyleSheet("")
         self.name_list = []  # Store the name list
         self.name_list_dialog = None
         def on_name_list_checkbox(state):
@@ -321,10 +326,16 @@ class SuperCutUI(QWidget):
                 self.name_list_checkbox.setStyleSheet("")
                 self.name_list_enter_btn.setStyleSheet("")
                 self.name_list_enter_btn.setEnabled(True)
+                # Grey out name and number text boxes
+                self.part1_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.part2_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
             else:
                 self.name_list_checkbox.setStyleSheet("")
                 self.name_list_enter_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.name_list_enter_btn.setEnabled(False)
+                # Restore default style for name and number text boxes
+                self.part1_edit.setStyleSheet("")
+                self.part2_edit.setStyleSheet("")
             if not enabled:
                 self.name_list = []
         self.name_list_checkbox.stateChanged.connect(on_name_list_checkbox)
@@ -361,7 +372,7 @@ class SuperCutUI(QWidget):
         part_layout.addSpacing(-50)
         part_layout.addWidget(self.name_list_enter_btn)
         part_layout.addSpacing(20)
-        part_layout.addWidget(QLabel("Name"))
+        part_layout.addWidget(QLabel("Name:"))
         part_layout.addSpacing(-90)  # Reduce space between label and textbox
         part_layout.addWidget(self.part1_edit)
         part_layout.addSpacing(-10)
@@ -382,8 +393,8 @@ class SuperCutUI(QWidget):
         settings_layout.setSpacing(0)  # We'll add custom spacing
 
         # Codec selection
-        codec_label = QLabel("Codec:")
-        codec_label.setFixedWidth(50)
+        settings_layout.addSpacing(30)
+        codec_label = QLabel("Codec:")        
         self.codec_combo = QtWidgets.QComboBox()
         self.codec_combo.setFixedWidth(130)
         self.codec_combo.setMinimumHeight(28)
