@@ -229,6 +229,12 @@ class SettingsDialog(QDialog):
             self.settings.value('default_list_name_enabled', False, type=bool) if self.settings is not None else False
         )
         left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
+        # --- Default MP3 # Enabled Checkbox ---
+        self.default_mp3_count_enabled_checkbox = QtWidgets.QCheckBox("Enable MP3 #")
+        self.default_mp3_count_enabled_checkbox.setChecked(
+            self.settings.value('default_mp3_count_enabled', False, type=bool) if self.settings is not None else False
+        )
+        left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
 
         # Add both forms to columns_layout
         columns_layout.addSpacing(20)
@@ -271,6 +277,7 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_overlay1_enabled', self.default_overlay1_enabled_checkbox.isChecked())
             self.settings.setValue('default_overlay2_enabled', self.default_overlay2_enabled_checkbox.isChecked())
             self.settings.setValue('default_list_name_enabled', self.default_list_name_enabled_checkbox.isChecked())
+            self.settings.setValue('default_mp3_count_enabled', self.default_mp3_count_enabled_checkbox.isChecked())
         super().accept()
 
     def reset_to_defaults(self):
@@ -296,6 +303,8 @@ class SettingsDialog(QDialog):
         self.default_overlay2_enabled_checkbox.setChecked(True)
         # List Name
         self.default_list_name_enabled_checkbox.setChecked(False)
+        # MP3 #
+        self.default_mp3_count_enabled_checkbox.setChecked(False)
 
 class NameListDialog(QDialog):
     def __init__(self, parent=None, initial_names=None):
@@ -1837,6 +1846,10 @@ class SuperCutUI(QWidget):
         default_list_name_enabled = self.settings.value('default_list_name_enabled', False, type=bool)
         if hasattr(self, 'name_list_checkbox'):
             self.name_list_checkbox.setChecked(default_list_name_enabled)
+        # Set mp3 # checkbox state from settings
+        default_mp3_count_enabled = self.settings.value('default_mp3_count_enabled', False, type=bool)
+        if hasattr(self, 'mp3_count_checkbox'):
+            self.mp3_count_checkbox.setChecked(default_mp3_count_enabled)
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""
