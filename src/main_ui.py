@@ -129,20 +129,6 @@ class SettingsDialog(QDialog):
             self.resolution_combo.setCurrentIndex(idx)
         else:
             self.resolution_combo.setCurrentIndex(0)
-        # --- Codec Combo ---
-        self.codec_combo = QComboBox(self)
-        self.codec_combo.setFixedWidth(120)
-        for label, value in DEFAULT_CODECS:
-            self.codec_combo.addItem(label, value)
-        if self.settings is not None:
-            default_codec = self.settings.value('default_codec', type=str)
-        else:
-            default_codec = None
-        if default_codec is not None:
-            idx = next((i for i, (label, value) in enumerate(DEFAULT_CODECS) if value == default_codec), 0)
-            self.codec_combo.setCurrentIndex(idx)
-        else:
-            self.codec_combo.setCurrentIndex(0)
         # Add to left_form in new order with reduced spacing
         left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
@@ -155,10 +141,7 @@ class SettingsDialog(QDialog):
         left_form.addRow("Overlay 2 Defaults:", self.default_overlay2_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("FPS:", self.fps_combo)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("Resolution:", self.resolution_combo)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Codec:", self.codec_combo)
         # --- Default Intro Path ---
         intro_path_layout = QHBoxLayout()
         self.default_intro_path_edit = QLineEdit()
@@ -318,7 +301,6 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_list_name_enabled', self.default_list_name_enabled_checkbox.isChecked())
             self.settings.setValue('default_mp3_count_enabled', self.default_mp3_count_enabled_checkbox.isChecked())
             self.settings.setValue('default_resolution', self.resolution_combo.currentData())
-            self.settings.setValue('default_codec', self.codec_combo.currentData())
         super().accept()
 
     def reset_to_defaults(self):
@@ -326,8 +308,6 @@ class SettingsDialog(QDialog):
         self.fps_combo.setCurrentIndex(0)
         # Resolution
         self.resolution_combo.setCurrentIndex(0)
-        # Codec
-        self.codec_combo.setCurrentIndex(0)
         # Intro
         self.default_intro_enabled_checkbox.setChecked(True)
         self.default_intro_path_edit.setText("")
@@ -1900,15 +1880,6 @@ class SuperCutUI(QWidget):
         if default_resolution is not None and hasattr(self, 'resolution_combo'):
             idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
             self.resolution_combo.setCurrentIndex(idx)
-        # Set codec combo state from settings
-        default_codec = self.settings.value('default_codec', type=str)
-        if default_codec is not None and hasattr(self, 'codec_combo'):
-            idx = next((i for i, (label, value) in enumerate(DEFAULT_CODECS) if value == default_codec), 0)
-            self.codec_combo.setCurrentIndex(idx)
-        # Update main UI's codec combo if present
-        if hasattr(self, 'codec_combo'):
-            idx = next((i for i, (label, value) in enumerate(DEFAULT_CODECS) if value == default_codec), 0)
-            self.codec_combo.setCurrentIndex(idx)
         if hasattr(self, 'resolution_combo') and hasattr(self, 'resolution_combo') and hasattr(self, 'resolution_combo'):
             # Also update main UI's resolution combo if present
             if hasattr(self, 'resolution_combo'):
