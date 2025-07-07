@@ -451,6 +451,146 @@ class NameListDialog(QDialog):
         layout.addWidget(button_box)
         dlg.exec()
 
+class SuccessWithLeftoverDialog(QDialog):
+    """Dialog shown when video creation completes successfully but with leftover files"""
+    def __init__(self, parent=None, open_folder=None, leftover_mp3s=None, leftover_images=None, min_mp3_count=3):
+        super().__init__(parent)
+        self.open_folder = open_folder
+        self.setWindowTitle("Task Completed")
+        
+        # Calculate dialog height based on leftover files
+        extra_height = 0
+        if leftover_mp3s:
+            extra_height += 50 + 15 * len(leftover_mp3s)
+        if leftover_images:
+            extra_height += 50 + 15 * len(leftover_images)
+        self.setFixedSize(370, 170 + extra_height)
+        
+        self.setStyleSheet("""
+            QDialog {
+                background: #f5f7fa;
+                border-radius: 10px;
+            }
+            QLabel#iconLabel {
+                font-size: 44px;
+                color: #4BB543;
+                margin-bottom: 0px;
+            }
+            QLabel#msgLabel {
+                font-size: 16px;
+                color: #222;
+                font-weight: bold;
+                margin-bottom: 8px;
+                margin-top: 6px;
+            }
+            QLabel#leftoverLabel {
+                font-size: 13px;
+                color: #b00;
+                margin-top: 10px;
+                margin-bottom: 2px;
+                font-weight: bold;
+            }
+            QLabel#fileListLabel {
+                font-size: 11px;
+                color: #555;
+                margin-left: 8px;
+                margin-bottom: 8px;
+            }
+            QPushButton {
+                background-color: #4a90e2;
+                color: white;
+                border-radius: 6px;
+                padding: 7px 18px;
+                font-size: 13px;
+                min-width: 110px;
+                margin-top: 8px;
+            }
+            QPushButton#okBtn {
+                background-color: #4BB543;
+                font-weight: bold;
+                font-size: 13px;
+                min-width: 70px;
+                max-width: 80px;
+                margin-top: 8px;
+            }
+            QPushButton:hover {
+                background-color: #357ABD;
+            }
+            QPushButton#okBtn:hover {
+                background-color: #388e3c;
+            }
+        """)
+        
+        vbox = QVBoxLayout(self)
+        vbox.setContentsMargins(24, 18, 24, 18)
+        vbox.setSpacing(8)
+
+        # Success icon
+        icon = QLabel("✓")
+        icon.setObjectName("iconLabel")
+        icon.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        icon.setStyleSheet("font-size: 28px; color: #4BB543; border: none; background: transparent;")
+        vbox.addWidget(icon)
+
+        # Main message
+        msg = QLabel("Success with leftover!")
+        msg.setObjectName("msgLabel")
+        msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        vbox.addWidget(msg)
+
+        # Leftover MP3 files section
+        if leftover_mp3s:
+            leftover_label = QLabel(f"{len(leftover_mp3s)} MP3 files left over (not enough for a group of {min_mp3_count}):")
+            leftover_label.setObjectName("leftoverLabel")
+            leftover_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            vbox.addWidget(leftover_label)
+            file_list = QLabel("\n".join([os.path.basename(f) for f in leftover_mp3s]))
+            file_list.setObjectName("fileListLabel")
+            file_list.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            vbox.addWidget(file_list)
+
+        # Leftover image files section
+        if leftover_images:
+            leftover_img_label = QLabel(f"{len(leftover_images)} image files left over (not enough for a group):")
+            leftover_img_label.setObjectName("leftoverLabel")
+            leftover_img_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            vbox.addWidget(leftover_img_label)
+            img_file_list = QLabel("\n".join([os.path.basename(f) for f in leftover_images]))
+            img_file_list.setObjectName("fileListLabel")
+            img_file_list.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            vbox.addWidget(img_file_list)
+
+        # Buttons row
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(18)
+        btn_row.addSpacerItem(QtWidgets.QSpacerItem(5, 5, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum))
+
+        self.folder_btn = QPushButton("Result Folder")
+        self.folder_btn.setMinimumWidth(120)
+        self.folder_btn.clicked.connect(self.on_folder)
+        btn_row.addWidget(self.folder_btn)
+
+        self.ok_btn = QPushButton("OK")
+        self.ok_btn.setObjectName("okBtn")
+        self.ok_btn.setDefault(True)
+        self.ok_btn.clicked.connect(self.accept)
+        btn_row.addWidget(self.ok_btn)
+
+        btn_row.addSpacerItem(QtWidgets.QSpacerItem(5, 5, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum))
+        vbox.addLayout(btn_row)
+
+        # Shortcut
+        QShortcut(QKeySequence("Ctrl+W"), self, self._close_dialog)
+
+    def on_folder(self):
+        """Open result folder when folder button is clicked"""
+        if self.open_folder:
+            self.open_folder()
+
+    def _close_dialog(self):
+        self.close()
+        return None
+
 class SuperCutUI(QWidget):
     """Main application window for SuperCut Video Maker"""
     
@@ -1728,17 +1868,13 @@ class SuperCutUI(QWidget):
             # print("[DEBUG] real_leftover_images:", real_leftover_images)
             if real_leftover_mp3s or real_leftover_images:
                 # Show dialog indicating process is incomplete due to leftovers
-                msg = "Video creation completed, but some files were not used in any batch. Please review the leftover files below."
-                dlg = QMessageBox(self)
-                dlg.setWindowTitle("Incomplete: Leftover Files Detected")
-                dlg.setIcon(QMessageBox.Icon.Warning)
-                details = []
-                if real_leftover_mp3s:
-                    details.append("Unused MP3s:\n" + '\n'.join(real_leftover_mp3s))
-                if real_leftover_images:
-                    details.append("Unused Images:\n" + '\n'.join(real_leftover_images))
-                dlg.setText(msg)
-                dlg.setDetailedText('\n\n'.join(details))
+                dlg = SuccessWithLeftoverDialog(
+                    self,
+                    open_folder=self.open_result_folder,
+                    leftover_mp3s=real_leftover_mp3s,
+                    leftover_images=real_leftover_images,
+                    min_mp3_count=min_mp3_count
+                )
                 # Auto-close after 2 seconds if pending close is set
                 if hasattr(self, '_pending_close') and self._pending_close:
                     timer = QTimer(self)
