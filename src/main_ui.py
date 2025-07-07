@@ -132,7 +132,7 @@ class SettingsDialog(QDialog):
             self.default_intro_size_combo.setCurrentIndex(idx)
         left_form.addRow("Intro Size:", self.default_intro_size_combo)
         # --- Default Intro Enabled Checkbox ---
-        self.default_intro_enabled_checkbox = QtWidgets.QCheckBox("Enable Intro Defaults")
+        self.default_intro_enabled_checkbox = QtWidgets.QCheckBox("Enable Intro")
         self.default_intro_enabled_checkbox.setChecked(
             self.settings.value('default_intro_enabled', True, type=bool) if self.settings is not None else True
         )
@@ -176,6 +176,12 @@ class SettingsDialog(QDialog):
             idx = (default_overlay1_size // 5) - 1 if 5 <= default_overlay1_size <= 100 else 2
             self.default_overlay1_size_combo.setCurrentIndex(idx)
         right_form.addRow("Overlay 1 Size:", self.default_overlay1_size_combo)
+        # --- Default Overlay 1 Enabled Checkbox ---
+        self.default_overlay1_enabled_checkbox = QtWidgets.QCheckBox("Enable Overlay 1")
+        self.default_overlay1_enabled_checkbox.setChecked(
+            self.settings.value('default_overlay1_enabled', True, type=bool) if self.settings is not None else True
+        )
+        right_form.addRow("Overlay 1 Defaults:", self.default_overlay1_enabled_checkbox)
         # --- Default Overlay 2 Path ---
         overlay2_path_layout = QHBoxLayout()
         self.default_overlay2_path_edit = QLineEdit()
@@ -212,6 +218,12 @@ class SettingsDialog(QDialog):
             idx = (default_overlay2_size // 5) - 1 if 5 <= default_overlay2_size <= 100 else 2
             self.default_overlay2_size_combo.setCurrentIndex(idx)
         right_form.addRow("Overlay 2 Size:", self.default_overlay2_size_combo)
+        # --- Default Overlay 2 Enabled Checkbox ---
+        self.default_overlay2_enabled_checkbox = QtWidgets.QCheckBox("Enable Overlay 2")
+        self.default_overlay2_enabled_checkbox.setChecked(
+            self.settings.value('default_overlay2_enabled', True, type=bool) if self.settings is not None else True
+        )
+        right_form.addRow("Overlay 2 Defaults:", self.default_overlay2_enabled_checkbox)
 
         # Add both forms to columns_layout
         columns_layout.addSpacing(20)
@@ -251,6 +263,8 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_overlay2_path', self.default_overlay2_path_edit.text())
             self.settings.setValue('default_overlay2_position', self.default_overlay2_position_combo.currentData())
             self.settings.setValue('default_overlay2_size', self.default_overlay2_size_combo.currentData())
+            self.settings.setValue('default_overlay1_enabled', self.default_overlay1_enabled_checkbox.isChecked())
+            self.settings.setValue('default_overlay2_enabled', self.default_overlay2_enabled_checkbox.isChecked())
         super().accept()
 
     def reset_to_defaults(self):
@@ -267,11 +281,13 @@ class SettingsDialog(QDialog):
         self.default_overlay1_position_combo.setCurrentIndex(3)  # Bottom Left
         idx_overlay1_size = (15 // 5) - 1  # 15% size
         self.default_overlay1_size_combo.setCurrentIndex(idx_overlay1_size)
+        self.default_overlay1_enabled_checkbox.setChecked(True)
         # Overlay 2
         self.default_overlay2_path_edit.setText("")
         self.default_overlay2_position_combo.setCurrentIndex(2)  # Top Right
         idx_overlay2_size = (15 // 5) - 1  # 15% size
         self.default_overlay2_size_combo.setCurrentIndex(idx_overlay2_size)
+        self.default_overlay2_enabled_checkbox.setChecked(True)
 
 class NameListDialog(QDialog):
     def __init__(self, parent=None, initial_names=None):
@@ -1590,7 +1606,7 @@ class SuperCutUI(QWidget):
         self._auto_close_on_stop = False
         self._stopped_by_user = True
 
-    def on_worker_finished_with_leftovers(self, leftover_mp3s, used_images, original_mp3_files, original_image_files, failed_moves=None):
+    def on_worker_finished_with_leftovers(self, leftover_mp3s, used_images, original_image_files, failed_moves=None):
         """Handle worker completion with leftover files"""
         if not self.isVisible():
             return
@@ -1781,24 +1797,34 @@ class SuperCutUI(QWidget):
         default_overlay1_path = self.settings.value('default_overlay1_path', '', type=str)
         default_overlay1_position = self.settings.value('default_overlay1_position', 'bottom_left', type=str)
         default_overlay1_size = self.settings.value('default_overlay1_size', 15, type=int)
-        if self.overlay_checkbox.isChecked():
-            if not self.overlay1_edit.text().strip():
-                self.overlay1_edit.setText(default_overlay1_path)
-            idx = next((i for i in range(self.overlay1_position_combo.count()) if self.overlay1_position_combo.itemData(i) == default_overlay1_position), 3)
-            self.overlay1_position_combo.setCurrentIndex(idx)
-            idx = next((i for i in range(self.overlay1_size_combo.count()) if self.overlay1_size_combo.itemData(i) == default_overlay1_size), 2)
-            self.overlay1_size_combo.setCurrentIndex(idx)
+        default_overlay1_enabled = self.settings.value('default_overlay1_enabled', True, type=bool)
+        if default_overlay1_enabled:
+            if self.overlay_checkbox.isChecked():
+                if not self.overlay1_edit.text().strip():
+                    self.overlay1_edit.setText(default_overlay1_path)
+                idx = next((i for i in range(self.overlay1_position_combo.count()) if self.overlay1_position_combo.itemData(i) == default_overlay1_position), 3)
+                self.overlay1_position_combo.setCurrentIndex(idx)
+                idx = next((i for i in range(self.overlay1_size_combo.count()) if self.overlay1_size_combo.itemData(i) == default_overlay1_size), 2)
+                self.overlay1_size_combo.setCurrentIndex(idx)
         # Apply default overlay 2 settings if overlay 2 is checked and fields are empty
         default_overlay2_path = self.settings.value('default_overlay2_path', '', type=str)
         default_overlay2_position = self.settings.value('default_overlay2_position', 'top_right', type=str)
         default_overlay2_size = self.settings.value('default_overlay2_size', 15, type=int)
-        if self.overlay2_checkbox.isChecked():
-            if not self.overlay2_edit.text().strip():
-                self.overlay2_edit.setText(default_overlay2_path)
-            idx = next((i for i in range(self.overlay2_position_combo.count()) if self.overlay2_position_combo.itemData(i) == default_overlay2_position), 2)
-            self.overlay2_position_combo.setCurrentIndex(idx)
-            idx = next((i for i in range(self.overlay2_size_combo.count()) if self.overlay2_size_combo.itemData(i) == default_overlay2_size), 2)
-            self.overlay2_size_combo.setCurrentIndex(idx)
+        default_overlay2_enabled = self.settings.value('default_overlay2_enabled', True, type=bool)
+        if default_overlay2_enabled:
+            if self.overlay2_checkbox.isChecked():
+                if not self.overlay2_edit.text().strip():
+                    self.overlay2_edit.setText(default_overlay2_path)
+                idx = next((i for i in range(self.overlay2_position_combo.count()) if self.overlay2_position_combo.itemData(i) == default_overlay2_position), 2)
+                self.overlay2_position_combo.setCurrentIndex(idx)
+                idx = next((i for i in range(self.overlay2_size_combo.count()) if self.overlay2_size_combo.itemData(i) == default_overlay2_size), 2)
+                self.overlay2_size_combo.setCurrentIndex(idx)
+        # Set intro checkbox state from settings
+        self.intro_checkbox.setChecked(default_intro_enabled)
+        # Set overlay1 checkbox state from settings
+        self.overlay_checkbox.setChecked(default_overlay1_enabled)
+        # Set overlay2 checkbox state from settings
+        self.overlay2_checkbox.setChecked(default_overlay2_enabled)
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""
