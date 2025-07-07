@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QFileDialog, QMessageBox, QDialog, QComboBox, QDialogButtonBox, QFormLayout
 )
-from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize
+from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize, QTimer
 from PyQt6.QtGui import QIntValidator, QIcon, QPixmap, QMovie, QImage, QShortcut, QKeySequence
 from src.logger import logger
 
@@ -1595,7 +1595,7 @@ class SuperCutUI(QWidget):
         self._worker.error.connect(self.on_worker_error)
         self._worker.finished.connect(
             lambda leftover_mp3s, used_images, failed_moves: self.on_worker_finished_with_leftovers(
-                leftover_mp3s, used_images, original_mp3_files, original_image_files
+                leftover_mp3s, used_images, original_image_files, failed_moves
             )
         )
         self._worker.finished.connect(self._thread.quit)
@@ -1720,23 +1720,53 @@ class SuperCutUI(QWidget):
             import os
             real_leftover_mp3s = [f for f in leftover_mp3s if os.path.exists(f)] if leftover_mp3s else []
             real_leftover_images = [f for f in leftover_images if os.path.exists(f)] if leftover_images else []
+            # Debug prints for leftovers
+            # print("[DEBUG] leftover_mp3s:", leftover_mp3s)
+            # print("[DEBUG] used_images:", used_images)
+            # print("[DEBUG] original_image_files:", original_image_files)
+            # print("[DEBUG] real_leftover_mp3s:", real_leftover_mp3s)
+            # print("[DEBUG] real_leftover_images:", real_leftover_images)
             if real_leftover_mp3s or real_leftover_images:
-                self.show_success_options(leftover_files=real_leftover_mp3s, leftover_images=real_leftover_images, min_mp3_count=min_mp3_count)
+                # Show dialog indicating process is incomplete due to leftovers
+                msg = "Video creation completed, but some files were not used in any batch. Please review the leftover files below."
+                dlg = QMessageBox(self)
+                dlg.setWindowTitle("Incomplete: Leftover Files Detected")
+                dlg.setIcon(QMessageBox.Icon.Warning)
+                details = []
+                if real_leftover_mp3s:
+                    details.append("Unused MP3s:\n" + '\n'.join(real_leftover_mp3s))
+                if real_leftover_images:
+                    details.append("Unused Images:\n" + '\n'.join(real_leftover_images))
+                dlg.setText(msg)
+                dlg.setDetailedText('\n\n'.join(details))
+                # Auto-close after 2 seconds if pending close is set
+                if hasattr(self, '_pending_close') and self._pending_close:
+                    timer = QTimer(self)
+                    timer.singleShot(2000, dlg.close)
+                dlg.exec()
             else:
                 self.show_success_options(min_mp3_count=min_mp3_count)
-        # Show warning if any files failed to move (only if they still exist in their original location)
+        # Show warning if any files failed to move (only if they still exist and were used)
         if failed_moves:
             import os
-            still_failed = []
-            for f in failed_moves:
-                if os.path.exists(f):
-                    still_failed.append(f)
+            # Only warn for files that are both failed to move and were actually used
+            used_files = set((used_images or []) + (leftover_mp3s or []))
+            still_failed = [f for f in failed_moves if os.path.exists(f) and f in used_files]
             if still_failed:
                 QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(still_failed))
         self.clear_inputs()
         self.cleanup_worker_and_thread()
         self._worker = None
         self._thread = None
+        # --- Handle pending close after worker finishes ---
+        if hasattr(self, '_pending_close') and self._pending_close:
+            self._pending_close = False
+            if hasattr(self, '_waiting_dialog_on_close') and self._waiting_dialog_on_close is not None:
+                self._waiting_dialog_on_close.close()
+                self._waiting_dialog_on_close.hide()
+                self._waiting_dialog_on_close = None
+            QtWidgets.QApplication.processEvents()
+            self.close()
         if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
             self._auto_close_on_stop = False
             if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
@@ -1769,6 +1799,10 @@ class SuperCutUI(QWidget):
             leftover_images=leftover_images,
             min_mp3_count=min_mp3_count
         )
+        # Auto-close after 2 seconds if pending close is set
+        if hasattr(self, '_pending_close') and self._pending_close:
+            timer = QTimer(self)
+            timer.singleShot(2000, dlg.close)
         dlg.exec()
 
     def open_result_folder(self):
@@ -1811,13 +1845,10 @@ class SuperCutUI(QWidget):
                             stop_method()
                         except RuntimeError:
                             pass
-                # Connect thread finished to quit and close waiting dialog
-                def quit_app():
-                    waiting_dialog.close()
-                    app_instance = QApplication.instance()
-                    if app_instance is not None:
-                        app_instance.quit()
-                self._thread.finished.connect(quit_app)
+                # Set pending close flag
+                self._pending_close = True
+                # Store waiting dialog to close later
+                self._waiting_dialog_on_close = waiting_dialog
                 event.ignore()
                 return
             else:
