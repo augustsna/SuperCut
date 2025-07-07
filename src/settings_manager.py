@@ -24,23 +24,46 @@ def apply_settings(ui, DEFAULT_FPS_OPTIONS):
         ui.intro_position_combo.setCurrentIndex(idx)
         idx = next((i for i in range(ui.intro_size_combo.count()) if ui.intro_size_combo.itemData(i) == default_intro_size), 9)
         ui.intro_size_combo.setCurrentIndex(idx)
+    # Overlay1 checkbox state
+    default_overlay1_enabled = settings.value('default_overlay1_enabled', True, type=bool)
+    if hasattr(ui, 'overlay1_checkbox'):
+        ui.overlay1_checkbox.setChecked(default_overlay1_enabled)
     default_overlay1_path = settings.value('default_overlay1_path', '', type=str)
     default_overlay1_position = settings.value('default_overlay1_position', 'bottom_left', type=str)
     default_overlay1_size = settings.value('default_overlay1_size', 15, type=int)
-    if ui.overlay1_checkbox.isChecked():
+    if hasattr(ui, 'overlay1_checkbox') and ui.overlay1_checkbox.isChecked():
         if not ui.overlay1_edit.text().strip():
             ui.overlay1_edit.setText(default_overlay1_path)
         idx = next((i for i in range(ui.overlay1_position_combo.count()) if ui.overlay1_position_combo.itemData(i) == default_overlay1_position), 3)
         ui.overlay1_position_combo.setCurrentIndex(idx)
         idx = next((i for i in range(ui.overlay1_size_combo.count()) if ui.overlay1_size_combo.itemData(i) == default_overlay1_size), 2)
         ui.overlay1_size_combo.setCurrentIndex(idx)
+    # Overlay2 checkbox state
+    default_overlay2_enabled = settings.value('default_overlay2_enabled', True, type=bool)
+    if hasattr(ui, 'overlay2_checkbox'):
+        ui.overlay2_checkbox.setChecked(default_overlay2_enabled)
     default_overlay2_path = settings.value('default_overlay2_path', '', type=str)
     default_overlay2_position = settings.value('default_overlay2_position', 'top_right', type=str)
     default_overlay2_size = settings.value('default_overlay2_size', 15, type=int)
-    if ui.overlay2_checkbox.isChecked():
+    if hasattr(ui, 'overlay2_checkbox') and ui.overlay2_checkbox.isChecked():
         if not ui.overlay2_edit.text().strip():
             ui.overlay2_edit.setText(default_overlay2_path)
         idx = next((i for i in range(ui.overlay2_position_combo.count()) if ui.overlay2_position_combo.itemData(i) == default_overlay2_position), 2)
         ui.overlay2_position_combo.setCurrentIndex(idx)
         idx = next((i for i in range(ui.overlay2_size_combo.count()) if ui.overlay2_size_combo.itemData(i) == default_overlay2_size), 2)
         ui.overlay2_size_combo.setCurrentIndex(idx)
+
+def set_overlay1_defaults(ui):
+    settings = ui.settings
+    ui.overlay1_checkbox.setChecked(True)
+    default_overlay1_path = settings.value('default_overlay1_path', '', type=str)
+    default_overlay1_position = settings.value('default_overlay1_position', 'bottom_left', type=str)
+    default_overlay1_size = settings.value('default_overlay1_size', 15, type=int)
+    ui.overlay1_edit.setText(default_overlay1_path)
+    idx = next((i for i in range(ui.overlay1_position_combo.count()) if ui.overlay1_position_combo.itemData(i) == default_overlay1_position), 3)
+    ui.overlay1_position_combo.setCurrentIndex(idx)
+    idx = next((i for i in range(ui.overlay1_size_combo.count()) if ui.overlay1_size_combo.itemData(i) == default_overlay1_size), 2)
+    ui.overlay1_size_combo.setCurrentIndex(idx)
+
+# In your UI setup code (not shown here), connect the button:
+# ui.overlay1_default_button.clicked.connect(lambda: set_overlay1_defaults(ui))

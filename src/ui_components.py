@@ -522,6 +522,18 @@ class SettingsDialog(QDialog):
             self.settings.value('default_intro_enabled', True, type=bool) if self.settings is not None else True
         )
         left_form.addRow("Intro Defaults:", self.default_intro_enabled_checkbox)
+        # --- Default Overlay 1 Enabled Checkbox ---
+        self.default_overlay1_enabled_checkbox = QtWidgets.QCheckBox("Enable Overlay 1 Defaults")
+        self.default_overlay1_enabled_checkbox.setChecked(
+            self.settings.value('default_overlay1_enabled', True, type=bool) if self.settings is not None else True
+        )
+        left_form.addRow("Overlay 1 Defaults:", self.default_overlay1_enabled_checkbox)
+        # --- Default Overlay 2 Enabled Checkbox ---
+        self.default_overlay2_enabled_checkbox = QtWidgets.QCheckBox("Enable Overlay 2 Defaults")
+        self.default_overlay2_enabled_checkbox.setChecked(
+            self.settings.value('default_overlay2_enabled', True, type=bool) if self.settings is not None else True
+        )
+        left_form.addRow("Overlay 2 Defaults:", self.default_overlay2_enabled_checkbox)
 
         # Right column: Overlay 1 and 2
         right_form = QFormLayout()
@@ -627,6 +639,8 @@ class SettingsDialog(QDialog):
         if self.settings is not None:
             self.settings.setValue('default_fps', self.selected_fps)
             self.settings.setValue('default_intro_enabled', self.default_intro_enabled_checkbox.isChecked())
+            self.settings.setValue('default_overlay1_enabled', self.default_overlay1_enabled_checkbox.isChecked())
+            self.settings.setValue('default_overlay2_enabled', self.default_overlay2_enabled_checkbox.isChecked())
             self.settings.setValue('default_intro_path', self.default_intro_path_edit.text())
             self.settings.setValue('default_intro_position', self.default_intro_position_combo.currentData())
             self.settings.setValue('default_intro_size', self.default_intro_size_combo.currentData())
@@ -648,11 +662,13 @@ class SettingsDialog(QDialog):
         idx_intro_size = (50 // 5) - 1  # 50% size
         self.default_intro_size_combo.setCurrentIndex(idx_intro_size)
         # Overlay 1
+        self.default_overlay1_enabled_checkbox.setChecked(True)
         self.default_overlay1_path_edit.setText("")
         self.default_overlay1_position_combo.setCurrentIndex(3)  # Bottom Left
         idx_overlay1_size = (15 // 5) - 1  # 15% size
         self.default_overlay1_size_combo.setCurrentIndex(idx_overlay1_size)
         # Overlay 2
+        self.default_overlay2_enabled_checkbox.setChecked(True)
         self.default_overlay2_path_edit.setText("")
         self.default_overlay2_position_combo.setCurrentIndex(2)  # Top Right
         idx_overlay2_size = (15 // 5) - 1  # 15% size

@@ -254,6 +254,10 @@ class SuperCutUI(QWidget):
         # Assign all returned widgets to self for later use
         for key, widget in overlay_controls.items():
             setattr(self, key, widget)
+        # Connect overlay1 default button to set_overlay1_defaults
+        if hasattr(self, 'overlay1_default_button'):
+            from src.settings_manager import set_overlay1_defaults
+            self.overlay1_default_button.clicked.connect(lambda: set_overlay1_defaults(self))
         # Add layouts to main layout if present
         if 'intro_layout' in overlay_controls:
             layout.addLayout(overlay_controls['intro_layout'])
