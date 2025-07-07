@@ -162,6 +162,18 @@ DEFAULT_FFMPEG_PRESETS = [
 ]
 DEFAULT_FFMPEG_PRESET = "slow"
 
+# FFmpeg Audio Bitrate Options
+DEFAULT_AUDIO_BITRATE_OPTIONS = [
+    ("96 kbps", "96k"),
+    ("128 kbps", "128k"),
+    ("192 kbps", "192k"),
+    ("256 kbps", "256k"),
+    ("320 kbps", "320k"),
+    ("384 kbps", "384k"),
+    ("512 kbps", "512k")
+]
+DEFAULT_AUDIO_BITRATE = "384k"
+
 def check_ffmpeg_installation():
     """Check if FFmpeg is properly installed"""
     if not os.path.exists(FFMPEG_BINARY):

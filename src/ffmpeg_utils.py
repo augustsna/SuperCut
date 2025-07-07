@@ -89,7 +89,8 @@ def create_video_with_ffmpeg(
     effect_time: int = 5,
     intro_effect: str = "fadeout",
     intro_duration: int = 5,
-    preset: str = "slow"
+    preset: str = "slow",
+    audio_bitrate: str = "384k"
 ) -> Tuple[bool, Optional[str]]:
     """Create video from image and audio using ffmpeg with progress tracking. Supports up to three overlays (Intro, Overlay 1, Overlay 2). Returns (success, error_message)."""
     temp_png_path = None
@@ -105,18 +106,20 @@ def create_video_with_ffmpeg(
         # Estimate required output file size
         audio_duration = get_audio_duration(audio_path)
         video_bitrate_str = VIDEO_SETTINGS["video_bitrate"]
+        max_bitrate_str = VIDEO_SETTINGS["max_bitrate"]
+        buffer_size_str = VIDEO_SETTINGS["buffer_size"]
         if video_bitrate_str.lower().endswith('m'):
             video_bitrate = int(float(video_bitrate_str[:-1]) * 1024 * 1024)
         elif video_bitrate_str.lower().endswith('k'):
             video_bitrate = int(float(video_bitrate_str[:-1]) * 1024)
         else:
             video_bitrate = int(video_bitrate_str)
-        audio_bitrate_str = VIDEO_SETTINGS["audio_bitrate"]
+        audio_bitrate_str = audio_bitrate
         if audio_bitrate_str.lower().endswith('k'):
-            audio_bitrate = int(float(audio_bitrate_str[:-1]) * 1024)
+            audio_bitrate_num = int(float(audio_bitrate_str[:-1]) * 1024)
         else:
-            audio_bitrate = int(audio_bitrate_str)
-        total_bitrate = video_bitrate + audio_bitrate
+            audio_bitrate_num = int(audio_bitrate_str)
+        total_bitrate = video_bitrate + audio_bitrate_num
         estimated_size = int((total_bitrate / 8) * audio_duration)  # bytes
         min_required = max(estimated_size * 2, 100 * 1024 * 1024)  # at least 2x estimated, or 100MB
         output_dir = os.path.dirname(os.path.abspath(output_path)) or os.getcwd()
@@ -287,15 +290,15 @@ def create_video_with_ffmpeg(
 
         # Video settings
         cmd.extend([   
-            "-b:v", VIDEO_SETTINGS["video_bitrate"],
-            "-maxrate", VIDEO_SETTINGS["max_bitrate"],
-            "-bufsize", VIDEO_SETTINGS["buffer_size"]     
+            "-b:v", video_bitrate_str,
+            "-maxrate", max_bitrate_str,
+            "-bufsize", buffer_size_str     
         ])
 
         # Audio settings
         cmd.extend([   
             "-c:a", VIDEO_SETTINGS["audio_codec"],
-            "-b:a", VIDEO_SETTINGS["audio_bitrate"],
+            "-b:a", audio_bitrate_str,
             "-ar", VIDEO_SETTINGS["audio_sample_rate"],
             "-ac", VIDEO_SETTINGS["audio_channels"]
         ])

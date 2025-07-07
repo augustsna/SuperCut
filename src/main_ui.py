@@ -29,7 +29,8 @@ from src.config import (
     DEFAULT_RESOLUTION, DEFAULT_CODEC, check_ffmpeg_installation,
     DEFAULT_MIN_MP3_COUNT,
     PROJECT_ROOT,
-    DEFAULT_FFMPEG_PRESETS, DEFAULT_FFMPEG_PRESET
+    DEFAULT_FFMPEG_PRESETS, DEFAULT_FFMPEG_PRESET,
+    DEFAULT_AUDIO_BITRATE_OPTIONS, DEFAULT_AUDIO_BITRATE
 )
 from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
@@ -141,6 +142,18 @@ class SettingsDialog(QDialog):
             default_preset = DEFAULT_FFMPEG_PRESET
         idx = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 6)
         self.preset_combo.setCurrentIndex(idx)
+        # --- FFmpeg Audio Bitrate Combo ---
+        self.audio_bitrate_combo = QComboBox(self)
+        self.audio_bitrate_combo.setFixedWidth(120)
+        for label, value in DEFAULT_AUDIO_BITRATE_OPTIONS:
+            self.audio_bitrate_combo.addItem(label, value)
+        if self.settings is not None:
+            default_audio_bitrate = self.settings.value('default_ffmpeg_audio_bitrate', DEFAULT_AUDIO_BITRATE, type=str)
+        else:
+            default_audio_bitrate = DEFAULT_AUDIO_BITRATE
+        idx = next((i for i, (label, value) in enumerate(DEFAULT_AUDIO_BITRATE_OPTIONS) if value == default_audio_bitrate), 5)
+        self.audio_bitrate_combo.setCurrentIndex(idx)
+        left_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
         # Add to left_form in new order with reduced spacing
         left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
@@ -315,6 +328,7 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_mp3_count_enabled', self.default_mp3_count_enabled_checkbox.isChecked())
             self.settings.setValue('default_resolution', self.resolution_combo.currentData())
             self.settings.setValue('default_ffmpeg_preset', self.preset_combo.currentData())
+            self.settings.setValue('default_ffmpeg_audio_bitrate', self.audio_bitrate_combo.currentData())
         super().accept()
 
     def reset_to_defaults(self):
@@ -324,6 +338,8 @@ class SettingsDialog(QDialog):
         self.resolution_combo.setCurrentIndex(0)
         # FFmpeg Preset
         self.preset_combo.setCurrentIndex(6)  # 'slow' is default
+        # FFmpeg Audio Bitrate
+        self.audio_bitrate_combo.setCurrentIndex(5)  # '384k' is default
         # Intro
         self.default_intro_enabled_checkbox.setChecked(True)
         self.default_intro_path_edit.setText("")
@@ -1560,6 +1576,8 @@ class SuperCutUI(QWidget):
         name_list = self.name_list if use_name_list else None
         # Get ffmpeg preset from settings
         preset = self.settings.value('default_ffmpeg_preset', DEFAULT_FFMPEG_PRESET, type=str)
+        # Get ffmpeg audio bitrate from settings
+        audio_bitrate = self.settings.value('default_ffmpeg_audio_bitrate', DEFAULT_AUDIO_BITRATE, type=str)
         self._worker = VideoWorker(
             media_sources, export_name, number, folder, codec, resolution, fps,
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
@@ -1568,7 +1586,8 @@ class SuperCutUI(QWidget):
             self.selected_effect, self.overlay_duration,
             self.intro_effect, self.intro_duration,
             name_list=name_list,
-            preset=preset
+            preset=preset,
+            audio_bitrate=audio_bitrate
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
@@ -1766,7 +1785,6 @@ class SuperCutUI(QWidget):
         if hasattr(self, 'terminal_widget') and self.terminal_widget is not None:
             self.terminal_widget.close()
             self.terminal_widget = None
-            
         # If a video creation thread is running, warn the user
         if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
             reply = QMessageBox.question(
@@ -1777,13 +1795,11 @@ class SuperCutUI(QWidget):
                 QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:
-                # Show waiting dialog
                 waiting_dialog = QMessageBox(self)
                 waiting_dialog.setWindowTitle("Please Wait")
                 waiting_dialog.setText("Waiting for current batch to finish...")
                 waiting_dialog.setStandardButtons(QMessageBox.StandardButton.NoButton)
                 waiting_dialog.show()
-                
                 # Request stop
                 if hasattr(self, "_worker") and self._worker is not None:
                     stop_method = getattr(self._worker, 'stop', None)
@@ -1792,24 +1808,18 @@ class SuperCutUI(QWidget):
                             stop_method()
                         except RuntimeError:
                             pass
-                            
-                # Wait for thread to finish in a background thread, then close app after 3s
-                def wait_and_close():
-                    if self._thread is not None:
-                        self._thread.wait()
-                    time.sleep(3)
+                # Connect thread finished to quit and close waiting dialog
+                def quit_app():
                     waiting_dialog.close()
                     app_instance = QApplication.instance()
                     if app_instance is not None:
                         app_instance.quit()
-                        
-                threading.Thread(target=wait_and_close, daemon=True).start()
+                self._thread.finished.connect(quit_app)
                 event.ignore()
                 return
             else:
                 event.ignore()
                 return
-                
         # Save window position and close as normal
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
