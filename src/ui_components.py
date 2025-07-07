@@ -287,7 +287,7 @@ class SuccessDialog(QDialog):
         vbox.setSpacing(8)
 
         # Success icon
-        icon = QLabel("✅")
+        icon = QLabel("✓")
         icon.setObjectName("iconLabel")
         icon.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         icon.setStyleSheet("font-size: 28px; color: #4BB543; border: none; background: transparent;")
