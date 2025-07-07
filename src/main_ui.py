@@ -1678,13 +1678,20 @@ class SuperCutUI(QWidget):
             dlg = StoppedDialog(self, batch_count=batch_count, total_batches=total_batches)
             dlg.exec()
         else:
-            if leftover_mp3s or leftover_images:
-                self.show_success_options(leftover_files=leftover_mp3s, leftover_images=leftover_images, min_mp3_count=min_mp3_count)
+            # Only show leftover files that still exist
+            import os
+            real_leftover_mp3s = [f for f in leftover_mp3s if os.path.exists(f)] if leftover_mp3s else []
+            real_leftover_images = [f for f in leftover_images if os.path.exists(f)] if leftover_images else []
+            if real_leftover_mp3s or real_leftover_images:
+                self.show_success_options(leftover_files=real_leftover_mp3s, leftover_images=real_leftover_images, min_mp3_count=min_mp3_count)
             else:
                 self.show_success_options(min_mp3_count=min_mp3_count)
-        # Show warning if any files failed to move
+        # Show warning if any files failed to move (only if they still exist)
         if failed_moves:
-            QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(failed_moves))
+            import os
+            still_failed = [f for f in failed_moves if os.path.exists(f)]
+            if still_failed:
+                QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(still_failed))
         self.clear_inputs()
         self.cleanup_worker_and_thread()
         self._worker = None
@@ -1892,14 +1899,6 @@ class SuperCutUI(QWidget):
                 self.resolution_combo.setCurrentIndex(idx)
         # Update main UI's resolution combo if present
         if hasattr(self, 'resolution_combo') and hasattr(self, 'resolution_combo'):
-            idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
-            self.resolution_combo.setCurrentIndex(idx)
-        # Update main UI's resolution combo if present
-        if hasattr(self, 'resolution_combo'):
-            idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
-            self.resolution_combo.setCurrentIndex(idx)
-        # Update main UI's resolution combo if present
-        if hasattr(self, 'resolution_combo'):
             idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
             self.resolution_combo.setCurrentIndex(idx)
         # Update main UI's resolution combo if present
