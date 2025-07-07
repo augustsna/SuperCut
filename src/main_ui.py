@@ -131,6 +131,12 @@ class SettingsDialog(QDialog):
             idx = (default_intro_size // 5) - 1 if 5 <= default_intro_size <= 100 else 9
             self.default_intro_size_combo.setCurrentIndex(idx)
         left_form.addRow("Intro Size:", self.default_intro_size_combo)
+        # --- Default Intro Enabled Checkbox ---
+        self.default_intro_enabled_checkbox = QtWidgets.QCheckBox("Enable Intro Defaults")
+        self.default_intro_enabled_checkbox.setChecked(
+            self.settings.value('default_intro_enabled', True, type=bool) if self.settings is not None else True
+        )
+        left_form.addRow("Intro Defaults:", self.default_intro_enabled_checkbox)
 
         # Right column: Overlay 1 and 2
         right_form = QFormLayout()
@@ -235,6 +241,7 @@ class SettingsDialog(QDialog):
         self.selected_fps = self.fps_combo.currentData()
         if self.settings is not None:
             self.settings.setValue('default_fps', self.selected_fps)
+            self.settings.setValue('default_intro_enabled', self.default_intro_enabled_checkbox.isChecked())
             self.settings.setValue('default_intro_path', self.default_intro_path_edit.text())
             self.settings.setValue('default_intro_position', self.default_intro_position_combo.currentData())
             self.settings.setValue('default_intro_size', self.default_intro_size_combo.currentData())
@@ -250,6 +257,7 @@ class SettingsDialog(QDialog):
         # FPS
         self.fps_combo.setCurrentIndex(0)
         # Intro
+        self.default_intro_enabled_checkbox.setChecked(True)
         self.default_intro_path_edit.setText("")
         self.default_intro_position_combo.setCurrentIndex(0)  # Center
         idx_intro_size = (50 // 5) - 1  # 50% size
@@ -1756,17 +1764,19 @@ class SuperCutUI(QWidget):
         if default_fps is not None:
             idx = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == default_fps), 0)
             self.fps_combo.setCurrentIndex(idx)
-        # Apply default intro settings if intro is checked and fields are empty
-        default_intro_path = self.settings.value('default_intro_path', '', type=str)
-        default_intro_position = self.settings.value('default_intro_position', 'center', type=str)
-        default_intro_size = self.settings.value('default_intro_size', 50, type=int)
-        if self.intro_checkbox.isChecked():
-            if not self.intro_edit.text().strip():
-                self.intro_edit.setText(default_intro_path)
-            idx = next((i for i in range(self.intro_position_combo.count()) if self.intro_position_combo.itemData(i) == default_intro_position), 0)
-            self.intro_position_combo.setCurrentIndex(idx)
-            idx = next((i for i in range(self.intro_size_combo.count()) if self.intro_size_combo.itemData(i) == default_intro_size), 9)
-            self.intro_size_combo.setCurrentIndex(idx)
+        # Apply default intro settings only if enabled
+        default_intro_enabled = self.settings.value('default_intro_enabled', True, type=bool)
+        if default_intro_enabled:
+            default_intro_path = self.settings.value('default_intro_path', '', type=str)
+            default_intro_position = self.settings.value('default_intro_position', 'center', type=str)
+            default_intro_size = self.settings.value('default_intro_size', 50, type=int)
+            if self.intro_checkbox.isChecked():
+                if not self.intro_edit.text().strip():
+                    self.intro_edit.setText(default_intro_path)
+                idx = next((i for i in range(self.intro_position_combo.count()) if self.intro_position_combo.itemData(i) == default_intro_position), 0)
+                self.intro_position_combo.setCurrentIndex(idx)
+                idx = next((i for i in range(self.intro_size_combo.count()) if self.intro_size_combo.itemData(i) == default_intro_size), 9)
+                self.intro_size_combo.setCurrentIndex(idx)
         # Apply default overlay 1 settings if overlay 1 is checked and fields are empty
         default_overlay1_path = self.settings.value('default_overlay1_path', '', type=str)
         default_overlay1_position = self.settings.value('default_overlay1_position', 'bottom_left', type=str)
