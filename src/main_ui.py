@@ -1724,10 +1724,13 @@ class SuperCutUI(QWidget):
                 self.show_success_options(leftover_files=real_leftover_mp3s, leftover_images=real_leftover_images, min_mp3_count=min_mp3_count)
             else:
                 self.show_success_options(min_mp3_count=min_mp3_count)
-        # Show warning if any files failed to move (only if they still exist)
+        # Show warning if any files failed to move (only if they still exist in their original location)
         if failed_moves:
             import os
-            still_failed = [f for f in failed_moves if os.path.exists(f)]
+            still_failed = []
+            for f in failed_moves:
+                if os.path.exists(f):
+                    still_failed.append(f)
             if still_failed:
                 QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(still_failed))
         self.clear_inputs()
