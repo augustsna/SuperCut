@@ -44,7 +44,7 @@ import threading
 class SettingsDialog(QDialog):
     def __init__(self, parent=None, settings=None, fps_options=None):
         super().__init__(parent)
-        self.setWindowTitle("Settings")
+        self.setWindowTitle("Default Settings")
         self.setModal(True)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint)
         self.settings = settings
