@@ -181,7 +181,7 @@ class SettingsDialog(QDialog):
         self.default_overlay1_enabled_checkbox.setChecked(
             self.settings.value('default_overlay1_enabled', True, type=bool) if self.settings is not None else True
         )
-        right_form.addRow("Overlay 1 Defaults:", self.default_overlay1_enabled_checkbox)
+        left_form.addRow("Overlay 1 Defaults:", self.default_overlay1_enabled_checkbox)
         # --- Default Overlay 2 Path ---
         overlay2_path_layout = QHBoxLayout()
         self.default_overlay2_path_edit = QLineEdit()
@@ -223,7 +223,7 @@ class SettingsDialog(QDialog):
         self.default_overlay2_enabled_checkbox.setChecked(
             self.settings.value('default_overlay2_enabled', True, type=bool) if self.settings is not None else True
         )
-        right_form.addRow("Overlay 2 Defaults:", self.default_overlay2_enabled_checkbox)
+        left_form.addRow("Overlay 2 Defaults:", self.default_overlay2_enabled_checkbox)
 
         # Add both forms to columns_layout
         columns_layout.addSpacing(20)
