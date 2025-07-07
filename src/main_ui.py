@@ -223,6 +223,12 @@ class SettingsDialog(QDialog):
             self.settings.value('default_overlay2_enabled', True, type=bool) if self.settings is not None else True
         )
         left_form.addRow("Overlay 2 Defaults:", self.default_overlay2_enabled_checkbox)
+        # --- Default List Name Enabled Checkbox ---
+        self.default_list_name_enabled_checkbox = QtWidgets.QCheckBox("Enable List Name")
+        self.default_list_name_enabled_checkbox.setChecked(
+            self.settings.value('default_list_name_enabled', False, type=bool) if self.settings is not None else False
+        )
+        left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
 
         # Add both forms to columns_layout
         columns_layout.addSpacing(20)
@@ -264,6 +270,7 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_overlay2_size', self.default_overlay2_size_combo.currentData())
             self.settings.setValue('default_overlay1_enabled', self.default_overlay1_enabled_checkbox.isChecked())
             self.settings.setValue('default_overlay2_enabled', self.default_overlay2_enabled_checkbox.isChecked())
+            self.settings.setValue('default_list_name_enabled', self.default_list_name_enabled_checkbox.isChecked())
         super().accept()
 
     def reset_to_defaults(self):
@@ -287,6 +294,8 @@ class SettingsDialog(QDialog):
         idx_overlay2_size = (15 // 5) - 1  # 15% size
         self.default_overlay2_size_combo.setCurrentIndex(idx_overlay2_size)
         self.default_overlay2_enabled_checkbox.setChecked(True)
+        # List Name
+        self.default_list_name_enabled_checkbox.setChecked(False)
 
 class NameListDialog(QDialog):
     def __init__(self, parent=None, initial_names=None):
@@ -1824,6 +1833,10 @@ class SuperCutUI(QWidget):
         self.overlay_checkbox.setChecked(default_overlay1_enabled)
         # Set overlay2 checkbox state from settings
         self.overlay2_checkbox.setChecked(default_overlay2_enabled)
+        # Set list name checkbox state from settings
+        default_list_name_enabled = self.settings.value('default_list_name_enabled', False, type=bool)
+        if hasattr(self, 'name_list_checkbox'):
+            self.name_list_checkbox.setChecked(default_list_name_enabled)
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""
