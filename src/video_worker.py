@@ -21,7 +21,8 @@ class VideoWorker(QObject):
                  use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_position: str = "center",
                  effect: str = "fadein", effect_time: int = 5,
                  intro_effect: str = "fadeout", intro_duration: int = 5,
-                 name_list: Optional[List[str]] = None):
+                 name_list: Optional[List[str]] = None,
+                 preset: str = "slow"):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -48,6 +49,7 @@ class VideoWorker(QObject):
         self.intro_effect = intro_effect
         self.intro_duration = intro_duration
         self.name_list = name_list if name_list is not None else []
+        self.preset = preset
         self._stop = False
         self._used_images = set()
 
@@ -191,7 +193,8 @@ class VideoWorker(QObject):
                 self.effect,
                 self.effect_time,
                 self.intro_effect,
-                self.intro_duration
+                self.intro_duration,
+                self.preset
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")

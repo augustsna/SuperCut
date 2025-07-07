@@ -1,9 +1,3 @@
-[2025-07-08 02:57:09] INFO in ffmpeg_utils: FFmpeg Video Creation Command for Output_1.mp4:
-[2025-07-08 02:57:09] INFO in ffmpeg_utils:   ffmpeg -loop 1 -i C:\Users\Rome\AppData\Local\Temp\supercut_tb8lt_ej.png -i C:\Users\Rome\AppData\Local\Temp\supercut_9tsneoc0.mp3 -filter_complex [0:v]scale=1920:1080,format=yuv420p[vout] -map [vout] -map 1:a -c:v h264_nvenc -preset slow -rc vbr_hq -b:v 12M -maxrate 16M -bufsize 24M -c:a aac -b:a 384k -ar 48000 -ac 2 -r 24 -g 120 -bf 2 -profile:v high -level:v 4.2 -movflags +faststart -shortest -y C:/Users/Rome/Desktop/2/bin/bin\Output_1.mp4
-[2025-07-08 02:57:09] INFO in ffmpeg_utils: 
-[2025-07-08 02:57:26] INFO in ffmpeg_utils: FFmpeg Video Creation Command for Output_1.mp4:
-[2025-07-08 02:57:26] INFO in ffmpeg_utils:   ffmpeg -loop 1 -i C:\Users\Rome\AppData\Local\Temp\supercut_tpf0ynic.png -i C:\Users\Rome\AppData\Local\Temp\supercut_mfhvwdgs.mp3 -filter_complex [0:v]scale=1920:1080,format=yuv420p[vout] -map [vout] -map 1:a -c:v h264_nvenc -preset slow -rc vbr_hq -b:v 12M -maxrate 16M -bufsize 24M -c:a aac -b:a 384k -ar 48000 -ac 2 -r 24 -g 120 -bf 2 -profile:v high -level:v 4.2 -movflags +faststart -shortest -y C:/Users/Rome/Desktop/2/bin/bin/bin\Output_1.mp4
-[2025-07-08 02:57:26] INFO in ffmpeg_utils: 
-[2025-07-08 02:58:08] INFO in ffmpeg_utils: FFmpeg Video Creation Command for Output_1.mp4:
-[2025-07-08 02:58:08] INFO in ffmpeg_utils:   ffmpeg -loop 1 -i C:\Users\Rome\AppData\Local\Temp\supercut_yyi8e_9y.png -i C:\Users\Rome\AppData\Local\Temp\supercut_ko6dtdd2.mp3 -filter_complex [0:v]scale=1920:1080,format=yuv420p[vout] -map [vout] -map 1:a -c:v h264_nvenc -preset slow -rc vbr_hq -b:v 12M -maxrate 16M -bufsize 24M -c:a aac -b:a 384k -ar 48000 -ac 2 -r 24 -g 120 -bf 2 -profile:v high -level:v 4.2 -movflags +faststart -shortest -y C:/Users/Rome/Desktop/2/bin/bin/bin/bin\Output_1.mp4
-[2025-07-08 02:58:08] INFO in ffmpeg_utils: 
+[2025-07-08 03:22:39] INFO in ffmpeg_utils: FFmpeg Video Creation Command for Output_1.mp4:
+[2025-07-08 03:22:39] INFO in ffmpeg_utils:   ffmpeg -loop 1 -i C:\Users\Rome\AppData\Local\Temp\supercut_z_1byaxj.png -i C:\Users\Rome\AppData\Local\Temp\supercut_e7fv6uxw.mp3 -filter_complex [0:v]scale=1920:1080,format=yuv420p[vout] -map [vout] -map 1:a -c:v h264_nvenc -preset medium -rc vbr_hq -b:v 12M -maxrate 16M -bufsize 24M -c:a aac -b:a 384k -ar 48000 -ac 2 -r 24 -g 120 -bf 2 -profile:v high -level:v 4.2 -movflags +faststart -shortest -y C:/Users/Rome/Desktop/4/bin/bin/bin/bin/bin\Output_1.mp4
+[2025-07-08 03:22:39] INFO in ffmpeg_utils: 

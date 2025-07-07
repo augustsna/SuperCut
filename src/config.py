@@ -148,6 +148,20 @@ VIDEO_SETTINGS = {
     "level": "4.2",
 }
 
+# FFmpeg Preset Options
+DEFAULT_FFMPEG_PRESETS = [
+    ("Ultrafast", "ultrafast"),
+    ("Superfast", "superfast"),
+    ("Veryfast", "veryfast"),
+    ("Faster", "faster"),
+    ("Fast", "fast"),
+    ("Medium", "medium"),
+    ("Slow", "slow"),
+    ("Slower", "slower"),
+    ("Veryslow", "veryslow")
+]
+DEFAULT_FFMPEG_PRESET = "slow"
+
 def check_ffmpeg_installation():
     """Check if FFmpeg is properly installed"""
     if not os.path.exists(FFMPEG_BINARY):

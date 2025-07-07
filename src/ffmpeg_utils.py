@@ -88,7 +88,8 @@ def create_video_with_ffmpeg(
     effect: str = "fadein",
     effect_time: int = 5,
     intro_effect: str = "fadeout",
-    intro_duration: int = 5
+    intro_duration: int = 5,
+    preset: str = "slow"
 ) -> Tuple[bool, Optional[str]]:
     """Create video from image and audio using ffmpeg with progress tracking. Supports up to three overlays (Intro, Overlay 1, Overlay 2). Returns (success, error_message)."""
     temp_png_path = None
@@ -279,7 +280,7 @@ def create_video_with_ffmpeg(
             filter_complex = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
             cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])
 
-        cmd.extend(["-c:v", codec, "-preset", VIDEO_SETTINGS["preset"]])       
+        cmd.extend(["-c:v", codec, "-preset", preset])       
 
         if codec == "h264_nvenc":
             cmd.extend(["-rc", "vbr_hq"])
