@@ -72,6 +72,8 @@ class SettingsDialog(QDialog):
 
         # --- Two-column layout ---
         columns_layout = QHBoxLayout()
+        # Right column: Overlay 1 and 2 (define right_form first so it can be used for intro fields)
+        right_form = QFormLayout()
         # Left column: FPS and Intro
         left_form = QFormLayout()
         self.fps_combo = QComboBox(self)
@@ -88,6 +90,12 @@ class SettingsDialog(QDialog):
         else:
             self.fps_combo.setCurrentIndex(0)
         left_form.addRow("FPS:", self.fps_combo)
+        # --- Default Intro Enabled Checkbox ---
+        self.default_intro_enabled_checkbox = QtWidgets.QCheckBox("Enable Intro")
+        self.default_intro_enabled_checkbox.setChecked(
+            self.settings.value('default_intro_enabled', True, type=bool) if self.settings is not None else True
+        )
+        left_form.addRow("Intro Defaults:", self.default_intro_enabled_checkbox)
         # --- Default Intro Path ---
         intro_path_layout = QHBoxLayout()
         self.default_intro_path_edit = QLineEdit()
@@ -103,7 +111,7 @@ class SettingsDialog(QDialog):
         self.default_intro_path_btn.clicked.connect(pick_intro_path)
         intro_path_layout.addWidget(self.default_intro_path_edit)
         intro_path_layout.addWidget(self.default_intro_path_btn)
-        left_form.addRow("Intro Path:", intro_path_layout)
+        right_form.addRow("Intro Path:", intro_path_layout)
         # --- Default Intro Position ---
         self.default_intro_position_combo = QComboBox()
         self.default_intro_position_combo.setFixedWidth(120)
@@ -120,7 +128,7 @@ class SettingsDialog(QDialog):
             default_intro_position = self.settings.value('default_intro_position', 'center', type=str)
             idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_intro_position), 0)
             self.default_intro_position_combo.setCurrentIndex(idx)
-        left_form.addRow("Intro Position:", self.default_intro_position_combo)
+        right_form.addRow("Intro Position:", self.default_intro_position_combo)
         # --- Default Intro Size ---
         self.default_intro_size_combo = QComboBox()
         self.default_intro_size_combo.setFixedWidth(120)
@@ -130,16 +138,7 @@ class SettingsDialog(QDialog):
             default_intro_size = self.settings.value('default_intro_size', 50, type=int)
             idx = (default_intro_size // 5) - 1 if 5 <= default_intro_size <= 100 else 9
             self.default_intro_size_combo.setCurrentIndex(idx)
-        left_form.addRow("Intro Size:", self.default_intro_size_combo)
-        # --- Default Intro Enabled Checkbox ---
-        self.default_intro_enabled_checkbox = QtWidgets.QCheckBox("Enable Intro")
-        self.default_intro_enabled_checkbox.setChecked(
-            self.settings.value('default_intro_enabled', True, type=bool) if self.settings is not None else True
-        )
-        left_form.addRow("Intro Defaults:", self.default_intro_enabled_checkbox)
-
-        # Right column: Overlay 1 and 2
-        right_form = QFormLayout()
+        right_form.addRow("Intro Size:", self.default_intro_size_combo)
         # --- Default Overlay 1 Path ---
         overlay1_path_layout = QHBoxLayout()
         self.default_overlay1_path_edit = QLineEdit()
@@ -228,7 +227,7 @@ class SettingsDialog(QDialog):
         # Add both forms to columns_layout
         columns_layout.addSpacing(20)
         columns_layout.addLayout(left_form)
-        columns_layout.addSpacing(-25)  # Reduced from 30 to 10
+        columns_layout.addSpacing(45)  # Increased spacing between columns
         columns_layout.addLayout(right_form)
         main_layout.addLayout(columns_layout)
 
@@ -1515,7 +1514,7 @@ class SuperCutUI(QWidget):
         self._worker.error.connect(self.on_worker_error)
         self._worker.finished.connect(
             lambda leftover_mp3s, used_images, failed_moves: self.on_worker_finished_with_leftovers(
-                leftover_mp3s, used_images, original_mp3_files, original_image_files, failed_moves
+                leftover_mp3s, used_images, original_mp3_files, original_image_files
             )
         )
         self._worker.finished.connect(self._thread.quit)
