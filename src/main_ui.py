@@ -8,6 +8,20 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize
 from PyQt6.QtGui import QIntValidator, QIcon, QPixmap, QMovie, QImage, QShortcut, QKeySequence
 from src.logger import logger
+from src.worker_manager import setup_worker_and_thread, stop_video_creation, cleanup_worker_and_thread
+from src.settings_manager import show_settings_dialog, apply_settings
+from src.overlay_manager import create_intro_overlay_controls
+from src.terminal_manager import show_terminal, position_terminal_widget
+from src.progress_manager import create_progress_controls
+from .input_manager import on_media_folder_changed, on_output_folder_changed
+from .window_manager import restore_window_position, setup_shortcuts, close_window, closeEvent, moveEvent
+from .ui_builder import create_folder_inputs, create_export_inputs
+from .action_buttons import create_action_buttons
+from .success_manager import show_success_options
+from .leftover_manager import cleanup_leftovers
+from .settings_dialog_manager import show_settings_dialog_ui, apply_settings_ui
+from .input_clear_manager import clear_inputs
+from .result_folder_manager import open_result_folder
 
 # Force console output to be visible (safe for .pyw)
 import sys
@@ -32,334 +46,18 @@ from src.config import (
 )
 from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
-    validate_inputs, validate_media_files
+    validate_inputs, validate_media_files,
+    select_media_sources_folder, select_output_folder, update_output_name, gather_and_validate_inputs
 )
-from src.ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, ScrollableErrorDialog, ImageDropLineEdit
+from src.ui_components import (
+    FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, ScrollableErrorDialog, ImageDropLineEdit,
+    SettingsDialog, NameListDialog
+)
 from src.video_worker import VideoWorker
 from src.terminal_widget import TerminalWidget
 
 import time
 import threading
-
-class SettingsDialog(QDialog):
-    def __init__(self, parent=None, settings=None, fps_options=None):
-        super().__init__(parent)
-        self.setWindowTitle("Default Settings")
-        self.setModal(True)
-        self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint)
-        self.settings = settings
-        self.fps_options = fps_options or [("24", 24)]
-        self.selected_fps = None
-        main_layout = QtWidgets.QVBoxLayout(self)        
-        # Add Settings label at the top
-        main_layout.addSpacing(-160)  # Move label up by 20px
-        settings_label = QLabel("Default Settings")
-        settings_label.setStyleSheet("font-size: 22px; font-weight: bold; margin-bottom: 0px;")
-        settings_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(settings_label)
-        # Add Default button below Settings label  
-        main_layout.addSpacing(-15)      
-        self.reset_btn = QPushButton("Reset")
-        self.reset_btn.setFixedSize(100, 28)
-        self.reset_btn.setStyleSheet("QPushButton { background: white; border: 1px solid #ccc; color: #333; } QPushButton:hover { background: #f5f5f5; }")
-        self.reset_btn.clicked.connect(self.reset_to_defaults)
-        reset_btn_layout = QHBoxLayout()
-        reset_btn_layout.addStretch()
-        reset_btn_layout.addWidget(self.reset_btn)
-        reset_btn_layout.addStretch()
-        main_layout.addLayout(reset_btn_layout)
-        main_layout.addSpacing(15)
-
-        # --- Two-column layout ---
-        columns_layout = QHBoxLayout()
-        # Left column: FPS and Intro
-        left_form = QFormLayout()
-        self.fps_combo = QComboBox(self)
-        self.fps_combo.setFixedWidth(120)
-        for label, value in self.fps_options:
-            self.fps_combo.addItem(label, value)
-        if self.settings is not None:
-            default_fps = self.settings.value('default_fps', type=int)
-        else:
-            default_fps = None
-        if default_fps is not None:
-            idx = next((i for i, (label, value) in enumerate(self.fps_options) if value == default_fps), 0)
-            self.fps_combo.setCurrentIndex(idx)
-        else:
-            self.fps_combo.setCurrentIndex(0)
-        left_form.addRow("FPS:", self.fps_combo)
-        # --- Default Intro Path ---
-        intro_path_layout = QHBoxLayout()
-        self.default_intro_path_edit = QLineEdit()
-        self.default_intro_path_edit.setFixedWidth(120)
-        if self.settings is not None:
-            self.default_intro_path_edit.setText(self.settings.value('default_intro_path', '', type=str))
-        self.default_intro_path_btn = QPushButton('...')
-        self.default_intro_path_btn.setFixedWidth(32)
-        def pick_intro_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Intro Image", "", "Image Files (*.gif *.png)")
-            if file_path:
-                self.default_intro_path_edit.setText(file_path)
-        self.default_intro_path_btn.clicked.connect(pick_intro_path)
-        intro_path_layout.addWidget(self.default_intro_path_edit)
-        intro_path_layout.addWidget(self.default_intro_path_btn)
-        left_form.addRow("Intro Path:", intro_path_layout)
-        # --- Default Intro Position ---
-        self.default_intro_position_combo = QComboBox()
-        self.default_intro_position_combo.setFixedWidth(120)
-        intro_positions = [
-            ("Center", "center"),
-            ("Top Left", "top_left"),
-            ("Top Right", "top_right"),
-            ("Bottom Left", "bottom_left"),
-            ("Bottom Right", "bottom_right")
-        ]
-        for label, value in intro_positions:
-            self.default_intro_position_combo.addItem(label, value)
-        if self.settings is not None:
-            default_intro_position = self.settings.value('default_intro_position', 'center', type=str)
-            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_intro_position), 0)
-            self.default_intro_position_combo.setCurrentIndex(idx)
-        left_form.addRow("Intro Position:", self.default_intro_position_combo)
-        # --- Default Intro Size ---
-        self.default_intro_size_combo = QComboBox()
-        self.default_intro_size_combo.setFixedWidth(120)
-        for percent in range(5, 101, 5):
-            self.default_intro_size_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_intro_size = self.settings.value('default_intro_size', 50, type=int)
-            idx = (default_intro_size // 5) - 1 if 5 <= default_intro_size <= 100 else 9
-            self.default_intro_size_combo.setCurrentIndex(idx)
-        left_form.addRow("Intro Size:", self.default_intro_size_combo)
-        # --- Default Intro Enabled Checkbox ---
-        self.default_intro_enabled_checkbox = QtWidgets.QCheckBox("Enable Intro Defaults")
-        self.default_intro_enabled_checkbox.setChecked(
-            self.settings.value('default_intro_enabled', True, type=bool) if self.settings is not None else True
-        )
-        left_form.addRow("Intro Defaults:", self.default_intro_enabled_checkbox)
-
-        # Right column: Overlay 1 and 2
-        right_form = QFormLayout()
-        # --- Default Overlay 1 Path ---
-        overlay1_path_layout = QHBoxLayout()
-        self.default_overlay1_path_edit = QLineEdit()
-        self.default_overlay1_path_edit.setFixedWidth(120)
-        if self.settings is not None:
-            self.default_overlay1_path_edit.setText(self.settings.value('default_overlay1_path', '', type=str))
-        self.default_overlay1_path_btn = QPushButton('...')
-        self.default_overlay1_path_btn.setFixedWidth(32)
-        def pick_overlay1_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 1 Image", "", "Image Files (*.gif *.png)")
-            if file_path:
-                self.default_overlay1_path_edit.setText(file_path)
-        self.default_overlay1_path_btn.clicked.connect(pick_overlay1_path)
-        overlay1_path_layout.addWidget(self.default_overlay1_path_edit)
-        overlay1_path_layout.addWidget(self.default_overlay1_path_btn)
-        right_form.addRow("Overlay 1 Path:", overlay1_path_layout)
-        # --- Default Overlay 1 Position ---
-        self.default_overlay1_position_combo = QComboBox()
-        self.default_overlay1_position_combo.setFixedWidth(120)
-        for label, value in intro_positions:
-            self.default_overlay1_position_combo.addItem(label, value)
-        if self.settings is not None:
-            default_overlay1_position = self.settings.value('default_overlay1_position', 'bottom_left', type=str)
-            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay1_position), 3)
-            self.default_overlay1_position_combo.setCurrentIndex(idx)
-        right_form.addRow("Overlay 1 Position:", self.default_overlay1_position_combo)
-        # --- Default Overlay 1 Size ---
-        self.default_overlay1_size_combo = QComboBox()
-        self.default_overlay1_size_combo.setFixedWidth(120)
-        for percent in range(5, 101, 5):
-            self.default_overlay1_size_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_overlay1_size = self.settings.value('default_overlay1_size', 15, type=int)
-            idx = (default_overlay1_size // 5) - 1 if 5 <= default_overlay1_size <= 100 else 2
-            self.default_overlay1_size_combo.setCurrentIndex(idx)
-        right_form.addRow("Overlay 1 Size:", self.default_overlay1_size_combo)
-        # --- Default Overlay 2 Path ---
-        overlay2_path_layout = QHBoxLayout()
-        self.default_overlay2_path_edit = QLineEdit()
-        self.default_overlay2_path_edit.setFixedWidth(120)
-        if self.settings is not None:
-            self.default_overlay2_path_edit.setText(self.settings.value('default_overlay2_path', '', type=str))
-        self.default_overlay2_path_btn = QPushButton('...')
-        self.default_overlay2_path_btn.setFixedWidth(32)
-        def pick_overlay2_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 2 Image", "", "Image Files (*.gif *.png)")
-            if file_path:
-                self.default_overlay2_path_edit.setText(file_path)
-        self.default_overlay2_path_btn.clicked.connect(pick_overlay2_path)
-        overlay2_path_layout.addWidget(self.default_overlay2_path_edit)
-        overlay2_path_layout.addWidget(self.default_overlay2_path_btn)
-        right_form.addRow("Overlay 2 Path:", overlay2_path_layout)
-        # --- Default Overlay 2 Position ---
-        self.default_overlay2_position_combo = QComboBox()
-        self.default_overlay2_position_combo.setFixedWidth(120)
-        for label, value in intro_positions:
-            self.default_overlay2_position_combo.addItem(label, value)
-        if self.settings is not None:
-            default_overlay2_position = self.settings.value('default_overlay2_position', 'top_right', type=str)
-            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay2_position), 2)
-            self.default_overlay2_position_combo.setCurrentIndex(idx)
-        right_form.addRow("Overlay 2 Position:", self.default_overlay2_position_combo)
-        # --- Default Overlay 2 Size ---
-        self.default_overlay2_size_combo = QComboBox()
-        self.default_overlay2_size_combo.setFixedWidth(120)
-        for percent in range(5, 101, 5):
-            self.default_overlay2_size_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_overlay2_size = self.settings.value('default_overlay2_size', 15, type=int)
-            idx = (default_overlay2_size // 5) - 1 if 5 <= default_overlay2_size <= 100 else 2
-            self.default_overlay2_size_combo.setCurrentIndex(idx)
-        right_form.addRow("Overlay 2 Size:", self.default_overlay2_size_combo)
-
-        # Add both forms to columns_layout
-        columns_layout.addSpacing(20)
-        columns_layout.addLayout(left_form)
-        columns_layout.addSpacing(-25)  # Reduced from 30 to 10
-        columns_layout.addLayout(right_form)
-        main_layout.addLayout(columns_layout)
-
-        # Add more space before the button row
-        main_layout.addSpacing(7)
-        button_layout = QHBoxLayout()
-        button_layout.addStretch()
-        self.save_btn = QPushButton("Save")
-        self.cancel_btn = QPushButton("Cancel")
-        self.save_btn.setFixedSize(100, 32)
-        self.cancel_btn.setFixedSize(100, 32)
-        button_layout.addWidget(self.save_btn)
-        button_layout.addSpacing(20)
-        button_layout.addWidget(self.cancel_btn)
-        button_layout.addStretch()
-        main_layout.addLayout(button_layout)
-        main_layout.addSpacing(12)
-        self.save_btn.clicked.connect(self.accept)
-        self.cancel_btn.clicked.connect(self.reject)
-        self.setFixedSize(640, 520)
-    def accept(self):
-        self.selected_fps = self.fps_combo.currentData()
-        if self.settings is not None:
-            self.settings.setValue('default_fps', self.selected_fps)
-            self.settings.setValue('default_intro_enabled', self.default_intro_enabled_checkbox.isChecked())
-            self.settings.setValue('default_intro_path', self.default_intro_path_edit.text())
-            self.settings.setValue('default_intro_position', self.default_intro_position_combo.currentData())
-            self.settings.setValue('default_intro_size', self.default_intro_size_combo.currentData())
-            self.settings.setValue('default_overlay1_path', self.default_overlay1_path_edit.text())
-            self.settings.setValue('default_overlay1_position', self.default_overlay1_position_combo.currentData())
-            self.settings.setValue('default_overlay1_size', self.default_overlay1_size_combo.currentData())
-            self.settings.setValue('default_overlay2_path', self.default_overlay2_path_edit.text())
-            self.settings.setValue('default_overlay2_position', self.default_overlay2_position_combo.currentData())
-            self.settings.setValue('default_overlay2_size', self.default_overlay2_size_combo.currentData())
-        super().accept()
-
-    def reset_to_defaults(self):
-        # FPS
-        self.fps_combo.setCurrentIndex(0)
-        # Intro
-        self.default_intro_enabled_checkbox.setChecked(True)
-        self.default_intro_path_edit.setText("")
-        self.default_intro_position_combo.setCurrentIndex(0)  # Center
-        idx_intro_size = (50 // 5) - 1  # 50% size
-        self.default_intro_size_combo.setCurrentIndex(idx_intro_size)
-        # Overlay 1
-        self.default_overlay1_path_edit.setText("")
-        self.default_overlay1_position_combo.setCurrentIndex(3)  # Bottom Left
-        idx_overlay1_size = (15 // 5) - 1  # 15% size
-        self.default_overlay1_size_combo.setCurrentIndex(idx_overlay1_size)
-        # Overlay 2
-        self.default_overlay2_path_edit.setText("")
-        self.default_overlay2_position_combo.setCurrentIndex(2)  # Top Right
-        idx_overlay2_size = (15 // 5) - 1  # 15% size
-        self.default_overlay2_size_combo.setCurrentIndex(idx_overlay2_size)
-
-class NameListDialog(QDialog):
-    def __init__(self, parent=None, initial_names=None):
-        super().__init__(parent)
-        self.setWindowTitle("Enter Name List")
-        self.setModal(True)
-        self.setMinimumSize(400, 350)
-        layout = QVBoxLayout(self)
-        label = QLabel("Enter one name per line (max 180 chars per line). Each name will be used for one video batch.")
-        label.setWordWrap(True)
-        layout.addWidget(label)
-        self.text_edit = QtWidgets.QPlainTextEdit()
-        self.text_edit.setLineWrapMode(QtWidgets.QPlainTextEdit.LineWrapMode.NoWrap)
-        if initial_names:
-            self.set_names(initial_names)
-        layout.addWidget(self.text_edit)
-        self.error_label = QLabel("")
-        self.error_label.setStyleSheet("color: red;")
-        layout.addWidget(self.error_label)
-        # Button box with Preview
-        button_layout = QHBoxLayout()
-        button_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        self.preview_btn = QPushButton("Preview")
-        self.ok_btn = QPushButton("OK")
-        self.cancel_btn = QPushButton("Cancel")
-        btn_width = 90
-        self.preview_btn.setFixedWidth(btn_width)
-        self.ok_btn.setFixedWidth(btn_width)
-        self.cancel_btn.setFixedWidth(btn_width)
-        self.preview_btn.setStyleSheet("background-color: white; color: black; border: 1px solid #cfcfcf;")
-        button_layout.addWidget(self.preview_btn)
-        button_layout.addSpacing(12)
-        button_layout.addWidget(self.ok_btn)
-        button_layout.addSpacing(12)
-        button_layout.addWidget(self.cancel_btn)
-        layout.addLayout(button_layout)
-        self.ok_btn.clicked.connect(self.accept)
-        self.cancel_btn.clicked.connect(self.reject)
-        self.preview_btn.clicked.connect(self.open_preview_dialog)
-    def set_names(self, names):
-        # Show indicators
-        lines = [f"{i+1}. {name}" for i, name in enumerate(names)]
-        self.text_edit.setPlainText("\n".join(lines))
-    def get_names(self):
-        # Strip indicators
-        lines = self.text_edit.toPlainText().splitlines()
-        names = []
-        for line in lines:
-            if ". " in line:
-                name = line.split(". ", 1)[1].strip()
-            else:
-                name = line.strip()
-            if name:
-                names.append(name)
-        return names
-    def accept(self):
-        # On accept, re-apply indicators for display, but only save names
-        names = self.get_names()
-        for name in names:
-            if len(name) > 180:
-                self.error_label.setText(f"A name exceeds 180 characters: {name[:30]}...")
-                return
-        if not names:
-            self.error_label.setText("Name list cannot be empty.")
-            return
-        self._names = names
-        super().accept()
-    def open_preview_dialog(self):
-        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QDialogButtonBox, QPlainTextEdit
-        dlg = QDialog(self)
-        dlg.setWindowTitle("Preview Name List")
-        dlg.setMinimumSize(350, 300)
-        layout = QVBoxLayout(dlg)
-        label = QLabel("Current name list:")
-        layout.addWidget(label)
-        preview_text = QPlainTextEdit()
-        preview_text.setReadOnly(True)
-        names = self.get_names()
-        if names:
-            lines = [f"{i+1}. {name}" for i, name in enumerate(names)]
-            preview_text.setPlainText("\n".join(lines))
-        else:
-            preview_text.setPlainText("(No names entered)")
-        layout.addWidget(preview_text)
-        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
-        button_box.accepted.connect(dlg.accept)
-        layout.addWidget(button_box)
-        dlg.exec()
 
 class SuperCutUI(QWidget):
     """Main application window for SuperCut Video Maker"""
@@ -378,6 +76,28 @@ class SuperCutUI(QWidget):
         self._expanded_for_progress = False  # Track if expanded
         
         self.init_ui()
+        
+        # Bind input manager methods
+        self.on_media_folder_changed = on_media_folder_changed.__get__(self)
+        self.on_output_folder_changed = on_output_folder_changed.__get__(self)
+        self.clear_inputs = clear_inputs.__get__(self)
+
+        # Bind window manager methods
+        self.restore_window_position = restore_window_position.__get__(self)
+        self.setup_shortcuts = setup_shortcuts.__get__(self)
+        self.close_window = close_window.__get__(self)
+
+        # Bind success manager methods
+        self.show_success_options = show_success_options.__get__(self)
+
+        # Bind cleanup leftovers method
+        self.cleanup_leftovers = cleanup_leftovers.__get__(self)
+
+        # Bind settings dialog methods
+        self.show_settings_dialog = show_settings_dialog_ui.__get__(self)
+        self.apply_settings = apply_settings_ui.__get__(self)
+
+        # Call bound methods after binding
         self.restore_window_position()
         self.setup_shortcuts()
         self.update_output_name()
@@ -451,11 +171,15 @@ class SuperCutUI(QWidget):
         # --- End program title ---
 
         # Add UI components
-        self.create_folder_inputs(layout)
-        self.create_export_inputs(layout)
+        create_folder_inputs(self, layout, FolderDropLineEdit, PROJECT_ROOT)
+        create_export_inputs(self, layout, DEFAULT_EXPORT_NAME, DEFAULT_START_NUMBER, DEFAULT_MIN_MP3_COUNT, QIntValidator, NameListDialog)
         self.create_video_settings(layout)
-        self.create_action_buttons(layout)
-        self.create_progress_controls(layout)
+        create_action_buttons(self, layout, PROJECT_ROOT)
+        # Use progress_manager for progress bar and stop button
+        progress_controls = create_progress_controls(self)
+        self.stop_btn = progress_controls['stop_btn']
+        self.progress_bar = progress_controls['progress_bar']
+        layout.addLayout(progress_controls['progress_row'])
         
         self.setLayout(layout)
         self.update_output_name()
@@ -465,153 +189,6 @@ class SuperCutUI(QWidget):
         self.media_sources_edit.textChanged.connect(self.on_media_folder_changed)
         self.folder_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.on_output_folder_changed)
-
-    def create_folder_inputs(self, layout):
-        """Create folder selection inputs"""
-        folder_row_style = {
-            "label_width": 90,
-            "edit_min_width": 220,
-            "btn_width": 110
-        }
-
-        # Media Folder input
-        media_sources_layout = QHBoxLayout()
-        label_media = QLabel("Media Folder:")
-        label_media.setFixedWidth(folder_row_style["label_width"])
-        
-        self.media_sources_edit = FolderDropLineEdit()
-        self.media_sources_edit.setReadOnly(False)
-        self.media_sources_edit.setMinimumWidth(folder_row_style["edit_min_width"])
-        self.media_sources_edit.setPlaceholderText("Drag & drop or click Select Folder")
-        self.media_sources_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
-        
-        media_sources_btn = QPushButton("Select Folder")
-        media_sources_btn.setFixedWidth(folder_row_style["btn_width"])
-        media_sources_btn.clicked.connect(self.select_media_sources_folder)
-        self.media_sources_select_btn = media_sources_btn
-        
-        media_sources_layout.addWidget(label_media)
-        media_sources_layout.addWidget(self.media_sources_edit)
-        media_sources_layout.addWidget(media_sources_btn)
-        layout.addLayout(media_sources_layout)
-
-        # Output folder selection
-        folder_layout = QHBoxLayout()
-        label_output = QLabel("Output Folder:")
-        label_output.setFixedWidth(folder_row_style["label_width"] + 1)
-        
-        self.folder_edit = FolderDropLineEdit()
-        self.folder_edit.setReadOnly(False)
-        self.folder_edit.setMinimumWidth(folder_row_style["edit_min_width"])
-        self.folder_edit.setPlaceholderText("Drag & drop or click Select Folder")
-        self.folder_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
-        
-        folder_btn = QPushButton("Select Folder")
-        folder_btn.setFixedWidth(folder_row_style["btn_width"])
-        folder_btn.clicked.connect(self.select_output_folder)
-        self.output_folder_select_btn = folder_btn
-        
-        folder_layout.addWidget(label_output)
-        folder_layout.addWidget(self.folder_edit)
-        folder_layout.addWidget(folder_btn)
-        layout.addLayout(folder_layout)
-
-    def create_export_inputs(self, layout):
-        """Create export name, number, and mp3 per video inputs"""
-        part_layout = QHBoxLayout()
-        self.part1_edit = QLineEdit(DEFAULT_EXPORT_NAME)
-        self.part1_edit.setPlaceholderText("Export Name")
-        self.part1_edit.setFixedWidth(100)  # Make Name textbox wider
-        self.part2_edit = QLineEdit(DEFAULT_START_NUMBER)
-        self.part2_edit.setPlaceholderText("12345")
-        self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
-        self.part2_edit.setFixedWidth(60)   # Make Number textbox smaller
-        # --- Name list option ---
-        self.name_list_checkbox = QtWidgets.QCheckBox("List name:")
-        self.name_list_checkbox.setChecked(True)
-        self.name_list_enter_btn = QPushButton("Enter")
-        self.name_list_enter_btn.setFixedWidth(60)
-        # Remove Preview button from main UI if present
-        # self.name_list_preview_btn = QPushButton("Preview")
-        # self.name_list_preview_btn.setFixedWidth(70)
-        # Remove initial setEnabled, always update via handler
-        # Set initial style for name_list_enter_btn
-        self.name_list = []  # Store the name list
-        self.name_list_dialog = None
-        def update_name_list_controls():
-            checked = self.name_list_checkbox.isChecked()
-            self.name_list_enter_btn.setEnabled(checked)
-            # self.name_list_preview_btn.setEnabled(checked)
-            self.part1_edit.setEnabled(not checked)
-            self.part2_edit.setEnabled(not checked)
-            if checked:
-                self.name_list_enter_btn.setStyleSheet("")
-                # self.name_list_preview_btn.setStyleSheet("")
-                self.part1_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.part2_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-            else:
-                self.name_list_enter_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                # self.name_list_preview_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.part1_edit.setStyleSheet("")
-                self.part2_edit.setStyleSheet("")
-            if not checked:
-                self.name_list = []
-        self.name_list_checkbox.stateChanged.connect(lambda _: update_name_list_controls())
-        # Apply logic for initial state
-        update_name_list_controls()
-        def open_name_list_dialog():
-            dlg = NameListDialog(self, self.name_list)
-            if dlg.exec() == QDialog.DialogCode.Accepted:
-                self.name_list = dlg.get_names()
-        self.name_list_enter_btn.clicked.connect(open_name_list_dialog)
-        # --- End name list option ---
-        self.mp3_count_checkbox = QtWidgets.QCheckBox("MP3 #")
-        self.mp3_count_checkbox.setChecked(False)
-        self.mp3_count_edit = QLineEdit(str(DEFAULT_MIN_MP3_COUNT))
-        self.mp3_count_edit.setPlaceholderText("MP3")
-        self.mp3_count_edit.setValidator(QIntValidator(1, 999, self))
-        self.mp3_count_edit.setEnabled(False)
-        self.mp3_count_edit.setFixedWidth(50)
-        def set_mp3_count_edit_enabled(state):
-            # Accept both int and Qt.CheckState for compatibility
-            if isinstance(state, int):
-                state = Qt.CheckState(state)
-            checked = state == Qt.CheckState.Checked
-            self.mp3_count_edit.setEnabled(checked)
-            if checked:
-                self.mp3_count_edit.setStyleSheet("")  # Default style
-            else:
-                self.mp3_count_edit.setStyleSheet("background-color: #f2f2f2; color: #888;")  # Greyed out
-        self.mp3_count_checkbox.stateChanged.connect(set_mp3_count_edit_enabled)
-        # Remove mp3_count_edit style logic from update_mp3_checkbox_style
-        def update_mp3_checkbox_style(state):
-            self.mp3_count_checkbox.setStyleSheet("")  # Always default
-        self.mp3_count_checkbox.stateChanged.connect(update_mp3_checkbox_style)
-        # Initialize style and enabled state
-        update_mp3_checkbox_style(self.mp3_count_checkbox.checkState())
-        set_mp3_count_edit_enabled(self.mp3_count_checkbox.checkState())
-        self.part1_edit.textChanged.connect(self.update_output_name)
-        self.part2_edit.textChanged.connect(self.update_output_name)
-        self.folder_edit.textChanged.connect(self.update_output_name)
-        part_layout.addSpacing(20)
-        part_layout.addWidget(self.name_list_checkbox)
-        part_layout.addSpacing(-50)
-        part_layout.addWidget(self.name_list_enter_btn)
-        # part_layout.addWidget(self.name_list_preview_btn)
-        part_layout.addSpacing(20)
-        part_layout.addWidget(QLabel("Name:"))
-        part_layout.addSpacing(-90)  # Reduce space between label and textbox
-        part_layout.addWidget(self.part1_edit)
-        part_layout.addSpacing(-10)
-        part_layout.addWidget(QLabel("#"))
-        part_layout.addSpacing(-120) 
-        part_layout.addWidget(self.part2_edit)
-        part_layout.addSpacing(15)
-        part_layout.addWidget(self.mp3_count_checkbox)
-        part_layout.addSpacing(-70)
-        part_layout.addWidget(self.mp3_count_edit)
-        part_layout.addSpacing(15)
-        layout.addLayout(part_layout)
 
     def create_video_settings(self, layout):
         """Create video settings controls"""
@@ -672,685 +249,81 @@ class SuperCutUI(QWidget):
         settings_layout.addStretch()
         layout.addLayout(settings_layout)
 
-        # --- INTRO OVERLAY CONTROLS ---
-        self.intro_checkbox = QtWidgets.QCheckBox(" Intro :")
-        self.intro_checkbox.setFixedWidth(70)
-        self.intro_checkbox.setChecked(True)
-        def update_intro_checkbox_style(state):
-            self.intro_checkbox.setStyleSheet("")  # Always default color
-        self.intro_checkbox.stateChanged.connect(update_intro_checkbox_style)
-        update_intro_checkbox_style(self.intro_checkbox.checkState())
-
-        intro_layout = QHBoxLayout()
-        intro_layout.setSpacing(4)
-        self.intro_edit = ImageDropLineEdit()
-        self.intro_edit.setPlaceholderText("Intro image path (*.gif, *.png)")
-        self.intro_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
-        self.intro_edit.setFixedWidth(125)
-        self.intro_path = ""
-        def on_intro_changed():
-            self.intro_path = self.intro_edit.text().strip()
-        self.intro_edit.textChanged.connect(on_intro_changed)
-        intro_btn = QPushButton("Select")
-        intro_btn.setFixedWidth(60)
-        def select_intro_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Intro Image", "", "Image Files (*.gif *.png)")
-            if file_path:
-                self.intro_edit.setText(file_path)
-        intro_btn.clicked.connect(select_intro_image)
-        intro_size_label = QLabel("S:")
-        intro_size_label.setFixedWidth(18)
-        self.intro_size_combo = QtWidgets.QComboBox()
-        self.intro_size_combo.setFixedWidth(90)
-        for percent in range(5, 101, 5):
-            self.intro_size_combo.addItem(str(percent), percent)
-        self.intro_size_combo.setCurrentIndex(1)  # Default 10%
-        self.intro_size_percent = 10
-        def on_intro_size_changed(idx):
-            self.intro_size_percent = self.intro_size_combo.itemData(idx)
-            if idx >= 0:
-                self.intro_size_combo.setEditText(f"{self.intro_size_percent}%")
-        self.intro_size_combo.setEditable(True)
-        intro_line_edit = self.intro_size_combo.lineEdit()
-        if intro_line_edit is not None:
-            intro_line_edit.setReadOnly(True)
-            intro_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.intro_size_combo.currentIndexChanged.connect(on_intro_size_changed)
-        on_intro_size_changed(self.intro_size_combo.currentIndex())
-        # Position option (add Center)
-        intro_position_label = QLabel("P:")
-        intro_position_label.setFixedWidth(18)
-        self.intro_position_combo = QtWidgets.QComboBox()
-        self.intro_position_combo.setFixedWidth(130)
-        intro_positions = [
-            ("Center", "center"),
-            ("Top Left", "top_left"),
-            ("Top Right", "top_right"),
-            ("Bottom Left", "bottom_left"),
-            ("Bottom Right", "bottom_right")
-        ]
-        for label, value in intro_positions:
-            self.intro_position_combo.addItem(label, value)
-        self.intro_position_combo.setCurrentIndex(0)  # Default Center
-        self.intro_position = "center"
-        def on_intro_position_changed(idx):
-            self.intro_position = self.intro_position_combo.itemData(idx)
-        self.intro_position_combo.currentIndexChanged.connect(on_intro_position_changed)
-        on_intro_position_changed(self.intro_position_combo.currentIndex())
-
-        # (1) Create all intro widgets first
-        combo_width = 130
-        intro_effect_label = QLabel("Intro:")
-        intro_effect_label.setFixedWidth(40)
-        self.intro_effect_combo = QtWidgets.QComboBox()
-        self.intro_effect_combo.setFixedWidth(combo_width)
-        intro_effect_options = [
-            ("Fade in & out", "fadeinout"),
-            ("Fade in", "fadein"),
-            ("Fade out", "fadeout"),
-            ("Zoompan", "zoompan"),
-            ("None", "none")
-        ]
-        for label, value in intro_effect_options:
-            self.intro_effect_combo.addItem(label, value)
-        self.intro_effect_combo.setCurrentIndex(0)
-        self.intro_effect = "fadeinout"
-        def on_intro_effect_changed(idx):
-            self.intro_effect = self.intro_effect_combo.itemData(idx)
-        self.intro_effect_combo.currentIndexChanged.connect(on_intro_effect_changed)
-        on_intro_effect_changed(self.intro_effect_combo.currentIndex())
-
-        intro_duration_label = QLabel("For (s): ")
-        intro_duration_label.setFixedWidth(45)
-        self.intro_duration_edit = QLineEdit("5")
-        self.intro_duration_edit.setFixedWidth(40)
-        self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
-        self.intro_duration_edit.setPlaceholderText("5")
-        self.intro_duration = 5
-        def on_intro_duration_changed():
-            try:
-                self.intro_duration = int(self.intro_duration_edit.text())
-            except Exception:
-                self.intro_duration = 5
-        self.intro_duration_edit.textChanged.connect(on_intro_duration_changed)
-        on_intro_duration_changed()
-
-        # (2) Now define set_intro_enabled and connect
-        def set_intro_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            self.intro_edit.setEnabled(enabled)
-            intro_btn.setEnabled(enabled)
-            self.intro_size_combo.setEnabled(enabled)
-            self.intro_position_combo.setEnabled(enabled)
-            self.intro_effect_combo.setEnabled(enabled)
-            intro_duration_label.setEnabled(enabled)
-            self.intro_duration_edit.setEnabled(enabled)
-            if enabled:
-                intro_btn.setStyleSheet("")
-                self.intro_edit.setStyleSheet("")
-                self.intro_size_combo.setStyleSheet("")
-                self.intro_position_combo.setStyleSheet("")
-                self.intro_effect_combo.setStyleSheet("")
-                intro_duration_label.setStyleSheet("")
-                self.intro_duration_edit.setStyleSheet("")
-                intro_size_label.setStyleSheet("")
-                intro_position_label.setStyleSheet("")
-                intro_effect_label.setStyleSheet("")
-            else:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                intro_btn.setStyleSheet(grey_btn_style)
-                self.intro_edit.setStyleSheet(grey_btn_style)
-                self.intro_size_combo.setStyleSheet(grey_btn_style)
-                self.intro_position_combo.setStyleSheet(grey_btn_style)
-                self.intro_effect_combo.setStyleSheet(grey_btn_style)
-                intro_duration_label.setStyleSheet("color: grey;")
-                self.intro_duration_edit.setStyleSheet(grey_btn_style)
-                intro_size_label.setStyleSheet("color: grey;")
-                intro_position_label.setStyleSheet("color: grey;")
-                intro_effect_label.setStyleSheet("color: grey;")
-        self.intro_checkbox.stateChanged.connect(lambda _: set_intro_enabled(self.intro_checkbox.checkState()))
-        set_intro_enabled(self.intro_checkbox.checkState())
-
-        intro_layout = QHBoxLayout()
-        intro_layout.setSpacing(4)
-        intro_layout.addWidget(self.intro_checkbox)
-        intro_layout.addSpacing(10)
-        intro_layout.addWidget(self.intro_edit)
-        intro_layout.addSpacing(4)
-        intro_layout.addWidget(intro_btn)
-        intro_layout.addSpacing(4)
-        intro_layout.addWidget(intro_position_label)
-        intro_layout.addSpacing(0)
-        intro_layout.addWidget(self.intro_position_combo)
-        intro_layout.addSpacing(6)
-        intro_layout.addWidget(intro_size_label)
-        intro_layout.addWidget(self.intro_size_combo)
-        layout.addLayout(intro_layout)
-
-        # Move PNG overlay checkbox below video settings
-        self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1:")
-        self.overlay_checkbox.setFixedWidth(82)
-        self.overlay_checkbox.setChecked(True)
-        def update_overlay_checkbox_style(state):
-            self.overlay_checkbox.setStyleSheet("")  # Always default color
-        self.overlay_checkbox.stateChanged.connect(update_overlay_checkbox_style)
-        # Initialize style
-        update_overlay_checkbox_style(self.overlay_checkbox.checkState())
-
-        # Overlay 1 image input (text, drag & drop, select button)
-        overlay1_layout = QHBoxLayout()
-        overlay1_layout.setSpacing(4)  # Reduce spacing between widgets
-        self.overlay1_edit = ImageDropLineEdit()
-        self.overlay1_edit.setPlaceholderText("Overlay 1 image path (*.gif, *.png)")
-        self.overlay1_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
-        self.overlay1_edit.setFixedWidth(125)  # Make the text box shorter
-        self.overlay1_path = ""
-        def on_overlay1_changed():
-            self.overlay1_path = self.overlay1_edit.text().strip()
-        self.overlay1_edit.textChanged.connect(on_overlay1_changed)
-        overlay1_btn = QPushButton("Select")
-        overlay1_btn.setFixedWidth(60)
-        def select_overlay1_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 1 Image", "", "Image Files (*.gif *.png)")
-            if file_path:
-                self.overlay1_edit.setText(file_path)
-        overlay1_btn.clicked.connect(select_overlay1_image)
-        # Overlay 1 size option (5% to 100%)
-        overlay1_size_label = QLabel("S:")
-        overlay1_size_label.setFixedWidth(18)
-        self.overlay1_size_combo = QtWidgets.QComboBox()
-        self.overlay1_size_combo.setFixedWidth(90)
-        for percent in range(5, 101, 5):
-            self.overlay1_size_combo.addItem(str(percent), percent)
-        self.overlay1_size_combo.setCurrentIndex(1)  # Default 10%
-        self.overlay1_size_percent = 10
-        def on_overlay1_size_changed(idx):
-            self.overlay1_size_percent = self.overlay1_size_combo.itemData(idx)
-            # Set display text with %
-            if idx >= 0:
-                self.overlay1_size_combo.setEditText(f"{self.overlay1_size_percent}%")
-        self.overlay1_size_combo.setEditable(True)
-        overlay1_line_edit = self.overlay1_size_combo.lineEdit()
-        if overlay1_line_edit is not None:
-            overlay1_line_edit.setReadOnly(True)
-            overlay1_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.overlay1_size_combo.currentIndexChanged.connect(on_overlay1_size_changed)
-        on_overlay1_size_changed(self.overlay1_size_combo.currentIndex())
-        # Overlay 1 position option
-        overlay1_position_label = QLabel("P:")
-        overlay1_position_label.setFixedWidth(18)
-        self.overlay1_position_combo = QtWidgets.QComboBox()
-        self.overlay1_position_combo.setFixedWidth(130)
-        positions = [
-            ("Center", "center"),
-            ("Top Left", "top_left"),
-            ("Top Right", "top_right"),
-            ("Bottom Left", "bottom_left"),
-            ("Bottom Right", "bottom_right")
-        ]
-        for label, value in positions:
-            self.overlay1_position_combo.addItem(label, value)
-        self.overlay1_position_combo.setCurrentIndex(0)  # Default Center
-        self.overlay1_position = "center"
-        def on_overlay1_position_changed(idx):
-            self.overlay1_position = self.overlay1_position_combo.itemData(idx)
-        self.overlay1_position_combo.currentIndexChanged.connect(on_overlay1_position_changed)
-        on_overlay1_position_changed(self.overlay1_position_combo.currentIndex())
-        # Enable/disable overlay1_edit, overlay1_btn, and overlay1_size_combo based on checkbox
-        def set_overlay1_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            self.overlay1_edit.setEnabled(enabled)
-            overlay1_btn.setEnabled(enabled)
-            self.overlay1_size_combo.setEnabled(enabled)
-            self.overlay1_position_combo.setEnabled(enabled)
-            if enabled:
-                overlay1_btn.setStyleSheet("")  # Default style
-                self.overlay1_edit.setStyleSheet("")  # Default style
-                self.overlay1_size_combo.setStyleSheet("")
-                self.overlay1_position_combo.setStyleSheet("")
-                overlay1_size_label.setStyleSheet("")  # Default
-                overlay1_position_label.setStyleSheet("")
-            else:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                overlay1_btn.setStyleSheet(grey_btn_style)
-                self.overlay1_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")  # Lighter grey for textbox
-                self.overlay1_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay1_position_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                overlay1_size_label.setStyleSheet("color: grey;")
-                overlay1_position_label.setStyleSheet("color: grey;")
-        self.overlay_checkbox.stateChanged.connect(lambda _: set_overlay1_enabled(self.overlay_checkbox.checkState()))
-        set_overlay1_enabled(self.overlay_checkbox.checkState())
-        overlay1_layout.addWidget(self.overlay_checkbox)
-        overlay1_layout.addWidget(self.overlay1_edit)
-        overlay1_layout.addSpacing(6)  # Space before select button
-        overlay1_layout.addWidget(overlay1_btn)
-        overlay1_layout.addSpacing(4)  # Space before position label
-        overlay1_layout.addWidget(overlay1_position_label)
-        overlay1_layout.addSpacing(2)
-        overlay1_layout.addWidget(self.overlay1_position_combo)
-        overlay1_layout.addSpacing(6) 
-        overlay1_layout.addWidget(overlay1_size_label)
-        overlay1_layout.addWidget(self.overlay1_size_combo)
-        layout.addLayout(overlay1_layout)
-
-        # Overlay 2 controls (similar to Overlay 1)
-        self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2:")
-        self.overlay2_checkbox.setFixedWidth(82)
-        self.overlay2_checkbox.setChecked(True)
-        def update_overlay2_checkbox_style(state):
-            self.overlay2_checkbox.setStyleSheet("")  # Always default color
-        self.overlay2_checkbox.stateChanged.connect(update_overlay2_checkbox_style)
-        update_overlay2_checkbox_style(self.overlay2_checkbox.checkState())
-
-        overlay2_layout = QHBoxLayout()
-        overlay2_layout.setSpacing(4)
-        self.overlay2_edit = ImageDropLineEdit()
-        self.overlay2_edit.setPlaceholderText("Overlay 2 image path (*.gif, *.png)")
-        self.overlay2_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
-        self.overlay2_edit.setFixedWidth(125)
-        self.overlay2_path = ""
-        def on_overlay2_changed():
-            self.overlay2_path = self.overlay2_edit.text().strip()
-        self.overlay2_edit.textChanged.connect(on_overlay2_changed)
-        overlay2_btn = QPushButton("Select")
-        overlay2_btn.setFixedWidth(60)
-        def select_overlay2_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 2 Image", "", "Image Files (*.gif *.png)")
-            if file_path:
-                self.overlay2_edit.setText(file_path)
-        overlay2_btn.clicked.connect(select_overlay2_image)
-        overlay2_size_label = QLabel("S:")
-        overlay2_size_label.setFixedWidth(18)
-        self.overlay2_size_combo = QtWidgets.QComboBox()
-        self.overlay2_size_combo.setFixedWidth(90)
-        for percent in range(5, 101, 5):
-            self.overlay2_size_combo.addItem(str(percent), percent)
-        self.overlay2_size_combo.setCurrentIndex(1)  # Default 10%
-        self.overlay2_size_percent = 10
-        def on_overlay2_size_changed(idx):
-            self.overlay2_size_percent = self.overlay2_size_combo.itemData(idx)
-            # Set display text with %
-            if idx >= 0:
-                self.overlay2_size_combo.setEditText(f"{self.overlay2_size_percent}%")
-        self.overlay2_size_combo.setEditable(True)
-        overlay2_line_edit = self.overlay2_size_combo.lineEdit()
-        if overlay2_line_edit is not None:
-            overlay2_line_edit.setReadOnly(True)
-            overlay2_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.overlay2_size_combo.currentIndexChanged.connect(on_overlay2_size_changed)
-        on_overlay2_size_changed(self.overlay2_size_combo.currentIndex())
-        # Overlay 2 position option
-        overlay2_position_label = QLabel("P:")
-        overlay2_position_label.setFixedWidth(18)
-        self.overlay2_position_combo = QtWidgets.QComboBox()
-        self.overlay2_position_combo.setFixedWidth(130)
-        positions = [
-            ("Center", "center"),
-            ("Top Left", "top_left"),
-            ("Top Right", "top_right"),
-            ("Bottom Left", "bottom_left"),
-            ("Bottom Right", "bottom_right")
-        ]
-        for label, value in positions:
-            self.overlay2_position_combo.addItem(label, value)
-        self.overlay2_position_combo.setCurrentIndex(0)  # Default Center
-        self.overlay2_position = "center"
-        def on_overlay2_position_changed(idx):
-            self.overlay2_position = self.overlay2_position_combo.itemData(idx)
-        self.overlay2_position_combo.currentIndexChanged.connect(on_overlay2_position_changed)
-        on_overlay2_position_changed(self.overlay2_position_combo.currentIndex())
-        def set_overlay2_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            self.overlay2_edit.setEnabled(enabled)
-            overlay2_btn.setEnabled(enabled)
-            self.overlay2_size_combo.setEnabled(enabled)
-            self.overlay2_position_combo.setEnabled(enabled)
-            if enabled:
-                overlay2_btn.setStyleSheet("")
-                self.overlay2_edit.setStyleSheet("")
-                self.overlay2_size_combo.setStyleSheet("")
-                self.overlay2_position_combo.setStyleSheet("")
-                overlay2_size_label.setStyleSheet("")
-                overlay2_position_label.setStyleSheet("")
-            else:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                overlay2_btn.setStyleSheet(grey_btn_style)
-                self.overlay2_edit.setStyleSheet(grey_btn_style)
-                self.overlay2_size_combo.setStyleSheet(grey_btn_style)
-                self.overlay2_position_combo.setStyleSheet(grey_btn_style)
-                overlay2_size_label.setStyleSheet("color: grey;")
-                overlay2_position_label.setStyleSheet("color: grey;")
-        self.overlay2_checkbox.stateChanged.connect(lambda _: set_overlay2_enabled(self.overlay2_checkbox.checkState()))
-        set_overlay2_enabled(self.overlay2_checkbox.checkState())
-        overlay2_layout.addWidget(self.overlay2_checkbox)
-        overlay2_layout.addWidget(self.overlay2_edit)
-        overlay2_layout.addSpacing(6)
-        overlay2_layout.addWidget(overlay2_btn)
-        overlay2_layout.addSpacing(4)
-        overlay2_layout.addWidget(overlay2_position_label)
-        overlay2_layout.addSpacing(2)
-        overlay2_layout.addWidget(self.overlay2_position_combo)
-        overlay2_layout.addSpacing(6)
-        overlay2_layout.addWidget(overlay2_size_label)
-        overlay2_layout.addWidget(self.overlay2_size_combo)
-        layout.addLayout(overlay2_layout)
-
-        # --- EFFECT CONTROL FOR INTRO & OVERLAY ---
-        
-        combo_width = 130
-        edit_width = 50
-
-        effect_label = QLabel("Overlay:")
-        effect_label.setFixedWidth(55)
-        self.effect_combo = QtWidgets.QComboBox()
-        self.effect_combo.setFixedWidth(combo_width)
-        effect_options = [
-            ("Fade in & out", "fadeinout"),
-            ("Fade in", "fadein"),
-            ("Fade out", "fadeout"),
-            ("Zoompan", "zoompan"),
-            ("None", "none")
-        ]
-        for label, value in effect_options:
-            self.effect_combo.addItem(label, value)
-        self.effect_combo.setCurrentIndex(1)
-        self.selected_effect = "fadein"
-        def on_effect_changed(idx):
-            self.selected_effect = self.effect_combo.itemData(idx)
-        self.effect_combo.currentIndexChanged.connect(on_effect_changed)
-        on_effect_changed(self.effect_combo.currentIndex())
-
-        overlay_duration_label = QLabel("at (s):")
-        overlay_duration_label.setFixedWidth(40)
-        self.overlay_duration_edit = QLineEdit("5")
-        self.overlay_duration_edit.setFixedWidth(edit_width)
-        self.overlay_duration_edit.setValidator(QIntValidator(0, 999, self))
-        self.overlay_duration_edit.setPlaceholderText("5")
-        self.overlay_duration = 5
-        def on_overlay_duration_changed():
-            try:
-                self.overlay_duration = int(self.overlay_duration_edit.text())
-            except Exception:
-                self.overlay_duration = 5
-        self.overlay_duration_edit.textChanged.connect(on_overlay_duration_changed)
-        on_overlay_duration_changed()
-
-        effect_layout = QHBoxLayout()
-        effect_layout.setContentsMargins(0, 0, 0, 0)
-        effect_layout.addSpacing(20)
-        effect_layout.addWidget(intro_effect_label)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(self.intro_effect_combo)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(intro_duration_label)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(self.intro_duration_edit)
-        effect_layout.addSpacing(12)
-        effect_layout.addWidget(effect_label)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(self.effect_combo)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(overlay_duration_label)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(self.overlay_duration_edit)
-        effect_layout.addStretch()
-        layout.addLayout(effect_layout)
-        # Add extra vertical spacing before the action buttons
-        layout.addSpacing(6)
-
-        # --- Overlay effect label greying logic ---
-        def update_overlay_effect_label_style():
-            if not (self.overlay_checkbox.isChecked() or self.overlay2_checkbox.isChecked()):
-                effect_label.setStyleSheet("color: grey;")
-                self.effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.effect_combo.setEnabled(False)
-                overlay_duration_label.setStyleSheet("color: grey;")
-                self.overlay_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay_duration_edit.setEnabled(False)
-            else:
-                effect_label.setStyleSheet("")
-                self.effect_combo.setStyleSheet("")
-                self.effect_combo.setEnabled(True)
-                overlay_duration_label.setStyleSheet("")
-                self.overlay_duration_edit.setStyleSheet("")
-                self.overlay_duration_edit.setEnabled(True)
-        self.overlay_checkbox.stateChanged.connect(update_overlay_effect_label_style)
-        self.overlay2_checkbox.stateChanged.connect(update_overlay_effect_label_style)
-        update_overlay_effect_label_style()
-
-    def create_action_buttons(self, layout):
-        """Create action buttons"""
-        button_layout = QHBoxLayout()
-
-        # Add settings button first, before terminal
-        button_layout.addSpacing(10)
-        self.settings_btn = QPushButton()
-        icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "settings.png")
-        self.settings_btn.setIcon(QIcon(icon_path))
-        self.settings_btn.setFixedSize(32, 32)
-        self.settings_btn.setIconSize(self.settings_btn.size())  # Make icon fill button
-        self.settings_btn.setToolTip("Settings")
-        self.settings_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
-        self.settings_btn.clicked.connect(self.show_settings_dialog)
-        button_layout.addWidget(self.settings_btn)
-
-        # Add terminal button next
-        button_layout.addSpacing(10)
-        self.terminal_btn = QPushButton("💻 Terminal")
-        self.terminal_btn.setFixedHeight(35)
-        self.terminal_btn.setFixedWidth(100)
-        self.terminal_btn.clicked.connect(self.show_terminal)
-        button_layout.addWidget(self.terminal_btn)
-
-        # Then add create video button, always after terminal
-        button_layout.addSpacing(0)
-        self.create_btn = QPushButton("Create Video")
-        self.create_btn.setFixedHeight(35)
-        self.create_btn.setFixedWidth(350)
-        self.create_btn.clicked.connect(self.create_video)
-        button_layout.addWidget(self.create_btn)
-
-        # Add placeholder button after create video button
-        button_layout.addSpacing(5)
-        self.placeholder_btn = QPushButton()
-        rocket_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "rocket.png")
-        self.placeholder_btn.setIcon(QIcon(rocket_icon_path))
-        self.placeholder_btn.setIconSize(QSize(28, 28))
-        self.placeholder_btn.setFixedHeight(32)
-        self.placeholder_btn.setFixedWidth(32)
-        self.placeholder_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
-        # self.placeholder_btn.setVisible(self.static_icon.isVisible())  # Ensure always visible
-        button_layout.addWidget(self.placeholder_btn)
-
-        button_layout.addStretch()  # Pushes spinner to the far right
-
-        layout.addLayout(button_layout)
-
-    def create_progress_controls(self, layout):
-        """Create progress bar and stop button on the same line, with stop button before progress bar. Progress bar should stretch to fill space."""
-        progress_row = QtWidgets.QHBoxLayout()
-        self.stop_btn = QPushButton()
-        self.stop_btn.setFixedHeight(24)
-        self.stop_btn.setFixedWidth(24)
-        self.stop_btn.setEnabled(False)
-        self.stop_btn.setVisible(False)
-        stop_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "stopbutton.png")
-        self.stop_btn.setIcon(QIcon(stop_icon_path))
-        self.stop_btn.setIconSize(QSize(22, 22))
-        self.stop_btn.setStyleSheet("QPushButton { background: transparent; border: none; } QPushButton:pressed { background: transparent; }")
-        self.stop_btn.clicked.connect(self.stop_video_creation)
-        progress_row.addWidget(self.stop_btn)
-
-        self.progress_bar = QtWidgets.QProgressBar()
-        self.progress_bar.setMinimum(0)
-        self.progress_bar.setMaximum(1)
-        self.progress_bar.setValue(0)
-        self.progress_bar.setTextVisible(True)        
-        self.progress_bar.setFormat("Batch: 0/0")
-        self.progress_bar.setVisible(False)
-        self.progress_bar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
-        progress_row.addWidget(self.progress_bar)
-        layout.addLayout(progress_row)
-
-    def restore_window_position(self):
-        """Restore window position from settings"""
-        settings = QSettings('SuperCut', 'SuperCutUI')
-        pos = settings.value('window_position')
-        if isinstance(pos, QPoint):
-            self.move(pos)
-        elif isinstance(pos, (tuple, list)) and len(pos) == 2:
-            self.move(QPoint(pos[0], pos[1]))
-        else:
-            # Set initial position to top-left corner (0,0)
-            self.move(0, 0)
-
-    def setup_shortcuts(self):
-        """Setup keyboard shortcuts"""
-        QShortcut(QKeySequence("Ctrl+W"), self, self.close_window)
-
-    def close_window(self):
-        """Wrapper method for close() to fix PyQt slot type error"""
-        self.close()
+        # --- Intro and Overlay controls (moved to overlay_manager) ---
+        overlay_controls = create_intro_overlay_controls(self)
+        # Assign all returned widgets to self for later use
+        for key, widget in overlay_controls.items():
+            setattr(self, key, widget)
+        # Add layouts to main layout if present
+        if 'intro_layout' in overlay_controls:
+            layout.addLayout(overlay_controls['intro_layout'])
+        if 'overlay1_layout' in overlay_controls:
+            layout.addLayout(overlay_controls['overlay1_layout'])
+        if 'overlay2_layout' in overlay_controls:
+            layout.addLayout(overlay_controls['overlay2_layout'])
+        if 'effect_layout' in overlay_controls:
+            layout.addLayout(overlay_controls['effect_layout'])
+        if 'spacing' in overlay_controls:
+            layout.addSpacing(overlay_controls['spacing'])
 
     def show_terminal(self):
-        """Show or create the terminal widget"""
-        if self.terminal_widget is None:
-            self.terminal_widget = TerminalWidget()
-            # Connect to the closed signal
-            self.terminal_widget.closed.connect(self.on_terminal_closed)
-            # Position terminal intelligently based on main window position
-            self.position_terminal_widget()
-            self.terminal_widget.show_and_raise()
-            # Update button text to show terminal is on
-            self.terminal_btn.setText("💻 Terminal ON")
-        else:
-            # Terminal exists, toggle it off
-            self.terminal_widget.close()
-            self.terminal_widget = None
-            # Update button text to show terminal is off
-            self.terminal_btn.setText("💻 Terminal")
+        show_terminal(self)
 
     def position_terminal_widget(self):
-        """Position the terminal widget intelligently based on main window position and screen space"""
-        if not self.terminal_widget:
-            return
-            
-        # Get main window position and size
-        main_pos = self.pos()
-        main_width = self.width()
-        main_height = self.height()
-        
-        # Get terminal widget size
-        terminal_width = self.terminal_widget.width()
-        terminal_height = self.terminal_widget.height()
-        
-        # Get screen geometry
-        screen = self.screen() if hasattr(self, 'screen') and self.screen() else QApplication.primaryScreen()
-        if screen is not None:
-            screen_geometry = screen.geometry()
-            screen_width = screen_geometry.width()
-            screen_height = screen_geometry.height()
-        else:
-            screen_width = 1920
-            screen_height = 1080
-        
-        # Calculate available space on left and right
-        space_on_right = screen_width - (main_pos.x() + main_width)
-        space_on_left = main_pos.x()
-        
-        # Determine optimal position
-        if space_on_right >= terminal_width + 10:
-            # Enough space on the right - position there
-            terminal_x = main_pos.x() + main_width + 10
-            terminal_y = main_pos.y()
-            position_side = "right"
-        elif space_on_left >= terminal_width + 10:
-            # Enough space on the left - position there
-            terminal_x = main_pos.x() - terminal_width - 10
-            terminal_y = main_pos.y()
-            position_side = "left"
-        else:
-            # Not enough space on either side, try to fit it
-            if space_on_right > space_on_left:
-                # More space on right, try to fit there
-                terminal_x = main_pos.x() + main_width + 5
-                terminal_y = main_pos.y()
-                position_side = "right (tight)"
-            else:
-                # More space on left, try to fit there
-                terminal_x = main_pos.x() - terminal_width - 5
-                terminal_y = main_pos.y()
-                position_side = "left (tight)"
-        
-        # Ensure terminal doesn't go off-screen vertically
-        if terminal_y + terminal_height > screen_height:
-            terminal_y = screen_height - terminal_height - 10
-        
-        if terminal_y < 0:
-            terminal_y = 10
-        
-        # Ensure terminal doesn't go off-screen horizontally
-        if terminal_x + terminal_width > screen_width:
-            terminal_x = screen_width - terminal_width - 10
-        
-        if terminal_x < 0:
-            terminal_x = 10
-        
-        # Position the terminal widget
-        self.terminal_widget.move(terminal_x, terminal_y)
-        
-        # Update terminal title to show positioning
-        self.terminal_widget.setWindowTitle(f"SuperCut Terminal [{position_side}]")
-
-    def on_terminal_closed(self):
-        """Handle terminal widget closed signal"""
-        self.terminal_widget = None
-        # Reset button text when terminal is closed manually
-        self.terminal_btn.setText("💻 Terminal")
+        position_terminal_widget(self)
 
     def select_media_sources_folder(self):
-        """Select media sources folder"""
-        desktop_folder = get_desktop_folder()
-        folder = QFileDialog.getExistingDirectory(self, "Select Media Folder", desktop_folder)
-        if folder:
-            self.media_sources_edit.setText(folder)
-            if not self.output_folder_manual:
-                self.folder_edit.setText(folder)
-            self.update_output_name()
-        else:
-            if not self.output_folder_manual:
-                self.folder_edit.setText("")
+        """Select media sources folder (now uses utils)"""
+        select_media_sources_folder(
+            self,
+            self.media_sources_edit,
+            self.folder_edit,
+            self.output_folder_manual,
+            self.update_output_name
+        )
 
     def select_output_folder(self):
-        """Select output folder"""
-        desktop_folder = get_desktop_folder()
-        folder = QFileDialog.getExistingDirectory(self, "Select Output Folder", desktop_folder)
-        if folder:
-            self.folder_edit.setText(folder)
-            self.output_folder_manual = True
-            self.update_output_name()
+        """Select output folder (now uses utils)"""
+        def set_manual(val):
+            self.output_folder_manual = val
+        select_output_folder(
+            self,
+            self.folder_edit,
+            self.update_output_name,
+            set_manual
+        )
 
     def update_output_name(self):
-        """Update the output filename based on current inputs"""
-        if hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked() and self.name_list:
-            # Use first name for preview, do not append number
-            part1 = self.name_list[0][:180]
-            filename = f"{sanitize_filename(part1)}.mp4"
-        else:
-            part1 = self.part1_edit.text().strip()
-            part2 = self.part2_edit.text().strip()
-            folder = self.folder_edit.text().strip() or os.getcwd()
-            # Default to 1 if blank or zero
-            if not part2 or part2 == '0':
-                part2 = '1'
-            # Sanitize export name
-            part1 = sanitize_filename(part1 or "")
-            if part1 and part2:
-                filename = f"{part1}_{part2}.mp4"
-            else:
-                filename = "output.mp4"
-        folder = self.folder_edit.text().strip() or os.getcwd()
-        self.output_path = os.path.join(folder, filename)
+        """Update the output filename based on current inputs (now uses utils)"""
+        def set_output_path(path):
+            self.output_path = path
+        update_output_name(
+            self.name_list_checkbox,
+            self.name_list,
+            self.part1_edit,
+            self.part2_edit,
+            self.folder_edit,
+            set_output_path
+        )
+
+    def _gather_and_validate_inputs(self):
+        """Gather and validate user inputs. Return tuple or None if invalid. (now uses utils)"""
+        return gather_and_validate_inputs(
+            self,
+            self.media_sources_edit,
+            self.name_list_checkbox,
+            self.name_list,
+            self.part1_edit,
+            self.part2_edit,
+            self.folder_edit,
+            self.codec_combo,
+            self.resolution_combo,
+            self.fps_combo,
+            self.mp3_count_checkbox,
+            self.mp3_count_edit,
+            DEFAULT_MIN_MP3_COUNT
+        )
+        return None
 
     def create_video(self):
         """Start video creation process"""
@@ -1393,46 +366,6 @@ class SuperCutUI(QWidget):
         self._set_ui_processing_state(True, total_batches=total_batches)
         # Step 3: Set up worker and thread
         self._setup_worker_and_thread(media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count)
-
-    def _gather_and_validate_inputs(self):
-        """Gather and validate user inputs. Return tuple or None if invalid."""
-        media_sources = self.media_sources_edit.text()
-        use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
-        if use_name_list:
-            export_name = ""  # Will use name list, but pass empty string for validation
-        else:
-            export_name = self.part1_edit.text().strip()
-        number = self.part2_edit.text().strip()
-        if not number or number == '0':
-            number = '1'
-        if not use_name_list:
-            export_name = sanitize_filename(export_name or "")
-        folder = self.folder_edit.text().strip()
-        if not folder:
-            QMessageBox.warning(self, "⚠️ Missing Output Folder", "Please select or enter an output folder.", QMessageBox.StandardButton.Ok)
-            return None
-        codec = self.codec_combo.currentData()
-        resolution = self.resolution_combo.currentData()
-        fps = self.fps_combo.currentData()
-        if self.mp3_count_checkbox.isChecked():
-            try:
-                min_mp3_count = int(self.mp3_count_edit.text())
-                if min_mp3_count < 1:
-                    min_mp3_count = DEFAULT_MIN_MP3_COUNT
-            except Exception:
-                min_mp3_count = DEFAULT_MIN_MP3_COUNT
-        else:
-            min_mp3_count = DEFAULT_MIN_MP3_COUNT
-        if not use_name_list:
-            is_valid, error_msg = validate_inputs(media_sources, export_name or "", number)
-            if not is_valid:
-                QMessageBox.warning(self, "⚠️ Missing Input", error_msg, QMessageBox.StandardButton.Ok)
-                return None
-        is_valid, error_msg, mp3_files, image_files = validate_media_files(media_sources, min_mp3_count)
-        if not is_valid:
-            QMessageBox.critical(self, "❌ Error", error_msg)
-            return None
-        return (media_sources, export_name, number, folder, codec, resolution, fps, set(mp3_files), set(image_files), min_mp3_count)
 
     def _set_ui_processing_state(self, processing, total_batches=0):
         """Enable/disable UI controls for processing state."""
@@ -1479,33 +412,14 @@ class SuperCutUI(QWidget):
                 self.setFixedSize(self._original_size)
                 self._expanded_for_progress = False
 
-    def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count):
-        """Set up the VideoWorker and QThread, connect signals, and start processing."""
-        self._thread = QThread()
-        use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
-        name_list = self.name_list if use_name_list else None
-        self._worker = VideoWorker(
-            media_sources, export_name, number, folder, codec, resolution, fps,
-            self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
-            self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position,
-            self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_position,
-            self.selected_effect, self.overlay_duration,
-            self.intro_effect, self.intro_duration,
-            name_list=name_list
-        )
-        self._worker.moveToThread(self._thread)
-        self._thread.started.connect(self._worker.run)
-        self._worker.progress.connect(self.on_worker_progress)
-        self._worker.error.connect(self.on_worker_error)
-        self._worker.finished.connect(
-            lambda leftover_mp3s, used_images, failed_moves: self.on_worker_finished_with_leftovers(
-                leftover_mp3s, used_images, original_mp3_files, original_image_files, failed_moves
-            )
-        )
-        self._worker.finished.connect(self._thread.quit)
-        self._worker.finished.connect(self._worker.deleteLater)
-        self._thread.finished.connect(self._thread.deleteLater)
-        self._thread.start()
+    def _setup_worker_and_thread(self, *args, **kwargs):
+        setup_worker_and_thread(self, *args, **kwargs)
+
+    def stop_video_creation(self):
+        stop_video_creation(self)
+
+    def cleanup_worker_and_thread(self):
+        cleanup_worker_and_thread(self)
 
     def on_worker_progress(self, batch_count, total_batches):
         """Handle worker progress updates"""
@@ -1627,7 +541,8 @@ class SuperCutUI(QWidget):
         # Show warning if any files failed to move
         if failed_moves:
             QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(failed_moves))
-        self.clear_inputs()
+        # Clear inputs using imported function
+        clear_inputs(self)
         self.cleanup_worker_and_thread()
         self._worker = None
         self._thread = None
@@ -1638,43 +553,6 @@ class SuperCutUI(QWidget):
                 self._stopping_msgbox.hide()
                 QtWidgets.QApplication.processEvents()
                 self._stopping_msgbox = None
-
-    def show_success_options(self, leftover_files=None, leftover_images=None, min_mp3_count=None):
-        """Show success dialog with options. All UI updates are performed in the main thread via signals/slots."""
-        # Play notification sound
-        try:
-            QtWidgets.QApplication.beep()
-        except RuntimeError as e:
-            logger.warning(f"Failed to play notification sound: {e}")
-        if min_mp3_count is None:
-            if self.mp3_count_checkbox.isChecked():
-                try:
-                    min_mp3_count = int(self.mp3_count_edit.text())
-                    if min_mp3_count < 1:
-                        min_mp3_count = DEFAULT_MIN_MP3_COUNT
-                except Exception:
-                    min_mp3_count = DEFAULT_MIN_MP3_COUNT
-            else:
-                min_mp3_count = DEFAULT_MIN_MP3_COUNT
-        dlg = SuccessDialog(
-            self, 
-            open_folder=self.open_result_folder, 
-            leftover_files=leftover_files, 
-            leftover_images=leftover_images,
-            min_mp3_count=min_mp3_count
-        )
-        dlg.exec()
-
-    def open_result_folder(self):
-        """Open the result folder in file explorer"""
-        folder = os.path.dirname(self.output_path)
-        open_folder_in_explorer(folder)
-
-    def clear_inputs(self):
-        """Clear input fields"""
-        self.media_sources_edit.setText("")
-        self.folder_edit.setText("")
-        self.part2_edit.setText("")
 
     def closeEvent(self, event):
         """Handle window close event"""
@@ -1754,69 +632,7 @@ class SuperCutUI(QWidget):
             self.output_folder_manual = False
 
     def show_settings_dialog(self):
-        dlg = SettingsDialog(self, settings=self.settings, fps_options=DEFAULT_FPS_OPTIONS)
-        if dlg.exec() == QDialog.DialogCode.Accepted:
-            self.apply_settings()
+        show_settings_dialog(self, DEFAULT_FPS_OPTIONS)
 
     def apply_settings(self):
-        # Update FPS combo to reflect new default if not set by user yet
-        default_fps = self.settings.value('default_fps', type=int)
-        if default_fps is not None:
-            idx = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == default_fps), 0)
-            self.fps_combo.setCurrentIndex(idx)
-        # Apply default intro settings only if enabled
-        default_intro_enabled = self.settings.value('default_intro_enabled', True, type=bool)
-        if default_intro_enabled:
-            default_intro_path = self.settings.value('default_intro_path', '', type=str)
-            default_intro_position = self.settings.value('default_intro_position', 'center', type=str)
-            default_intro_size = self.settings.value('default_intro_size', 50, type=int)
-            if self.intro_checkbox.isChecked():
-                if not self.intro_edit.text().strip():
-                    self.intro_edit.setText(default_intro_path)
-                idx = next((i for i in range(self.intro_position_combo.count()) if self.intro_position_combo.itemData(i) == default_intro_position), 0)
-                self.intro_position_combo.setCurrentIndex(idx)
-                idx = next((i for i in range(self.intro_size_combo.count()) if self.intro_size_combo.itemData(i) == default_intro_size), 9)
-                self.intro_size_combo.setCurrentIndex(idx)
-        # Apply default overlay 1 settings if overlay 1 is checked and fields are empty
-        default_overlay1_path = self.settings.value('default_overlay1_path', '', type=str)
-        default_overlay1_position = self.settings.value('default_overlay1_position', 'bottom_left', type=str)
-        default_overlay1_size = self.settings.value('default_overlay1_size', 15, type=int)
-        if self.overlay_checkbox.isChecked():
-            if not self.overlay1_edit.text().strip():
-                self.overlay1_edit.setText(default_overlay1_path)
-            idx = next((i for i in range(self.overlay1_position_combo.count()) if self.overlay1_position_combo.itemData(i) == default_overlay1_position), 3)
-            self.overlay1_position_combo.setCurrentIndex(idx)
-            idx = next((i for i in range(self.overlay1_size_combo.count()) if self.overlay1_size_combo.itemData(i) == default_overlay1_size), 2)
-            self.overlay1_size_combo.setCurrentIndex(idx)
-        # Apply default overlay 2 settings if overlay 2 is checked and fields are empty
-        default_overlay2_path = self.settings.value('default_overlay2_path', '', type=str)
-        default_overlay2_position = self.settings.value('default_overlay2_position', 'top_right', type=str)
-        default_overlay2_size = self.settings.value('default_overlay2_size', 15, type=int)
-        if self.overlay2_checkbox.isChecked():
-            if not self.overlay2_edit.text().strip():
-                self.overlay2_edit.setText(default_overlay2_path)
-            idx = next((i for i in range(self.overlay2_position_combo.count()) if self.overlay2_position_combo.itemData(i) == default_overlay2_position), 2)
-            self.overlay2_position_combo.setCurrentIndex(idx)
-            idx = next((i for i in range(self.overlay2_size_combo.count()) if self.overlay2_size_combo.itemData(i) == default_overlay2_size), 2)
-            self.overlay2_size_combo.setCurrentIndex(idx)
-
-    def cleanup_worker_and_thread(self):
-        """Disconnect all signals and clean up worker and thread objects safely."""
-        if hasattr(self, '_worker') and self._worker is not None:
-            try:
-                self._worker.progress.disconnect(self.on_worker_progress)
-            except (TypeError, RuntimeError):
-                pass
-            try:
-                self._worker.error.disconnect(self.on_worker_error)
-            except (TypeError, RuntimeError):
-                pass
-            try:
-                self._worker.finished.disconnect()
-            except (TypeError, RuntimeError):
-                pass
-        if hasattr(self, '_thread') and self._thread is not None:
-            try:
-                self._thread.started.disconnect()
-            except (TypeError, RuntimeError):
-                pass
+        apply_settings(self, DEFAULT_FPS_OPTIONS)
