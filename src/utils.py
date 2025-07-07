@@ -7,7 +7,6 @@ import atexit
 from typing import Set
 from src.logger import logger
 import shutil
-from PyQt6.QtWidgets import QFileDialog, QMessageBox
 
 # Global set to track temporary files
 TEMP_FILES: Set[str] = set()
@@ -163,106 +162,5 @@ def validate_media_files(media_sources: str, min_mp3_count: int = 3) -> tuple[bo
         return False, f"Not enough mp3 files in folder (need at least {min_mp3_count} to start batch processing)", [], []
     return True, "", mp3_files, image_files
 
-def select_media_sources_folder(parent, media_sources_edit, folder_edit, output_folder_manual, update_output_name_func):
-    """Select media sources folder (refactored for utils)"""
-    desktop_folder = get_desktop_folder()
-    folder = QFileDialog.getExistingDirectory(parent, "Select Media Folder", desktop_folder)
-    if folder:
-        media_sources_edit.setText(folder)
-        if not output_folder_manual:
-            folder_edit.setText(folder)
-        update_output_name_func()
-        return folder
-    else:
-        if not output_folder_manual:
-            folder_edit.setText("")
-        return None
-
-def select_output_folder(parent, folder_edit, update_output_name_func, set_output_folder_manual):
-    """Select output folder (refactored for utils)"""
-    desktop_folder = get_desktop_folder()
-    folder = QFileDialog.getExistingDirectory(parent, "Select Output Folder", desktop_folder)
-    if folder:
-        folder_edit.setText(folder)
-        set_output_folder_manual(True)
-        update_output_name_func()
-        return folder
-    return None
-
-def update_output_name(name_list_checkbox, name_list, part1_edit, part2_edit, folder_edit, set_output_path_func):
-    """Update the output filename based on current inputs (refactored for utils)"""
-    if name_list_checkbox.isChecked() and name_list:
-        part1 = name_list[0][:180]
-        filename = f"{sanitize_filename(part1)}.mp4"
-    else:
-        part1 = part1_edit.text().strip()
-        part2 = part2_edit.text().strip()
-        folder = folder_edit.text().strip() or os.getcwd()
-        if not part2 or part2 == '0':
-            part2 = '1'
-        part1 = sanitize_filename(part1 or "")
-        if part1 and part2:
-            filename = f"{part1}_{part2}.mp4"
-        else:
-            filename = "output.mp4"
-    folder = folder_edit.text().strip() or os.getcwd()
-    output_path = os.path.join(folder, filename)
-    set_output_path_func(output_path)
-    return output_path
-
-def gather_and_validate_inputs(
-    parent,
-    media_sources_edit,
-    name_list_checkbox,
-    name_list,
-    part1_edit,
-    part2_edit,
-    folder_edit,
-    codec_combo,
-    resolution_combo,
-    fps_combo,
-    mp3_count_checkbox,
-    mp3_count_edit,
-    DEFAULT_MIN_MP3_COUNT
-):
-    """Gather and validate user inputs. Return tuple or None if invalid. (refactored for utils)"""
-    media_sources = media_sources_edit.text()
-    use_name_list = name_list_checkbox.isChecked() if name_list_checkbox else False
-    if use_name_list:
-        export_name = ""
-    else:
-        export_name = part1_edit.text().strip()
-    number = part2_edit.text().strip()
-    if not number or number == '0':
-        number = '1'
-    if not use_name_list:
-        export_name = sanitize_filename(export_name or "")
-    folder = folder_edit.text().strip()
-    if not folder:
-        QMessageBox.warning(parent, "⚠️ Missing Output Folder", "Please select or enter an output folder.", QMessageBox.StandardButton.Ok)
-        return None
-    codec = codec_combo.currentData()
-    resolution = resolution_combo.currentData()
-    fps = fps_combo.currentData()
-    if mp3_count_checkbox.isChecked():
-        try:
-            min_mp3_count = int(mp3_count_edit.text())
-            if min_mp3_count < 1:
-                min_mp3_count = DEFAULT_MIN_MP3_COUNT
-        except Exception:
-            min_mp3_count = DEFAULT_MIN_MP3_COUNT
-    else:
-        min_mp3_count = DEFAULT_MIN_MP3_COUNT
-    if not use_name_list:
-        is_valid, error_msg = validate_inputs(media_sources, export_name or "", number)
-        if not is_valid:
-            QMessageBox.warning(parent, "⚠️ Missing Input", error_msg, QMessageBox.StandardButton.Ok)
-            return None
-    is_valid, error_msg, mp3_files, image_files = validate_media_files(media_sources, min_mp3_count)
-    if not is_valid:
-        QMessageBox.critical(parent, "❌ Error", error_msg)
-        return None
-    return (media_sources, export_name, number, folder, codec, resolution, fps, set(mp3_files), set(image_files), min_mp3_count)
-
 # Register cleanup function to run at exit
-atexit.register(cleanup_temp_files)
+atexit.register(cleanup_temp_files) 
