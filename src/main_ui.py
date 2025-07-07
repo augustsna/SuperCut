@@ -230,7 +230,7 @@ class SettingsDialog(QDialog):
         main_layout.addSpacing(12)
         self.save_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
-        self.setFixedSize(640, 420)
+        self.setFixedSize(640, 520)
     def accept(self):
         self.selected_fps = self.fps_combo.currentData()
         if self.settings is not None:
