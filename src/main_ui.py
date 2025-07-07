@@ -129,19 +129,18 @@ class SettingsDialog(QDialog):
             self.resolution_combo.setCurrentIndex(idx)
         else:
             self.resolution_combo.setCurrentIndex(0)
-        # Add to left_form in new order with spacing
+        # Add to left_form in new order with reduced spacing
         left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 8, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 8, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("Intro Defaults:", self.default_intro_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 8, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("Overlay 1 Defaults:", self.default_overlay1_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 8, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("Overlay 2 Defaults:", self.default_overlay2_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 8, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("FPS:", self.fps_combo)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 8, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("Resolution:", self.resolution_combo)
         # --- Default Intro Path ---
         intro_path_layout = QHBoxLayout()
