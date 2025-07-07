@@ -13,17 +13,17 @@ def apply_settings(ui, DEFAULT_FPS_OPTIONS):
         idx = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == default_fps), 0)
         ui.fps_combo.setCurrentIndex(idx)
     default_intro_enabled = settings.value('default_intro_enabled', True, type=bool)
+    ui.intro_checkbox.setChecked(default_intro_enabled)
     if default_intro_enabled:
         default_intro_path = settings.value('default_intro_path', '', type=str)
         default_intro_position = settings.value('default_intro_position', 'center', type=str)
         default_intro_size = settings.value('default_intro_size', 50, type=int)
-        if ui.intro_checkbox.isChecked():
-            if not ui.intro_edit.text().strip():
-                ui.intro_edit.setText(default_intro_path)
-            idx = next((i for i in range(ui.intro_position_combo.count()) if ui.intro_position_combo.itemData(i) == default_intro_position), 0)
-            ui.intro_position_combo.setCurrentIndex(idx)
-            idx = next((i for i in range(ui.intro_size_combo.count()) if ui.intro_size_combo.itemData(i) == default_intro_size), 9)
-            ui.intro_size_combo.setCurrentIndex(idx)
+        if not ui.intro_edit.text().strip():
+            ui.intro_edit.setText(default_intro_path)
+        idx = next((i for i in range(ui.intro_position_combo.count()) if ui.intro_position_combo.itemData(i) == default_intro_position), 0)
+        ui.intro_position_combo.setCurrentIndex(idx)
+        idx = next((i for i in range(ui.intro_size_combo.count()) if ui.intro_size_combo.itemData(i) == default_intro_size), 9)
+        ui.intro_size_combo.setCurrentIndex(idx)
     default_overlay1_path = settings.value('default_overlay1_path', '', type=str)
     default_overlay1_position = settings.value('default_overlay1_position', 'bottom_left', type=str)
     default_overlay1_size = settings.value('default_overlay1_size', 15, type=int)
