@@ -96,8 +96,7 @@ if not os.path.exists(ACTIVATION_FILENAME):
 if os.path.exists(ACTIVATION_FILENAME):
     def main():
         """Main application entry point"""
-        print("Starting SuperCut Video Maker...")
-        print("Console output will be visible here during video processing.")
+        print("Starting SuperCut Video Maker...")        
         
         app = QApplication(sys.argv)
         app.setApplicationName("SuperCut")
@@ -111,9 +110,7 @@ if os.path.exists(ACTIVATION_FILENAME):
         window = SuperCutUI()
         window.show()
         
-        print("Application started successfully!")
-        print("You can now use the GUI to create videos.")
-        print("Console output will show during video processing...")
+        print("Application started successfully!")        
         
         sys.exit(app.exec())
 

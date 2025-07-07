@@ -654,7 +654,7 @@ class SuperCutUI(QWidget):
 
         # --- INTRO OVERLAY CONTROLS ---
         self.intro_checkbox = QtWidgets.QCheckBox(" Intro :")
-        self.intro_checkbox.setFixedWidth(65)
+        self.intro_checkbox.setFixedWidth(70)
         self.intro_checkbox.setChecked(True)
         def update_intro_checkbox_style(state):
             self.intro_checkbox.setStyleSheet("")  # Always default color
@@ -796,10 +796,11 @@ class SuperCutUI(QWidget):
         intro_layout.addWidget(self.intro_checkbox)
         intro_layout.addSpacing(10)
         intro_layout.addWidget(self.intro_edit)
-        intro_layout.addSpacing(6)
+        intro_layout.addSpacing(4)
         intro_layout.addWidget(intro_btn)
-        intro_layout.addSpacing(0)
+        intro_layout.addSpacing(4)
         intro_layout.addWidget(intro_position_label)
+        intro_layout.addSpacing(0)
         intro_layout.addWidget(self.intro_position_combo)
         intro_layout.addSpacing(6)
         intro_layout.addWidget(intro_size_label)
@@ -808,7 +809,7 @@ class SuperCutUI(QWidget):
 
         # Move PNG overlay checkbox below video settings
         self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1:")
-        self.overlay_checkbox.setFixedWidth(80)
+        self.overlay_checkbox.setFixedWidth(82)
         self.overlay_checkbox.setChecked(True)
         def update_overlay_checkbox_style(state):
             self.overlay_checkbox.setStyleSheet("")  # Always default color
@@ -903,8 +904,9 @@ class SuperCutUI(QWidget):
         overlay1_layout.addWidget(self.overlay1_edit)
         overlay1_layout.addSpacing(6)  # Space before select button
         overlay1_layout.addWidget(overlay1_btn)
-        overlay1_layout.addSpacing(6)  # Space before position label
+        overlay1_layout.addSpacing(4)  # Space before position label
         overlay1_layout.addWidget(overlay1_position_label)
+        overlay1_layout.addSpacing(2)
         overlay1_layout.addWidget(self.overlay1_position_combo)
         overlay1_layout.addSpacing(6) 
         overlay1_layout.addWidget(overlay1_size_label)
@@ -913,7 +915,7 @@ class SuperCutUI(QWidget):
 
         # Overlay 2 controls (similar to Overlay 1)
         self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2:")
-        self.overlay2_checkbox.setFixedWidth(80)
+        self.overlay2_checkbox.setFixedWidth(82)
         self.overlay2_checkbox.setChecked(True)
         def update_overlay2_checkbox_style(state):
             self.overlay2_checkbox.setStyleSheet("")  # Always default color
@@ -1004,8 +1006,9 @@ class SuperCutUI(QWidget):
         overlay2_layout.addWidget(self.overlay2_edit)
         overlay2_layout.addSpacing(6)
         overlay2_layout.addWidget(overlay2_btn)
-        overlay2_layout.addSpacing(6)
+        overlay2_layout.addSpacing(4)
         overlay2_layout.addWidget(overlay2_position_label)
+        overlay2_layout.addSpacing(2)
         overlay2_layout.addWidget(self.overlay2_position_combo)
         overlay2_layout.addSpacing(6)
         overlay2_layout.addWidget(overlay2_size_label)
