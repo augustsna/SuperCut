@@ -401,9 +401,9 @@ def create_intro_overlay_controls(parent):
             intro_duration2 = 5
     intro_duration_edit2.textChanged.connect(on_intro_duration2_changed)
     on_intro_duration2_changed()
-    effect_layout.addSpacing(5)
+    effect_layout.addSpacing(10)
     effect_layout.addWidget(intro_effect_label2)
-    effect_layout.addSpacing(-10)
+    effect_layout.addSpacing(-15)
     effect_layout.addWidget(intro_effect_combo2)
     effect_layout.addSpacing(0)
     effect_layout.addWidget(intro_duration_label2)
