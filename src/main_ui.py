@@ -50,14 +50,16 @@ class SettingsDialog(QDialog):
         self.settings = settings
         self.fps_options = fps_options or [("24", 24)]
         self.selected_fps = None
-        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout = QtWidgets.QVBoxLayout(self)        
         # Add Settings label at the top
-        settings_label = QLabel("Settings")
-        settings_label.setStyleSheet("font-size: 22px; font-weight: bold; margin-bottom: 10px;")
+        main_layout.addSpacing(-160)  # Move label up by 20px
+        settings_label = QLabel("Default Settings")
+        settings_label.setStyleSheet("font-size: 22px; font-weight: bold; margin-bottom: 0px;")
         settings_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(settings_label)
-        # Add Default button below Settings label
-        self.reset_btn = QPushButton("Default")
+        # Add Default button below Settings label  
+        main_layout.addSpacing(-15)      
+        self.reset_btn = QPushButton("Reset")
         self.reset_btn.setFixedSize(100, 28)
         self.reset_btn.setStyleSheet("QPushButton { background: white; border: 1px solid #ccc; color: #333; } QPushButton:hover { background: #f5f5f5; }")
         self.reset_btn.clicked.connect(self.reset_to_defaults)
@@ -66,7 +68,12 @@ class SettingsDialog(QDialog):
         reset_btn_layout.addWidget(self.reset_btn)
         reset_btn_layout.addStretch()
         main_layout.addLayout(reset_btn_layout)
-        form_layout = QFormLayout()
+        main_layout.addSpacing(15)
+
+        # --- Two-column layout ---
+        columns_layout = QHBoxLayout()
+        # Left column: FPS and Intro
+        left_form = QFormLayout()
         self.fps_combo = QComboBox(self)
         self.fps_combo.setFixedWidth(120)
         for label, value in self.fps_options:
@@ -80,7 +87,7 @@ class SettingsDialog(QDialog):
             self.fps_combo.setCurrentIndex(idx)
         else:
             self.fps_combo.setCurrentIndex(0)
-        form_layout.addRow("Default FPS:", self.fps_combo)
+        left_form.addRow("FPS:", self.fps_combo)
         # --- Default Intro Path ---
         intro_path_layout = QHBoxLayout()
         self.default_intro_path_edit = QLineEdit()
@@ -96,7 +103,7 @@ class SettingsDialog(QDialog):
         self.default_intro_path_btn.clicked.connect(pick_intro_path)
         intro_path_layout.addWidget(self.default_intro_path_edit)
         intro_path_layout.addWidget(self.default_intro_path_btn)
-        form_layout.addRow("Default Intro Path:", intro_path_layout)
+        left_form.addRow("Intro Path:", intro_path_layout)
         # --- Default Intro Position ---
         self.default_intro_position_combo = QComboBox()
         self.default_intro_position_combo.setFixedWidth(120)
@@ -113,7 +120,7 @@ class SettingsDialog(QDialog):
             default_intro_position = self.settings.value('default_intro_position', 'center', type=str)
             idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_intro_position), 0)
             self.default_intro_position_combo.setCurrentIndex(idx)
-        form_layout.addRow("Default Intro Position:", self.default_intro_position_combo)
+        left_form.addRow("Intro Position:", self.default_intro_position_combo)
         # --- Default Intro Size ---
         self.default_intro_size_combo = QComboBox()
         self.default_intro_size_combo.setFixedWidth(120)
@@ -123,7 +130,10 @@ class SettingsDialog(QDialog):
             default_intro_size = self.settings.value('default_intro_size', 50, type=int)
             idx = (default_intro_size // 5) - 1 if 5 <= default_intro_size <= 100 else 9
             self.default_intro_size_combo.setCurrentIndex(idx)
-        form_layout.addRow("Default Intro Size:", self.default_intro_size_combo)
+        left_form.addRow("Intro Size:", self.default_intro_size_combo)
+
+        # Right column: Overlay 1 and 2
+        right_form = QFormLayout()
         # --- Default Overlay 1 Path ---
         overlay1_path_layout = QHBoxLayout()
         self.default_overlay1_path_edit = QLineEdit()
@@ -139,7 +149,7 @@ class SettingsDialog(QDialog):
         self.default_overlay1_path_btn.clicked.connect(pick_overlay1_path)
         overlay1_path_layout.addWidget(self.default_overlay1_path_edit)
         overlay1_path_layout.addWidget(self.default_overlay1_path_btn)
-        form_layout.addRow("Default Overlay 1 Path:", overlay1_path_layout)
+        right_form.addRow("Overlay 1 Path:", overlay1_path_layout)
         # --- Default Overlay 1 Position ---
         self.default_overlay1_position_combo = QComboBox()
         self.default_overlay1_position_combo.setFixedWidth(120)
@@ -149,7 +159,7 @@ class SettingsDialog(QDialog):
             default_overlay1_position = self.settings.value('default_overlay1_position', 'bottom_left', type=str)
             idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay1_position), 3)
             self.default_overlay1_position_combo.setCurrentIndex(idx)
-        form_layout.addRow("Default Overlay 1 Position:", self.default_overlay1_position_combo)
+        right_form.addRow("Overlay 1 Position:", self.default_overlay1_position_combo)
         # --- Default Overlay 1 Size ---
         self.default_overlay1_size_combo = QComboBox()
         self.default_overlay1_size_combo.setFixedWidth(120)
@@ -159,7 +169,7 @@ class SettingsDialog(QDialog):
             default_overlay1_size = self.settings.value('default_overlay1_size', 15, type=int)
             idx = (default_overlay1_size // 5) - 1 if 5 <= default_overlay1_size <= 100 else 2
             self.default_overlay1_size_combo.setCurrentIndex(idx)
-        form_layout.addRow("Default Overlay 1 Size:", self.default_overlay1_size_combo)
+        right_form.addRow("Overlay 1 Size:", self.default_overlay1_size_combo)
         # --- Default Overlay 2 Path ---
         overlay2_path_layout = QHBoxLayout()
         self.default_overlay2_path_edit = QLineEdit()
@@ -175,7 +185,7 @@ class SettingsDialog(QDialog):
         self.default_overlay2_path_btn.clicked.connect(pick_overlay2_path)
         overlay2_path_layout.addWidget(self.default_overlay2_path_edit)
         overlay2_path_layout.addWidget(self.default_overlay2_path_btn)
-        form_layout.addRow("Default Overlay 2 Path:", overlay2_path_layout)
+        right_form.addRow("Overlay 2 Path:", overlay2_path_layout)
         # --- Default Overlay 2 Position ---
         self.default_overlay2_position_combo = QComboBox()
         self.default_overlay2_position_combo.setFixedWidth(120)
@@ -185,7 +195,7 @@ class SettingsDialog(QDialog):
             default_overlay2_position = self.settings.value('default_overlay2_position', 'top_right', type=str)
             idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay2_position), 2)
             self.default_overlay2_position_combo.setCurrentIndex(idx)
-        form_layout.addRow("Default Overlay 2 Position:", self.default_overlay2_position_combo)
+        right_form.addRow("Overlay 2 Position:", self.default_overlay2_position_combo)
         # --- Default Overlay 2 Size ---
         self.default_overlay2_size_combo = QComboBox()
         self.default_overlay2_size_combo.setFixedWidth(120)
@@ -195,13 +205,15 @@ class SettingsDialog(QDialog):
             default_overlay2_size = self.settings.value('default_overlay2_size', 15, type=int)
             idx = (default_overlay2_size // 5) - 1 if 5 <= default_overlay2_size <= 100 else 2
             self.default_overlay2_size_combo.setCurrentIndex(idx)
-        form_layout.addRow("Default Overlay 2 Size:", self.default_overlay2_size_combo)
-        # Center the form layout in the dialog
-        form_widget = QtWidgets.QWidget()
-        form_widget.setLayout(form_layout)
-        form_layout_container = QtWidgets.QVBoxLayout()
-        form_layout_container.addWidget(form_widget, alignment=Qt.AlignmentFlag.AlignCenter)
-        main_layout.addLayout(form_layout_container)
+        right_form.addRow("Overlay 2 Size:", self.default_overlay2_size_combo)
+
+        # Add both forms to columns_layout
+        columns_layout.addSpacing(20)
+        columns_layout.addLayout(left_form)
+        columns_layout.addSpacing(-25)  # Reduced from 30 to 10
+        columns_layout.addLayout(right_form)
+        main_layout.addLayout(columns_layout)
+
         # Add more space before the button row
         main_layout.addSpacing(7)
         button_layout = QHBoxLayout()
@@ -218,7 +230,7 @@ class SettingsDialog(QDialog):
         main_layout.addSpacing(12)
         self.save_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
-        self.setFixedSize(450, 520)
+        self.setFixedSize(640, 420)
     def accept(self):
         self.selected_fps = self.fps_combo.currentData()
         if self.settings is not None:
@@ -1798,56 +1810,3 @@ class SuperCutUI(QWidget):
                 self._thread.started.disconnect()
             except (TypeError, RuntimeError):
                 pass
-
-def main():
-    """Main application entry point"""
-    print("Starting SuperCut Video Maker...")
-    print("Console output will be visible here during video processing.")
-    
-    app = QApplication(sys.argv)
-    app.setApplicationName("SuperCut")
-    app.setApplicationVersion("1.0")
-    # --- Global QCheckBox Style ---
-    app.setStyleSheet(app.styleSheet() + """
-    QCheckBox {
-        spacing: 8px;
-        font-size: 13px;
-        color: #333;
-    }
-    QCheckBox::indicator {
-        width: 20px;
-        height: 20px;
-        border-radius: 6px;
-        border: 1.5px solid #ccc;
-        background: #fff;
-    }
-    QCheckBox::indicator:hover {
-        border: 1.5px solid #357ABD;
-    }
-    QCheckBox::indicator:checked {
-        background: #4a90e2;
-        border: 1.5px solid #357ABD;
-        image: url(src/sources/black_tick.svg);
-    }
-    QCheckBox::indicator:unchecked {
-        background: #fff;
-        border: 1.5px solid #ccc;
-    }
-    """)
-    
-    # Check FFmpeg installation
-    ffmpeg_ok, error_msg = check_ffmpeg_installation()
-    if not ffmpeg_ok:
-        print(f"Warning: FFmpeg not found. {error_msg or 'The application will attempt to extract it on first use.'}")
-    
-    window = SuperCutUI()
-    window.show()
-    
-    print("Application started successfully!")
-    print("You can now use the GUI to create videos.")
-    print("Console output will show during video processing...")
-    
-    sys.exit(app.exec())
-
-if __name__ == "__main__":
-    main()
