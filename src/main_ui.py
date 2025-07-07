@@ -153,7 +153,6 @@ class SettingsDialog(QDialog):
             default_audio_bitrate = DEFAULT_AUDIO_BITRATE
         idx = next((i for i, (label, value) in enumerate(DEFAULT_AUDIO_BITRATE_OPTIONS) if value == default_audio_bitrate), 5)
         self.audio_bitrate_combo.setCurrentIndex(idx)
-        left_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
         # Add to left_form in new order with reduced spacing
         left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
@@ -168,6 +167,7 @@ class SettingsDialog(QDialog):
         left_form.addRow("FPS:", self.fps_combo)
         left_form.addRow("Resolution:", self.resolution_combo)
         left_form.addRow("FFmpeg Preset:", self.preset_combo)
+        left_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
         # --- Default Intro Path ---
         intro_path_layout = QHBoxLayout()
         self.default_intro_path_edit = QLineEdit()

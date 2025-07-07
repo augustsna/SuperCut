@@ -1,3 +1,0 @@
-[2025-07-08 04:51:03] INFO in ffmpeg_utils: FFmpeg Video Creation Command for Output_1.mp4:
-[2025-07-08 04:51:03] INFO in ffmpeg_utils:   ffmpeg -loop 1 -i C:\Users\Rome\AppData\Local\Temp\supercut_m1eny5le.png -i C:\Users\Rome\AppData\Local\Temp\supercut_omch2c0v.mp3 -filter_complex [0:v]scale=1920:1080,format=yuv420p[vout] -map [vout] -map 1:a -c:v h264_nvenc -preset medium -rc vbr_hq -b:v 12M -maxrate 16M -bufsize 24M -c:a aac -b:a 320k -ar 48000 -ac 2 -r 24 -g 120 -bf 2 -profile:v high -level:v 4.2 -movflags +faststart -shortest -y C:/Users/Rome/Desktop/4\Output_1.mp4
-[2025-07-08 04:51:03] INFO in ffmpeg_utils: 
