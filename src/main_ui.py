@@ -76,6 +76,32 @@ class SettingsDialog(QDialog):
         right_form = QFormLayout()
         # Left column: FPS and Intro
         left_form = QFormLayout()
+        # --- Default MP3 # Enabled Checkbox ---
+        self.default_mp3_count_enabled_checkbox = QtWidgets.QCheckBox("Enable MP3 #")
+        self.default_mp3_count_enabled_checkbox.setChecked(
+            self.settings.value('default_mp3_count_enabled', False, type=bool) if self.settings is not None else False
+        )
+        # --- Default List Name Enabled Checkbox ---
+        self.default_list_name_enabled_checkbox = QtWidgets.QCheckBox("Enable List Name")
+        self.default_list_name_enabled_checkbox.setChecked(
+            self.settings.value('default_list_name_enabled', False, type=bool) if self.settings is not None else False
+        )
+        # --- Default Intro Enabled Checkbox ---
+        self.default_intro_enabled_checkbox = QtWidgets.QCheckBox("Enable Intro")
+        self.default_intro_enabled_checkbox.setChecked(
+            self.settings.value('default_intro_enabled', True, type=bool) if self.settings is not None else True
+        )
+        # --- Default Overlay 1 Enabled Checkbox ---
+        self.default_overlay1_enabled_checkbox = QtWidgets.QCheckBox("Enable Overlay 1")
+        self.default_overlay1_enabled_checkbox.setChecked(
+            self.settings.value('default_overlay1_enabled', True, type=bool) if self.settings is not None else True
+        )
+        # --- Default Overlay 2 Enabled Checkbox ---
+        self.default_overlay2_enabled_checkbox = QtWidgets.QCheckBox("Enable Overlay 2")
+        self.default_overlay2_enabled_checkbox.setChecked(
+            self.settings.value('default_overlay2_enabled', True, type=bool) if self.settings is not None else True
+        )
+        # --- FPS Combo ---
         self.fps_combo = QComboBox(self)
         self.fps_combo.setFixedWidth(120)
         for label, value in self.fps_options:
@@ -89,13 +115,13 @@ class SettingsDialog(QDialog):
             self.fps_combo.setCurrentIndex(idx)
         else:
             self.fps_combo.setCurrentIndex(0)
-        left_form.addRow("FPS:", self.fps_combo)
-        # --- Default Intro Enabled Checkbox ---
-        self.default_intro_enabled_checkbox = QtWidgets.QCheckBox("Enable Intro")
-        self.default_intro_enabled_checkbox.setChecked(
-            self.settings.value('default_intro_enabled', True, type=bool) if self.settings is not None else True
-        )
+        # Add to left_form in new order
+        left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
+        left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
         left_form.addRow("Intro Defaults:", self.default_intro_enabled_checkbox)
+        left_form.addRow("Overlay 1 Defaults:", self.default_overlay1_enabled_checkbox)
+        left_form.addRow("Overlay 2 Defaults:", self.default_overlay2_enabled_checkbox)
+        left_form.addRow("FPS:", self.fps_combo)
         # --- Default Intro Path ---
         intro_path_layout = QHBoxLayout()
         self.default_intro_path_edit = QLineEdit()
@@ -175,12 +201,6 @@ class SettingsDialog(QDialog):
             idx = (default_overlay1_size // 5) - 1 if 5 <= default_overlay1_size <= 100 else 2
             self.default_overlay1_size_combo.setCurrentIndex(idx)
         right_form.addRow("Overlay 1 Size:", self.default_overlay1_size_combo)
-        # --- Default Overlay 1 Enabled Checkbox ---
-        self.default_overlay1_enabled_checkbox = QtWidgets.QCheckBox("Enable Overlay 1")
-        self.default_overlay1_enabled_checkbox.setChecked(
-            self.settings.value('default_overlay1_enabled', True, type=bool) if self.settings is not None else True
-        )
-        left_form.addRow("Overlay 1 Defaults:", self.default_overlay1_enabled_checkbox)
         # --- Default Overlay 2 Path ---
         overlay2_path_layout = QHBoxLayout()
         self.default_overlay2_path_edit = QLineEdit()
@@ -217,24 +237,6 @@ class SettingsDialog(QDialog):
             idx = (default_overlay2_size // 5) - 1 if 5 <= default_overlay2_size <= 100 else 2
             self.default_overlay2_size_combo.setCurrentIndex(idx)
         right_form.addRow("Overlay 2 Size:", self.default_overlay2_size_combo)
-        # --- Default Overlay 2 Enabled Checkbox ---
-        self.default_overlay2_enabled_checkbox = QtWidgets.QCheckBox("Enable Overlay 2")
-        self.default_overlay2_enabled_checkbox.setChecked(
-            self.settings.value('default_overlay2_enabled', True, type=bool) if self.settings is not None else True
-        )
-        left_form.addRow("Overlay 2 Defaults:", self.default_overlay2_enabled_checkbox)
-        # --- Default List Name Enabled Checkbox ---
-        self.default_list_name_enabled_checkbox = QtWidgets.QCheckBox("Enable List Name")
-        self.default_list_name_enabled_checkbox.setChecked(
-            self.settings.value('default_list_name_enabled', False, type=bool) if self.settings is not None else False
-        )
-        left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
-        # --- Default MP3 # Enabled Checkbox ---
-        self.default_mp3_count_enabled_checkbox = QtWidgets.QCheckBox("Enable MP3 #")
-        self.default_mp3_count_enabled_checkbox.setChecked(
-            self.settings.value('default_mp3_count_enabled', False, type=bool) if self.settings is not None else False
-        )
-        left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
 
         # Add both forms to columns_layout
         columns_layout.addSpacing(20)
