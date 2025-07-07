@@ -115,6 +115,20 @@ class SettingsDialog(QDialog):
             self.fps_combo.setCurrentIndex(idx)
         else:
             self.fps_combo.setCurrentIndex(0)
+        # --- Resolution Combo ---
+        self.resolution_combo = QComboBox(self)
+        self.resolution_combo.setFixedWidth(120)
+        for label, value in DEFAULT_RESOLUTIONS:
+            self.resolution_combo.addItem(label, value)
+        if self.settings is not None:
+            default_resolution = self.settings.value('default_resolution', type=str)
+        else:
+            default_resolution = None
+        if default_resolution is not None:
+            idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
+            self.resolution_combo.setCurrentIndex(idx)
+        else:
+            self.resolution_combo.setCurrentIndex(0)
         # Add to left_form in new order with spacing
         left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 8, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
@@ -127,6 +141,8 @@ class SettingsDialog(QDialog):
         left_form.addRow("Overlay 2 Defaults:", self.default_overlay2_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 8, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("FPS:", self.fps_combo)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 8, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Resolution:", self.resolution_combo)
         # --- Default Intro Path ---
         intro_path_layout = QHBoxLayout()
         self.default_intro_path_edit = QLineEdit()
@@ -285,11 +301,14 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_overlay2_enabled', self.default_overlay2_enabled_checkbox.isChecked())
             self.settings.setValue('default_list_name_enabled', self.default_list_name_enabled_checkbox.isChecked())
             self.settings.setValue('default_mp3_count_enabled', self.default_mp3_count_enabled_checkbox.isChecked())
+            self.settings.setValue('default_resolution', self.resolution_combo.currentData())
         super().accept()
 
     def reset_to_defaults(self):
         # FPS
         self.fps_combo.setCurrentIndex(0)
+        # Resolution
+        self.resolution_combo.setCurrentIndex(0)
         # Intro
         self.default_intro_enabled_checkbox.setChecked(True)
         self.default_intro_path_edit.setText("")
@@ -1857,6 +1876,37 @@ class SuperCutUI(QWidget):
         default_mp3_count_enabled = self.settings.value('default_mp3_count_enabled', False, type=bool)
         if hasattr(self, 'mp3_count_checkbox'):
             self.mp3_count_checkbox.setChecked(default_mp3_count_enabled)
+        # Set resolution combo state from settings
+        default_resolution = self.settings.value('default_resolution', type=str)
+        if default_resolution is not None and hasattr(self, 'resolution_combo'):
+            idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
+            self.resolution_combo.setCurrentIndex(idx)
+        if hasattr(self, 'resolution_combo') and hasattr(self, 'resolution_combo') and hasattr(self, 'resolution_combo'):
+            # Also update main UI's resolution combo if present
+            if hasattr(self, 'resolution_combo'):
+                idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
+                self.resolution_combo.setCurrentIndex(idx)
+        if hasattr(self, 'resolution_combo') and hasattr(self, 'resolution_combo'):
+            # Update main UI's resolution combo if present
+            if hasattr(self, 'resolution_combo'):
+                idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
+                self.resolution_combo.setCurrentIndex(idx)
+        # Update main UI's resolution combo if present
+        if hasattr(self, 'resolution_combo') and hasattr(self, 'resolution_combo'):
+            idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
+            self.resolution_combo.setCurrentIndex(idx)
+        # Update main UI's resolution combo if present
+        if hasattr(self, 'resolution_combo'):
+            idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
+            self.resolution_combo.setCurrentIndex(idx)
+        # Update main UI's resolution combo if present
+        if hasattr(self, 'resolution_combo'):
+            idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
+            self.resolution_combo.setCurrentIndex(idx)
+        # Update main UI's resolution combo if present
+        if hasattr(self, 'resolution_combo'):
+            idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
+            self.resolution_combo.setCurrentIndex(idx)
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""
