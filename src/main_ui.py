@@ -30,7 +30,8 @@ from src.config import (
     DEFAULT_MIN_MP3_COUNT,
     PROJECT_ROOT,
     DEFAULT_FFMPEG_PRESETS, DEFAULT_FFMPEG_PRESET,
-    DEFAULT_AUDIO_BITRATE_OPTIONS, DEFAULT_AUDIO_BITRATE
+    DEFAULT_AUDIO_BITRATE_OPTIONS, DEFAULT_AUDIO_BITRATE,
+    DEFAULT_VIDEO_BITRATE_OPTIONS, DEFAULT_VIDEO_BITRATE
 )
 from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
@@ -153,6 +154,17 @@ class SettingsDialog(QDialog):
             default_audio_bitrate = DEFAULT_AUDIO_BITRATE
         idx = next((i for i, (label, value) in enumerate(DEFAULT_AUDIO_BITRATE_OPTIONS) if value == default_audio_bitrate), 5)
         self.audio_bitrate_combo.setCurrentIndex(idx)
+        # --- FFmpeg Video Bitrate Combo ---
+        self.video_bitrate_combo = QComboBox(self)
+        self.video_bitrate_combo.setFixedWidth(120)
+        for label, value in DEFAULT_VIDEO_BITRATE_OPTIONS:
+            self.video_bitrate_combo.addItem(label, value)
+        if self.settings is not None:
+            default_video_bitrate = self.settings.value('default_ffmpeg_video_bitrate', DEFAULT_VIDEO_BITRATE, type=str)
+        else:
+            default_video_bitrate = DEFAULT_VIDEO_BITRATE
+        idx = next((i for i, (label, value) in enumerate(DEFAULT_VIDEO_BITRATE_OPTIONS) if value == default_video_bitrate), 5)
+        self.video_bitrate_combo.setCurrentIndex(idx)
         # Add to left_form in new order with reduced spacing
         left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
@@ -168,6 +180,7 @@ class SettingsDialog(QDialog):
         left_form.addRow("Resolution:", self.resolution_combo)
         left_form.addRow("FFmpeg Preset:", self.preset_combo)
         left_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
+        left_form.addRow("Video Bitrate:", self.video_bitrate_combo)
         # --- Default Intro Path ---
         intro_path_layout = QHBoxLayout()
         self.default_intro_path_edit = QLineEdit()
@@ -329,6 +342,7 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_resolution', self.resolution_combo.currentData())
             self.settings.setValue('default_ffmpeg_preset', self.preset_combo.currentData())
             self.settings.setValue('default_ffmpeg_audio_bitrate', self.audio_bitrate_combo.currentData())
+            self.settings.setValue('default_ffmpeg_video_bitrate', self.video_bitrate_combo.currentData())
         super().accept()
 
     def reset_to_defaults(self):
@@ -340,6 +354,8 @@ class SettingsDialog(QDialog):
         self.preset_combo.setCurrentIndex(6)  # 'slow' is default
         # FFmpeg Audio Bitrate
         self.audio_bitrate_combo.setCurrentIndex(5)  # '384k' is default
+        # FFmpeg Video Bitrate
+        self.video_bitrate_combo.setCurrentIndex(5)  # '12M' is default
         # Intro
         self.default_intro_enabled_checkbox.setChecked(True)
         self.default_intro_path_edit.setText("")
@@ -1718,6 +1734,8 @@ class SuperCutUI(QWidget):
         preset = self.settings.value('default_ffmpeg_preset', DEFAULT_FFMPEG_PRESET, type=str)
         # Get ffmpeg audio bitrate from settings
         audio_bitrate = self.settings.value('default_ffmpeg_audio_bitrate', DEFAULT_AUDIO_BITRATE, type=str)
+        # Get ffmpeg video bitrate from settings
+        video_bitrate = self.settings.value('default_ffmpeg_video_bitrate', DEFAULT_VIDEO_BITRATE, type=str)
         self._worker = VideoWorker(
             media_sources, export_name, number, folder, codec, resolution, fps,
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
@@ -1727,7 +1745,8 @@ class SuperCutUI(QWidget):
             self.intro_effect, self.intro_duration,
             name_list=name_list,
             preset=preset,
-            audio_bitrate=audio_bitrate
+            audio_bitrate=audio_bitrate,
+            video_bitrate=video_bitrate
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)

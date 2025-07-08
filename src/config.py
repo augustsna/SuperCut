@@ -174,6 +174,21 @@ DEFAULT_AUDIO_BITRATE_OPTIONS = [
 ]
 DEFAULT_AUDIO_BITRATE = "384k"
 
+# FFmpeg Video Bitrate Options
+DEFAULT_VIDEO_BITRATE_OPTIONS = [
+    ("1 Mbps", "1M"),
+    ("2 Mbps", "2M"),
+    ("4 Mbps", "4M"),
+    ("6 Mbps", "6M"),
+    ("8 Mbps", "8M"),
+    ("12 Mbps", "12M"),
+    ("16 Mbps", "16M"),
+    ("20 Mbps", "20M"),
+    ("25 Mbps", "25M"),
+    ("30 Mbps", "30M")
+]
+DEFAULT_VIDEO_BITRATE = "12M"
+
 def check_ffmpeg_installation():
     """Check if FFmpeg is properly installed"""
     if not os.path.exists(FFMPEG_BINARY):

@@ -90,7 +90,8 @@ def create_video_with_ffmpeg(
     intro_effect: str = "fadeout",
     intro_duration: int = 5,
     preset: str = "slow",
-    audio_bitrate: str = "384k"
+    audio_bitrate: str = "384k",
+    video_bitrate: str = "12M"
 ) -> Tuple[bool, Optional[str]]:
     """Create video from image and audio using ffmpeg with progress tracking. Supports up to three overlays (Intro, Overlay 1, Overlay 2). Returns (success, error_message)."""
     temp_png_path = None
@@ -105,21 +106,23 @@ def create_video_with_ffmpeg(
         print("[DEBUG] Overlay Effect Start Time:", effect_time)
         # Estimate required output file size
         audio_duration = get_audio_duration(audio_path)
-        video_bitrate_str = VIDEO_SETTINGS["video_bitrate"]
-        max_bitrate_str = VIDEO_SETTINGS["max_bitrate"]
-        buffer_size_str = VIDEO_SETTINGS["buffer_size"]
+        # Use the provided video_bitrate instead of VIDEO_SETTINGS['video_bitrate']
+        video_bitrate_str = str(video_bitrate)
+        max_bitrate_str = str(VIDEO_SETTINGS["max_bitrate"])
+        buffer_size_str = str(VIDEO_SETTINGS["buffer_size"])
+        # Convert bitrate strings to int for calculation
         if video_bitrate_str.lower().endswith('m'):
-            video_bitrate = int(float(video_bitrate_str[:-1]) * 1024 * 1024)
+            video_bitrate_int = int(float(video_bitrate_str[:-1]) * 1024 * 1024)
         elif video_bitrate_str.lower().endswith('k'):
-            video_bitrate = int(float(video_bitrate_str[:-1]) * 1024)
+            video_bitrate_int = int(float(video_bitrate_str[:-1]) * 1024)
         else:
-            video_bitrate = int(video_bitrate_str)
-        audio_bitrate_str = audio_bitrate
+            video_bitrate_int = int(video_bitrate_str)
+        audio_bitrate_str = str(audio_bitrate)
         if audio_bitrate_str.lower().endswith('k'):
-            audio_bitrate_num = int(float(audio_bitrate_str[:-1]) * 1024)
+            audio_bitrate_int = int(float(audio_bitrate_str[:-1]) * 1024)
         else:
-            audio_bitrate_num = int(audio_bitrate_str)
-        total_bitrate = video_bitrate + audio_bitrate_num
+            audio_bitrate_int = int(audio_bitrate_str)
+        total_bitrate = video_bitrate_int + audio_bitrate_int
         estimated_size = int((total_bitrate / 8) * audio_duration)  # bytes
         min_required = max(estimated_size * 2, 100 * 1024 * 1024)  # at least 2x estimated, or 100MB
         output_dir = os.path.dirname(os.path.abspath(output_path)) or os.getcwd()
