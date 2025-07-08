@@ -291,7 +291,7 @@ def create_video_with_ffmpeg(
         cmd.extend(["-c:v", codec, "-preset", preset])       
 
         if codec == "h264_nvenc":
-            cmd.extend(["-rc", "vbr_hq"])
+            cmd.extend(["-rc", "vbr"])
 
         # Video settings
         cmd.extend([   
