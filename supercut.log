@@ -1,3 +1,6 @@
-[2025-07-08 10:36:06] INFO in ffmpeg_utils: FFmpeg Video Creation Command for Output_1.mp4:
-[2025-07-08 10:36:06] INFO in ffmpeg_utils:   ffmpeg -loop 1 -i C:\Users\Rome\AppData\Local\Temp\supercut_ruo1oavv.png -i C:\Users\Rome\AppData\Local\Temp\supercut_siptyo7j.mp3 -filter_complex [0:v]scale=1920:1080,format=yuv420p[vout] -map [vout] -map 1:a -c:v h264_nvenc -preset slow -rc vbr_hq -b:v 8M -maxrate 25M -bufsize 40M -c:a aac -b:a 384k -ar 48000 -ac 2 -r 24 -g 120 -bf 2 -profile:v high -level:v 4.2 -movflags +faststart -shortest -y C:/Users/Rome/Desktop/3\Output_1.mp4
-[2025-07-08 10:36:06] INFO in ffmpeg_utils: 
+[2025-07-08 11:05:34] INFO in ffmpeg_utils: FFmpeg Video Creation Command for Output_1.mp4:
+[2025-07-08 11:05:34] INFO in ffmpeg_utils:   ffmpeg -stream_loop -1 -i C:/Users/Rome/Desktop/4\overlay.gif -i C:\Users\Rome\AppData\Local\Temp\supercut__90a7ojn.mp3 -filter_complex [0:v]scale=1920:1080,format=yuv420p[vout] -map [vout] -map 1:a -c:v h264_nvenc -preset slow -rc vbr -b:v 8M -maxrate 25M -bufsize 40M -c:a aac -b:a 384k -ar 48000 -ac 2 -r 24 -g 120 -bf 2 -profile:v high -level:v 4.2 -movflags +faststart -shortest -y C:/Users/Rome/Desktop/4\Output_1.mp4
+[2025-07-08 11:05:34] INFO in ffmpeg_utils: 
+[2025-07-08 11:07:31] INFO in ffmpeg_utils: FFmpeg Video Creation Command for Output_1.mp4:
+[2025-07-08 11:07:31] INFO in ffmpeg_utils:   ffmpeg -stream_loop -1 -i C:/Users/Rome/Desktop/4\tenor_1.gif -i C:\Users\Rome\AppData\Local\Temp\supercut_pq1ofuq8.mp3 -filter_complex [0:v]scale=1920:1080,format=yuv420p[vout] -map [vout] -map 1:a -c:v h264_nvenc -preset slow -rc vbr -b:v 8M -maxrate 25M -bufsize 40M -c:a aac -b:a 384k -ar 48000 -ac 2 -r 24 -g 120 -bf 2 -profile:v high -level:v 4.2 -movflags +faststart -shortest -y C:/Users/Rome/Desktop/4\Output_1.mp4
+[2025-07-08 11:07:31] INFO in ffmpeg_utils: 

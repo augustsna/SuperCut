@@ -120,7 +120,7 @@ DEFAULT_FPS_OPTIONS = [
 
 # File Extensions
 AUDIO_EXTENSIONS = ['.mp3']
-IMAGE_EXTENSIONS = ['.jpg', '.png']
+IMAGE_EXTENSIONS = ['.jpg', '.png', '.gif']
 VIDEO_EXTENSIONS = ['.mp4']
 
 # Default Values

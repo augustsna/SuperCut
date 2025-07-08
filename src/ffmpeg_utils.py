@@ -151,9 +151,9 @@ def create_video_with_ffmpeg(
         else:
             image_path_for_ffmpeg = image_path
 
-        # Accept only PNG image files
-        if not image_path_for_ffmpeg.lower().endswith('.png'):
-            msg = f"Error: Only PNG image files are accepted. Provided: {image_path_for_ffmpeg}"
+        # Accept PNG and GIF image files
+        if not (image_path_for_ffmpeg.lower().endswith('.png') or image_path_for_ffmpeg.lower().endswith('.gif')):
+            msg = f"Error: Only PNG and GIF image files are accepted. Provided: {image_path_for_ffmpeg}"
             logger.error(msg)
             return False, msg
         
@@ -162,10 +162,17 @@ def create_video_with_ffmpeg(
         # Build ffmpeg command with dynamic inputs
         cmd = [
             FFMPEG_BINARY,
-            "-loop", "1",
             "-i", image_path_for_ffmpeg,
             "-i", audio_path
         ]
+        
+        # Add loop parameter based on image type
+        if image_path_for_ffmpeg.lower().endswith('.gif'):
+            cmd.insert(1, "-stream_loop")
+            cmd.insert(2, "-1")
+        else:
+            cmd.insert(1, "-loop")
+            cmd.insert(2, "1")
         ext1 = os.path.splitext(overlay1_path)[1].lower() if overlay1_path else ''
         ext2 = os.path.splitext(overlay2_path)[1].lower() if overlay2_path else ''
         ext_intro = os.path.splitext(intro_path)[1].lower() if intro_path else ''

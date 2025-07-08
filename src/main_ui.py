@@ -972,7 +972,7 @@ class SuperCutUI(QWidget):
         intro_btn = QPushButton("Select")
         intro_btn.setFixedWidth(60)
         def select_intro_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Intro Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Intro Image", "", "Image Files (*.gif *.png *.jpg *.jpeg)")
             if file_path:
                 self.intro_edit.setText(file_path)
         intro_btn.clicked.connect(select_intro_image)
