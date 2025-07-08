@@ -7,7 +7,7 @@ A modular video creation application that combines images and audio files.
 
 import sys
 import os
-from PyQt6.QtWidgets import QApplication, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QPushButton
+from PyQt6.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QPushButton
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 from src.config import check_ffmpeg_installation, ICON_PATH
@@ -17,6 +17,9 @@ from src.utils import cleanup_temp_files
 # Clear the log file at startup
 with open('supercut.log', 'w'):
     pass
+
+# Clean up any leftover temp files before starting the program
+cleanup_temp_files()
 
 class PasswordDialog(QDialog):
     def __init__(self, parent=None):
@@ -30,7 +33,6 @@ class PasswordDialog(QDialog):
         layout = QVBoxLayout(self)
         label = QLabel("Enter your one-time password:")
         label.setStyleSheet("font-size: 14px; font-weight: bold; margin-bottom: 6px;")
-        
         layout.addWidget(label)
         self.input = QLineEdit()
         self.input.setEchoMode(QLineEdit.EchoMode.Password)
@@ -40,9 +42,7 @@ class PasswordDialog(QDialog):
         layout.addWidget(self.input)
         self.error_label = QLabel("")
         self.error_label.setStyleSheet("color: #c00; font-size: 12px; margin-top: 2px;")
-        
         layout.addSpacing(-30)
-
         layout.addWidget(self.error_label)
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
@@ -97,21 +97,16 @@ if os.path.exists(ACTIVATION_FILENAME):
     def main():
         """Main application entry point"""
         print("Starting SuperCut Video Maker...")        
-        
         app = QApplication(sys.argv)
         app.setApplicationName("SuperCut")
         app.setApplicationVersion("1.0")
-        
         # Check FFmpeg installation
         ffmpeg_ok, error_msg = check_ffmpeg_installation()
         if not ffmpeg_ok:
             print(f"Warning: FFmpeg not found. {error_msg or 'The application will attempt to extract it on first use.'}")
-        
         window = SuperCutUI()
         window.show()
-        
         print("Application started successfully!")        
-        
         sys.exit(app.exec())
 
     if __name__ == "__main__":
