@@ -982,8 +982,8 @@ class SuperCutUI(QWidget):
         self.intro_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
             self.intro_size_combo.addItem(str(percent), percent)
-        self.intro_size_combo.setCurrentIndex(1)  # Default 10%
-        self.intro_size_percent = 10
+        self.intro_size_combo.setCurrentIndex(9)  # Default 50%
+        self.intro_size_percent = 50
         def on_intro_size_changed(idx):
             self.intro_size_percent = self.intro_size_combo.itemData(idx)
             if idx >= 0:
@@ -1140,8 +1140,8 @@ class SuperCutUI(QWidget):
         self.overlay1_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
             self.overlay1_size_combo.addItem(str(percent), percent)
-        self.overlay1_size_combo.setCurrentIndex(1)  # Default 10%
-        self.overlay1_size_percent = 10
+        self.overlay1_size_combo.setCurrentIndex(2)  # Default 15%
+        self.overlay1_size_percent = 15
         def on_overlay1_size_changed(idx):
             self.overlay1_size_percent = self.overlay1_size_combo.itemData(idx)
             # Set display text with %
@@ -1168,8 +1168,8 @@ class SuperCutUI(QWidget):
         ]
         for label, value in positions:
             self.overlay1_position_combo.addItem(label, value)
-        self.overlay1_position_combo.setCurrentIndex(0)  # Default Center
-        self.overlay1_position = "center"
+        self.overlay1_position_combo.setCurrentIndex(3)  # Default bottom_left
+        self.overlay1_position = "bottom_left"
         def on_overlay1_position_changed(idx):
             self.overlay1_position = self.overlay1_position_combo.itemData(idx)
         self.overlay1_position_combo.currentIndexChanged.connect(on_overlay1_position_changed)
@@ -1243,8 +1243,8 @@ class SuperCutUI(QWidget):
         self.overlay2_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
             self.overlay2_size_combo.addItem(str(percent), percent)
-        self.overlay2_size_combo.setCurrentIndex(1)  # Default 10%
-        self.overlay2_size_percent = 10
+        self.overlay2_size_combo.setCurrentIndex(2)  # Default 15%
+        self.overlay2_size_percent = 15
         def on_overlay2_size_changed(idx):
             self.overlay2_size_percent = self.overlay2_size_combo.itemData(idx)
             # Set display text with %
@@ -1271,8 +1271,8 @@ class SuperCutUI(QWidget):
         ]
         for label, value in positions:
             self.overlay2_position_combo.addItem(label, value)
-        self.overlay2_position_combo.setCurrentIndex(0)  # Default Center
-        self.overlay2_position = "center"
+        self.overlay2_position_combo.setCurrentIndex(2)  # Default top_right
+        self.overlay2_position = "top_right"
         def on_overlay2_position_changed(idx):
             self.overlay2_position = self.overlay2_position_combo.itemData(idx)
         self.overlay2_position_combo.currentIndexChanged.connect(on_overlay2_position_changed)
