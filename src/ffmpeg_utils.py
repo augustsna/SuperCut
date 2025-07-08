@@ -297,8 +297,11 @@ def create_video_with_ffmpeg(
 
         cmd.extend(["-c:v", codec, "-preset", preset])       
 
-        if codec == "h264_nvenc":
-            cmd.extend(["-rc", "vbr"])
+        # Rate control based on input image type
+        if image_path_for_ffmpeg.lower().endswith('.gif'):
+            cmd.extend(["-rc", "vbr", "-cq", "19"])
+        elif image_path_for_ffmpeg.lower().endswith('.png'):
+            cmd.extend(["-rc", "cbr"])        
 
         # Video settings
         cmd.extend([   
