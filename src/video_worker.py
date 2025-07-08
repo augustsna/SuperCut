@@ -18,6 +18,7 @@ class VideoWorker(QObject):
     def __init__(self, media_sources: str, export_name: str, number: str, 
                  folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False, min_mp3_count: int = 3, overlay1_path: str = "", overlay1_size_percent: int = 100, overlay1_position: str = "top_left",
                  use_overlay2: bool = False, overlay2_path: str = "", overlay2_size_percent: int = 10, overlay2_position: str = "top_left",
+                 use_overlay3: bool = False, overlay3_path: str = "", overlay3_size_percent: int = 10, overlay3_position: str = "top_left",
                  use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_position: str = "center",
                  effect: str = "fadein", effect_time: int = 5,
                  intro_effect: str = "fadeout", intro_duration: int = 5,
@@ -45,6 +46,10 @@ class VideoWorker(QObject):
         self.overlay2_path = overlay2_path
         self.overlay2_size_percent = overlay2_size_percent
         self.overlay2_position = overlay2_position
+        self.use_overlay3 = use_overlay3
+        self.overlay3_path = overlay3_path
+        self.overlay3_size_percent = overlay3_size_percent
+        self.overlay3_position = overlay3_position
         self.use_intro = use_intro
         self.intro_path = intro_path
         self.intro_size_percent = intro_size_percent
@@ -222,6 +227,10 @@ class VideoWorker(QObject):
                 self.overlay2_path,
                 self.overlay2_size_percent,
                 self.overlay2_position,
+                self.use_overlay3,
+                self.overlay3_path,
+                self.overlay3_size_percent,
+                self.overlay3_position,
                 self.use_intro,
                 self.intro_path,
                 self.intro_size_percent,

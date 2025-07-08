@@ -1313,6 +1313,108 @@ class SuperCutUI(QWidget):
         overlay2_layout.addWidget(self.overlay2_size_combo)
         layout.addLayout(overlay2_layout)
 
+        # Overlay 3 controls (similar to Overlay 2)
+        self.overlay3_checkbox = QtWidgets.QCheckBox("Overlay 3:")
+        self.overlay3_checkbox.setFixedWidth(82)
+        self.overlay3_checkbox.setChecked(False)
+        def update_overlay3_checkbox_style(state):
+            self.overlay3_checkbox.setStyleSheet("")  # Always default color
+        self.overlay3_checkbox.stateChanged.connect(update_overlay3_checkbox_style)
+        update_overlay3_checkbox_style(self.overlay3_checkbox.checkState())
+
+        overlay3_layout = QHBoxLayout()
+        overlay3_layout.setSpacing(4)
+        self.overlay3_edit = ImageDropLineEdit()
+        self.overlay3_edit.setPlaceholderText("Overlay 3 image path (*.gif, *.png)")
+        self.overlay3_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay3_edit.setFixedWidth(125)
+        self.overlay3_path = ""
+        def on_overlay3_changed():
+            self.overlay3_path = self.overlay3_edit.text().strip()
+        self.overlay3_edit.textChanged.connect(on_overlay3_changed)
+        overlay3_btn = QPushButton("Select")
+        overlay3_btn.setFixedWidth(60)
+        def select_overlay3_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 3 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.overlay3_edit.setText(file_path)
+        overlay3_btn.clicked.connect(select_overlay3_image)
+        overlay3_size_label = QLabel("S:")
+        overlay3_size_label.setFixedWidth(18)
+        self.overlay3_size_combo = QtWidgets.QComboBox()
+        self.overlay3_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.overlay3_size_combo.addItem(str(percent), percent)
+        self.overlay3_size_combo.setCurrentIndex(2)  # Default 15%
+        self.overlay3_size_percent = 15
+        def on_overlay3_size_changed(idx):
+            self.overlay3_size_percent = self.overlay3_size_combo.itemData(idx)
+            # Set display text with %
+            if idx >= 0:
+                self.overlay3_size_combo.setEditText(f"{self.overlay3_size_percent}%")
+        self.overlay3_size_combo.setEditable(True)
+        overlay3_line_edit = self.overlay3_size_combo.lineEdit()
+        if overlay3_line_edit is not None:
+            overlay3_line_edit.setReadOnly(True)
+            overlay3_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.overlay3_size_combo.currentIndexChanged.connect(on_overlay3_size_changed)
+        on_overlay3_size_changed(self.overlay3_size_combo.currentIndex())
+        # Overlay 3 position option
+        overlay3_position_label = QLabel("P:")
+        overlay3_position_label.setFixedWidth(18)
+        self.overlay3_position_combo = QtWidgets.QComboBox()
+        self.overlay3_position_combo.setFixedWidth(130)
+        positions = [
+            ("Center", "center"),
+            ("Top Left", "top_left"),
+            ("Top Right", "top_right"),
+            ("Bottom Left", "bottom_left"),
+            ("Bottom Right", "bottom_right")
+        ]
+        for label, value in positions:
+            self.overlay3_position_combo.addItem(label, value)
+        self.overlay3_position_combo.setCurrentIndex(2)  # Default top_right
+        self.overlay3_position = "top_right"
+        def on_overlay3_position_changed(idx):
+            self.overlay3_position = self.overlay3_position_combo.itemData(idx)
+        self.overlay3_position_combo.currentIndexChanged.connect(on_overlay3_position_changed)
+        on_overlay3_position_changed(self.overlay3_position_combo.currentIndex())
+        def set_overlay3_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay3_edit.setEnabled(enabled)
+            overlay3_btn.setEnabled(enabled)
+            self.overlay3_size_combo.setEnabled(enabled)
+            self.overlay3_position_combo.setEnabled(enabled)
+            if enabled:
+                overlay3_btn.setStyleSheet("")
+                self.overlay3_edit.setStyleSheet("")
+                self.overlay3_size_combo.setStyleSheet("")
+                self.overlay3_position_combo.setStyleSheet("")
+                overlay3_size_label.setStyleSheet("")
+                overlay3_position_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                overlay3_btn.setStyleSheet(grey_btn_style)
+                self.overlay3_edit.setStyleSheet(grey_btn_style)
+                self.overlay3_size_combo.setStyleSheet(grey_btn_style)
+                self.overlay3_position_combo.setStyleSheet(grey_btn_style)
+                overlay3_size_label.setStyleSheet("color: grey;")
+                overlay3_position_label.setStyleSheet("color: grey;")
+        self.overlay3_checkbox.stateChanged.connect(lambda _: set_overlay3_enabled(self.overlay3_checkbox.checkState()))
+        set_overlay3_enabled(self.overlay3_checkbox.checkState())
+        overlay3_layout.addWidget(self.overlay3_checkbox)
+        overlay3_layout.addWidget(self.overlay3_edit)
+        overlay3_layout.addSpacing(6)
+        overlay3_layout.addWidget(overlay3_btn)
+        overlay3_layout.addSpacing(4)
+        overlay3_layout.addWidget(overlay3_position_label)
+        overlay3_layout.addSpacing(2)
+        overlay3_layout.addWidget(self.overlay3_position_combo)
+        overlay3_layout.addSpacing(6)
+        overlay3_layout.addWidget(overlay3_size_label)
+        overlay3_layout.addWidget(self.overlay3_size_combo)
+        layout.addLayout(overlay3_layout)
+
         # --- EFFECT CONTROL FOR INTRO & OVERLAY ---
         
         combo_width = 130
@@ -1378,7 +1480,7 @@ class SuperCutUI(QWidget):
 
         # --- Overlay effect label greying logic ---
         def update_overlay_effect_label_style():
-            if not (self.overlay_checkbox.isChecked() or self.overlay2_checkbox.isChecked()):
+            if not (self.overlay_checkbox.isChecked() or self.overlay2_checkbox.isChecked() or self.overlay3_checkbox.isChecked()):
                 effect_label.setStyleSheet("color: grey;")
                 self.effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.effect_combo.setEnabled(False)
@@ -1394,6 +1496,7 @@ class SuperCutUI(QWidget):
                 self.overlay_duration_edit.setEnabled(True)
         self.overlay_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         self.overlay2_checkbox.stateChanged.connect(update_overlay_effect_label_style)
+        self.overlay3_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         update_overlay_effect_label_style()
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
@@ -1660,6 +1763,12 @@ class SuperCutUI(QWidget):
             if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png']:
                 QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 2.", QMessageBox.StandardButton.Ok)
                 return
+        # Overlay 3 validation
+        if self.overlay3_checkbox.isChecked():
+            overlay3_path = self.overlay3_edit.text().strip()
+            if not overlay3_path or not os.path.isfile(overlay3_path) or os.path.splitext(overlay3_path)[1].lower() not in ['.gif', '.png']:
+                QMessageBox.warning(self, "⚠️ Overlay 3 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 3.", QMessageBox.StandardButton.Ok)
+                return
         # --- Name list validation ---
         use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
         if use_name_list:
@@ -1785,6 +1894,7 @@ class SuperCutUI(QWidget):
             media_sources, export_name, number, folder, codec, resolution, fps,
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
             self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position,
+            self.overlay3_checkbox.isChecked(), self.overlay3_path, self.overlay3_size_percent, self.overlay3_position,
             self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_position,
             self.selected_effect, self.overlay_duration,
             self.intro_effect, self.intro_duration,
@@ -2134,12 +2244,27 @@ class SuperCutUI(QWidget):
                 self.overlay2_position_combo.setCurrentIndex(idx)
                 idx = next((i for i in range(self.overlay2_size_combo.count()) if self.overlay2_size_combo.itemData(i) == default_overlay2_size), 2)
                 self.overlay2_size_combo.setCurrentIndex(idx)
+        # Apply default overlay 3 settings if overlay 3 is checked and fields are empty
+        default_overlay3_path = self.settings.value('default_overlay3_path', '', type=str)
+        default_overlay3_position = self.settings.value('default_overlay3_position', 'top_right', type=str)
+        default_overlay3_size = self.settings.value('default_overlay3_size', 15, type=int)
+        default_overlay3_enabled = self.settings.value('default_overlay3_enabled', False, type=bool)
+        if default_overlay3_enabled:
+            if self.overlay3_checkbox.isChecked():
+                if not self.overlay3_edit.text().strip():
+                    self.overlay3_edit.setText(default_overlay3_path)
+                idx = next((i for i in range(self.overlay3_position_combo.count()) if self.overlay3_position_combo.itemData(i) == default_overlay3_position), 2)
+                self.overlay3_position_combo.setCurrentIndex(idx)
+                idx = next((i for i in range(self.overlay3_size_combo.count()) if self.overlay3_size_combo.itemData(i) == default_overlay3_size), 2)
+                self.overlay3_size_combo.setCurrentIndex(idx)
         # Set intro checkbox state from settings
         self.intro_checkbox.setChecked(default_intro_enabled)
         # Set overlay1 checkbox state from settings
         self.overlay_checkbox.setChecked(default_overlay1_enabled)
         # Set overlay2 checkbox state from settings
         self.overlay2_checkbox.setChecked(default_overlay2_enabled)
+        # Set overlay3 checkbox state from settings
+        self.overlay3_checkbox.setChecked(default_overlay3_enabled)
         # Set list name checkbox state from settings
         default_list_name_enabled = self.settings.value('default_list_name_enabled', False, type=bool)
         if hasattr(self, 'name_list_checkbox'):
