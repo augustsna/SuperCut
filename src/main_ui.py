@@ -849,7 +849,7 @@ class SuperCutUI(QWidget):
         self.mp3_count_edit.setPlaceholderText("MP3")
         self.mp3_count_edit.setValidator(QIntValidator(1, 999, self))
         self.mp3_count_edit.setEnabled(False)
-        self.mp3_count_edit.setFixedWidth(50)
+        self.mp3_count_edit.setFixedWidth(40)
         def set_mp3_count_edit_enabled(state):
             # Accept both int and Qt.CheckState for compatibility
             if isinstance(state, int):
@@ -873,7 +873,7 @@ class SuperCutUI(QWidget):
         self.folder_edit.textChanged.connect(self.update_output_name)
         part_layout.addSpacing(20)
         part_layout.addWidget(self.name_list_checkbox)
-        part_layout.addSpacing(-50)
+        part_layout.addSpacing(-45)
         part_layout.addWidget(self.name_list_enter_btn)
         # part_layout.addWidget(self.name_list_preview_btn)
         part_layout.addSpacing(20)
@@ -1487,7 +1487,7 @@ class SuperCutUI(QWidget):
         layout.addLayout(overlay4_layout)        
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
-        self.song_title_checkbox = QtWidgets.QCheckBox("Song titles overlay")
+        self.song_title_checkbox = QtWidgets.QCheckBox("Song Titles")
         self.song_title_checkbox.setChecked(True)
         def update_song_title_checkbox_style(state):
             self.song_title_checkbox.setStyleSheet("")
@@ -1593,7 +1593,7 @@ class SuperCutUI(QWidget):
         # --- EFFECT CONTROL FOR INTRO & OVERLAY ---
         
         combo_width = 130
-        edit_width = 50
+        edit_width = 40
 
         effect_label = QLabel("Overlay:")
         effect_label.setFixedWidth(55)
