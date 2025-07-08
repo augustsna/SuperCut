@@ -26,8 +26,7 @@ class VideoWorker(QObject):
                  audio_bitrate: str = "384k",
                  video_bitrate: str = "12M",
                  maxrate: str = "16M",
-                 bufsize: str = "24M",
-                 use_song_title_overlay: bool = True):
+                 bufsize: str = "24M"):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -61,7 +60,6 @@ class VideoWorker(QObject):
         self.bufsize = bufsize
         self._stop = False
         self._used_images = set()
-        self.use_song_title_overlay = use_song_title_overlay
 
     def stop(self):
         """Stop the video processing"""
@@ -142,17 +140,16 @@ class VideoWorker(QObject):
         selected_mp3s = random.sample(mp3_files, self.min_mp3_count)
 
         # --- Song Title Overlays: Extract title and create PNG for each selected MP3 ---
-        song_title_pngs = []
-        if self.use_song_title_overlay:
-            from src.utils import extract_mp3_title, create_song_title_png
-            import tempfile
-            for idx, mp3_path in enumerate(selected_mp3s, start=5):  # overlay5, overlay6, ...
-                title = extract_mp3_title(mp3_path)
-                # Create a temp PNG file for the overlay
-                temp_png = tempfile.NamedTemporaryFile(delete=False, suffix=f'_overlay{idx}.png')
-                temp_png.close()
-                create_song_title_png(title, temp_png.name, width=800, height=80, font_size=32)
-                song_title_pngs.append((temp_png.name, title))
+        from src.utils import extract_mp3_title, create_song_title_png
+        import tempfile
+        song_title_pngs = []  # List of (png_path, title)
+        for idx, mp3_path in enumerate(selected_mp3s, start=5):  # overlay5, overlay6, ...
+            title = extract_mp3_title(mp3_path)
+            # Create a temp PNG file for the overlay
+            temp_png = tempfile.NamedTemporaryFile(delete=False, suffix=f'_overlay{idx}.png')
+            temp_png.close()
+            create_song_title_png(title, temp_png.name, width=800, height=80, font_size=32)
+            song_title_pngs.append((temp_png.name, title))
         # --- End Song Title Overlays ---
         
         # Select available image

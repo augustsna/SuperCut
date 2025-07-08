@@ -1396,15 +1396,6 @@ class SuperCutUI(QWidget):
         self.overlay2_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         update_overlay_effect_label_style()
 
-        # --- SONG TITLE OVERLAY CHECKBOX ---
-        self.song_title_checkbox = QtWidgets.QCheckBox("Song titles overlay")
-        self.song_title_checkbox.setChecked(True)
-        def update_song_title_checkbox_style(state):
-            self.song_title_checkbox.setStyleSheet("")
-        self.song_title_checkbox.stateChanged.connect(update_song_title_checkbox_style)
-        update_song_title_checkbox_style(self.song_title_checkbox.checkState())
-        layout.addWidget(self.song_title_checkbox)
-
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
@@ -1793,8 +1784,7 @@ class SuperCutUI(QWidget):
             audio_bitrate=audio_bitrate,
             video_bitrate=video_bitrate,
             maxrate=maxrate,
-            bufsize=bufsize,
-            use_song_title_overlay=self.song_title_checkbox.isChecked()  # <-- Pass state here
+            bufsize=bufsize
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
