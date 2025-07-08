@@ -91,7 +91,8 @@ def create_video_with_ffmpeg(
     intro_duration: int = 5,
     preset: str = "slow",
     audio_bitrate: str = "384k",
-    video_bitrate: str = "12M"
+    video_bitrate: str = "12M",
+    maxrate: str = "16M"
 ) -> Tuple[bool, Optional[str]]:
     """Create video from image and audio using ffmpeg with progress tracking. Supports up to three overlays (Intro, Overlay 1, Overlay 2). Returns (success, error_message)."""
     temp_png_path = None
@@ -108,7 +109,7 @@ def create_video_with_ffmpeg(
         audio_duration = get_audio_duration(audio_path)
         # Use the provided video_bitrate instead of VIDEO_SETTINGS['video_bitrate']
         video_bitrate_str = str(video_bitrate)
-        max_bitrate_str = str(VIDEO_SETTINGS["max_bitrate"])
+        maxrate_str = str(maxrate)
         buffer_size_str = str(VIDEO_SETTINGS["buffer_size"])
         # Convert bitrate strings to int for calculation
         if video_bitrate_str.lower().endswith('m'):
@@ -294,7 +295,7 @@ def create_video_with_ffmpeg(
         # Video settings
         cmd.extend([   
             "-b:v", video_bitrate_str,
-            "-maxrate", max_bitrate_str,
+            "-maxrate", maxrate_str,
             "-bufsize", buffer_size_str     
         ])
 
