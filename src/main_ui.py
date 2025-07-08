@@ -32,7 +32,8 @@ from src.config import (
     DEFAULT_FFMPEG_PRESETS, DEFAULT_FFMPEG_PRESET,
     DEFAULT_AUDIO_BITRATE_OPTIONS, DEFAULT_AUDIO_BITRATE,
     DEFAULT_VIDEO_BITRATE_OPTIONS, DEFAULT_VIDEO_BITRATE,
-    DEFAULT_MAXRATE_OPTIONS, DEFAULT_MAXRATE
+    DEFAULT_MAXRATE_OPTIONS, DEFAULT_MAXRATE,
+    DEFAULT_BUFSIZE_OPTIONS, DEFAULT_BUFSIZE
 )
 from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
@@ -177,6 +178,17 @@ class SettingsDialog(QDialog):
             default_maxrate = DEFAULT_MAXRATE
         idx = next((i for i, (label, value) in enumerate(DEFAULT_MAXRATE_OPTIONS) if value == default_maxrate), 5)
         self.maxrate_combo.setCurrentIndex(idx)
+        # --- FFmpeg Bufsize Combo ---
+        self.bufsize_combo = QComboBox(self)
+        self.bufsize_combo.setFixedWidth(120)
+        for label, value in DEFAULT_BUFSIZE_OPTIONS:
+            self.bufsize_combo.addItem(label, value)
+        if self.settings is not None:
+            default_bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
+        else:
+            default_bufsize = DEFAULT_BUFSIZE
+        idx = next((i for i, (label, value) in enumerate(DEFAULT_BUFSIZE_OPTIONS) if value == default_bufsize), 4)
+        self.bufsize_combo.setCurrentIndex(idx)
         # Add to left_form in new order with reduced spacing
         left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
@@ -194,6 +206,7 @@ class SettingsDialog(QDialog):
         left_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
         left_form.addRow("Video Bitrate:", self.video_bitrate_combo)
         left_form.addRow("Maxrate:", self.maxrate_combo)
+        left_form.addRow("Bufsize:", self.bufsize_combo)
         # --- Default Intro Path ---
         intro_path_layout = QHBoxLayout()
         self.default_intro_path_edit = QLineEdit()
@@ -357,6 +370,7 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_ffmpeg_audio_bitrate', self.audio_bitrate_combo.currentData())
             self.settings.setValue('default_ffmpeg_video_bitrate', self.video_bitrate_combo.currentData())
             self.settings.setValue('default_ffmpeg_maxrate', self.maxrate_combo.currentData())
+            self.settings.setValue('default_ffmpeg_bufsize', self.bufsize_combo.currentData())
         super().accept()
 
     def reset_to_defaults(self):
@@ -371,7 +385,9 @@ class SettingsDialog(QDialog):
         # FFmpeg Video Bitrate
         self.video_bitrate_combo.setCurrentIndex(5)  # '12M' is default
         # Maxrate
-        self.maxrate_combo.setCurrentIndex(5)  # '12M' is default
+        self.maxrate_combo.setCurrentIndex(5)  # '16M' is default
+        # Bufsize
+        self.bufsize_combo.setCurrentIndex(4)  # '24M' is default
         # Intro
         self.default_intro_enabled_checkbox.setChecked(True)
         self.default_intro_path_edit.setText("")
@@ -1754,6 +1770,8 @@ class SuperCutUI(QWidget):
         video_bitrate = self.settings.value('default_ffmpeg_video_bitrate', DEFAULT_VIDEO_BITRATE, type=str)
         # Get ffmpeg maxrate from settings
         maxrate = self.settings.value('default_ffmpeg_maxrate', DEFAULT_MAXRATE, type=str)
+        # Get ffmpeg bufsize from settings
+        bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
         self._worker = VideoWorker(
             media_sources, export_name, number, folder, codec, resolution, fps,
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
@@ -1765,7 +1783,8 @@ class SuperCutUI(QWidget):
             preset=preset,
             audio_bitrate=audio_bitrate,
             video_bitrate=video_bitrate,
-            maxrate=maxrate
+            maxrate=maxrate,
+            bufsize=bufsize
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)

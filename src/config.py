@@ -204,6 +204,20 @@ DEFAULT_MAXRATE_OPTIONS = [
 ]
 DEFAULT_MAXRATE = "16M"
 
+# FFmpeg Bufsize Options
+DEFAULT_BUFSIZE_OPTIONS = [
+    ("4 Mbps", "4M"),
+    ("8 Mbps", "8M"),
+    ("12 Mbps", "12M"),
+    ("16 Mbps", "16M"),
+    ("24 Mbps", "24M"),
+    ("32 Mbps", "32M"),
+    ("40 Mbps", "40M"),
+    ("48 Mbps", "48M"),
+    ("64 Mbps", "64M")
+]
+DEFAULT_BUFSIZE = "24M"
+
 def check_ffmpeg_installation():
     """Check if FFmpeg is properly installed"""
     if not os.path.exists(FFMPEG_BINARY):

@@ -25,7 +25,8 @@ class VideoWorker(QObject):
                  preset: str = "slow",
                  audio_bitrate: str = "384k",
                  video_bitrate: str = "12M",
-                 maxrate: str = "16M"):
+                 maxrate: str = "16M",
+                 bufsize: str = "24M"):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -56,6 +57,7 @@ class VideoWorker(QObject):
         self.audio_bitrate = audio_bitrate
         self.video_bitrate = video_bitrate
         self.maxrate = maxrate
+        self.bufsize = bufsize
         self._stop = False
         self._used_images = set()
 
@@ -203,7 +205,8 @@ class VideoWorker(QObject):
                 self.preset,
                 self.audio_bitrate,
                 self.video_bitrate,
-                self.maxrate
+                self.maxrate,
+                self.bufsize
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")
