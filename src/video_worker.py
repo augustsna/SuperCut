@@ -138,6 +138,19 @@ class VideoWorker(QObject):
         batch_start_time = time.time()
         # Select random MP3s
         selected_mp3s = random.sample(mp3_files, self.min_mp3_count)
+
+        # --- Song Title Overlays: Extract title and create PNG for each selected MP3 ---
+        from src.utils import extract_mp3_title, create_song_title_png
+        import tempfile
+        song_title_pngs = []  # List of (png_path, title)
+        for idx, mp3_path in enumerate(selected_mp3s, start=5):  # overlay5, overlay6, ...
+            title = extract_mp3_title(mp3_path)
+            # Create a temp PNG file for the overlay
+            temp_png = tempfile.NamedTemporaryFile(delete=False, suffix=f'_overlay{idx}.png')
+            temp_png.close()
+            create_song_title_png(title, temp_png.name, width=800, height=80, font_size=32)
+            song_title_pngs.append((temp_png.name, title))
+        # --- End Song Title Overlays ---
         
         # Select available image
         available_images = [img for img in image_files if img not in used_images]
@@ -178,6 +191,18 @@ class VideoWorker(QObject):
             return False, []
 
         try:
+            # Calculate timing for each overlay (equal split for now)
+            overlay_count = len(song_title_pngs)
+            overlay_duration = audio_duration / overlay_count if overlay_count else 0
+            extra_overlays = []
+            for i, (png_path, title) in enumerate(song_title_pngs):
+                start = i * overlay_duration
+                extra_overlays.append({
+                    'path': png_path,
+                    'start': start,
+                    'duration': overlay_duration,
+                    'fade': True
+                })
             # Create video (Overlay 1: GIF/PNG, with size)
             success, error_msg = create_video_with_ffmpeg(
                 selected_image, 
@@ -206,7 +231,8 @@ class VideoWorker(QObject):
                 self.audio_bitrate,
                 self.video_bitrate,
                 self.maxrate,
-                self.bufsize
+                self.bufsize,
+                extra_overlays=extra_overlays
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")

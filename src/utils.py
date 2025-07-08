@@ -7,6 +7,9 @@ import atexit
 from typing import Set
 from src.logger import logger
 import shutil
+from mutagen.easyid3 import EasyID3
+from mutagen.mp3 import MP3
+from PIL import Image, ImageDraw, ImageFont
 
 # Global set to track temporary files
 TEMP_FILES: Set[str] = set()
@@ -161,6 +164,45 @@ def validate_media_files(media_sources: str, min_mp3_count: int = 3) -> tuple[bo
     if not mp3_files or len(mp3_files) < min_mp3_count:
         return False, f"Not enough mp3 files in folder (need at least {min_mp3_count} to start batch processing)", [], []
     return True, "", mp3_files, image_files
+
+def extract_mp3_title(mp3_path):
+    """
+    Extract the song title from an MP3 file's metadata.
+    Returns the title as a string, or the filename (without extension) if not found.
+    """
+    try:
+        audio = MP3(mp3_path, ID3=EasyID3)
+        title = audio.get('title', None)
+        if title and isinstance(title, list):
+            return title[0]
+        elif title:
+            return title
+    except Exception:
+        pass
+    # Fallback: use filename without extension
+    import os
+    return os.path.splitext(os.path.basename(mp3_path))[0]
+
+def create_song_title_png(title, output_path, width=400, height=40, font_size=12):
+    """
+    Create a PNG image with the song title text at the top-left.
+    Args:
+        title (str): The song title to render.
+        output_path (str): Where to save the PNG.
+        width (int): Width of the image.
+        height (int): Height of the image.
+        font_size (int): Font size for the title.
+    """
+    # Create a transparent image
+    img = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    try:
+        font = ImageFont.truetype("arial.ttf", font_size)
+    except Exception:
+        font = ImageFont.load_default()
+    # Draw text at (8, 8) for padding
+    draw.text((8, 8), title, font=font, fill=(255, 255, 255, 255))
+    img.save(output_path, 'PNG')
 
 # Register cleanup function to run at exit
 atexit.register(cleanup_temp_files) 
