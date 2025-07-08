@@ -981,18 +981,12 @@ class SuperCutUI(QWidget):
         self.intro_size_combo = QtWidgets.QComboBox()
         self.intro_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
-            self.intro_size_combo.addItem(str(percent), percent)
+            self.intro_size_combo.addItem(f"{percent}%", percent)
         self.intro_size_combo.setCurrentIndex(9)  # Default 50%
         self.intro_size_percent = 50
         def on_intro_size_changed(idx):
             self.intro_size_percent = self.intro_size_combo.itemData(idx)
-            if idx >= 0:
-                self.intro_size_combo.setEditText(f"{self.intro_size_percent}%")
-        self.intro_size_combo.setEditable(True)
-        intro_line_edit = self.intro_size_combo.lineEdit()
-        if intro_line_edit is not None:
-            intro_line_edit.setReadOnly(True)
-            intro_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.intro_size_combo.setEditable(False)
         self.intro_size_combo.currentIndexChanged.connect(on_intro_size_changed)
         on_intro_size_changed(self.intro_size_combo.currentIndex())
         # Position option (add Center)
@@ -1139,19 +1133,12 @@ class SuperCutUI(QWidget):
         self.overlay1_size_combo = QtWidgets.QComboBox()
         self.overlay1_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
-            self.overlay1_size_combo.addItem(str(percent), percent)
+            self.overlay1_size_combo.addItem(f"{percent}%", percent)
         self.overlay1_size_combo.setCurrentIndex(2)  # Default 15%
         self.overlay1_size_percent = 15
         def on_overlay1_size_changed(idx):
             self.overlay1_size_percent = self.overlay1_size_combo.itemData(idx)
-            # Set display text with %
-            if idx >= 0:
-                self.overlay1_size_combo.setEditText(f"{self.overlay1_size_percent}%")
-        self.overlay1_size_combo.setEditable(True)
-        overlay1_line_edit = self.overlay1_size_combo.lineEdit()
-        if overlay1_line_edit is not None:
-            overlay1_line_edit.setReadOnly(True)
-            overlay1_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.overlay1_size_combo.setEditable(False)
         self.overlay1_size_combo.currentIndexChanged.connect(on_overlay1_size_changed)
         on_overlay1_size_changed(self.overlay1_size_combo.currentIndex())
         # Overlay 1 position option
@@ -1242,19 +1229,12 @@ class SuperCutUI(QWidget):
         self.overlay2_size_combo = QtWidgets.QComboBox()
         self.overlay2_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
-            self.overlay2_size_combo.addItem(str(percent), percent)
+            self.overlay2_size_combo.addItem(f"{percent}%", percent)
         self.overlay2_size_combo.setCurrentIndex(2)  # Default 15%
         self.overlay2_size_percent = 15
         def on_overlay2_size_changed(idx):
             self.overlay2_size_percent = self.overlay2_size_combo.itemData(idx)
-            # Set display text with %
-            if idx >= 0:
-                self.overlay2_size_combo.setEditText(f"{self.overlay2_size_percent}%")
-        self.overlay2_size_combo.setEditable(True)
-        overlay2_line_edit = self.overlay2_size_combo.lineEdit()
-        if overlay2_line_edit is not None:
-            overlay2_line_edit.setReadOnly(True)
-            overlay2_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.overlay2_size_combo.setEditable(False)
         self.overlay2_size_combo.currentIndexChanged.connect(on_overlay2_size_changed)
         on_overlay2_size_changed(self.overlay2_size_combo.currentIndex())
         # Overlay 2 position option
@@ -1344,19 +1324,12 @@ class SuperCutUI(QWidget):
         self.overlay3_size_combo = QtWidgets.QComboBox()
         self.overlay3_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
-            self.overlay3_size_combo.addItem(str(percent), percent)
+            self.overlay3_size_combo.addItem(f"{percent}%", percent)
         self.overlay3_size_combo.setCurrentIndex(2)  # Default 15%
         self.overlay3_size_percent = 15
         def on_overlay3_size_changed(idx):
             self.overlay3_size_percent = self.overlay3_size_combo.itemData(idx)
-            # Set display text with %
-            if idx >= 0:
-                self.overlay3_size_combo.setEditText(f"{self.overlay3_size_percent}%")
-        self.overlay3_size_combo.setEditable(True)
-        overlay3_line_edit = self.overlay3_size_combo.lineEdit()
-        if overlay3_line_edit is not None:
-            overlay3_line_edit.setReadOnly(True)
-            overlay3_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.overlay3_size_combo.setEditable(False)
         self.overlay3_size_combo.currentIndexChanged.connect(on_overlay3_size_changed)
         on_overlay3_size_changed(self.overlay3_size_combo.currentIndex())
         # Overlay 3 position option
@@ -1446,19 +1419,12 @@ class SuperCutUI(QWidget):
         self.overlay4_size_combo = QtWidgets.QComboBox()
         self.overlay4_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
-            self.overlay4_size_combo.addItem(str(percent), percent)
+            self.overlay4_size_combo.addItem(f"{percent}%", percent)
         self.overlay4_size_combo.setCurrentIndex(2)  # Default 15%
         self.overlay4_size_percent = 15
         def on_overlay4_size_changed(idx):
             self.overlay4_size_percent = self.overlay4_size_combo.itemData(idx)
-            # Set display text with %
-            if idx >= 0:
-                self.overlay4_size_combo.setEditText(f"{self.overlay4_size_percent}%")
-        self.overlay4_size_combo.setEditable(True)
-        overlay4_line_edit = self.overlay4_size_combo.lineEdit()
-        if overlay4_line_edit is not None:
-            overlay4_line_edit.setReadOnly(True)
-            overlay4_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.overlay4_size_combo.setEditable(False)
         self.overlay4_size_combo.currentIndexChanged.connect(on_overlay4_size_changed)
         on_overlay4_size_changed(self.overlay4_size_combo.currentIndex())
         # Overlay 4 position option
@@ -1644,19 +1610,12 @@ class SuperCutUI(QWidget):
         self.overlay5_size_combo = QtWidgets.QComboBox()
         self.overlay5_size_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
-            self.overlay5_size_combo.addItem(str(percent), percent)
+            self.overlay5_size_combo.addItem(f"{percent}%", percent)
         self.overlay5_size_combo.setCurrentIndex(2)  # Default 15%
         self.overlay5_size_percent = 15
         def on_overlay5_size_changed(idx):
             self.overlay5_size_percent = self.overlay5_size_combo.itemData(idx)
-            # Set display text with %
-            if idx >= 0:
-                self.overlay5_size_combo.setEditText(f"{self.overlay5_size_percent}%")
-        self.overlay5_size_combo.setEditable(True)
-        overlay5_line_edit = self.overlay5_size_combo.lineEdit()
-        if overlay5_line_edit is not None:
-            overlay5_line_edit.setReadOnly(True)
-            overlay5_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.overlay5_size_combo.setEditable(False)
         self.overlay5_size_combo.currentIndexChanged.connect(on_overlay5_size_changed)
         on_overlay5_size_changed(self.overlay5_size_combo.currentIndex())
         # Overlay 5 position option
