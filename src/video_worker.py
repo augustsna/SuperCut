@@ -5,7 +5,7 @@ import shutil
 from PyQt6.QtCore import QObject, pyqtSignal
 from typing import List, Optional
 from src.ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg
-from src.utils import set_low_priority
+from src.utils import set_low_priority, create_temp_file
 import time
 from src.logger import logger
 
@@ -160,14 +160,12 @@ class VideoWorker(QObject):
         song_title_pngs = []
         if self.use_song_title_overlay:
             from src.utils import extract_mp3_title, create_song_title_png
-            import tempfile
             for idx, mp3_path in enumerate(selected_mp3s, start=5):  # overlay5, overlay6, ...
                 title = extract_mp3_title(mp3_path)
                 # Create a temp PNG file for the overlay
-                temp_png = tempfile.NamedTemporaryFile(delete=False, suffix=f'_overlay{idx}.png')
-                temp_png.close()
-                create_song_title_png(title, temp_png.name, width=800, height=80, font_size=32)
-                song_title_pngs.append((temp_png.name, title))
+                temp_png_path = create_temp_file(suffix=f'_overlay{idx}.png', prefix='supercut_')
+                create_song_title_png(title, temp_png_path, width=800, height=80, font_size=32)
+                song_title_pngs.append((temp_png_path, title))
         # --- End Song Title Overlays ---
         
         # Select available image
