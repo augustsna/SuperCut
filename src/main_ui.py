@@ -1613,6 +1613,108 @@ class SuperCutUI(QWidget):
         update_song_title_checkbox_style(self.song_title_checkbox.checkState())
         layout.addWidget(self.song_title_checkbox)
 
+        # Overlay 5 controls (similar to Overlay 4)
+        self.overlay5_checkbox = QtWidgets.QCheckBox("Overlay 5:")
+        self.overlay5_checkbox.setFixedWidth(82)
+        self.overlay5_checkbox.setChecked(False)
+        def update_overlay5_checkbox_style(state):
+            self.overlay5_checkbox.setStyleSheet("")  # Always default color
+        self.overlay5_checkbox.stateChanged.connect(update_overlay5_checkbox_style)
+        update_overlay5_checkbox_style(self.overlay5_checkbox.checkState())
+
+        overlay5_layout = QHBoxLayout()
+        overlay5_layout.setSpacing(4)
+        self.overlay5_edit = ImageDropLineEdit()
+        self.overlay5_edit.setPlaceholderText("Overlay 5 image path (*.gif, *.png)")
+        self.overlay5_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay5_edit.setFixedWidth(125)
+        self.overlay5_path = ""
+        def on_overlay5_changed():
+            self.overlay5_path = self.overlay5_edit.text().strip()
+        self.overlay5_edit.textChanged.connect(on_overlay5_changed)
+        overlay5_btn = QPushButton("Select")
+        overlay5_btn.setFixedWidth(60)
+        def select_overlay5_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 5 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.overlay5_edit.setText(file_path)
+        overlay5_btn.clicked.connect(select_overlay5_image)
+        overlay5_size_label = QLabel("S:")
+        overlay5_size_label.setFixedWidth(18)
+        self.overlay5_size_combo = QtWidgets.QComboBox()
+        self.overlay5_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.overlay5_size_combo.addItem(str(percent), percent)
+        self.overlay5_size_combo.setCurrentIndex(2)  # Default 15%
+        self.overlay5_size_percent = 15
+        def on_overlay5_size_changed(idx):
+            self.overlay5_size_percent = self.overlay5_size_combo.itemData(idx)
+            # Set display text with %
+            if idx >= 0:
+                self.overlay5_size_combo.setEditText(f"{self.overlay5_size_percent}%")
+        self.overlay5_size_combo.setEditable(True)
+        overlay5_line_edit = self.overlay5_size_combo.lineEdit()
+        if overlay5_line_edit is not None:
+            overlay5_line_edit.setReadOnly(True)
+            overlay5_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.overlay5_size_combo.currentIndexChanged.connect(on_overlay5_size_changed)
+        on_overlay5_size_changed(self.overlay5_size_combo.currentIndex())
+        # Overlay 5 position option
+        overlay5_position_label = QLabel("P:")
+        overlay5_position_label.setFixedWidth(18)
+        self.overlay5_position_combo = QtWidgets.QComboBox()
+        self.overlay5_position_combo.setFixedWidth(130)
+        positions = [
+            ("Center", "center"),
+            ("Top Left", "top_left"),
+            ("Top Right", "top_right"),
+            ("Bottom Left", "bottom_left"),
+            ("Bottom Right", "bottom_right")
+        ]
+        for label, value in positions:
+            self.overlay5_position_combo.addItem(label, value)
+        self.overlay5_position_combo.setCurrentIndex(2)  # Default top_right
+        self.overlay5_position = "top_right"
+        def on_overlay5_position_changed(idx):
+            self.overlay5_position = self.overlay5_position_combo.itemData(idx)
+        self.overlay5_position_combo.currentIndexChanged.connect(on_overlay5_position_changed)
+        on_overlay5_position_changed(self.overlay5_position_combo.currentIndex())
+        def set_overlay5_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay5_edit.setEnabled(enabled)
+            overlay5_btn.setEnabled(enabled)
+            self.overlay5_size_combo.setEnabled(enabled)
+            self.overlay5_position_combo.setEnabled(enabled)
+            if enabled:
+                overlay5_btn.setStyleSheet("")
+                self.overlay5_edit.setStyleSheet("")
+                self.overlay5_size_combo.setStyleSheet("")
+                self.overlay5_position_combo.setStyleSheet("")
+                overlay5_size_label.setStyleSheet("")
+                overlay5_position_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                overlay5_btn.setStyleSheet(grey_btn_style)
+                self.overlay5_edit.setStyleSheet(grey_btn_style)
+                self.overlay5_size_combo.setStyleSheet(grey_btn_style)
+                self.overlay5_position_combo.setStyleSheet(grey_btn_style)
+                overlay5_size_label.setStyleSheet("color: grey;")
+                overlay5_position_label.setStyleSheet("color: grey;")
+        self.overlay5_checkbox.stateChanged.connect(lambda _: set_overlay5_enabled(self.overlay5_checkbox.checkState()))
+        set_overlay5_enabled(self.overlay5_checkbox.checkState())
+        overlay5_layout.addWidget(self.overlay5_checkbox)
+        overlay5_layout.addWidget(self.overlay5_edit)
+        overlay5_layout.addSpacing(6)
+        overlay5_layout.addWidget(overlay5_btn)
+        overlay5_layout.addSpacing(4)
+        overlay5_layout.addWidget(overlay5_position_label)
+        overlay5_layout.addSpacing(2)
+        overlay5_layout.addWidget(self.overlay5_position_combo)
+        overlay5_layout.addSpacing(6)
+        overlay5_layout.addWidget(overlay5_size_label)
+        overlay5_layout.addWidget(self.overlay5_size_combo)
+        layout.addLayout(overlay5_layout)
+
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
@@ -2007,6 +2109,7 @@ class SuperCutUI(QWidget):
             self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position,
             self.overlay3_checkbox.isChecked(), self.overlay3_path, self.overlay3_size_percent, self.overlay3_position,
             self.overlay4_checkbox.isChecked(), self.overlay4_path, self.overlay4_size_percent, self.overlay4_position,
+            self.overlay5_checkbox.isChecked(), self.overlay5_path, self.overlay5_size_percent, self.overlay5_position,
             self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_position,
             self.selected_effect, self.overlay_duration,
             self.intro_effect, self.intro_duration,
@@ -2393,6 +2496,20 @@ class SuperCutUI(QWidget):
         self.overlay3_checkbox.setChecked(default_overlay3_enabled)
         # Set overlay4 checkbox state from settings
         self.overlay4_checkbox.setChecked(default_overlay4_enabled)
+        # Set overlay5 checkbox state from settings
+        default_overlay5_path = self.settings.value('default_overlay5_path', '', type=str)
+        default_overlay5_position = self.settings.value('default_overlay5_position', 'top_right', type=str)
+        default_overlay5_size = self.settings.value('default_overlay5_size', 15, type=int)
+        default_overlay5_enabled = self.settings.value('default_overlay5_enabled', False, type=bool)
+        if default_overlay5_enabled:
+            if self.overlay5_checkbox.isChecked():
+                if not self.overlay5_edit.text().strip():
+                    self.overlay5_edit.setText(default_overlay5_path)
+                idx = next((i for i in range(self.overlay5_position_combo.count()) if self.overlay5_position_combo.itemData(i) == default_overlay5_position), 2)
+                self.overlay5_position_combo.setCurrentIndex(idx)
+                idx = next((i for i in range(self.overlay5_size_combo.count()) if self.overlay5_size_combo.itemData(i) == default_overlay5_size), 2)
+                self.overlay5_size_combo.setCurrentIndex(idx)
+        self.overlay5_checkbox.setChecked(default_overlay5_enabled)
         # Set list name checkbox state from settings
         default_list_name_enabled = self.settings.value('default_list_name_enabled', False, type=bool)
         if hasattr(self, 'name_list_checkbox'):

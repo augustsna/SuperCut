@@ -20,6 +20,7 @@ class VideoWorker(QObject):
                  use_overlay2: bool = False, overlay2_path: str = "", overlay2_size_percent: int = 10, overlay2_position: str = "top_left",
                  use_overlay3: bool = False, overlay3_path: str = "", overlay3_size_percent: int = 10, overlay3_position: str = "top_left",
                  use_overlay4: bool = False, overlay4_path: str = "", overlay4_size_percent: int = 10, overlay4_position: str = "top_left",
+                 use_overlay5: bool = False, overlay5_path: str = "", overlay5_size_percent: int = 10, overlay5_position: str = "top_left",
                  use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_position: str = "center",
                  effect: str = "fadein", effect_time: int = 5,
                  intro_effect: str = "fadeout", intro_duration: int = 5,
@@ -55,6 +56,10 @@ class VideoWorker(QObject):
         self.overlay4_path = overlay4_path
         self.overlay4_size_percent = overlay4_size_percent
         self.overlay4_position = overlay4_position
+        self.use_overlay5 = use_overlay5
+        self.overlay5_path = overlay5_path
+        self.overlay5_size_percent = overlay5_size_percent
+        self.overlay5_position = overlay5_position
         self.use_intro = use_intro
         self.intro_path = intro_path
         self.intro_size_percent = intro_size_percent
@@ -240,6 +245,10 @@ class VideoWorker(QObject):
                 self.overlay4_path,
                 self.overlay4_size_percent,
                 self.overlay4_position,
+                self.use_overlay5,
+                self.overlay5_path,
+                self.overlay5_size_percent,
+                self.overlay5_position,
                 self.use_intro,
                 self.intro_path,
                 self.intro_size_percent,

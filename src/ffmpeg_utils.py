@@ -89,6 +89,10 @@ def create_video_with_ffmpeg(
     overlay4_path: str = "",
     overlay4_size_percent: int = 10,
     overlay4_position: str = "top_left",
+    use_overlay5: bool = False,
+    overlay5_path: str = "",
+    overlay5_size_percent: int = 10,
+    overlay5_position: str = "top_left",
     use_intro: bool = False,
     intro_path: str = "",
     intro_size_percent: int = 10,
@@ -187,12 +191,14 @@ def create_video_with_ffmpeg(
         ext2 = os.path.splitext(overlay2_path)[1].lower() if overlay2_path else ''
         ext3 = os.path.splitext(overlay3_path)[1].lower() if overlay3_path else ''
         ext4 = os.path.splitext(overlay4_path)[1].lower() if overlay4_path else ''
+        ext5 = os.path.splitext(overlay5_path)[1].lower() if overlay5_path else ''
         ext_intro = os.path.splitext(intro_path)[1].lower() if intro_path else ''
         intro_idx = None
         overlay1_idx = None
         overlay2_idx = None
         overlay3_idx = None
         overlay4_idx = None
+        overlay5_idx = None
         input_idx = 2
         if use_intro and intro_path and ext_intro in ['.gif', '.png']:
             if ext_intro == '.gif':
@@ -239,6 +245,15 @@ def create_video_with_ffmpeg(
                 cmd.extend(["-i", overlay4_path])
             overlay4_idx = input_idx
             input_idx += 1
+        if use_overlay5 and overlay5_path and ext5 in ['.gif', '.png']:
+            if ext5 == '.gif':
+                cmd.extend(["-stream_loop", "-1", "-i", overlay5_path])
+            elif ext5 == '.png':
+                cmd.extend(["-loop", "1", "-i", overlay5_path])
+            else:
+                cmd.extend(["-i", overlay5_path])
+            overlay5_idx = input_idx
+            input_idx += 1
         # --- Add extra overlays (song titles) as inputs ---
         extra_overlay_indices = []
         if extra_overlays:
@@ -249,7 +264,7 @@ def create_video_with_ffmpeg(
                 input_idx += 1
         # --- End Song Title Overlay Filter Graph ---
         # Build filter graph with correct indices
-        overlays_present = use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or bool(extra_overlays)
+        overlays_present = use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5 or bool(extra_overlays)
         print("[DEBUG] overlays_present:", overlays_present)
         print("[DEBUG] extra_overlays (filter graph):", extra_overlays)
         if overlays_present:
@@ -268,6 +283,9 @@ def create_video_with_ffmpeg(
             scale_factor4 = overlay4_size_percent / 100.0
             ow4 = f"iw*{scale_factor4:.3f}"
             oh4 = f"ih*{scale_factor4:.3f}"
+            scale_factor5 = overlay5_size_percent / 100.0
+            ow5 = f"iw*{scale_factor5:.3f}"
+            oh5 = f"ih*{scale_factor5:.3f}"
             position_map = {
                 "top_left": ("0", "0"),
                 "top_right": (f"W-w", "0"),
@@ -280,6 +298,7 @@ def create_video_with_ffmpeg(
             ox2, oy2 = position_map.get(overlay2_position, ("0", "0"))
             ox3, oy3 = position_map.get(overlay3_position, ("0", "0"))
             ox4, oy4 = position_map.get(overlay4_position, ("0", "0"))
+            ox5, oy5 = position_map.get(overlay5_position, ("0", "0"))
             filter_bg = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height}[bg]"
 
             # Effect logic for overlays
@@ -326,6 +345,7 @@ def create_video_with_ffmpeg(
             filter_overlay2 = overlay_effect_chain(overlay2_idx, f"{ow2}:{oh2}", "ol2", effect, effect_time, ext2) if overlay2_idx is not None else ""
             filter_overlay3 = overlay_effect_chain(overlay3_idx, f"{ow3}:{oh3}", "ol3", effect, effect_time, ext3) if overlay3_idx is not None else ""
             filter_overlay4 = overlay_effect_chain(overlay4_idx, f"{ow4}:{oh4}", "ol4", effect, effect_time, ext4) if overlay4_idx is not None else ""
+            filter_overlay5 = overlay_effect_chain(overlay5_idx, f"{ow5}:{oh5}", "ol5", effect, effect_time, ext5) if overlay5_idx is not None else ""
             # --- Song Title Overlay Filter Graph ---
             filter_chains = []
             overlay_labels = []
@@ -349,12 +369,13 @@ def create_video_with_ffmpeg(
             filter_complex = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height}[bg];"
             if overlays_present:
                 # Build filter chains for intro/overlay1/overlay2/overlay3
-                if use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4:
+                if use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5:
                     filter_complex += filter_intro + ";" if filter_intro else ""
                     filter_complex += filter_overlay1 + ";" if filter_overlay1 else ""
                     filter_complex += filter_overlay2 + ";" if filter_overlay2 else ""
                     filter_complex += filter_overlay3 + ";" if filter_overlay3 else ""
                     filter_complex += filter_overlay4 + ";" if filter_overlay4 else ""
+                    filter_complex += filter_overlay5 + ";" if filter_overlay5 else ""
                     bg_ref = "[bg]"
                     if overlay2_idx is not None:
                         filter_complex += f"{bg_ref}[ol2]overlay={ox2}:{oy2}:enable='gte(t,5)'[tmp2];"
@@ -365,6 +386,9 @@ def create_video_with_ffmpeg(
                     if overlay4_idx is not None:
                         filter_complex += f"{bg_ref}[ol4]overlay={ox4}:{oy4}:enable='gte(t,5)'[tmp4];"
                         bg_ref = "[tmp4]"
+                    if overlay5_idx is not None:
+                        filter_complex += f"{bg_ref}[ol5]overlay={ox5}:{oy5}:enable='gte(t,5)'[tmp5];"
+                        bg_ref = "[tmp5]"
                     if overlay1_idx is not None:
                         filter_complex += f"{bg_ref}[ol1]overlay={ox1}:{oy1}:enable='gte(t,5)'[tmp1];"
                         bg_ref = "[tmp1]"
