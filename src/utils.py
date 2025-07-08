@@ -10,6 +10,10 @@ import shutil
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
 from PIL import Image, ImageDraw, ImageFont
+try:
+    from PIL.Image import Resampling
+except ImportError:
+    Resampling = None
 
 # Global set to track temporary files
 TEMP_FILES: Set[str] = set()
@@ -193,16 +197,28 @@ def create_song_title_png(title, output_path, width=400, height=40, font_size=12
         height (int): Height of the image.
         font_size (int): Font size for the title.
     """
+    print(f"[DEBUG] Creating song title PNG: title='{title}', output_path='{output_path}', width={width}, height={height}, font_size={font_size}")
     # Create a transparent image
     img = Image.new('RGBA', (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     try:
         font = ImageFont.truetype("arial.ttf", font_size)
-    except Exception:
+        print(f"[DEBUG] Using truetype font: arial.ttf, size={font_size}")
+    except Exception as e:
+        print(f"[DEBUG] Failed to load truetype font: {e}, using default font.")
         font = ImageFont.load_default()
     # Draw text at (8, 8) for padding
+    print(f"[DEBUG] Drawing text at (8, 8): '{title}'")
     draw.text((8, 8), title, font=font, fill=(255, 255, 255, 255))
-    img.save(output_path, 'PNG')
+    # Scale image to 800x80 using LANCZOS filter
+    if Resampling is not None:
+        resample = Resampling.LANCZOS
+    else:
+        resample = getattr(Image, 'LANCZOS', getattr(Image, 'ANTIALIAS', getattr(Image, 'BICUBIC', 3)))
+    img = img.resize((800, 80), resample)
+    print(f"[DEBUG] Rescaled image to 800x80 with LANCZOS filter (mimics scale=800:80:flags=lanczos)")
+    img.save(output_path, 'PNG', optimize=True, compress_level=9)
+    print(f"[DEBUG] Saved PNG to: {output_path}")
 
 # Register cleanup function to run at exit
 atexit.register(cleanup_temp_files) 

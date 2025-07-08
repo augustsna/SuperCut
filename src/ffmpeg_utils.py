@@ -104,7 +104,15 @@ def create_video_with_ffmpeg(
         print("[DEBUG] Background image:", image_path)
         print("[DEBUG] Audio path:", audio_path)
         print("[DEBUG] Output path:", output_path)
+        ext1 = os.path.splitext(overlay1_path)[1].lower() if overlay1_path else ''
+        ext2 = os.path.splitext(overlay2_path)[1].lower() if overlay2_path else ''
+        ext_intro = os.path.splitext(intro_path)[1].lower() if intro_path else ''
+        intro_idx = None
+        overlay1_idx = None
+        overlay2_idx = None
+        input_idx = 2
         print("[DEBUG] Overlay 1 path:", overlay1_path)
+        # Overlay 1 input logic and debug prints will follow after cmd is defined
         print("[DEBUG] Overlay 2 path:", overlay2_path)
         print("[DEBUG] Overlay Effect:", effect)
         print("[DEBUG] Overlay Effect Start Time:", effect_time)
@@ -175,23 +183,9 @@ def create_video_with_ffmpeg(
         else:
             cmd.insert(1, "-loop")
             cmd.insert(2, "1")
-        ext1 = os.path.splitext(overlay1_path)[1].lower() if overlay1_path else ''
-        ext2 = os.path.splitext(overlay2_path)[1].lower() if overlay2_path else ''
-        ext_intro = os.path.splitext(intro_path)[1].lower() if intro_path else ''
-        intro_idx = None
-        overlay1_idx = None
-        overlay2_idx = None
-        input_idx = 2
-        if use_intro and intro_path and ext_intro in ['.gif', '.png']:
-            if ext_intro == '.gif':
-                cmd.extend(["-stream_loop", "-1", "-i", intro_path])
-            elif ext_intro == '.png':
-                cmd.extend(["-loop", "1", "-i", intro_path])
-            else:
-                cmd.extend(["-i", intro_path])
-            intro_idx = input_idx
-            input_idx += 1
+        # Now handle overlay1 input and debug prints
         if use_overlay and overlay1_path and ext1 in ['.gif', '.png']:
+            print(f"[DEBUG] Including Overlay 1: path={overlay1_path}, ext={ext1}")
             if ext1 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay1_path])
             elif ext1 == '.png':
@@ -200,15 +194,13 @@ def create_video_with_ffmpeg(
                 cmd.extend(["-i", overlay1_path])
             overlay1_idx = input_idx
             input_idx += 1
-        if use_overlay2 and overlay2_path and ext2 in ['.gif', '.png']:
-            if ext2 == '.gif':
-                cmd.extend(["-stream_loop", "-1", "-i", overlay2_path])
-            elif ext2 == '.png':
-                cmd.extend(["-loop", "1", "-i", overlay2_path])
-            else:
-                cmd.extend(["-i", overlay2_path])
-            overlay2_idx = input_idx
-            input_idx += 1
+        else:
+            print(f"[DEBUG] Skipping Overlay 1: use_overlay={use_overlay}, overlay1_path='{overlay1_path}', ext1='{ext1}'")
+        print(f"[DEBUG] use_overlay: {use_overlay}, ext1: {ext1}, overlay1_idx: {overlay1_idx}")
+        print("[DEBUG] Overlay 1 path:", overlay1_path)
+        print("[DEBUG] Overlay 2 path:", overlay2_path)
+        print("[DEBUG] Overlay Effect:", effect)
+        print("[DEBUG] Overlay Effect Start Time:", effect_time)
         # --- Add extra overlays (song titles) as inputs ---
         extra_overlay_indices = []
         if extra_overlays:
@@ -285,6 +277,7 @@ def create_video_with_ffmpeg(
 
             filter_intro = intro_effect_chain(intro_idx, f"{owi}:{ohi}", "oi", intro_effect, intro_duration, ext_intro) if intro_idx is not None else ""
             filter_overlay1 = overlay_effect_chain(overlay1_idx, f"{ow1}:{oh1}", "ol1", effect, effect_time, ext1) if overlay1_idx is not None else ""
+            print(f"[DEBUG] filter_overlay1: {filter_overlay1}")
             filter_overlay2 = overlay_effect_chain(overlay2_idx, f"{ow2}:{oh2}", "ol2", effect, effect_time, ext2) if overlay2_idx is not None else ""
             # --- Song Title Overlay Filter Graph ---
             filter_chains = []
