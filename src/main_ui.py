@@ -331,7 +331,7 @@ class SettingsDialog(QDialog):
         main_layout.addLayout(columns_layout)
 
         # Add more space before the button row
-        main_layout.addSpacing(7)
+        main_layout.addSpacing(15)
         button_layout = QHBoxLayout()
         button_layout.addStretch()
         self.save_btn = QPushButton("Save")
@@ -346,7 +346,7 @@ class SettingsDialog(QDialog):
         main_layout.addSpacing(12)
         self.save_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
-        self.setFixedSize(640, 520)
+        self.setFixedSize(640, 640)
     def accept(self):
         self.selected_fps = self.fps_combo.currentData()
         if self.settings is not None:
