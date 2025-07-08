@@ -1484,91 +1484,7 @@ class SuperCutUI(QWidget):
         layout.addLayout(overlay4_layout)
 
         layout.addLayout(overlay3_layout)
-        layout.addLayout(overlay4_layout)
-
-        # --- EFFECT CONTROL FOR INTRO & OVERLAY ---
-        
-        combo_width = 130
-        edit_width = 50
-
-        effect_label = QLabel("Overlay:")
-        effect_label.setFixedWidth(55)
-        self.effect_combo = QtWidgets.QComboBox()
-        self.effect_combo.setFixedWidth(combo_width)
-        effect_options = [
-            ("Fade in & out", "fadeinout"),
-            ("Fade in", "fadein"),
-            ("Fade out", "fadeout"),
-            ("Zoompan", "zoompan"),
-            ("None", "none")
-        ]
-        for label, value in effect_options:
-            self.effect_combo.addItem(label, value)
-        self.effect_combo.setCurrentIndex(1)
-        self.selected_effect = "fadein"
-        def on_effect_changed(idx):
-            self.selected_effect = self.effect_combo.itemData(idx)
-        self.effect_combo.currentIndexChanged.connect(on_effect_changed)
-        on_effect_changed(self.effect_combo.currentIndex())
-
-        overlay_duration_label = QLabel("at (s):")
-        overlay_duration_label.setFixedWidth(40)
-        self.overlay_duration_edit = QLineEdit("5")
-        self.overlay_duration_edit.setFixedWidth(edit_width)
-        self.overlay_duration_edit.setValidator(QIntValidator(0, 999, self))
-        self.overlay_duration_edit.setPlaceholderText("5")
-        self.overlay_duration = 5
-        def on_overlay_duration_changed():
-            try:
-                self.overlay_duration = int(self.overlay_duration_edit.text())
-            except Exception:
-                self.overlay_duration = 5
-        self.overlay_duration_edit.textChanged.connect(on_overlay_duration_changed)
-        on_overlay_duration_changed()
-
-        effect_layout = QHBoxLayout()
-        effect_layout.setContentsMargins(0, 0, 0, 0)
-        effect_layout.addSpacing(20)
-        effect_layout.addWidget(intro_effect_label)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(self.intro_effect_combo)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(intro_duration_label)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(self.intro_duration_edit)
-        effect_layout.addSpacing(12)
-        effect_layout.addWidget(effect_label)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(self.effect_combo)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(overlay_duration_label)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(self.overlay_duration_edit)
-        effect_layout.addStretch()
-        layout.addLayout(effect_layout)
-        # Add extra vertical spacing before the action buttons
-        layout.addSpacing(6)
-
-        # --- Overlay effect label greying logic ---
-        def update_overlay_effect_label_style():
-            if not (self.overlay_checkbox.isChecked() or self.overlay2_checkbox.isChecked() or self.overlay3_checkbox.isChecked()):
-                effect_label.setStyleSheet("color: grey;")
-                self.effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.effect_combo.setEnabled(False)
-                overlay_duration_label.setStyleSheet("color: grey;")
-                self.overlay_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay_duration_edit.setEnabled(False)
-            else:
-                effect_label.setStyleSheet("")
-                self.effect_combo.setStyleSheet("")
-                self.effect_combo.setEnabled(True)
-                overlay_duration_label.setStyleSheet("")
-                self.overlay_duration_edit.setStyleSheet("")
-                self.overlay_duration_edit.setEnabled(True)
-        self.overlay_checkbox.stateChanged.connect(update_overlay_effect_label_style)
-        self.overlay2_checkbox.stateChanged.connect(update_overlay_effect_label_style)
-        self.overlay3_checkbox.stateChanged.connect(update_overlay_effect_label_style)
-        update_overlay_effect_label_style()
+        layout.addLayout(overlay4_layout)        
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
         self.song_title_checkbox = QtWidgets.QCheckBox("Song titles overlay")
@@ -1673,6 +1589,93 @@ class SuperCutUI(QWidget):
         overlay5_layout.addWidget(overlay5_size_label)
         overlay5_layout.addWidget(self.overlay5_size_combo)
         layout.addLayout(overlay5_layout)
+
+        # --- EFFECT CONTROL FOR INTRO & OVERLAY ---
+        
+        combo_width = 130
+        edit_width = 50
+
+        effect_label = QLabel("Overlay:")
+        effect_label.setFixedWidth(55)
+        self.effect_combo = QtWidgets.QComboBox()
+        self.effect_combo.setFixedWidth(combo_width)
+        effect_options = [
+            ("Fade in & out", "fadeinout"),
+            ("Fade in", "fadein"),
+            ("Fade out", "fadeout"),
+            ("Zoompan", "zoompan"),
+            ("None", "none")
+        ]
+        for label, value in effect_options:
+            self.effect_combo.addItem(label, value)
+        self.effect_combo.setCurrentIndex(1)
+        self.selected_effect = "fadein"
+        def on_effect_changed(idx):
+            self.selected_effect = self.effect_combo.itemData(idx)
+        self.effect_combo.currentIndexChanged.connect(on_effect_changed)
+        on_effect_changed(self.effect_combo.currentIndex())
+
+        overlay_duration_label = QLabel("at (s):")
+        overlay_duration_label.setFixedWidth(40)
+        self.overlay_duration_edit = QLineEdit("5")
+        self.overlay_duration_edit.setFixedWidth(edit_width)
+        self.overlay_duration_edit.setValidator(QIntValidator(0, 999, self))
+        self.overlay_duration_edit.setPlaceholderText("5")
+        self.overlay_duration = 5
+        def on_overlay_duration_changed():
+            try:
+                self.overlay_duration = int(self.overlay_duration_edit.text())
+            except Exception:
+                self.overlay_duration = 5
+        self.overlay_duration_edit.textChanged.connect(on_overlay_duration_changed)
+        on_overlay_duration_changed()
+
+        effect_layout = QHBoxLayout()
+        effect_layout.setContentsMargins(0, 0, 0, 0)
+        effect_layout.addSpacing(20)
+        effect_layout.addWidget(intro_effect_label)
+        effect_layout.addSpacing(-10)
+        effect_layout.addWidget(self.intro_effect_combo)
+        effect_layout.addSpacing(-10)
+        effect_layout.addWidget(intro_duration_label)
+        effect_layout.addSpacing(-10)
+        effect_layout.addWidget(self.intro_duration_edit)
+        effect_layout.addSpacing(12)
+        effect_layout.addWidget(effect_label)
+        effect_layout.addSpacing(-10)
+        effect_layout.addWidget(self.effect_combo)
+        effect_layout.addSpacing(-10)
+        effect_layout.addWidget(overlay_duration_label)
+        effect_layout.addSpacing(-10)
+        effect_layout.addWidget(self.overlay_duration_edit)
+        effect_layout.addStretch()
+        layout.addLayout(effect_layout)
+        # Add extra vertical spacing before the action buttons
+        layout.addSpacing(6)
+
+        # --- Overlay effect label greying logic ---
+        def update_overlay_effect_label_style():
+            if not (self.overlay_checkbox.isChecked() or self.overlay2_checkbox.isChecked() or self.overlay3_checkbox.isChecked() or self.overlay4_checkbox.isChecked() or self.overlay5_checkbox.isChecked()):
+                effect_label.setStyleSheet("color: grey;")
+                self.effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.effect_combo.setEnabled(False)
+                overlay_duration_label.setStyleSheet("color: grey;")
+                self.overlay_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay_duration_edit.setEnabled(False)
+            else:
+                effect_label.setStyleSheet("")
+                self.effect_combo.setStyleSheet("")
+                self.effect_combo.setEnabled(True)
+                overlay_duration_label.setStyleSheet("")
+                self.overlay_duration_edit.setStyleSheet("")
+                self.overlay_duration_edit.setEnabled(True)
+        self.overlay_checkbox.stateChanged.connect(update_overlay_effect_label_style)
+        self.overlay2_checkbox.stateChanged.connect(update_overlay_effect_label_style)
+        self.overlay3_checkbox.stateChanged.connect(update_overlay_effect_label_style)
+        self.overlay4_checkbox.stateChanged.connect(update_overlay_effect_label_style)
+        self.overlay5_checkbox.stateChanged.connect(update_overlay_effect_label_style)
+        update_overlay_effect_label_style()
+
 
     def create_action_buttons(self, layout):
         """Create action buttons"""
