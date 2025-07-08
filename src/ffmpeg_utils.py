@@ -228,7 +228,8 @@ def create_video_with_ffmpeg(
             ox_intro, oy_intro = position_map.get(intro_position, ("(W-w)/2", "(H-h)/2"))
             ox1, oy1 = position_map.get(overlay1_position, ("0", "0"))
             ox2, oy2 = position_map.get(overlay2_position, ("0", "0"))
-            filter_bg = f"[0:v]scale={width}:{height}[bg]"
+            filter_bg = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height}[bg]"
+
             # Effect logic for overlays
             def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext):
                 if idx is None:
@@ -292,7 +293,7 @@ def create_video_with_ffmpeg(
                 filter_complex += f"{bg_ref}format={VIDEO_SETTINGS['pixel_format']}[vout]"
             cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])
         else:
-            filter_complex = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            filter_complex = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
             cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])
 
         cmd.extend(["-c:v", codec, "-preset", preset])       
