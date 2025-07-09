@@ -2082,6 +2082,264 @@ class SuperCutUI(QWidget):
         self.overlay5_checkbox.stateChanged.connect(lambda _: update_overlay4_5_effect_label_style())
         update_overlay4_5_effect_label_style()
 
+        # Overlay 6 controls (similar to Overlay 4)
+        self.overlay6_checkbox = QtWidgets.QCheckBox("Overlay 6:")
+        self.overlay6_checkbox.setFixedWidth(82)
+        self.overlay6_checkbox.setChecked(False)
+        def update_overlay6_checkbox_style(state):
+            self.overlay6_checkbox.setStyleSheet("")  # Always default color
+        self.overlay6_checkbox.stateChanged.connect(update_overlay6_checkbox_style)
+        update_overlay6_checkbox_style(self.overlay6_checkbox.checkState())
+
+        overlay6_layout = QHBoxLayout()
+        overlay6_layout.setSpacing(4)
+        self.overlay6_edit = ImageDropLineEdit()
+        self.overlay6_edit.setPlaceholderText("Overlay 6 image path (*.gif, *.png)")
+        self.overlay6_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay6_edit.setFixedWidth(125)
+        self.overlay6_path = ""
+        def on_overlay6_changed():
+            current_text = self.overlay6_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay6_edit.setText(cleaned_text)
+            self.overlay6_path = self.overlay6_edit.text().strip()
+        self.overlay6_edit.textChanged.connect(on_overlay6_changed)
+        overlay6_btn = QPushButton("Select")
+        overlay6_btn.setFixedWidth(60)
+        def select_overlay6_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 6 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.overlay6_edit.setText(file_path)
+        overlay6_btn.clicked.connect(select_overlay6_image)
+        overlay6_size_label = QLabel("S:")
+        overlay6_size_label.setFixedWidth(18)
+        self.overlay6_size_combo = QtWidgets.QComboBox()
+        self.overlay6_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.overlay6_size_combo.addItem(f"{percent}%", percent)
+        self.overlay6_size_combo.setCurrentIndex(2)  # Default 15%
+        self.overlay6_size_percent = 15
+        def on_overlay6_size_changed(idx):
+            self.overlay6_size_percent = self.overlay6_size_combo.itemData(idx)
+        self.overlay6_size_combo.setEditable(False)
+        self.overlay6_size_combo.currentIndexChanged.connect(on_overlay6_size_changed)
+        on_overlay6_size_changed(self.overlay6_size_combo.currentIndex())
+        overlay6_position_label = QLabel("P:")
+        overlay6_position_label.setFixedWidth(18)
+        self.overlay6_position_combo = QtWidgets.QComboBox()
+        self.overlay6_position_combo.setFixedWidth(130)
+        positions = [
+            ("Center", "center"),
+            ("Top Left", "top_left"),
+            ("Top Right", "top_right"),
+            ("Bottom Left", "bottom_left"),
+            ("Bottom Right", "bottom_right")
+        ]
+        for label, value in positions:
+            self.overlay6_position_combo.addItem(label, value)
+        self.overlay6_position_combo.setCurrentIndex(2)  # Default top_right
+        self.overlay6_position = "top_right"
+        def on_overlay6_position_changed(idx):
+            self.overlay6_position = self.overlay6_position_combo.itemData(idx)
+        self.overlay6_position_combo.currentIndexChanged.connect(on_overlay6_position_changed)
+        on_overlay6_position_changed(self.overlay6_position_combo.currentIndex())
+        def set_overlay6_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay6_edit.setEnabled(enabled)
+            overlay6_btn.setEnabled(enabled)
+            self.overlay6_size_combo.setEnabled(enabled)
+            self.overlay6_position_combo.setEnabled(enabled)
+            if enabled:
+                overlay6_btn.setStyleSheet("")
+                self.overlay6_edit.setStyleSheet("")
+                self.overlay6_size_combo.setStyleSheet("")
+                self.overlay6_position_combo.setStyleSheet("")
+                overlay6_size_label.setStyleSheet("")
+                overlay6_position_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                overlay6_btn.setStyleSheet(grey_btn_style)
+                self.overlay6_edit.setStyleSheet(grey_btn_style)
+                self.overlay6_size_combo.setStyleSheet(grey_btn_style)
+                self.overlay6_position_combo.setStyleSheet(grey_btn_style)
+                overlay6_size_label.setStyleSheet("color: grey;")
+                overlay6_position_label.setStyleSheet("color: grey;")
+        self.overlay6_checkbox.stateChanged.connect(lambda _: set_overlay6_enabled(self.overlay6_checkbox.checkState()))
+        set_overlay6_enabled(self.overlay6_checkbox.checkState())
+        overlay6_layout.addWidget(self.overlay6_checkbox)
+        overlay6_layout.addWidget(self.overlay6_edit)
+        overlay6_layout.addSpacing(6)
+        overlay6_layout.addWidget(overlay6_btn)
+        overlay6_layout.addSpacing(4)
+        overlay6_layout.addWidget(overlay6_position_label)
+        overlay6_layout.addSpacing(2)
+        overlay6_layout.addWidget(self.overlay6_position_combo)
+        overlay6_layout.addSpacing(6)
+        overlay6_layout.addWidget(overlay6_size_label)
+        overlay6_layout.addWidget(self.overlay6_size_combo)
+        layout.addLayout(overlay6_layout)
+
+        # Overlay 7 controls (similar to Overlay 6)
+        self.overlay7_checkbox = QtWidgets.QCheckBox("Overlay 7:")
+        self.overlay7_checkbox.setFixedWidth(82)
+        self.overlay7_checkbox.setChecked(False)
+        def update_overlay7_checkbox_style(state):
+            self.overlay7_checkbox.setStyleSheet("")  # Always default color
+        self.overlay7_checkbox.stateChanged.connect(update_overlay7_checkbox_style)
+        update_overlay7_checkbox_style(self.overlay7_checkbox.checkState())
+
+        overlay7_layout = QHBoxLayout()
+        overlay7_layout.setSpacing(4)
+        self.overlay7_edit = ImageDropLineEdit()
+        self.overlay7_edit.setPlaceholderText("Overlay 7 image path (*.gif, *.png)")
+        self.overlay7_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay7_edit.setFixedWidth(125)
+        self.overlay7_path = ""
+        def on_overlay7_changed():
+            current_text = self.overlay7_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay7_edit.setText(cleaned_text)
+            self.overlay7_path = self.overlay7_edit.text().strip()
+        self.overlay7_edit.textChanged.connect(on_overlay7_changed)
+        overlay7_btn = QPushButton("Select")
+        overlay7_btn.setFixedWidth(60)
+        def select_overlay7_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 7 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.overlay7_edit.setText(file_path)
+        overlay7_btn.clicked.connect(select_overlay7_image)
+        overlay7_size_label = QLabel("S:")
+        overlay7_size_label.setFixedWidth(18)
+        self.overlay7_size_combo = QtWidgets.QComboBox()
+        self.overlay7_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.overlay7_size_combo.addItem(f"{percent}%", percent)
+        self.overlay7_size_combo.setCurrentIndex(2)  # Default 15%
+        self.overlay7_size_percent = 15
+        def on_overlay7_size_changed(idx):
+            self.overlay7_size_percent = self.overlay7_size_combo.itemData(idx)
+        self.overlay7_size_combo.setEditable(False)
+        self.overlay7_size_combo.currentIndexChanged.connect(on_overlay7_size_changed)
+        on_overlay7_size_changed(self.overlay7_size_combo.currentIndex())
+        overlay7_position_label = QLabel("P:")
+        overlay7_position_label.setFixedWidth(18)
+        self.overlay7_position_combo = QtWidgets.QComboBox()
+        self.overlay7_position_combo.setFixedWidth(130)
+        positions = [
+            ("Center", "center"),
+            ("Top Left", "top_left"),
+            ("Top Right", "top_right"),
+            ("Bottom Left", "bottom_left"),
+            ("Bottom Right", "bottom_right")
+        ]
+        for label, value in positions:
+            self.overlay7_position_combo.addItem(label, value)
+        self.overlay7_position_combo.setCurrentIndex(2)  # Default top_right
+        self.overlay7_position = "top_right"
+        def on_overlay7_position_changed(idx):
+            self.overlay7_position = self.overlay7_position_combo.itemData(idx)
+        self.overlay7_position_combo.currentIndexChanged.connect(on_overlay7_position_changed)
+        on_overlay7_position_changed(self.overlay7_position_combo.currentIndex())
+        def set_overlay7_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay7_edit.setEnabled(enabled)
+            overlay7_btn.setEnabled(enabled)
+            self.overlay7_size_combo.setEnabled(enabled)
+            self.overlay7_position_combo.setEnabled(enabled)
+            if enabled:
+                overlay7_btn.setStyleSheet("")
+                self.overlay7_edit.setStyleSheet("")
+                self.overlay7_size_combo.setStyleSheet("")
+                self.overlay7_position_combo.setStyleSheet("")
+                overlay7_size_label.setStyleSheet("")
+                overlay7_position_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                overlay7_btn.setStyleSheet(grey_btn_style)
+                self.overlay7_edit.setStyleSheet(grey_btn_style)
+                self.overlay7_size_combo.setStyleSheet(grey_btn_style)
+                self.overlay7_position_combo.setStyleSheet(grey_btn_style)
+                overlay7_size_label.setStyleSheet("color: grey;")
+                overlay7_position_label.setStyleSheet("color: grey;")
+        self.overlay7_checkbox.stateChanged.connect(lambda _: set_overlay7_enabled(self.overlay7_checkbox.checkState()))
+        set_overlay7_enabled(self.overlay7_checkbox.checkState())
+        overlay7_layout.addWidget(self.overlay7_checkbox)
+        overlay7_layout.addWidget(self.overlay7_edit)
+        overlay7_layout.addSpacing(6)
+        overlay7_layout.addWidget(overlay7_btn)
+        overlay7_layout.addSpacing(4)
+        overlay7_layout.addWidget(overlay7_position_label)
+        overlay7_layout.addSpacing(2)
+        overlay7_layout.addWidget(self.overlay7_position_combo)
+        overlay7_layout.addSpacing(6)
+        overlay7_layout.addWidget(overlay7_size_label)
+        overlay7_layout.addWidget(self.overlay7_size_combo)
+        layout.addLayout(overlay7_layout)
+
+        # --- EFFECT CONTROL FOR OVERLAY 6_7 (identical for both overlays) ---
+        overlay6_7_label = QLabel("Overlay 6_7:")
+        overlay6_7_label.setFixedWidth(80)
+        self.overlay6_7_effect_combo = QtWidgets.QComboBox()
+        self.overlay6_7_effect_combo.setFixedWidth(combo_width)
+        for label, value in effect_options:
+            self.overlay6_7_effect_combo.addItem(label, value)
+        self.overlay6_7_effect_combo.setCurrentIndex(1)
+        self.selected_overlay6_7_effect = "fadein"
+        def on_overlay6_7_effect_changed(idx):
+            self.selected_overlay6_7_effect = self.overlay6_7_effect_combo.itemData(idx)
+        self.overlay6_7_effect_combo.currentIndexChanged.connect(on_overlay6_7_effect_changed)
+        on_overlay6_7_effect_changed(self.overlay6_7_effect_combo.currentIndex())
+
+        overlay6_7_start_label = QLabel("at (s):")
+        overlay6_7_start_label.setFixedWidth(40)
+        self.overlay6_7_start_edit = QLineEdit("5")
+        self.overlay6_7_start_edit.setFixedWidth(edit_width)
+        self.overlay6_7_start_edit.setValidator(QIntValidator(0, 999, self))
+        self.overlay6_7_start_edit.setPlaceholderText("5")
+        self.overlay6_7_start_at = 5
+        def on_overlay6_7_start_changed():
+            try:
+                self.overlay6_7_start_at = int(self.overlay6_7_start_edit.text())
+            except Exception:
+                self.overlay6_7_start_at = 5
+        self.overlay6_7_start_edit.textChanged.connect(on_overlay6_7_start_changed)
+        on_overlay6_7_start_changed()
+
+        overlay6_7_layout = QHBoxLayout()
+        overlay6_7_layout.setContentsMargins(0, 0, 0, 0)
+        overlay6_7_layout.addSpacing(165)
+        overlay6_7_layout.addWidget(overlay6_7_label)
+        overlay6_7_layout.addSpacing(-10)
+        overlay6_7_layout.addWidget(self.overlay6_7_effect_combo)
+        overlay6_7_layout.addSpacing(-10)
+        overlay6_7_layout.addWidget(overlay6_7_start_label)
+        overlay6_7_layout.addSpacing(-10)
+        overlay6_7_layout.addWidget(self.overlay6_7_start_edit)
+        overlay6_7_layout.addStretch()
+        layout.addLayout(overlay6_7_layout)
+
+        # --- Overlay 6_7 effect greying logic ---
+        def update_overlay6_7_effect_label_style():
+            if not (self.overlay6_checkbox.isChecked() or self.overlay7_checkbox.isChecked()):
+                overlay6_7_label.setStyleSheet("color: grey;")
+                self.overlay6_7_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay6_7_effect_combo.setEnabled(False)
+                overlay6_7_start_label.setStyleSheet("color: grey;")
+                self.overlay6_7_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay6_7_start_edit.setEnabled(False)
+            else:
+                overlay6_7_label.setStyleSheet("")
+                self.overlay6_7_effect_combo.setStyleSheet("")
+                self.overlay6_7_effect_combo.setEnabled(True)
+                overlay6_7_start_label.setStyleSheet("")
+                self.overlay6_7_start_edit.setStyleSheet("")
+                self.overlay6_7_start_edit.setEnabled(True)
+        self.overlay6_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
+        self.overlay7_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
+        update_overlay6_7_effect_label_style()
+
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
