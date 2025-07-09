@@ -40,7 +40,8 @@ class VideoWorker(QObject):
                  song_title_opacity: float = 1.0,
                  song_title_x_percent: int = 25,
                  song_title_y_percent: int = 25,
-                 song_title_start_at: int = 5):
+                 song_title_start_at: int = 5,
+                 song_title_scale_percent: int = 100):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -97,6 +98,7 @@ class VideoWorker(QObject):
         self.song_title_x_percent = song_title_x_percent
         self.song_title_y_percent = song_title_y_percent
         self.song_title_start_at = song_title_start_at
+        self.song_title_scale_percent = song_title_scale_percent
 
     def stop(self):
         """Stop the video processing"""
@@ -328,7 +330,8 @@ class VideoWorker(QObject):
                 song_title_color=self.song_title_color,
                 song_title_bg=self.song_title_bg,
                 song_title_bg_color=self.song_title_bg_color,
-                song_title_opacity=self.song_title_opacity
+                song_title_opacity=self.song_title_opacity,
+                song_title_scale_percent=self.song_title_scale_percent
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")

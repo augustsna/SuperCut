@@ -1580,6 +1580,20 @@ class SuperCutUI(QWidget):
         # Font size control (REMOVED DROPDOWN, FIXED TO 220)
         self.song_title_font_size = 220
         # (Remove the font size combo box and related logic)
+
+        # Titles Scale control
+        song_title_scale_label = QLabel("Titles Scale:")
+        song_title_scale_label.setFixedWidth(80)
+        self.song_title_scale_combo = QtWidgets.QComboBox()
+        self.song_title_scale_combo.setFixedWidth(86)
+        for percent in range(5, 101, 5):
+            self.song_title_scale_combo.addItem(f"{percent}%", percent)
+        self.song_title_scale_combo.setCurrentIndex(19)  # Default 100%
+        self.song_title_scale_percent = 100
+        def on_song_title_scale_changed(idx):
+            self.song_title_scale_percent = self.song_title_scale_combo.itemData(idx)
+        self.song_title_scale_combo.currentIndexChanged.connect(on_song_title_scale_changed)
+        on_song_title_scale_changed(self.song_title_scale_combo.currentIndex())
         
         # Color control
         song_title_color_label = QLabel("Color:")
@@ -1678,7 +1692,7 @@ class SuperCutUI(QWidget):
         
         # Opacity control
         self.song_title_opacity_combo = QtWidgets.QComboBox()
-        self.song_title_opacity_combo.setFixedWidth(90)
+        self.song_title_opacity_combo.setFixedWidth(86)
         opacity_options = [
             (f"{percent}%", percent / 100.0) for percent in range(5, 101, 5)
         ]
@@ -1812,9 +1826,10 @@ class SuperCutUI(QWidget):
         # Second line: font, size, color, bg, opacity
         song_title_controls_layout = QHBoxLayout()
         song_title_controls_layout.setSpacing(2)
-        song_title_controls_layout.addWidget(song_title_font_label)
+        song_title_controls_layout.addWidget(song_title_font_label)        
         song_title_controls_layout.addWidget(self.song_title_font_combo)
-        song_title_controls_layout.addSpacing(3)
+        song_title_controls_layout.addSpacing(4)        
+        song_title_controls_layout.addWidget(self.song_title_scale_combo) 
         song_title_controls_layout.addWidget(song_title_color_label)
         song_title_controls_layout.addWidget(self.song_title_color_btn)
         song_title_controls_layout.addSpacing(8)
@@ -1822,7 +1837,7 @@ class SuperCutUI(QWidget):
         song_title_controls_layout.addWidget(self.song_title_bg_combo)
         song_title_controls_layout.addSpacing(3)
         song_title_controls_layout.addWidget(self.song_title_bg_color_btn)
-        song_title_controls_layout.addSpacing(3)
+        song_title_controls_layout.addSpacing(1)
         song_title_controls_layout.addWidget(self.song_title_opacity_combo)
         song_title_controls_layout.addStretch()
         layout.addLayout(song_title_controls_layout)
@@ -2010,8 +2025,7 @@ class SuperCutUI(QWidget):
         self.overlay3_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         self.overlay4_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         self.overlay5_checkbox.stateChanged.connect(update_overlay_effect_label_style)
-        update_overlay_effect_label_style()
-
+        update_overlay_effect_label_style()        
 
     def create_action_buttons(self, layout):
         """Create action buttons"""
@@ -2427,7 +2441,8 @@ class SuperCutUI(QWidget):
             song_title_opacity=self.song_title_opacity,
             song_title_x_percent=self.song_title_x_percent,
             song_title_y_percent=self.song_title_y_percent,
-            song_title_start_at=self.song_title_start_at
+            song_title_start_at=self.song_title_start_at,
+            song_title_scale_percent=self.song_title_scale_percent
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)

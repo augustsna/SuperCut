@@ -113,7 +113,8 @@ def create_video_with_ffmpeg(
     song_title_color: tuple = (255, 255, 255),
     song_title_bg: str = "transparent",
     song_title_bg_color: tuple = (0, 0, 0),
-    song_title_opacity: float = 1.0
+    song_title_opacity: float = 1.0,
+    song_title_scale_percent: int = 100
 ) -> Tuple[bool, Optional[str]]:
     if extra_overlays is None:
         extra_overlays = []
@@ -357,6 +358,9 @@ def create_video_with_ffmpeg(
             filter_chains = []
             overlay_labels = []
             if extra_overlays:
+                scale = song_title_scale_percent / 100.0 if song_title_scale_percent else 1.0
+                scaled_w = round(1920 * scale)
+                scaled_h = round(240 * scale)
                 for i, overlay in enumerate(extra_overlays):
                     idx = extra_overlay_indices[i]
                     label = f"songol{i+1}"
@@ -368,7 +372,7 @@ def create_video_with_ffmpeg(
                     x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
                     # For Y: 0% = bottom, 100% = top
                     y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
-                    chain = f"[{idx}:v]format=rgba,scale=1920:240"
+                    chain = f"[{idx}:v]format=rgba,scale={scaled_w}:{scaled_h}"
                     
                     # Apply song title effect based on song_title_effect parameter
                     if song_title_effect == "fadeinout":
