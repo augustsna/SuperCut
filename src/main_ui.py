@@ -1350,7 +1350,7 @@ class SuperCutUI(QWidget):
         combo_width = 130
         edit_width = 40
         effect_label = QLabel("Overlay 1_2:")
-        effect_label.setFixedWidth(75)
+        effect_label.setFixedWidth(80)
         self.effect_combo = QtWidgets.QComboBox()
         self.effect_combo.setFixedWidth(combo_width)
         effect_options = [
@@ -2022,7 +2022,7 @@ class SuperCutUI(QWidget):
 
         # --- EFFECT CONTROL FOR OVERLAY 4_5 (identical for both overlays) ---
         overlay4_5_label = QLabel("Overlay 4_5:")
-        overlay4_5_label.setFixedWidth(75)
+        overlay4_5_label.setFixedWidth(80)
         self.overlay4_5_effect_combo = QtWidgets.QComboBox()
         self.overlay4_5_effect_combo.setFixedWidth(combo_width)
         for label, value in effect_options:
@@ -2051,7 +2051,7 @@ class SuperCutUI(QWidget):
 
         overlay4_5_layout = QHBoxLayout()
         overlay4_5_layout.setContentsMargins(0, 0, 0, 0)
-        overlay4_5_layout.addSpacing(0)
+        overlay4_5_layout.addSpacing(165)
         overlay4_5_layout.addWidget(overlay4_5_label)
         overlay4_5_layout.addSpacing(-10)
         overlay4_5_layout.addWidget(self.overlay4_5_effect_combo)
@@ -2061,6 +2061,26 @@ class SuperCutUI(QWidget):
         overlay4_5_layout.addWidget(self.overlay4_5_start_edit)
         overlay4_5_layout.addStretch()
         layout.addLayout(overlay4_5_layout)
+
+        # --- Overlay 4_5 effect greying logic ---
+        def update_overlay4_5_effect_label_style():
+            if not (self.overlay4_checkbox.isChecked() or self.overlay5_checkbox.isChecked()):
+                overlay4_5_label.setStyleSheet("color: grey;")
+                self.overlay4_5_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay4_5_effect_combo.setEnabled(False)
+                overlay4_5_start_label.setStyleSheet("color: grey;")
+                self.overlay4_5_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay4_5_start_edit.setEnabled(False)
+            else:
+                overlay4_5_label.setStyleSheet("")
+                self.overlay4_5_effect_combo.setStyleSheet("")
+                self.overlay4_5_effect_combo.setEnabled(True)
+                overlay4_5_start_label.setStyleSheet("")
+                self.overlay4_5_start_edit.setStyleSheet("")
+                self.overlay4_5_start_edit.setEnabled(True)
+        self.overlay4_checkbox.stateChanged.connect(lambda _: update_overlay4_5_effect_label_style())
+        self.overlay5_checkbox.stateChanged.connect(lambda _: update_overlay4_5_effect_label_style())
+        update_overlay4_5_effect_label_style()
 
     def create_action_buttons(self, layout):
         """Create action buttons"""
