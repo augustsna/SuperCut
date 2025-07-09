@@ -1727,10 +1727,10 @@ class SuperCutUI(QWidget):
         on_song_title_effect_changed(self.song_title_effect_combo.currentIndex())
         
         # --- Song Title Position Controls (X, Y as percent) ---
-        song_title_x_label = QLabel("X%:")
+        song_title_x_label = QLabel("X:")
         song_title_x_label.setFixedWidth(28)
         self.song_title_x_combo = QtWidgets.QComboBox()
-        self.song_title_x_combo.setFixedWidth(60)
+        self.song_title_x_combo.setFixedWidth(80)
         for percent in range(0, 101, 5):
             self.song_title_x_combo.addItem(f"{percent}%", percent)
         self.song_title_x_combo.setCurrentIndex(10)  # Default 50%
@@ -1740,10 +1740,10 @@ class SuperCutUI(QWidget):
         self.song_title_x_combo.currentIndexChanged.connect(on_song_title_x_changed)
         on_song_title_x_changed(self.song_title_x_combo.currentIndex())
 
-        song_title_y_label = QLabel("Y%:")
+        song_title_y_label = QLabel("Y:")
         song_title_y_label.setFixedWidth(28)
         self.song_title_y_combo = QtWidgets.QComboBox()
-        self.song_title_y_combo.setFixedWidth(60)
+        self.song_title_y_combo.setFixedWidth(80)
         for percent in range(0, 101, 5):
             self.song_title_y_combo.addItem(f"{percent}%", percent)
         self.song_title_y_combo.setCurrentIndex(4)  # Default 20%
