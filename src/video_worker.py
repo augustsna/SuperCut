@@ -207,18 +207,54 @@ class VideoWorker(QObject):
             return False, []
 
         try:
-            # Calculate timing for each overlay (equal split for now)
+            # Calculate timing for each overlay with special handling for first song
             overlay_count = len(song_title_pngs)
-            overlay_duration = audio_duration / overlay_count if overlay_count else 0
             extra_overlays = []
-            for i, (png_path, title) in enumerate(song_title_pngs):
-                start = i * overlay_duration
-                extra_overlays.append({
-                    'path': png_path,
-                    'start': start,
-                    'duration': overlay_duration,
-                    'fade': True
-                })
+            
+            if overlay_count > 0:
+                # For first song: use overlay start time if enabled, otherwise start at 5s
+                if overlay_count == 1:
+                    # Single song - use overlay start time or default to 5s
+                    first_start = self.effect_time if self.effect != "none" else 5.0
+                    # Ensure start time doesn't exceed audio duration
+                    first_start = min(first_start, audio_duration - 1.0)  # Leave at least 1 second
+                    overlay_duration = audio_duration - first_start
+                    print(f"[DEBUG] Single song overlay: start={first_start}s, duration={overlay_duration}s")
+                    extra_overlays.append({
+                        'path': song_title_pngs[0][0],
+                        'start': first_start,
+                        'duration': overlay_duration,
+                        'fade': True
+                    })
+                else:
+                    # Multiple songs - first song uses overlay start time, rest use equal intervals
+                    first_start = self.effect_time if self.effect != "none" else 5.0
+                    # Ensure start time doesn't exceed audio duration
+                    first_start = min(first_start, audio_duration - 1.0)  # Leave at least 1 second
+                    remaining_duration = audio_duration - first_start
+                    remaining_songs = overlay_count - 1
+                    remaining_overlay_duration = remaining_duration / remaining_songs if remaining_songs > 0 else 0
+                    
+                    print(f"[DEBUG] Multiple songs overlay: first_start={first_start}s, remaining_duration={remaining_duration}s, remaining_songs={remaining_songs}")
+                    
+                    # First song
+                    extra_overlays.append({
+                        'path': song_title_pngs[0][0],
+                        'start': first_start,
+                        'duration': remaining_overlay_duration,
+                        'fade': True
+                    })
+                    
+                    # Subsequent songs (equal intervals)
+                    for i in range(1, overlay_count):
+                        start = first_start + (i * remaining_overlay_duration)
+                        print(f"[DEBUG] Song {i+1}: start={start}s, duration={remaining_overlay_duration}s")
+                        extra_overlays.append({
+                            'path': song_title_pngs[i][0],
+                            'start': start,
+                            'duration': remaining_overlay_duration,
+                            'fade': True
+                        })
             # Create video (Overlay 1: GIF/PNG, with size)
             success, error_msg = create_video_with_ffmpeg(
                 selected_image, 
