@@ -1349,8 +1349,8 @@ class SuperCutUI(QWidget):
         # --- EFFECT CONTROL FOR INTRO & OVERLAY (moved below Overlay 2) ---
         combo_width = 130
         edit_width = 40
-        effect_label = QLabel("Overlay:")
-        effect_label.setFixedWidth(55)
+        effect_label = QLabel("Overlay 1_2:")
+        effect_label.setFixedWidth(75)
         self.effect_combo = QtWidgets.QComboBox()
         self.effect_combo.setFixedWidth(combo_width)
         effect_options = [
@@ -1386,7 +1386,7 @@ class SuperCutUI(QWidget):
 
         effect_layout = QHBoxLayout()
         effect_layout.setContentsMargins(0, 0, 0, 0)
-        effect_layout.addSpacing(20)
+        effect_layout.addSpacing(0)
         effect_layout.addWidget(intro_effect_label)
         effect_layout.addSpacing(-10)
         effect_layout.addWidget(self.intro_effect_combo)
