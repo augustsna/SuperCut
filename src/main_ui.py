@@ -1642,11 +1642,29 @@ class SuperCutUI(QWidget):
         self.song_title_bg_color_btn.setFixedSize(40, 25)
         self.song_title_bg_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc;")
         self.song_title_bg_color = (0, 0, 0)  # Default black
+        
+        # Load last custom color from settings
+        last_custom_r = self.settings.value('song_title_last_custom_bg_r', 0, type=int)
+        last_custom_g = self.settings.value('song_title_last_custom_bg_g', 0, type=int)
+        last_custom_b = self.settings.value('song_title_last_custom_bg_b', 0, type=int)
+        self.last_custom_bg_color = (last_custom_r, last_custom_g, last_custom_b)
+        
         def on_song_title_bg_color_clicked():
-            color = QColorDialog.getColor(QColor(*self.song_title_bg_color), self, "Select Background Color")
+            # Use the last custom color as initial, or current if no custom color was picked yet
+            if self.last_custom_bg_color != (0, 0, 0):
+                initial_color = QColor(*self.last_custom_bg_color)
+            else:
+                initial_color = QColor(*self.song_title_bg_color)
+            color = QColorDialog.getColor(initial_color, self, "Select Background Color")
             if color.isValid():
                 self.song_title_bg_color = (color.red(), color.green(), color.blue())
+                self.last_custom_bg_color = self.song_title_bg_color  # Remember this custom color
+                # Save to settings
+                self.settings.setValue('song_title_last_custom_bg_r', color.red())
+                self.settings.setValue('song_title_last_custom_bg_g', color.green())
+                self.settings.setValue('song_title_last_custom_bg_b', color.blue())
                 self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc;")
+                update_bg_color_state()  # Update the state to reflect the new color
         self.song_title_bg_color_btn.clicked.connect(on_song_title_bg_color_clicked)
         
         # Function to update background color button state
@@ -1660,7 +1678,11 @@ class SuperCutUI(QWidget):
             elif not is_custom:
                 self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
             else:
-                self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc;")
+                # Use the last custom color when custom is selected, or the current color if no custom color was picked yet
+                if self.last_custom_bg_color != (0, 0, 0):
+                    self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.last_custom_bg_color}; border: 1px solid #ccc;")
+                else:
+                    self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc;")
         
         # Connect background dropdown to update color button state
         self.song_title_bg_combo.currentIndexChanged.connect(lambda _: update_bg_color_state())
@@ -1740,7 +1762,7 @@ class SuperCutUI(QWidget):
                 self.song_title_font_size_combo.setStyleSheet("")
                 self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_color}; border: 1px solid #ccc;")
                 self.song_title_bg_combo.setStyleSheet("")
-                self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc;")
+                # Don't set the background color button style here - let update_bg_color_state handle it
                 self.song_title_opacity_combo.setStyleSheet("")
             
             # Update background color button state
