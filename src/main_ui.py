@@ -2739,6 +2739,7 @@ class SuperCutUI(QWidget):
             self.overlay3_checkbox.isChecked(), self.overlay3_path, self.overlay3_size_percent, self.overlay3_position,
             self.overlay4_checkbox.isChecked(), self.overlay4_path, self.overlay4_size_percent, self.overlay4_position,
             self.overlay5_checkbox.isChecked(), self.overlay5_path, self.overlay5_size_percent, self.overlay5_position,
+            
             self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_position,
             self.selected_effect, self.overlay_duration,
             self.intro_effect, self.intro_duration,
@@ -2763,8 +2764,20 @@ class SuperCutUI(QWidget):
             overlay4_effect=self.selected_overlay4_5_effect,
             overlay4_effect_time=self.overlay4_5_start_at,
             overlay5_effect=self.selected_overlay4_5_effect,
-            overlay5_effect_time=self.overlay4_5_start_at
-            
+            overlay5_effect_time=self.overlay4_5_start_at,
+            # --- Add overlay6, overlay7, overlay6_7 effect ---
+            use_overlay6=self.overlay6_checkbox.isChecked(),
+            overlay6_path=self.overlay6_path,
+            overlay6_size_percent=self.overlay6_size_percent,
+            overlay6_position=self.overlay6_position,
+            use_overlay7=self.overlay7_checkbox.isChecked(),
+            overlay7_path=self.overlay7_path,
+            overlay7_size_percent=self.overlay7_size_percent,
+            overlay7_position=self.overlay7_position,
+            overlay6_effect=self.selected_overlay6_7_effect,
+            overlay6_effect_time=self.overlay6_7_start_at,
+            overlay7_effect=self.selected_overlay6_7_effect,
+            overlay7_effect_time=self.overlay6_7_start_at
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
