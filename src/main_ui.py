@@ -699,7 +699,7 @@ class SuperCutUI(QWidget):
         layout.setSpacing(15)
 
         # --- Add program title with icon at the top ---
-        layout.addSpacing(-5)
+        layout.addSpacing(0)
         title_widget = QtWidgets.QWidget()
         title_widget.setFixedHeight(75)
         title_layout = QtWidgets.QHBoxLayout()
@@ -750,7 +750,7 @@ class SuperCutUI(QWidget):
         title_widget.setLayout(title_layout)
         layout.addWidget(title_widget)
         # Add spacer below title bar to prevent overlap
-        layout.addSpacing(0)
+        layout.addSpacing(50)
         # --- End program title ---
 
         # Add UI components
