@@ -1642,14 +1642,10 @@ class SuperCutUI(QWidget):
         self.song_title_bg_color_btn.setFixedSize(40, 25)
         self.song_title_bg_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc;")
         self.song_title_bg_color = (0, 0, 0)  # Default black
-        self.last_used_bg_color = (0, 0, 0)  # Remember last used color
         def on_song_title_bg_color_clicked():
-            # Use last used color as initial color in dialog
-            initial_color = QColor(*self.last_used_bg_color)
-            color = QColorDialog.getColor(initial_color, self, "Select Background Color")
+            color = QColorDialog.getColor(QColor(*self.song_title_bg_color), self, "Select Background Color")
             if color.isValid():
                 self.song_title_bg_color = (color.red(), color.green(), color.blue())
-                self.last_used_bg_color = self.song_title_bg_color  # Remember this color
                 self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc;")
         self.song_title_bg_color_btn.clicked.connect(on_song_title_bg_color_clicked)
         
