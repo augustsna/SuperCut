@@ -336,7 +336,7 @@ class VideoWorker(QObject):
                 song_title_opacity=self.song_title_opacity,
                 song_title_scale_percent=self.song_title_scale_percent,
                 overlay3_effect="fadein",
-                overlay3_effect_time=5,
+                overlay3_effect_time=self.song_title_start_at if self.song_title_start_at is not None else 5,
                 overlay4_effect="fadein",
                 overlay4_effect_time=5,
                 overlay5_effect="fadein",
