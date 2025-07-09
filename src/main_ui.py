@@ -2582,13 +2582,13 @@ class SuperCutUI(QWidget):
             intro_path = self.intro_edit.text().strip()
             if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png']:
                 QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Intro.", QMessageBox.StandardButton.Ok)
-            return
+                return
         # Overlay 1 validation
         if self.overlay_checkbox.isChecked():
             overlay_path = self.overlay1_edit.text().strip()
             if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png']:
                 QMessageBox.warning(self, "⚠️ Overlay Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 1.", QMessageBox.StandardButton.Ok)
-            return
+                return
         # Overlay 2 validation
         if self.overlay2_checkbox.isChecked():
             overlay2_path = self.overlay2_edit.text().strip()
@@ -2739,8 +2739,6 @@ class SuperCutUI(QWidget):
             self.overlay3_checkbox.isChecked(), self.overlay3_path, self.overlay3_size_percent, self.overlay3_position,
             self.overlay4_checkbox.isChecked(), self.overlay4_path, self.overlay4_size_percent, self.overlay4_position,
             self.overlay5_checkbox.isChecked(), self.overlay5_path, self.overlay5_size_percent, self.overlay5_position,
-            self.overlay6_checkbox.isChecked(), self.overlay6_path, self.overlay6_size_percent, self.overlay6_position,
-            self.overlay7_checkbox.isChecked(), self.overlay7_path, self.overlay7_size_percent, self.overlay7_position,
             self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_position,
             self.selected_effect, self.overlay_duration,
             self.intro_effect, self.intro_duration,
@@ -2765,11 +2763,7 @@ class SuperCutUI(QWidget):
             overlay4_effect=self.selected_overlay4_5_effect,
             overlay4_effect_time=self.overlay4_5_start_at,
             overlay5_effect=self.selected_overlay4_5_effect,
-            overlay5_effect_time=self.overlay4_5_start_at,
-            overlay6_effect=self.selected_overlay6_7_effect,
-            overlay6_effect_time=self.overlay6_7_start_at,
-            overlay7_effect=self.selected_overlay6_7_effect,
-            overlay7_effect_time=self.overlay6_7_start_at
+            overlay5_effect_time=self.overlay4_5_start_at
             
         )
         self._worker.moveToThread(self._thread)
@@ -3030,8 +3024,9 @@ class SuperCutUI(QWidget):
                 self._waiting_dialog_on_close = waiting_dialog
                 event.ignore()
                 return
-            event.ignore()
-            return
+            else:
+                event.ignore()
+                return
         # Save window position and close as normal
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
