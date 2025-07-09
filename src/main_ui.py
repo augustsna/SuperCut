@@ -1577,35 +1577,9 @@ class SuperCutUI(QWidget):
         self.song_title_font_combo.currentIndexChanged.connect(on_song_title_font_changed)
         on_song_title_font_changed(self.song_title_font_combo.currentIndex())
         
-        # Font size control
-        self.song_title_font_size_combo = QtWidgets.QComboBox()
-        self.song_title_font_size_combo.setFixedWidth(70)
-        font_size_options = [
-            ("16", 16),
-            ("20", 20),
-            ("24", 24),
-            ("28", 28),
-            ("32", 32),
-            ("36", 36),
-            ("40", 40),
-            ("48", 48),
-            ("56", 56),
-            ("64", 64),
-            ("72", 72),   
-            ("140", 140),
-            ("160", 160),
-            ("200", 200),
-            ("220", 220),
-            ("240", 240)        
-        ]
-        for label, value in font_size_options:
-            self.song_title_font_size_combo.addItem(label, value)
-        self.song_title_font_size_combo.setCurrentIndex(4)  # Default 32
-        self.song_title_font_size = 32
-        def on_song_title_font_size_changed(idx):
-            self.song_title_font_size = self.song_title_font_size_combo.itemData(idx)
-        self.song_title_font_size_combo.currentIndexChanged.connect(on_song_title_font_size_changed)
-        on_song_title_font_size_changed(self.song_title_font_size_combo.currentIndex())
+        # Font size control (REMOVED DROPDOWN, FIXED TO 220)
+        self.song_title_font_size = 220
+        # (Remove the font size combo box and related logic)
         
         # Color control
         song_title_color_label = QLabel("Color:")
@@ -1788,7 +1762,6 @@ class SuperCutUI(QWidget):
             enabled = state == Qt.CheckState.Checked
             self.song_title_effect_combo.setEnabled(enabled)
             self.song_title_font_combo.setEnabled(enabled)
-            self.song_title_font_size_combo.setEnabled(enabled)
             self.song_title_color_btn.setEnabled(enabled)
             self.song_title_bg_combo.setEnabled(enabled)
             self.song_title_opacity_combo.setEnabled(enabled)
@@ -1842,8 +1815,6 @@ class SuperCutUI(QWidget):
         song_title_controls_layout.addWidget(song_title_font_label)
         song_title_controls_layout.addWidget(self.song_title_font_combo)
         song_title_controls_layout.addSpacing(3)
-        song_title_controls_layout.addWidget(self.song_title_font_size_combo)
-        song_title_controls_layout.addSpacing(1)
         song_title_controls_layout.addWidget(song_title_color_label)
         song_title_controls_layout.addWidget(self.song_title_color_btn)
         song_title_controls_layout.addSpacing(8)
