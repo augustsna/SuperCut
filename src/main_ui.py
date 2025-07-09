@@ -1633,6 +1633,9 @@ class SuperCutUI(QWidget):
         self.song_title_bg = "transparent"
         def on_song_title_bg_changed(idx):
             self.song_title_bg = self.song_title_bg_combo.itemData(idx)
+            if self.song_title_bg == "custom":
+                # Use the color shown in the button (last custom color)
+                self.song_title_bg_color = self.last_custom_bg_color
         self.song_title_bg_combo.currentIndexChanged.connect(on_song_title_bg_changed)
         on_song_title_bg_changed(self.song_title_bg_combo.currentIndex())
         
@@ -1647,6 +1650,11 @@ class SuperCutUI(QWidget):
         last_custom_g = self.settings.value('song_title_last_custom_bg_g', 0, type=int)
         last_custom_b = self.settings.value('song_title_last_custom_bg_b', 0, type=int)
         self.last_custom_bg_color = (last_custom_r, last_custom_g, last_custom_b)
+        
+        # Ensure internal state matches UI if last custom color is set and mode is custom
+        if self.last_custom_bg_color != (0, 0, 0) and self.song_title_bg == "custom":
+            self.song_title_bg_color = self.last_custom_bg_color
+            self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc;")
         
         def on_song_title_bg_color_clicked():
             # Use the last custom color as initial, or current if no custom color was picked yet
