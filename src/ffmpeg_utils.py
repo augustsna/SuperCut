@@ -114,7 +114,13 @@ def create_video_with_ffmpeg(
     song_title_bg: str = "transparent",
     song_title_bg_color: tuple = (0, 0, 0),
     song_title_opacity: float = 1.0,
-    song_title_scale_percent: int = 100
+    song_title_scale_percent: int = 100,
+    overlay3_effect: str = "fadein",
+    overlay3_effect_time: int = 5,
+    overlay4_effect: str = "fadein",
+    overlay4_effect_time: int = 5,
+    overlay5_effect: str = "fadein",
+    overlay5_effect_time: int = 5
 ) -> Tuple[bool, Optional[str]]:
     if extra_overlays is None:
         extra_overlays = []
@@ -351,9 +357,9 @@ def create_video_with_ffmpeg(
             filter_intro = intro_effect_chain(intro_idx, f"{owi}:{ohi}", "oi", intro_effect, intro_duration, ext_intro) if intro_idx is not None else ""
             filter_overlay1 = overlay_effect_chain(overlay1_idx, f"{ow1}:{oh1}", "ol1", effect, effect_time, ext1) if overlay1_idx is not None else ""
             filter_overlay2 = overlay_effect_chain(overlay2_idx, f"{ow2}:{oh2}", "ol2", effect, effect_time, ext2) if overlay2_idx is not None else ""
-            filter_overlay3 = overlay_effect_chain(overlay3_idx, f"{ow3}:{oh3}", "ol3", effect, effect_time, ext3) if overlay3_idx is not None else ""
-            filter_overlay4 = overlay_effect_chain(overlay4_idx, f"{ow4}:{oh4}", "ol4", effect, effect_time, ext4) if overlay4_idx is not None else ""
-            filter_overlay5 = overlay_effect_chain(overlay5_idx, f"{ow5}:{oh5}", "ol5", effect, effect_time, ext5) if overlay5_idx is not None else ""
+            filter_overlay3 = overlay_effect_chain(overlay3_idx, f"{ow3}:{oh3}", "ol3", overlay3_effect, overlay3_effect_time, ext3) if overlay3_idx is not None else ""
+            filter_overlay4 = overlay_effect_chain(overlay4_idx, f"{ow4}:{oh4}", "ol4", overlay4_effect, overlay4_effect_time, ext4) if overlay4_idx is not None else ""
+            filter_overlay5 = overlay_effect_chain(overlay5_idx, f"{ow5}:{oh5}", "ol5", overlay5_effect, overlay5_effect_time, ext5) if overlay5_idx is not None else ""
             # --- Song Title Overlay Filter Graph ---
             filter_chains = []
             overlay_labels = []

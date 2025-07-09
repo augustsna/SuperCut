@@ -331,7 +331,13 @@ class VideoWorker(QObject):
                 song_title_bg=self.song_title_bg,
                 song_title_bg_color=self.song_title_bg_color,
                 song_title_opacity=self.song_title_opacity,
-                song_title_scale_percent=self.song_title_scale_percent
+                song_title_scale_percent=self.song_title_scale_percent,
+                overlay3_effect="fadein",
+                overlay3_effect_time=5,
+                overlay4_effect="fadein",
+                overlay4_effect_time=5,
+                overlay5_effect="fadein",
+                overlay5_effect_time=5
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")

@@ -2006,7 +2006,7 @@ class SuperCutUI(QWidget):
 
         # --- Overlay effect label greying logic ---
         def update_overlay_effect_label_style():
-            if not (self.overlay_checkbox.isChecked() or self.overlay2_checkbox.isChecked() or self.overlay3_checkbox.isChecked() or self.overlay4_checkbox.isChecked() or self.overlay5_checkbox.isChecked()):
+            if not (self.overlay_checkbox.isChecked() or self.overlay2_checkbox.isChecked()):
                 effect_label.setStyleSheet("color: grey;")
                 self.effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.effect_combo.setEnabled(False)
@@ -2022,9 +2022,9 @@ class SuperCutUI(QWidget):
                 self.overlay_duration_edit.setEnabled(True)
         self.overlay_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         self.overlay2_checkbox.stateChanged.connect(update_overlay_effect_label_style)
-        self.overlay3_checkbox.stateChanged.connect(update_overlay_effect_label_style)
-        self.overlay4_checkbox.stateChanged.connect(update_overlay_effect_label_style)
-        self.overlay5_checkbox.stateChanged.connect(update_overlay_effect_label_style)
+        # self.overlay3_checkbox.stateChanged.connect(update_overlay_effect_label_style)
+        # self.overlay4_checkbox.stateChanged.connect(update_overlay_effect_label_style)
+        # self.overlay5_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         update_overlay_effect_label_style()        
 
     def create_action_buttons(self, layout):
