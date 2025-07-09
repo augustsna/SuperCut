@@ -1753,6 +1753,22 @@ class SuperCutUI(QWidget):
         self.song_title_y_combo.currentIndexChanged.connect(on_song_title_y_changed)
         on_song_title_y_changed(self.song_title_y_combo.currentIndex())
 
+        # --- Song Title Start At (s) ---
+        song_title_start_label = QLabel("at (s):")
+        song_title_start_label.setFixedWidth(40)
+        self.song_title_start_edit = QLineEdit("5")
+        self.song_title_start_edit.setFixedWidth(40)
+        self.song_title_start_edit.setValidator(QIntValidator(0, 999, self))
+        self.song_title_start_edit.setPlaceholderText("5")
+        self.song_title_start_at = 5
+        def on_song_title_start_changed():
+            try:
+                self.song_title_start_at = int(self.song_title_start_edit.text())
+            except Exception:
+                self.song_title_start_at = 5
+        self.song_title_start_edit.textChanged.connect(on_song_title_start_changed)
+        on_song_title_start_changed()
+
         # Enable/disable song title controls based on checkbox
         def set_song_title_controls_enabled(state):
             enabled = state == Qt.CheckState.Checked
@@ -1764,9 +1780,11 @@ class SuperCutUI(QWidget):
             self.song_title_opacity_combo.setEnabled(enabled)
             self.song_title_x_combo.setEnabled(enabled)
             self.song_title_y_combo.setEnabled(enabled)
+            self.song_title_start_edit.setEnabled(enabled)
             song_title_effect_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_x_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_y_label.setStyleSheet("" if enabled else "color: grey;")
+            song_title_start_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_font_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_color_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_bg_label.setStyleSheet("" if enabled else "color: grey;")
@@ -1775,16 +1793,18 @@ class SuperCutUI(QWidget):
                 self.song_title_effect_combo.setStyleSheet(grey_btn_style)
                 self.song_title_x_combo.setStyleSheet(grey_btn_style)
                 self.song_title_y_combo.setStyleSheet(grey_btn_style)
+                self.song_title_start_edit.setStyleSheet(grey_btn_style)
             else:
                 self.song_title_effect_combo.setStyleSheet("")
                 self.song_title_x_combo.setStyleSheet("")
                 self.song_title_y_combo.setStyleSheet("")
+                self.song_title_start_edit.setStyleSheet("")
             # Update background color button state
             update_bg_color_state()
         self.song_title_checkbox.stateChanged.connect(lambda _: set_song_title_controls_enabled(self.song_title_checkbox.checkState()))
         set_song_title_controls_enabled(self.song_title_checkbox.checkState())
         
-        # First line: checkbox, effect, X, Y
+        # First line: checkbox, effect, X, Y, start at
         song_title_checkbox_layout.addSpacing(5)
         song_title_checkbox_layout.addWidget(self.song_title_checkbox)
         song_title_checkbox_layout.addSpacing(5)
@@ -1796,6 +1816,9 @@ class SuperCutUI(QWidget):
         song_title_checkbox_layout.addSpacing(5)
         song_title_checkbox_layout.addWidget(song_title_y_label)
         song_title_checkbox_layout.addWidget(self.song_title_y_combo)
+        song_title_checkbox_layout.addSpacing(5)
+        song_title_checkbox_layout.addWidget(song_title_start_label)
+        song_title_checkbox_layout.addWidget(self.song_title_start_edit)
         song_title_checkbox_layout.addStretch()
         layout.addLayout(song_title_checkbox_layout)
         
@@ -2418,7 +2441,8 @@ class SuperCutUI(QWidget):
             song_title_bg_color=self.song_title_bg_color,
             song_title_opacity=self.song_title_opacity,
             song_title_x_percent=self.song_title_x_percent,
-            song_title_y_percent=self.song_title_y_percent
+            song_title_y_percent=self.song_title_y_percent,
+            song_title_start_at=self.song_title_start_at
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)

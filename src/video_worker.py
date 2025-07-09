@@ -39,7 +39,8 @@ class VideoWorker(QObject):
                  song_title_bg_color: tuple = (0, 0, 0),
                  song_title_opacity: float = 1.0,
                  song_title_x_percent: int = 25,
-                 song_title_y_percent: int = 25):
+                 song_title_y_percent: int = 25,
+                 song_title_start_at: int = 5):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -95,6 +96,7 @@ class VideoWorker(QObject):
         self.song_title_opacity = song_title_opacity
         self.song_title_x_percent = song_title_x_percent
         self.song_title_y_percent = song_title_y_percent
+        self.song_title_start_at = song_title_start_at
 
     def stop(self):
         """Stop the video processing"""
@@ -183,8 +185,8 @@ class VideoWorker(QObject):
                 # Create a temp PNG file for the overlay
                 temp_png_path = create_temp_file(suffix=f'_overlay{idx}.png', prefix='supercut_')
                 create_song_title_png(title, temp_png_path, width=800, height=80, font_size=self.song_title_font_size, font_name=self.song_title_font, color=self.song_title_color, bg=self.song_title_bg, bg_color=self.song_title_bg_color, opacity=self.song_title_opacity)
-                # Add x/y percent to overlay dict for ffmpeg_utils
-                song_title_pngs.append({'path': temp_png_path, 'title': title, 'x_percent': self.song_title_x_percent, 'y_percent': self.song_title_y_percent})
+                # Add x/y percent and start_at to overlay dict for ffmpeg_utils
+                song_title_pngs.append({'path': temp_png_path, 'title': title, 'x_percent': self.song_title_x_percent, 'y_percent': self.song_title_y_percent, 'start_at': self.song_title_start_at})
         # --- End Song Title Overlays ---
         
         # Select available image
@@ -244,41 +246,40 @@ class VideoWorker(QObject):
                 print(f"[DEBUG] Total audio duration: {audio_duration}")
                 
                 if overlay_count == 1:
-                    # Single song - use overlay start time or default to 5s
-                    first_start = self.effect_time if self.effect != "none" else 5.0
-                    # Ensure start time doesn't exceed audio duration
-                    first_start = min(first_start, audio_duration - 1.0)  # Leave at least 1 second
-                    overlay_duration = audio_duration - first_start
-                    print(f"[DEBUG] Single song overlay: start={first_start}s, duration={overlay_duration}s")
-                    extra_overlays.append({
-                        'path': song_title_pngs[0]['path'],
-                        'start': first_start,
-                        'duration': overlay_duration,
-                        'x_percent': song_title_pngs[0]['x_percent'],
-                        'y_percent': song_title_pngs[0]['y_percent']
-                    })
+                    # REMOVE this block: Single song - use overlay start time or default to 5s
+                    pass
                 else:
-                    # Multiple songs - each song title starts when its MP3 starts
-                    for i, (song_start, song_duration) in enumerate(song_durations):
-                        if i == 0:
-                            # First song: use overlay start time or default to 5s
-                            title_start = self.effect_time if self.effect != "none" else 5.0
-                            # Ensure start time doesn't exceed song duration
-                            title_start = min(title_start, song_duration - 1.0)
-                            title_duration = song_duration - title_start
-                        else:
-                            # Subsequent songs: start when the song starts
-                            title_start = song_start
-                            title_duration = song_duration
-                        
-                        print(f"[DEBUG] Song {i+1}: start={title_start}s, duration={title_duration}s (song_duration={song_duration}s)")
-                        extra_overlays.append({
-                            'path': song_title_pngs[i]['path'],
-                            'start': title_start,
-                            'duration': title_duration,
-                            'x_percent': song_title_pngs[i]['x_percent'],
-                            'y_percent': song_title_pngs[i]['y_percent']
-                        })
+                    # REMOVE this block: Multiple songs - each song title starts when its MP3 starts
+                    pass
+            if self.use_song_title_overlay and len(song_title_pngs) > 0:
+                # Multiple overlays: first starts at user input, others at song boundaries
+                from src.ffmpeg_utils import get_audio_duration
+                song_durations = []
+                cumulative_time = 0.0
+                for mp3_path in selected_mp3s:
+                    duration = get_audio_duration(mp3_path)
+                    song_durations.append((cumulative_time, duration))
+                    cumulative_time += duration
+                print(f"[DEBUG] Song durations: {song_durations}")
+                print(f"[DEBUG] Total audio duration: {audio_duration}")
+                for i, (song_start, song_duration) in enumerate(song_durations):
+                    if i == 0:
+                        # First overlay: start at user input, duration shortened if start_at > 0
+                        overlay_start = self.song_title_start_at
+                        overlay_duration = song_duration - (overlay_start - song_start)
+                        overlay_duration = max(overlay_duration, 1.0)
+                    else:
+                        # Subsequent overlays: start at song start, full song duration
+                        overlay_start = song_start
+                        overlay_duration = song_duration
+                    print(f"[DEBUG] Song title overlay {i+1}: start={overlay_start}s, duration={overlay_duration}s")
+                    extra_overlays.append({
+                        'path': song_title_pngs[i]['path'],
+                        'start': overlay_start,
+                        'duration': overlay_duration,
+                        'x_percent': song_title_pngs[i]['x_percent'],
+                        'y_percent': song_title_pngs[i]['y_percent']
+                    })
             # Create video (Overlay 1: GIF/PNG, with size)
             success, error_msg = create_video_with_ffmpeg(
                 selected_image, 
