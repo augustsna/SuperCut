@@ -1692,15 +1692,12 @@ class SuperCutUI(QWidget):
         self.song_title_opacity_combo = QtWidgets.QComboBox()
         self.song_title_opacity_combo.setFixedWidth(90)
         opacity_options = [
-            ("25%", 0.25),
-            ("50%", 0.5),
-            ("75%", 0.75),
-            ("100%", 1.0)
+            (f"{percent}%", percent / 100.0) for percent in range(5, 101, 5)
         ]
         for label, value in opacity_options:
             self.song_title_opacity_combo.addItem(label, value)
-        self.song_title_opacity_combo.setCurrentIndex(3)  # Default 100%
-        self.song_title_opacity = 1.0
+        self.song_title_opacity_combo.setCurrentIndex(3)  # Default 20%
+        self.song_title_opacity = 0.20
         def on_song_title_opacity_changed(idx):
             self.song_title_opacity = self.song_title_opacity_combo.itemData(idx)
         self.song_title_opacity_combo.currentIndexChanged.connect(on_song_title_opacity_changed)
