@@ -32,7 +32,8 @@ class VideoWorker(QObject):
                  bufsize: str = "24M",
                  use_song_title_overlay: bool = True,
                  song_title_effect: str = "fadeinout",
-                 song_title_font: str = "default"):
+                 song_title_font: str = "default",
+                 song_title_font_size: int = 32):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -81,6 +82,7 @@ class VideoWorker(QObject):
         self.use_song_title_overlay = use_song_title_overlay
         self.song_title_effect = song_title_effect
         self.song_title_font = song_title_font
+        self.song_title_font_size = song_title_font_size
 
     def stop(self):
         """Stop the video processing"""
@@ -168,7 +170,7 @@ class VideoWorker(QObject):
                 title = extract_mp3_title(mp3_path)
                 # Create a temp PNG file for the overlay
                 temp_png_path = create_temp_file(suffix=f'_overlay{idx}.png', prefix='supercut_')
-                create_song_title_png(title, temp_png_path, width=800, height=80, font_size=32, font_name=self.song_title_font)
+                create_song_title_png(title, temp_png_path, width=800, height=80, font_size=self.song_title_font_size, font_name=self.song_title_font)
                 song_title_pngs.append((temp_png_path, title))
         # --- End Song Title Overlays ---
         
@@ -303,7 +305,8 @@ class VideoWorker(QObject):
                 self.bufsize,
                 extra_overlays=extra_overlays,
                 song_title_effect=self.song_title_effect,
-                song_title_font=self.song_title_font
+                song_title_font=self.song_title_font,
+                song_title_font_size=self.song_title_font_size
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")

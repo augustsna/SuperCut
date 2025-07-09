@@ -108,7 +108,8 @@ def create_video_with_ffmpeg(
     bufsize: str = "24M",
     extra_overlays: Optional[List[dict]] = None,  # List of dicts: {path, start, duration, fade}
     song_title_effect: str = "fadeinout",
-    song_title_font: str = "default"
+    song_title_font: str = "default",
+    song_title_font_size: int = 32
 ) -> Tuple[bool, Optional[str]]:
     if extra_overlays is None:
         extra_overlays = []
