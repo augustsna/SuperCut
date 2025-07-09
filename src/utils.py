@@ -208,7 +208,7 @@ def extract_mp3_title(mp3_path):
     import os
     return os.path.splitext(os.path.basename(mp3_path))[0]
 
-def create_song_title_png(title, output_path, width=400, height=40, font_size=12, font_name="default"):
+def create_song_title_png(title, output_path, width=400, height=40, font_size=12, font_name="default", color=(255, 255, 255)):
     """
     Create a PNG image with the song title text at the top-left.
     Args:
@@ -218,6 +218,7 @@ def create_song_title_png(title, output_path, width=400, height=40, font_size=12
         height (int): Height of the image.
         font_size (int): Font size for the title.
         font_name (str): Font filename or "default" for system font.
+        color (tuple): RGB color tuple for the text.
     """
     from src.config import PROJECT_ROOT
     
@@ -243,7 +244,7 @@ def create_song_title_png(title, output_path, width=400, height=40, font_size=12
             font = ImageFont.load_default()
     
     # Draw text at (8, 8) for padding
-    draw.text((8, 8), title, font=font, fill=(255, 255, 255, 255))
+    draw.text((8, 8), title, font=font, fill=(*color, 255))
     img.save(output_path, 'PNG')
 
 # Register cleanup function to run at exit
