@@ -2408,10 +2408,14 @@ class SuperCutUI(QWidget):
         maxrate = self.settings.value('default_ffmpeg_maxrate', DEFAULT_MAXRATE, type=str)
         # Get ffmpeg bufsize from settings
         bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
+        # Use overlay_duration as the start time for both overlay 1 and overlay 2
+        overlay1_start_at = self.overlay_duration
+        overlay2_start_at = self.overlay_duration
         self._worker = VideoWorker(
             media_sources, export_name, number, folder, codec, resolution, fps,
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
             self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position,
+            overlay1_start_at, overlay2_start_at,
             self.overlay3_checkbox.isChecked(), self.overlay3_path, self.overlay3_size_percent, self.overlay3_position,
             self.overlay4_checkbox.isChecked(), self.overlay4_path, self.overlay4_size_percent, self.overlay4_position,
             self.overlay5_checkbox.isChecked(), self.overlay5_path, self.overlay5_size_percent, self.overlay5_position,

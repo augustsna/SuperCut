@@ -120,8 +120,12 @@ def create_video_with_ffmpeg(
     overlay4_effect: str = "fadein",
     overlay4_effect_time: int = 5,
     overlay5_effect: str = "fadein",
-    overlay5_effect_time: int = 5
+    overlay5_effect_time: int = 5,
+    overlay1_start_at: int = 0,
+    overlay2_start_at: int = 0
 ) -> Tuple[bool, Optional[str]]:
+    print(f"[DEBUG] Overlay 1 start at: {overlay1_start_at}")
+    print(f"[DEBUG] Overlay 2 start at: {overlay2_start_at}")
     if extra_overlays is None:
         extra_overlays = []
     temp_png_path = None
@@ -398,60 +402,43 @@ def create_video_with_ffmpeg(
             print("[DEBUG] overlay_labels:", overlay_labels)
             # --- End Song Title Overlay Filter Graph ---
             # Compose overlays: Overlay 2, then Overlay 3, then Overlay 1, then Intro, then song title overlays
-            filter_complex = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height}[bg];"
-            if overlays_present:
-                # Build filter chains for intro/overlay1/overlay2/overlay3
-                if use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5:
-                    filter_complex += filter_intro + ";" if filter_intro else ""
-                    filter_complex += filter_overlay1 + ";" if filter_overlay1 else ""
-                    filter_complex += filter_overlay2 + ";" if filter_overlay2 else ""
-                    filter_complex += filter_overlay3 + ";" if filter_overlay3 else ""
-                    filter_complex += filter_overlay4 + ";" if filter_overlay4 else ""
-                    filter_complex += filter_overlay5 + ";" if filter_overlay5 else ""
-                    bg_ref = "[bg]"
-                    if overlay2_idx is not None:
-                        filter_complex += f"{bg_ref}[ol2]overlay={ox2}:{oy2}:enable='gte(t,5)'[tmp2];"
-                        bg_ref = "[tmp2]"
-                    if overlay3_idx is not None:
-                        filter_complex += f"{bg_ref}[ol3]overlay={ox3}:{oy3}:enable='gte(t,5)'[tmp3];"
-                        bg_ref = "[tmp3]"
-                    if overlay4_idx is not None:
-                        filter_complex += f"{bg_ref}[ol4]overlay={ox4}:{oy4}:enable='gte(t,5)'[tmp4];"
-                        bg_ref = "[tmp4]"
-                    if overlay5_idx is not None:
-                        filter_complex += f"{bg_ref}[ol5]overlay={ox5}:{oy5}:enable='gte(t,5)'[tmp5];"
-                        bg_ref = "[tmp5]"
-                    if overlay1_idx is not None:
-                        filter_complex += f"{bg_ref}[ol1]overlay={ox1}:{oy1}:enable='gte(t,5)'[tmp1];"
-                        bg_ref = "[tmp1]"
-                    if intro_idx is not None:
-                        filter_complex += f"{bg_ref}[oi]overlay={ox_intro}:{oy_intro}:enable='lte(t,{intro_duration})'[v1];"
-                        bg_ref = "[v1]"
-                else:
-                    bg_ref = "[bg]"
-                # Add song title overlay filter chains
-                if filter_chains:
-                    filter_complex += ";".join(filter_chains) + ";"
-                # Chain song title overlays
-                if overlay_labels:
-                    for i, (label, start, duration, x_expr, y_expr) in enumerate(overlay_labels):
-                        enable_expr = f"between(t,{start},{start+duration})"
-                        out_label = f"songtmp{i+1}" if i < len(overlay_labels)-1 else "vout"
-                        filter_complex += f"{bg_ref}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}];"
-                        bg_ref = f"[{out_label}]"
-                else:
-                    filter_complex += f"{bg_ref}format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            filter_graph = filter_bg
+            last_label = "[bg]"
+            # Overlay 2
+            if filter_overlay2:
+                filter_graph += f";{filter_overlay2}"
+                last_label = "[ol2]"
+                filter_graph += f";[bg][ol2]overlay={ox2}:{oy2}:enable='gte(t,{overlay2_start_at})'[tmp2]"
+                last_label = "[tmp2]"
+            # Overlay 1
+            if filter_overlay1:
+                filter_graph += f";{filter_overlay1}"
+                filter_graph += f";{last_label}[ol1]overlay={ox1}:{oy1}:enable='gte(t,{overlay1_start_at})'[tmp1]"
+                last_label = "[tmp1]"
+            # Intro
+            if filter_intro:
+                filter_graph += f";{filter_intro}"
+                filter_graph += f";{last_label}[oi]overlay={ox_intro}:{oy_intro}:enable='lte(t,{intro_duration})'[v1]"
+                last_label = "[v1]"
+            # Extra overlays
+            if filter_chains:
+                filter_graph += ";" + ";".join(filter_chains)
+                for i, (label, start, duration, x_expr, y_expr) in enumerate(overlay_labels):
+                    enable_expr = f"between(t,{start},{start+duration})"
+                    out_label = f"songtmp{i+1}" if i < len(overlay_labels)-1 else "vout"
+                    filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
+                    last_label = f"[{out_label}]"
             else:
-                filter_complex = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
+                filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout]"
             # --- Debug print for filter_complex ---
             print("[DEBUG] filter_complex:")
-            print(filter_complex)
+            print(filter_graph)
         else:
-            filter_complex = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            filter_graph = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
             # --- Debug print for filter_complex ---
             print("[DEBUG] filter_complex:")
-            print(filter_complex)
-        cmd.extend(["-filter_complex", filter_complex, "-map", "[vout]", "-map", "1:a"])
+            print(filter_graph)
+        cmd.extend(["-filter_complex", filter_graph, "-map", "[vout]", "-map", "1:a"])
 
         cmd.extend(["-c:v", codec, "-preset", preset])       
 
