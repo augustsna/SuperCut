@@ -1617,7 +1617,7 @@ class SuperCutUI(QWidget):
         
         # Background control
         song_title_bg_label = QLabel("BG:")
-        song_title_bg_label.setFixedWidth(25)
+        song_title_bg_label.setFixedWidth(26)
         self.song_title_bg_combo = QtWidgets.QComboBox()
         self.song_title_bg_combo.setFixedWidth(120)
         bg_options = [
@@ -1780,19 +1780,19 @@ class SuperCutUI(QWidget):
         # Second line: font, size, color, bg, opacity
         song_title_controls_layout = QHBoxLayout()
         song_title_controls_layout.setSpacing(2)
-        song_title_controls_layout.addSpacing(5)
         song_title_controls_layout.addWidget(song_title_font_label)
         song_title_controls_layout.addWidget(self.song_title_font_combo)
-        song_title_controls_layout.addSpacing(2)
+        song_title_controls_layout.addSpacing(3)
         song_title_controls_layout.addWidget(self.song_title_font_size_combo)
-        song_title_controls_layout.addSpacing(2)
+        song_title_controls_layout.addSpacing(1)
         song_title_controls_layout.addWidget(song_title_color_label)
         song_title_controls_layout.addWidget(self.song_title_color_btn)
-        song_title_controls_layout.addSpacing(2)
+        song_title_controls_layout.addSpacing(8)
         song_title_controls_layout.addWidget(song_title_bg_label)
         song_title_controls_layout.addWidget(self.song_title_bg_combo)
+        song_title_controls_layout.addSpacing(3)
         song_title_controls_layout.addWidget(self.song_title_bg_color_btn)
-        song_title_controls_layout.addSpacing(2)
+        song_title_controls_layout.addSpacing(3)
         song_title_controls_layout.addWidget(self.song_title_opacity_combo)
         song_title_controls_layout.addStretch()
         layout.addLayout(song_title_controls_layout)
