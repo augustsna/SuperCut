@@ -1590,7 +1590,8 @@ class SuperCutUI(QWidget):
             ("40", 40),
             ("48", 48),
             ("56", 56),
-            ("64", 64)
+            ("64", 64),
+            ("72", 72),            
         ]
         for label, value in font_size_options:
             self.song_title_font_size_combo.addItem(label, value)

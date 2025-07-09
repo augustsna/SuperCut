@@ -256,8 +256,17 @@ def create_song_title_png(title, output_path, width=400, height=40, font_size=12
         except Exception:
             font = ImageFont.load_default()
     
-    # Draw text at (8, 8) for padding
-    draw.text((8, 8), title, font=font, fill=(*color, 255))
+    # Center text using anchor if available (Pillow >=8.0)
+    try:
+        draw.text((width // 2, height // 2), title, font=font, fill=(*color, 255), anchor='mm')
+    except TypeError:
+        # Fallback for older Pillow: use manual bbox calculation
+        text_bbox = draw.textbbox((0, 0), title, font=font)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_height = text_bbox[3] - text_bbox[1]
+        x = (width - text_width) // 2
+        y = (height - text_height) // 2
+        draw.text((x, y), title, font=font, fill=(*color, 255))
     img.save(output_path, 'PNG')
 
 # Register cleanup function to run at exit
