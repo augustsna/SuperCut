@@ -30,7 +30,8 @@ class VideoWorker(QObject):
                  video_bitrate: str = "12M",
                  maxrate: str = "16M",
                  bufsize: str = "24M",
-                 use_song_title_overlay: bool = True):
+                 use_song_title_overlay: bool = True,
+                 song_title_effect: str = "fadeinout"):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -77,6 +78,7 @@ class VideoWorker(QObject):
         self._stop = False
         self._used_images = set()
         self.use_song_title_overlay = use_song_title_overlay
+        self.song_title_effect = song_title_effect
 
     def stop(self):
         """Stop the video processing"""
@@ -207,12 +209,23 @@ class VideoWorker(QObject):
             return False, []
 
         try:
-            # Calculate timing for each overlay with special handling for first song
+            # Calculate timing for each overlay with proper song durations
             overlay_count = len(song_title_pngs)
             extra_overlays = []
             
             if overlay_count > 0:
-                # For first song: use overlay start time if enabled, otherwise start at 5s
+                # Get individual song durations
+                from src.ffmpeg_utils import get_audio_duration
+                song_durations = []
+                cumulative_time = 0.0
+                for mp3_path in selected_mp3s:
+                    duration = get_audio_duration(mp3_path)
+                    song_durations.append((cumulative_time, duration))
+                    cumulative_time += duration
+                
+                print(f"[DEBUG] Song durations: {song_durations}")
+                print(f"[DEBUG] Total audio duration: {audio_duration}")
+                
                 if overlay_count == 1:
                     # Single song - use overlay start time or default to 5s
                     first_start = self.effect_time if self.effect != "none" else 5.0
@@ -223,37 +236,27 @@ class VideoWorker(QObject):
                     extra_overlays.append({
                         'path': song_title_pngs[0][0],
                         'start': first_start,
-                        'duration': overlay_duration,
-                        'fade': True
+                        'duration': overlay_duration
                     })
                 else:
-                    # Multiple songs - first song uses overlay start time, rest use equal intervals
-                    first_start = self.effect_time if self.effect != "none" else 5.0
-                    # Ensure start time doesn't exceed audio duration
-                    first_start = min(first_start, audio_duration - 1.0)  # Leave at least 1 second
-                    remaining_duration = audio_duration - first_start
-                    remaining_songs = overlay_count - 1
-                    remaining_overlay_duration = remaining_duration / remaining_songs if remaining_songs > 0 else 0
-                    
-                    print(f"[DEBUG] Multiple songs overlay: first_start={first_start}s, remaining_duration={remaining_duration}s, remaining_songs={remaining_songs}")
-                    
-                    # First song
-                    extra_overlays.append({
-                        'path': song_title_pngs[0][0],
-                        'start': first_start,
-                        'duration': remaining_overlay_duration,
-                        'fade': True
-                    })
-                    
-                    # Subsequent songs (equal intervals)
-                    for i in range(1, overlay_count):
-                        start = first_start + (i * remaining_overlay_duration)
-                        print(f"[DEBUG] Song {i+1}: start={start}s, duration={remaining_overlay_duration}s")
+                    # Multiple songs - each song title starts when its MP3 starts
+                    for i, (song_start, song_duration) in enumerate(song_durations):
+                        if i == 0:
+                            # First song: use overlay start time or default to 5s
+                            title_start = self.effect_time if self.effect != "none" else 5.0
+                            # Ensure start time doesn't exceed song duration
+                            title_start = min(title_start, song_duration - 1.0)
+                            title_duration = song_duration - title_start
+                        else:
+                            # Subsequent songs: start when the song starts
+                            title_start = song_start
+                            title_duration = song_duration
+                        
+                        print(f"[DEBUG] Song {i+1}: start={title_start}s, duration={title_duration}s (song_duration={song_duration}s)")
                         extra_overlays.append({
                             'path': song_title_pngs[i][0],
-                            'start': start,
-                            'duration': remaining_overlay_duration,
-                            'fade': True
+                            'start': title_start,
+                            'duration': title_duration
                         })
             # Create video (Overlay 1: GIF/PNG, with size)
             success, error_msg = create_video_with_ffmpeg(
@@ -296,7 +299,8 @@ class VideoWorker(QObject):
                 self.video_bitrate,
                 self.maxrate,
                 self.bufsize,
-                extra_overlays=extra_overlays
+                extra_overlays=extra_overlays,
+                song_title_effect=self.song_title_effect
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")

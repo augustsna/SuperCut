@@ -1553,7 +1553,48 @@ class SuperCutUI(QWidget):
             self.song_title_checkbox.setStyleSheet("")
         self.song_title_checkbox.stateChanged.connect(update_song_title_checkbox_style)
         update_song_title_checkbox_style(self.song_title_checkbox.checkState())
-        layout.addWidget(self.song_title_checkbox)
+        
+        # Song titles effect control
+        song_title_effect_layout = QHBoxLayout()
+        song_title_effect_layout.setSpacing(4)
+        song_title_effect_label = QLabel("Song Titles Effect:")
+        song_title_effect_label.setFixedWidth(100)
+        self.song_title_effect_combo = QtWidgets.QComboBox()
+        self.song_title_effect_combo.setFixedWidth(130)
+        song_title_effect_options = [
+            ("Fade in & out", "fadeinout"),
+            ("Fade in", "fadein"),
+            ("Fade out", "fadeout"),
+            ("Zoompan", "zoompan"),
+            ("None", "none")
+        ]
+        for label, value in song_title_effect_options:
+            self.song_title_effect_combo.addItem(label, value)
+        self.song_title_effect_combo.setCurrentIndex(0)  # Default fadeinout
+        self.song_title_effect = "fadeinout"
+        def on_song_title_effect_changed(idx):
+            self.song_title_effect = self.song_title_effect_combo.itemData(idx)
+        self.song_title_effect_combo.currentIndexChanged.connect(on_song_title_effect_changed)
+        on_song_title_effect_changed(self.song_title_effect_combo.currentIndex())
+        
+        # Enable/disable song title effect based on checkbox
+        def set_song_title_effect_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.song_title_effect_combo.setEnabled(enabled)
+            song_title_effect_label.setStyleSheet("" if enabled else "color: grey;")
+            if not enabled:
+                self.song_title_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            else:
+                self.song_title_effect_combo.setStyleSheet("")
+        self.song_title_checkbox.stateChanged.connect(lambda _: set_song_title_effect_enabled(self.song_title_checkbox.checkState()))
+        set_song_title_effect_enabled(self.song_title_checkbox.checkState())
+        
+        song_title_effect_layout.addWidget(self.song_title_checkbox)
+        song_title_effect_layout.addSpacing(10)
+        song_title_effect_layout.addWidget(song_title_effect_label)
+        song_title_effect_layout.addWidget(self.song_title_effect_combo)
+        song_title_effect_layout.addStretch()
+        layout.addLayout(song_title_effect_layout)
 
         # Overlay 5 controls (similar to Overlay 4)
         self.overlay5_checkbox = QtWidgets.QCheckBox("Overlay 5:")
@@ -2145,7 +2186,8 @@ class SuperCutUI(QWidget):
             video_bitrate=video_bitrate,
             maxrate=maxrate,
             bufsize=bufsize,
-            use_song_title_overlay=self.song_title_checkbox.isChecked()  # <-- Pass state here
+            use_song_title_overlay=self.song_title_checkbox.isChecked(),
+            song_title_effect=self.song_title_effect
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)

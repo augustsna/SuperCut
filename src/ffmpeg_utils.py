@@ -106,7 +106,8 @@ def create_video_with_ffmpeg(
     video_bitrate: str = "12M",
     maxrate: str = "16M",
     bufsize: str = "24M",
-    extra_overlays: Optional[List[dict]] = None  # List of dicts: {path, start, duration, fade}
+    extra_overlays: Optional[List[dict]] = None,  # List of dicts: {path, start, duration, fade}
+    song_title_effect: str = "fadeinout"
 ) -> Tuple[bool, Optional[str]]:
     if extra_overlays is None:
         extra_overlays = []
@@ -353,12 +354,21 @@ def create_video_with_ffmpeg(
                 for i, overlay in enumerate(extra_overlays):
                     idx = extra_overlay_indices[i]
                     label = f"songol{i+1}"
-                    fade = overlay.get('fade', True)
                     start = overlay.get('start', 0)
                     duration = overlay.get('duration', 0)
                     chain = f"[{idx}:v]format=rgba,scale=800:80"
-                    if fade:
+                    
+                    # Apply song title effect based on song_title_effect parameter
+                    if song_title_effect == "fadeinout":
                         chain += f",fade=t=in:st={start}:d=1:alpha=1,fade=t=out:st={start+duration-1}:d=1:alpha=1"
+                    elif song_title_effect == "fadein":
+                        chain += f",fade=t=in:st={start}:d=1:alpha=1"
+                    elif song_title_effect == "fadeout":
+                        chain += f",fade=t=out:st={start+duration-1}:d=1:alpha=1"
+                    elif song_title_effect == "zoompan":
+                        chain += f",zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+                    # For "none" effect, no additional effects are applied
+                    
                     chain += f"[{label}]"
                     filter_chains.append(chain)
                     overlay_labels.append((label, start, duration))
