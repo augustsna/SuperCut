@@ -20,6 +20,31 @@ def sanitize_filename(name: str) -> str:
     """Remove invalid filename characters: <>:"/\\|?*"""
     return re.sub(r'[<>:"/\\|?*]', '_', name)
 
+def clean_file_path(path: str) -> str:
+    """Clean file path by removing file:/// prefix and normalizing the path"""
+    if not path:
+        return path
+    
+    # Remove file:/// prefix if present
+    if path.startswith('file:///'):
+        path = path[7:]  # Remove 'file:///'
+    elif path.startswith('file://'):
+        path = path[7:]  # Remove 'file://'
+    elif path.startswith('file:'):
+        path = path[5:]  # Remove 'file:'
+    
+    # Handle Windows paths that might have extra slashes
+    if os.name == 'nt' and path.startswith('/'):
+        # Convert /C:/path to C:/path
+        if len(path) > 2 and path[1] == ':' and path[2] == '/':
+            path = path[1:]
+        # Convert /path to path (relative path)
+        elif len(path) > 1:
+            path = path[1:]
+    
+    # Normalize the path
+    return os.path.normpath(path)
+
 def get_desktop_folder() -> str:
     """Get the desktop folder path"""
     return os.path.join(os.path.expanduser("~"), "Desktop")

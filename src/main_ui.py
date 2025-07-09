@@ -37,7 +37,7 @@ from src.config import (
 )
 from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
-    validate_inputs, validate_media_files
+    validate_inputs, validate_media_files, clean_file_path
 )
 from src.ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, ScrollableErrorDialog, ImageDropLineEdit
 from src.video_worker import VideoWorker
@@ -213,6 +213,14 @@ class SettingsDialog(QDialog):
         self.default_intro_path_edit.setFixedWidth(120)
         if self.settings is not None:
             self.default_intro_path_edit.setText(self.settings.value('default_intro_path', '', type=str))
+        
+        # Add text change handler to clean file paths
+        def clean_default_intro_path():
+            current_text = self.default_intro_path_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.default_intro_path_edit.setText(cleaned_text)
+        self.default_intro_path_edit.textChanged.connect(clean_default_intro_path)
         self.default_intro_path_btn = QPushButton('...')
         self.default_intro_path_btn.setFixedWidth(32)
         def pick_intro_path():
@@ -256,6 +264,14 @@ class SettingsDialog(QDialog):
         self.default_overlay1_path_edit.setFixedWidth(120)
         if self.settings is not None:
             self.default_overlay1_path_edit.setText(self.settings.value('default_overlay1_path', '', type=str))
+        
+        # Add text change handler to clean file paths
+        def clean_default_overlay1_path():
+            current_text = self.default_overlay1_path_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.default_overlay1_path_edit.setText(cleaned_text)
+        self.default_overlay1_path_edit.textChanged.connect(clean_default_overlay1_path)
         self.default_overlay1_path_btn = QPushButton('...')
         self.default_overlay1_path_btn.setFixedWidth(32)
         def pick_overlay1_path():
@@ -292,6 +308,14 @@ class SettingsDialog(QDialog):
         self.default_overlay2_path_edit.setFixedWidth(120)
         if self.settings is not None:
             self.default_overlay2_path_edit.setText(self.settings.value('default_overlay2_path', '', type=str))
+        
+        # Add text change handler to clean file paths
+        def clean_default_overlay2_path():
+            current_text = self.default_overlay2_path_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.default_overlay2_path_edit.setText(cleaned_text)
+        self.default_overlay2_path_edit.textChanged.connect(clean_default_overlay2_path)
         self.default_overlay2_path_btn = QPushButton('...')
         self.default_overlay2_path_btn.setFixedWidth(32)
         def pick_overlay2_path():
@@ -763,6 +787,14 @@ class SuperCutUI(QWidget):
         self.media_sources_edit.setPlaceholderText("Drag & drop or click Select Folder")
         self.media_sources_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
         
+        # Add text change handler to clean file paths
+        def clean_media_folder_path():
+            current_text = self.media_sources_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.media_sources_edit.setText(cleaned_text)
+        self.media_sources_edit.textChanged.connect(clean_media_folder_path)
+        
         media_sources_btn = QPushButton("Select Folder")
         media_sources_btn.setFixedWidth(folder_row_style["btn_width"])
         media_sources_btn.clicked.connect(self.select_media_sources_folder)
@@ -783,6 +815,14 @@ class SuperCutUI(QWidget):
         self.folder_edit.setMinimumWidth(folder_row_style["edit_min_width"])
         self.folder_edit.setPlaceholderText("Drag & drop or click Select Folder")
         self.folder_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
+        
+        # Add text change handler to clean file paths
+        def clean_output_folder_path():
+            current_text = self.folder_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.folder_edit.setText(cleaned_text)
+        self.folder_edit.textChanged.connect(clean_output_folder_path)
         
         folder_btn = QPushButton("Select Folder")
         folder_btn.setFixedWidth(folder_row_style["btn_width"])
@@ -967,6 +1007,10 @@ class SuperCutUI(QWidget):
         self.intro_edit.setFixedWidth(125)
         self.intro_path = ""
         def on_intro_changed():
+            current_text = self.intro_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.intro_edit.setText(cleaned_text)
             self.intro_path = self.intro_edit.text().strip()
         self.intro_edit.textChanged.connect(on_intro_changed)
         intro_btn = QPushButton("Select")
@@ -1118,6 +1162,10 @@ class SuperCutUI(QWidget):
         self.overlay1_edit.setFixedWidth(125)  # Make the text box shorter
         self.overlay1_path = ""
         def on_overlay1_changed():
+            current_text = self.overlay1_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay1_edit.setText(cleaned_text)
             self.overlay1_path = self.overlay1_edit.text().strip()
         self.overlay1_edit.textChanged.connect(on_overlay1_changed)
         overlay1_btn = QPushButton("Select")
@@ -1215,6 +1263,10 @@ class SuperCutUI(QWidget):
         self.overlay2_edit.setFixedWidth(125)
         self.overlay2_path = ""
         def on_overlay2_changed():
+            current_text = self.overlay2_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay2_edit.setText(cleaned_text)
             self.overlay2_path = self.overlay2_edit.text().strip()
         self.overlay2_edit.textChanged.connect(on_overlay2_changed)
         overlay2_btn = QPushButton("Select")
@@ -1310,6 +1362,10 @@ class SuperCutUI(QWidget):
         self.overlay3_edit.setFixedWidth(125)
         self.overlay3_path = ""
         def on_overlay3_changed():
+            current_text = self.overlay3_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay3_edit.setText(cleaned_text)
             self.overlay3_path = self.overlay3_edit.text().strip()
         self.overlay3_edit.textChanged.connect(on_overlay3_changed)
         overlay3_btn = QPushButton("Select")
@@ -1405,6 +1461,10 @@ class SuperCutUI(QWidget):
         self.overlay4_edit.setFixedWidth(125)
         self.overlay4_path = ""
         def on_overlay4_changed():
+            current_text = self.overlay4_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay4_edit.setText(cleaned_text)
             self.overlay4_path = self.overlay4_edit.text().strip()
         self.overlay4_edit.textChanged.connect(on_overlay4_changed)
         overlay4_btn = QPushButton("Select")
@@ -1512,6 +1572,10 @@ class SuperCutUI(QWidget):
         self.overlay5_edit.setFixedWidth(125)
         self.overlay5_path = ""
         def on_overlay5_changed():
+            current_text = self.overlay5_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay5_edit.setText(cleaned_text)
             self.overlay5_path = self.overlay5_edit.text().strip()
         self.overlay5_edit.textChanged.connect(on_overlay5_changed)
         overlay5_btn = QPushButton("Select")

@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QMovie, QIcon, QFont, QShortcut, QKeySequence
+from src.utils import clean_file_path
 
 class FolderDropLineEdit(QLineEdit):
     """Custom QLineEdit that accepts folder drag and drop"""
@@ -35,6 +36,26 @@ class FolderDropLineEdit(QLineEdit):
                 self.setText(path)
                 self.editingFinished.emit()
 
+    def paste(self):
+        """Override paste to clean file paths"""
+        clipboard = QtWidgets.QApplication.clipboard()
+        if clipboard is None:
+            super().paste()
+            return
+            
+        mime_data = clipboard.mimeData()
+        if mime_data is None:
+            super().paste()
+            return
+        
+        if mime_data.hasText():
+            text = mime_data.text().strip()
+            # Clean the pasted text if it looks like a file path
+            cleaned_text = clean_file_path(text)
+            self.insert(cleaned_text)
+        else:
+            super().paste()
+
 class ImageDropLineEdit(QLineEdit):
     """Custom QLineEdit that accepts GIF or PNG file drag and drop (*.gif, *.png)"""
     def __init__(self, *args, **kwargs):
@@ -58,6 +79,26 @@ class ImageDropLineEdit(QLineEdit):
             if os.path.isfile(path) and os.path.splitext(path)[1].lower() in ['.gif', '.png']:
                 self.setText(path)
                 self.editingFinished.emit()
+
+    def paste(self):
+        """Override paste to clean file paths"""
+        clipboard = QtWidgets.QApplication.clipboard()
+        if clipboard is None:
+            super().paste()
+            return
+            
+        mime_data = clipboard.mimeData()
+        if mime_data is None:
+            super().paste()
+            return
+        
+        if mime_data.hasText():
+            text = mime_data.text().strip()
+            # Clean the pasted text if it looks like a file path
+            cleaned_text = clean_file_path(text)
+            self.insert(cleaned_text)
+        else:
+            super().paste()
 
 class WaitingDialog(QDialog):
     """Dialog shown while processing video creation"""
