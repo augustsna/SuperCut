@@ -1542,9 +1542,6 @@ class SuperCutUI(QWidget):
         overlay4_layout.addSpacing(6)
         overlay4_layout.addWidget(overlay4_size_label)
         overlay4_layout.addWidget(self.overlay4_size_combo)
-        layout.addLayout(overlay4_layout)
-
-        layout.addLayout(overlay3_layout)
         layout.addLayout(overlay4_layout)        
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
