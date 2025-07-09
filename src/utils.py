@@ -208,7 +208,7 @@ def extract_mp3_title(mp3_path):
     import os
     return os.path.splitext(os.path.basename(mp3_path))[0]
 
-def create_song_title_png(title, output_path, width=400, height=40, font_size=12):
+def create_song_title_png(title, output_path, width=400, height=40, font_size=12, font_name="default"):
     """
     Create a PNG image with the song title text at the top-left.
     Args:
@@ -217,14 +217,31 @@ def create_song_title_png(title, output_path, width=400, height=40, font_size=12
         width (int): Width of the image.
         height (int): Height of the image.
         font_size (int): Font size for the title.
+        font_name (str): Font filename or "default" for system font.
     """
+    from src.config import PROJECT_ROOT
+    
     # Create a transparent image
     img = Image.new('RGBA', (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    try:
-        font = ImageFont.truetype("arial.ttf", font_size)
-    except Exception:
-        font = ImageFont.load_default()
+    
+    # Try to load custom font if specified
+    font = None
+    if font_name != "default":
+        try:
+            font_path = os.path.join(PROJECT_ROOT, "src", "sources", "font", font_name)
+            if os.path.exists(font_path):
+                font = ImageFont.truetype(font_path, font_size)
+        except Exception as e:
+            logger.warning(f"Failed to load custom font {font_name}: {e}")
+    
+    # Fallback to system font if custom font failed
+    if font is None:
+        try:
+            font = ImageFont.truetype("arial.ttf", font_size)
+        except Exception:
+            font = ImageFont.load_default()
+    
     # Draw text at (8, 8) for padding
     draw.text((8, 8), title, font=font, fill=(255, 255, 255, 255))
     img.save(output_path, 'PNG')

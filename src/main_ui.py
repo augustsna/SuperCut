@@ -1547,20 +1547,22 @@ class SuperCutUI(QWidget):
         layout.addLayout(overlay4_layout)        
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
-        self.song_title_checkbox = QtWidgets.QCheckBox("Song Titles")
+        self.song_title_checkbox = QtWidgets.QCheckBox("Song Titles:")
         self.song_title_checkbox.setChecked(True)
         def update_song_title_checkbox_style(state):
             self.song_title_checkbox.setStyleSheet("")
         self.song_title_checkbox.stateChanged.connect(update_song_title_checkbox_style)
         update_song_title_checkbox_style(self.song_title_checkbox.checkState())
         
-        # Song titles effect control
+        # Song titles effect and font control
         song_title_effect_layout = QHBoxLayout()
         song_title_effect_layout.setSpacing(4)
-        song_title_effect_label = QLabel("Song Titles Effect:")
-        song_title_effect_label.setFixedWidth(100)
+        
+        # Effect control
+        song_title_effect_label = QLabel("Effect:")
+        song_title_effect_label.setFixedWidth(50)
         self.song_title_effect_combo = QtWidgets.QComboBox()
-        self.song_title_effect_combo.setFixedWidth(130)
+        self.song_title_effect_combo.setFixedWidth(100)
         song_title_effect_options = [
             ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
@@ -1577,22 +1579,51 @@ class SuperCutUI(QWidget):
         self.song_title_effect_combo.currentIndexChanged.connect(on_song_title_effect_changed)
         on_song_title_effect_changed(self.song_title_effect_combo.currentIndex())
         
-        # Enable/disable song title effect based on checkbox
-        def set_song_title_effect_enabled(state):
+        # Font control
+        song_title_font_label = QLabel("Font:")
+        song_title_font_label.setFixedWidth(40)
+        self.song_title_font_combo = QtWidgets.QComboBox()
+        self.song_title_font_combo.setFixedWidth(120)
+        song_title_font_options = [
+            ("Default", "default"),
+            ("Kantumruy Pro", "KantumruyPro-VariableFont_wght.ttf"),
+            ("Kantumruy Pro Italic", "KantumruyPro-Italic-VariableFont_wght.ttf"),
+            ("Roboto", "Roboto-VariableFont_wdth,wght.ttf"),
+            ("Roboto Italic", "Roboto-Italic-VariableFont_wdth,wght.ttf")
+        ]
+        for label, value in song_title_font_options:
+            self.song_title_font_combo.addItem(label, value)
+        self.song_title_font_combo.setCurrentIndex(0)  # Default
+        self.song_title_font = "default"
+        def on_song_title_font_changed(idx):
+            self.song_title_font = self.song_title_font_combo.itemData(idx)
+        self.song_title_font_combo.currentIndexChanged.connect(on_song_title_font_changed)
+        on_song_title_font_changed(self.song_title_font_combo.currentIndex())
+        
+        # Enable/disable song title controls based on checkbox
+        def set_song_title_controls_enabled(state):
             enabled = state == Qt.CheckState.Checked
             self.song_title_effect_combo.setEnabled(enabled)
+            self.song_title_font_combo.setEnabled(enabled)
             song_title_effect_label.setStyleSheet("" if enabled else "color: grey;")
+            song_title_font_label.setStyleSheet("" if enabled else "color: grey;")
             if not enabled:
                 self.song_title_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.song_title_font_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
             else:
                 self.song_title_effect_combo.setStyleSheet("")
-        self.song_title_checkbox.stateChanged.connect(lambda _: set_song_title_effect_enabled(self.song_title_checkbox.checkState()))
-        set_song_title_effect_enabled(self.song_title_checkbox.checkState())
+                self.song_title_font_combo.setStyleSheet("")
+        self.song_title_checkbox.stateChanged.connect(lambda _: set_song_title_controls_enabled(self.song_title_checkbox.checkState()))
+        set_song_title_controls_enabled(self.song_title_checkbox.checkState())
         
+        song_title_effect_layout.addSpacing(5)
         song_title_effect_layout.addWidget(self.song_title_checkbox)
-        song_title_effect_layout.addSpacing(10)
+        song_title_effect_layout.addSpacing(5)
         song_title_effect_layout.addWidget(song_title_effect_label)
         song_title_effect_layout.addWidget(self.song_title_effect_combo)
+        song_title_effect_layout.addSpacing(10)
+        song_title_effect_layout.addWidget(song_title_font_label)
+        song_title_effect_layout.addWidget(self.song_title_font_combo)
         song_title_effect_layout.addStretch()
         layout.addLayout(song_title_effect_layout)
 
@@ -2187,7 +2218,8 @@ class SuperCutUI(QWidget):
             maxrate=maxrate,
             bufsize=bufsize,
             use_song_title_overlay=self.song_title_checkbox.isChecked(),
-            song_title_effect=self.song_title_effect
+            song_title_effect=self.song_title_effect,
+            song_title_font=self.song_title_font
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
