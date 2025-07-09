@@ -362,6 +362,12 @@ def create_video_with_ffmpeg(
                     label = f"songol{i+1}"
                     start = overlay.get('start', 0)
                     duration = overlay.get('duration', 0)
+                    x_percent = overlay.get('x_percent', 0)
+                    y_percent = overlay.get('y_percent', 0)
+                    # Calculate x/y as expressions based on percent
+                    x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
+                    # For Y: 0% = bottom, 100% = top
+                    y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
                     chain = f"[{idx}:v]format=rgba,scale=800:80"
                     
                     # Apply song title effect based on song_title_effect parameter
@@ -377,7 +383,7 @@ def create_video_with_ffmpeg(
                     
                     chain += f"[{label}]"
                     filter_chains.append(chain)
-                    overlay_labels.append((label, start, duration))
+                    overlay_labels.append((label, start, duration, x_expr, y_expr))
             print("[DEBUG] filter_chains:", filter_chains)
             print("[DEBUG] overlay_labels:", overlay_labels)
             # --- End Song Title Overlay Filter Graph ---
@@ -418,10 +424,10 @@ def create_video_with_ffmpeg(
                     filter_complex += ";".join(filter_chains) + ";"
                 # Chain song title overlays
                 if overlay_labels:
-                    for i, (label, start, duration) in enumerate(overlay_labels):
+                    for i, (label, start, duration, x_expr, y_expr) in enumerate(overlay_labels):
                         enable_expr = f"between(t,{start},{start+duration})"
                         out_label = f"songtmp{i+1}" if i < len(overlay_labels)-1 else "vout"
-                        filter_complex += f"{bg_ref}[{label}]overlay=0:0:enable='{enable_expr}'[{out_label}];"
+                        filter_complex += f"{bg_ref}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}];"
                         bg_ref = f"[{out_label}]"
                 else:
                     filter_complex += f"{bg_ref}format={VIDEO_SETTINGS['pixel_format']}[vout]"

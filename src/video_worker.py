@@ -37,7 +37,9 @@ class VideoWorker(QObject):
                  song_title_color: tuple = (255, 255, 255),
                  song_title_bg: str = "transparent",
                  song_title_bg_color: tuple = (0, 0, 0),
-                 song_title_opacity: float = 1.0):
+                 song_title_opacity: float = 1.0,
+                 song_title_x_percent: int = 25,
+                 song_title_y_percent: int = 25):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -91,6 +93,8 @@ class VideoWorker(QObject):
         self.song_title_bg = song_title_bg
         self.song_title_bg_color = song_title_bg_color
         self.song_title_opacity = song_title_opacity
+        self.song_title_x_percent = song_title_x_percent
+        self.song_title_y_percent = song_title_y_percent
 
     def stop(self):
         """Stop the video processing"""
@@ -179,7 +183,8 @@ class VideoWorker(QObject):
                 # Create a temp PNG file for the overlay
                 temp_png_path = create_temp_file(suffix=f'_overlay{idx}.png', prefix='supercut_')
                 create_song_title_png(title, temp_png_path, width=800, height=80, font_size=self.song_title_font_size, font_name=self.song_title_font, color=self.song_title_color, bg=self.song_title_bg, bg_color=self.song_title_bg_color, opacity=self.song_title_opacity)
-                song_title_pngs.append((temp_png_path, title))
+                # Add x/y percent to overlay dict for ffmpeg_utils
+                song_title_pngs.append({'path': temp_png_path, 'title': title, 'x_percent': self.song_title_x_percent, 'y_percent': self.song_title_y_percent})
         # --- End Song Title Overlays ---
         
         # Select available image
@@ -246,9 +251,11 @@ class VideoWorker(QObject):
                     overlay_duration = audio_duration - first_start
                     print(f"[DEBUG] Single song overlay: start={first_start}s, duration={overlay_duration}s")
                     extra_overlays.append({
-                        'path': song_title_pngs[0][0],
+                        'path': song_title_pngs[0]['path'],
                         'start': first_start,
-                        'duration': overlay_duration
+                        'duration': overlay_duration,
+                        'x_percent': song_title_pngs[0]['x_percent'],
+                        'y_percent': song_title_pngs[0]['y_percent']
                     })
                 else:
                     # Multiple songs - each song title starts when its MP3 starts
@@ -266,9 +273,11 @@ class VideoWorker(QObject):
                         
                         print(f"[DEBUG] Song {i+1}: start={title_start}s, duration={title_duration}s (song_duration={song_duration}s)")
                         extra_overlays.append({
-                            'path': song_title_pngs[i][0],
+                            'path': song_title_pngs[i]['path'],
                             'start': title_start,
-                            'duration': title_duration
+                            'duration': title_duration,
+                            'x_percent': song_title_pngs[i]['x_percent'],
+                            'y_percent': song_title_pngs[i]['y_percent']
                         })
             # Create video (Overlay 1: GIF/PNG, with size)
             success, error_msg = create_video_with_ffmpeg(
