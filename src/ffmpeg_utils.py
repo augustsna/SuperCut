@@ -110,7 +110,10 @@ def create_video_with_ffmpeg(
     song_title_effect: str = "fadeinout",
     song_title_font: str = "default",
     song_title_font_size: int = 32,
-    song_title_color: tuple = (255, 255, 255)
+    song_title_color: tuple = (255, 255, 255),
+    song_title_bg: str = "transparent",
+    song_title_bg_color: tuple = (0, 0, 0),
+    song_title_opacity: float = 1.0
 ) -> Tuple[bool, Optional[str]]:
     if extra_overlays is None:
         extra_overlays = []

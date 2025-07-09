@@ -1552,30 +1552,9 @@ class SuperCutUI(QWidget):
         self.song_title_checkbox.stateChanged.connect(update_song_title_checkbox_style)
         update_song_title_checkbox_style(self.song_title_checkbox.checkState())
         
-        # Song titles effect and font control
-        song_title_effect_layout = QHBoxLayout()
-        song_title_effect_layout.setSpacing(4)
-        
-        # Effect control
-        song_title_effect_label = QLabel("Effect:")
-        song_title_effect_label.setFixedWidth(50)
-        self.song_title_effect_combo = QtWidgets.QComboBox()
-        self.song_title_effect_combo.setFixedWidth(100)
-        song_title_effect_options = [
-            ("Fade in & out", "fadeinout"),
-            ("Fade in", "fadein"),
-            ("Fade out", "fadeout"),
-            ("Zoompan", "zoompan"),
-            ("None", "none")
-        ]
-        for label, value in song_title_effect_options:
-            self.song_title_effect_combo.addItem(label, value)
-        self.song_title_effect_combo.setCurrentIndex(0)  # Default fadeinout
-        self.song_title_effect = "fadeinout"
-        def on_song_title_effect_changed(idx):
-            self.song_title_effect = self.song_title_effect_combo.itemData(idx)
-        self.song_title_effect_combo.currentIndexChanged.connect(on_song_title_effect_changed)
-        on_song_title_effect_changed(self.song_title_effect_combo.currentIndex())
+        # Song titles checkbox and controls
+        song_title_checkbox_layout = QHBoxLayout()
+        song_title_checkbox_layout.setSpacing(4)
         
         # Font control
         song_title_font_label = QLabel("Font:")
@@ -1638,6 +1617,104 @@ class SuperCutUI(QWidget):
                 self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_color}; border: 1px solid #ccc;")
         self.song_title_color_btn.clicked.connect(on_song_title_color_clicked)
         
+        # Background control
+        song_title_bg_label = QLabel("BG:")
+        song_title_bg_label.setFixedWidth(25)
+        self.song_title_bg_combo = QtWidgets.QComboBox()
+        self.song_title_bg_combo.setFixedWidth(80)
+        bg_options = [
+            ("Transparent", "transparent"),
+            ("Black", "black"),
+            ("White", "white"),
+            ("Custom", "custom")
+        ]
+        for label, value in bg_options:
+            self.song_title_bg_combo.addItem(label, value)
+        self.song_title_bg_combo.setCurrentIndex(0)  # Default transparent
+        self.song_title_bg = "transparent"
+        def on_song_title_bg_changed(idx):
+            self.song_title_bg = self.song_title_bg_combo.itemData(idx)
+        self.song_title_bg_combo.currentIndexChanged.connect(on_song_title_bg_changed)
+        on_song_title_bg_changed(self.song_title_bg_combo.currentIndex())
+        
+        # Background color control
+        self.song_title_bg_color_btn = QPushButton()
+        self.song_title_bg_color_btn.setFixedSize(40, 25)
+        self.song_title_bg_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc;")
+        self.song_title_bg_color = (0, 0, 0)  # Default black
+        self.last_used_bg_color = (0, 0, 0)  # Remember last used color
+        def on_song_title_bg_color_clicked():
+            # Use last used color as initial color in dialog
+            initial_color = QColor(*self.last_used_bg_color)
+            color = QColorDialog.getColor(initial_color, self, "Select Background Color")
+            if color.isValid():
+                self.song_title_bg_color = (color.red(), color.green(), color.blue())
+                self.last_used_bg_color = self.song_title_bg_color  # Remember this color
+                self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc;")
+        self.song_title_bg_color_btn.clicked.connect(on_song_title_bg_color_clicked)
+        
+        # Function to update background color button state
+        def update_bg_color_state():
+            is_custom = self.song_title_bg == "custom"
+            is_enabled = self.song_title_checkbox.isChecked()
+            self.song_title_bg_color_btn.setEnabled(is_custom and is_enabled)
+            
+            if not is_enabled:
+                self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+            elif not is_custom:
+                self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+            else:
+                self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc;")
+        
+        # Connect background dropdown to update color button state
+        self.song_title_bg_combo.currentIndexChanged.connect(lambda _: update_bg_color_state())
+        
+        # Initialize background color button state
+        update_bg_color_state()
+        
+        # Opacity control
+        song_title_opacity_label = QLabel("Opacity:")
+        song_title_opacity_label.setFixedWidth(50)
+        self.song_title_opacity_combo = QtWidgets.QComboBox()
+        self.song_title_opacity_combo.setFixedWidth(60)
+        opacity_options = [
+            ("25%", 0.25),
+            ("50%", 0.5),
+            ("75%", 0.75),
+            ("100%", 1.0)
+        ]
+        for label, value in opacity_options:
+            self.song_title_opacity_combo.addItem(label, value)
+        self.song_title_opacity_combo.setCurrentIndex(3)  # Default 100%
+        self.song_title_opacity = 1.0
+        def on_song_title_opacity_changed(idx):
+            self.song_title_opacity = self.song_title_opacity_combo.itemData(idx)
+        self.song_title_opacity_combo.currentIndexChanged.connect(on_song_title_opacity_changed)
+        on_song_title_opacity_changed(self.song_title_opacity_combo.currentIndex())
+        
+        # Effect control (moved to next line)
+        song_title_effect_layout = QHBoxLayout()
+        song_title_effect_layout.setSpacing(4)
+        song_title_effect_label = QLabel("Effect:")
+        song_title_effect_label.setFixedWidth(50)
+        self.song_title_effect_combo = QtWidgets.QComboBox()
+        self.song_title_effect_combo.setFixedWidth(100)
+        song_title_effect_options = [
+            ("Fade in & out", "fadeinout"),
+            ("Fade in", "fadein"),
+            ("Fade out", "fadeout"),
+            ("Zoompan", "zoompan"),
+            ("None", "none")
+        ]
+        for label, value in song_title_effect_options:
+            self.song_title_effect_combo.addItem(label, value)
+        self.song_title_effect_combo.setCurrentIndex(0)  # Default fadeinout
+        self.song_title_effect = "fadeinout"
+        def on_song_title_effect_changed(idx):
+            self.song_title_effect = self.song_title_effect_combo.itemData(idx)
+        self.song_title_effect_combo.currentIndexChanged.connect(on_song_title_effect_changed)
+        on_song_title_effect_changed(self.song_title_effect_combo.currentIndex())
+        
         # Enable/disable song title controls based on checkbox
         def set_song_title_controls_enabled(state):
             enabled = state == Qt.CheckState.Checked
@@ -1645,37 +1722,62 @@ class SuperCutUI(QWidget):
             self.song_title_font_combo.setEnabled(enabled)
             self.song_title_font_size_combo.setEnabled(enabled)
             self.song_title_color_btn.setEnabled(enabled)
+            self.song_title_bg_combo.setEnabled(enabled)
+            self.song_title_opacity_combo.setEnabled(enabled)
             song_title_effect_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_font_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_font_size_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_color_label.setStyleSheet("" if enabled else "color: grey;")
+            song_title_bg_label.setStyleSheet("" if enabled else "color: grey;")
+            song_title_opacity_label.setStyleSheet("" if enabled else "color: grey;")
             if not enabled:
                 self.song_title_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.song_title_font_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.song_title_font_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.song_title_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+                self.song_title_bg_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+                self.song_title_opacity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
             else:
                 self.song_title_effect_combo.setStyleSheet("")
                 self.song_title_font_combo.setStyleSheet("")
                 self.song_title_font_size_combo.setStyleSheet("")
                 self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_color}; border: 1px solid #ccc;")
+                self.song_title_bg_combo.setStyleSheet("")
+                self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc;")
+                self.song_title_opacity_combo.setStyleSheet("")
+            
+            # Update background color button state
+            update_bg_color_state()
         self.song_title_checkbox.stateChanged.connect(lambda _: set_song_title_controls_enabled(self.song_title_checkbox.checkState()))
         set_song_title_controls_enabled(self.song_title_checkbox.checkState())
         
-        song_title_effect_layout.addSpacing(5)
-        song_title_effect_layout.addWidget(self.song_title_checkbox)
+        # First line: checkbox, font, size, color, bg, opacity
+        song_title_checkbox_layout.addSpacing(5)
+        song_title_checkbox_layout.addWidget(self.song_title_checkbox)
+        song_title_checkbox_layout.addSpacing(5)
+        song_title_checkbox_layout.addWidget(song_title_font_label)
+        song_title_checkbox_layout.addWidget(self.song_title_font_combo)
+        song_title_checkbox_layout.addSpacing(5)
+        song_title_checkbox_layout.addWidget(song_title_font_size_label)
+        song_title_checkbox_layout.addWidget(self.song_title_font_size_combo)
+        song_title_checkbox_layout.addSpacing(5)
+        song_title_checkbox_layout.addWidget(song_title_color_label)
+        song_title_checkbox_layout.addWidget(self.song_title_color_btn)
+        song_title_checkbox_layout.addSpacing(5)
+        song_title_checkbox_layout.addWidget(song_title_bg_label)
+        song_title_checkbox_layout.addWidget(self.song_title_bg_combo)
+        song_title_checkbox_layout.addWidget(self.song_title_bg_color_btn)
+        song_title_checkbox_layout.addSpacing(5)
+        song_title_checkbox_layout.addWidget(song_title_opacity_label)
+        song_title_checkbox_layout.addWidget(self.song_title_opacity_combo)
+        song_title_checkbox_layout.addStretch()
+        layout.addLayout(song_title_checkbox_layout)
+        
+        # Second line: effect
         song_title_effect_layout.addSpacing(5)
         song_title_effect_layout.addWidget(song_title_effect_label)
         song_title_effect_layout.addWidget(self.song_title_effect_combo)
-        song_title_effect_layout.addSpacing(10)
-        song_title_effect_layout.addWidget(song_title_font_label)
-        song_title_effect_layout.addWidget(self.song_title_font_combo)
-        song_title_effect_layout.addSpacing(5)
-        song_title_effect_layout.addWidget(song_title_font_size_label)
-        song_title_effect_layout.addWidget(self.song_title_font_size_combo)
-        song_title_effect_layout.addSpacing(5)
-        song_title_effect_layout.addWidget(song_title_color_label)
-        song_title_effect_layout.addWidget(self.song_title_color_btn)
         song_title_effect_layout.addStretch()
         layout.addLayout(song_title_effect_layout)
 
@@ -2273,7 +2375,10 @@ class SuperCutUI(QWidget):
             song_title_effect=self.song_title_effect,
             song_title_font=self.song_title_font,
             song_title_font_size=self.song_title_font_size,
-            song_title_color=self.song_title_color
+            song_title_color=self.song_title_color,
+            song_title_bg=self.song_title_bg,
+            song_title_bg_color=self.song_title_bg_color,
+            song_title_opacity=self.song_title_opacity
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)

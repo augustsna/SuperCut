@@ -208,7 +208,7 @@ def extract_mp3_title(mp3_path):
     import os
     return os.path.splitext(os.path.basename(mp3_path))[0]
 
-def create_song_title_png(title, output_path, width=400, height=40, font_size=12, font_name="default", color=(255, 255, 255)):
+def create_song_title_png(title, output_path, width=400, height=40, font_size=12, font_name="default", color=(255, 255, 255), bg="transparent", bg_color=(0, 0, 0), opacity=1.0):
     """
     Create a PNG image with the song title text at the top-left.
     Args:
@@ -219,11 +219,24 @@ def create_song_title_png(title, output_path, width=400, height=40, font_size=12
         font_size (int): Font size for the title.
         font_name (str): Font filename or "default" for system font.
         color (tuple): RGB color tuple for the text.
+        bg (str): Background type ("transparent", "black", "white", "custom")
+        bg_color (tuple): RGB color tuple for custom background.
+        opacity (float): Opacity value (0.0 to 1.0).
     """
     from src.config import PROJECT_ROOT
     
-    # Create a transparent image
-    img = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    # Create image with background
+    if bg == "transparent":
+        img = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    elif bg == "black":
+        img = Image.new('RGBA', (width, height), (0, 0, 0, int(255 * opacity)))
+    elif bg == "white":
+        img = Image.new('RGBA', (width, height), (255, 255, 255, int(255 * opacity)))
+    elif bg == "custom":
+        img = Image.new('RGBA', (width, height), (*bg_color, int(255 * opacity)))
+    else:
+        img = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    
     draw = ImageDraw.Draw(img)
     
     # Try to load custom font if specified

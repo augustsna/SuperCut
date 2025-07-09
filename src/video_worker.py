@@ -34,7 +34,10 @@ class VideoWorker(QObject):
                  song_title_effect: str = "fadeinout",
                  song_title_font: str = "default",
                  song_title_font_size: int = 32,
-                 song_title_color: tuple = (255, 255, 255)):
+                 song_title_color: tuple = (255, 255, 255),
+                 song_title_bg: str = "transparent",
+                 song_title_bg_color: tuple = (0, 0, 0),
+                 song_title_opacity: float = 1.0):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -85,6 +88,9 @@ class VideoWorker(QObject):
         self.song_title_font = song_title_font
         self.song_title_font_size = song_title_font_size
         self.song_title_color = song_title_color
+        self.song_title_bg = song_title_bg
+        self.song_title_bg_color = song_title_bg_color
+        self.song_title_opacity = song_title_opacity
 
     def stop(self):
         """Stop the video processing"""
@@ -172,7 +178,7 @@ class VideoWorker(QObject):
                 title = extract_mp3_title(mp3_path)
                 # Create a temp PNG file for the overlay
                 temp_png_path = create_temp_file(suffix=f'_overlay{idx}.png', prefix='supercut_')
-                create_song_title_png(title, temp_png_path, width=800, height=80, font_size=self.song_title_font_size, font_name=self.song_title_font, color=self.song_title_color)
+                create_song_title_png(title, temp_png_path, width=800, height=80, font_size=self.song_title_font_size, font_name=self.song_title_font, color=self.song_title_color, bg=self.song_title_bg, bg_color=self.song_title_bg_color, opacity=self.song_title_opacity)
                 song_title_pngs.append((temp_png_path, title))
         # --- End Song Title Overlays ---
         
@@ -309,7 +315,10 @@ class VideoWorker(QObject):
                 song_title_effect=self.song_title_effect,
                 song_title_font=self.song_title_font,
                 song_title_font_size=self.song_title_font_size,
-                song_title_color=self.song_title_color
+                song_title_color=self.song_title_color,
+                song_title_bg=self.song_title_bg,
+                song_title_bg_color=self.song_title_bg_color,
+                song_title_opacity=self.song_title_opacity
             )
             if not success:
                 self.error.emit(error_msg or f"Failed to create video: {output_filename}")
