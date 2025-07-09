@@ -415,6 +415,21 @@ def create_video_with_ffmpeg(
                 filter_graph += f";{filter_overlay1}"
                 filter_graph += f";{last_label}[ol1]overlay={ox1}:{oy1}:enable='gte(t,{overlay1_start_at})'[tmp1]"
                 last_label = "[tmp1]"
+            # Overlay 3
+            if filter_overlay3:
+                filter_graph += f";{filter_overlay3}"
+                filter_graph += f";{last_label}[ol3]overlay={ox3}:{oy3}[tmp3]"
+                last_label = "[tmp3]"
+            # Overlay 4
+            if filter_overlay4:
+                filter_graph += f";{filter_overlay4}"
+                filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}[tmp4]"
+                last_label = "[tmp4]"
+            # Overlay 5
+            if filter_overlay5:
+                filter_graph += f";{filter_overlay5}"
+                filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}[tmp5]"
+                last_label = "[tmp5]"
             # Intro
             if filter_intro:
                 filter_graph += f";{filter_intro}"
