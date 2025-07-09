@@ -368,7 +368,7 @@ def create_video_with_ffmpeg(
                     x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
                     # For Y: 0% = bottom, 100% = top
                     y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
-                    chain = f"[{idx}:v]format=rgba,scale=680:80"
+                    chain = f"[{idx}:v]format=rgba,scale=1920:240"
                     
                     # Apply song title effect based on song_title_effect parameter
                     if song_title_effect == "fadeinout":
