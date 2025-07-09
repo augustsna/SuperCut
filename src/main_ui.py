@@ -2020,6 +2020,48 @@ class SuperCutUI(QWidget):
         overlay5_layout.addWidget(self.overlay5_size_combo)
         layout.addLayout(overlay5_layout)
 
+        # --- EFFECT CONTROL FOR OVERLAY 4_5 (identical for both overlays) ---
+        overlay4_5_label = QLabel("Overlay 4_5:")
+        overlay4_5_label.setFixedWidth(75)
+        self.overlay4_5_effect_combo = QtWidgets.QComboBox()
+        self.overlay4_5_effect_combo.setFixedWidth(combo_width)
+        for label, value in effect_options:
+            self.overlay4_5_effect_combo.addItem(label, value)
+        self.overlay4_5_effect_combo.setCurrentIndex(1)
+        self.selected_overlay4_5_effect = "fadein"
+        def on_overlay4_5_effect_changed(idx):
+            self.selected_overlay4_5_effect = self.overlay4_5_effect_combo.itemData(idx)
+        self.overlay4_5_effect_combo.currentIndexChanged.connect(on_overlay4_5_effect_changed)
+        on_overlay4_5_effect_changed(self.overlay4_5_effect_combo.currentIndex())
+
+        overlay4_5_start_label = QLabel("at (s):")
+        overlay4_5_start_label.setFixedWidth(40)
+        self.overlay4_5_start_edit = QLineEdit("5")
+        self.overlay4_5_start_edit.setFixedWidth(edit_width)
+        self.overlay4_5_start_edit.setValidator(QIntValidator(0, 999, self))
+        self.overlay4_5_start_edit.setPlaceholderText("5")
+        self.overlay4_5_start_at = 5
+        def on_overlay4_5_start_changed():
+            try:
+                self.overlay4_5_start_at = int(self.overlay4_5_start_edit.text())
+            except Exception:
+                self.overlay4_5_start_at = 5
+        self.overlay4_5_start_edit.textChanged.connect(on_overlay4_5_start_changed)
+        on_overlay4_5_start_changed()
+
+        overlay4_5_layout = QHBoxLayout()
+        overlay4_5_layout.setContentsMargins(0, 0, 0, 0)
+        overlay4_5_layout.addSpacing(0)
+        overlay4_5_layout.addWidget(overlay4_5_label)
+        overlay4_5_layout.addSpacing(-10)
+        overlay4_5_layout.addWidget(self.overlay4_5_effect_combo)
+        overlay4_5_layout.addSpacing(-10)
+        overlay4_5_layout.addWidget(overlay4_5_start_label)
+        overlay4_5_layout.addSpacing(-10)
+        overlay4_5_layout.addWidget(self.overlay4_5_start_edit)
+        overlay4_5_layout.addStretch()
+        layout.addLayout(overlay4_5_layout)
+
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
@@ -2415,7 +2457,7 @@ class SuperCutUI(QWidget):
             media_sources, export_name, number, folder, codec, resolution, fps,
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
             self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position,
-            overlay1_start_at, overlay2_start_at,
+            overlay1_start_at, overlay2_start_at,            
             self.overlay3_checkbox.isChecked(), self.overlay3_path, self.overlay3_size_percent, self.overlay3_position,
             self.overlay4_checkbox.isChecked(), self.overlay4_path, self.overlay4_size_percent, self.overlay4_position,
             self.overlay5_checkbox.isChecked(), self.overlay5_path, self.overlay5_size_percent, self.overlay5_position,
@@ -2439,7 +2481,12 @@ class SuperCutUI(QWidget):
             song_title_x_percent=self.song_title_x_percent,
             song_title_y_percent=self.song_title_y_percent,
             song_title_start_at=self.song_title_start_at,
-            song_title_scale_percent=self.song_title_scale_percent
+            song_title_scale_percent=self.song_title_scale_percent,
+            overlay4_effect=self.selected_overlay4_5_effect,
+            overlay4_effect_time=self.overlay4_5_start_at,
+            overlay5_effect=self.selected_overlay4_5_effect,
+            overlay5_effect_time=self.overlay4_5_start_at
+            
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)

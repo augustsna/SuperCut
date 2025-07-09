@@ -42,7 +42,11 @@ class VideoWorker(QObject):
                  song_title_x_percent: int = 25,
                  song_title_y_percent: int = 25,
                  song_title_start_at: int = 5,
-                 song_title_scale_percent: int = 100):
+                 song_title_scale_percent: int = 100,
+                 overlay4_effect: str = "fadein",
+                 overlay4_effect_time: int = 5,
+                 overlay5_effect: str = "fadein",
+                 overlay5_effect_time: int = 5):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -102,6 +106,10 @@ class VideoWorker(QObject):
         self.song_title_y_percent = song_title_y_percent
         self.song_title_start_at = song_title_start_at
         self.song_title_scale_percent = song_title_scale_percent
+        self.overlay4_effect = overlay4_effect
+        self.overlay4_effect_time = overlay4_effect_time
+        self.overlay5_effect = overlay5_effect
+        self.overlay5_effect_time = overlay5_effect_time
 
     def stop(self):
         """Stop the video processing"""
@@ -337,10 +345,10 @@ class VideoWorker(QObject):
                 song_title_scale_percent=self.song_title_scale_percent,
                 overlay3_effect="fadein",
                 overlay3_effect_time=self.song_title_start_at if (self.use_song_title_overlay and self.song_title_start_at is not None) else 5,
-                overlay4_effect="fadein",
-                overlay4_effect_time=5,
-                overlay5_effect="fadein",
-                overlay5_effect_time=5,
+                overlay4_effect=self.overlay4_effect,
+                overlay4_effect_time=self.overlay4_effect_time,
+                overlay5_effect=self.overlay5_effect,
+                overlay5_effect_time=self.overlay5_effect_time,
                 overlay1_start_at=self.overlay1_start_at,
                 overlay2_start_at=self.overlay2_start_at
             )
