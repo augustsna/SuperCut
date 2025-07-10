@@ -729,6 +729,7 @@ class SuperCutUI(QWidget):
         self.restore_window_position()
         self.setup_shortcuts()
         self.update_output_name()
+        self.apply_settings()
 
     def init_ui(self):
         """Initialize the user interface"""
