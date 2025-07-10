@@ -112,7 +112,7 @@ class TerminalWidget(QWidget):
         """Initialize the terminal UI"""
         # Remove title bar and make frameless
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setFixedSize(540, 600)
+        self.setFixedSize(540, 600)        
         
         # Set modern styling
         self.setStyleSheet("""
@@ -121,11 +121,12 @@ class TerminalWidget(QWidget):
                 color: #cccccc;
                 font-family: 'Cascadia Mono' , 'Consolas', 'Monaco', 'Courier New', monospace; 
                 font-size: 13px;
+                border-radius: 12px; /* Rounded corners for the main widget */
             }
             QTextEdit {
                 background-color: #1e1e1e;
                 border: 1px solid #404040;
-                border-radius: 6px;
+                border-radius: 8px;
                 font-size: 20;
                 font-color: #cccccc;
                 padding: 8px;
@@ -222,6 +223,8 @@ class TerminalWidget(QWidget):
                 background-color: #404040;
                 border-bottom: 1px solid #505050;
                 padding: 8px 12px;
+                border-top-left-radius: 18px;
+                border-top-right-radius: 18px;
             }
         """)
         
@@ -244,7 +247,7 @@ class TerminalWidget(QWidget):
         title_label.setStyleSheet("""
             QLabel {
                 color: #f2f2f2;
-                font-size: 14px;
+                font-size: 13px;
                 
             }
         """)
