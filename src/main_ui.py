@@ -2564,7 +2564,8 @@ class SuperCutUI(QWidget):
     def create_progress_controls(self, layout):
         """Create progress bar and stop button on the same line, with stop button before progress bar. Progress bar should stretch to fill space."""
         progress_row = QtWidgets.QHBoxLayout()
-        progress_row.setContentsMargins(10, -10, 30, 10)  # Add 10px bottom margin for spacing from window edge
+        progress_row.setContentsMargins(0, -10, 18, 10)  # Add 10px bottom margin for spacing from window edge
+        progress_row.addSpacing(-4)
         self.stop_btn = QPushButton()
         self.stop_btn.setFixedHeight(24)
         self.stop_btn.setFixedWidth(24)
@@ -2575,19 +2576,28 @@ class SuperCutUI(QWidget):
         self.stop_btn.setIconSize(QSize(22, 22))
         self.stop_btn.setStyleSheet("QPushButton { background: transparent; border: none; } QPushButton:pressed { background: transparent; }")
         self.stop_btn.clicked.connect(self.stop_video_creation)
-        progress_row.addWidget(self.stop_btn)
-        progress_row.addSpacing(16)  # Add 16px space between stop button and progress bar
-        progress_row.addStretch()
+        progress_row.addWidget(self.stop_btn)    
+        progress_row.addSpacing(0)  # Add 16px space between stop button and progress bar
         self.progress_bar = QtWidgets.QProgressBar()
-        self.progress_bar.setFixedWidth(580)
+        self.progress_bar.setFixedWidth(545)
         self.progress_bar.setMinimum(0)
         self.progress_bar.setMaximum(1)
         self.progress_bar.setValue(0)
         self.progress_bar.setTextVisible(True) 
-        progress_row.addSpacing(0)       
         self.progress_bar.setFormat("Batch: 0/0")
         self.progress_bar.setVisible(False)
         self.progress_bar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
+        # Reduce left padding and margin for progress bar text
+        self.progress_bar.setStyleSheet("""
+            QProgressBar {                
+                padding-right: 0px;
+                margin-right: 25px;
+                text-align: right;
+            }
+            QProgressBar::chunk {
+                margin: 0px;
+            }
+        """)
         progress_row.addWidget(self.progress_bar)
         layout.addLayout(progress_row)
 
