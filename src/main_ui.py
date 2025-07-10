@@ -2507,7 +2507,7 @@ class SuperCutUI(QWidget):
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
-        button_layout.setContentsMargins(0, 0, 0, 12)  # Add 3px top and 2px bottom margins for 45px total height
+        button_layout.setContentsMargins(0, 0, 0, 2)  # Add 3px top and 2px bottom margins for 45px total height
 
         # Add settings button first, before terminal
         button_layout.addSpacing(10)
@@ -2538,7 +2538,7 @@ class SuperCutUI(QWidget):
         button_layout.addWidget(self.create_btn)
 
         # Add placeholder button after create video button
-        button_layout.addSpacing(5)
+        button_layout.addSpacing(6)
         self.placeholder_btn = QPushButton()
         rocket_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "rocket.png")
         self.placeholder_btn.setIcon(QIcon(rocket_icon_path))
@@ -2550,7 +2550,7 @@ class SuperCutUI(QWidget):
         button_layout.addWidget(self.placeholder_btn)
 
         # Add version text after placeholder button
-        button_layout.addSpacing(8)
+        button_layout.addSpacing(0)
         version_label = QLabel("v2025.1")
         version_label.setStyleSheet("color: #666; font-size: 12px; font-weight: normal;")
         version_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
@@ -2563,6 +2563,7 @@ class SuperCutUI(QWidget):
     def create_progress_controls(self, layout):
         """Create progress bar and stop button on the same line, with stop button before progress bar. Progress bar should stretch to fill space."""
         progress_row = QtWidgets.QHBoxLayout()
+        progress_row.setContentsMargins(10, -10, 30, 10)  # Add 10px bottom margin for spacing from window edge
         self.stop_btn = QPushButton()
         self.stop_btn.setFixedHeight(24)
         self.stop_btn.setFixedWidth(24)
@@ -2844,8 +2845,7 @@ class SuperCutUI(QWidget):
         """Enable/disable UI controls for processing state."""
         self.progress_bar.setMaximum(total_batches)
         self.progress_bar.setValue(0)
-        empty_space = " " * 2
-        self.progress_bar.setFormat(f"{empty_space}Batch: 0/{total_batches}")
+        self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
         self.progress_bar.setVisible(processing)
         self.stop_btn.setEnabled(processing)
         self.stop_btn.setVisible(processing)
@@ -2875,8 +2875,8 @@ class SuperCutUI(QWidget):
         if processing:
             if not self._expanded_for_progress:
                 self._original_size = self.size()
-                # Calculate new height: add enough for progress bar + stop button (e.g., 60px)
-                extra_height = 40
+                # Calculate new height: add enough for progress bar + stop button (e.g., 34px)
+                extra_height = 34
                 new_height = self.height() + extra_height
                 self.setFixedSize(self.width(), new_height)
                 self._expanded_for_progress = True
