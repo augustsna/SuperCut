@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QFileDialog, QMessageBox, QDialog, QComboBox, QDialogButtonBox, QFormLayout,
     QColorDialog
 )
-from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize, QTimer, QEvent
+from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize, QTimer
 from PyQt6.QtGui import QIntValidator, QIcon, QPixmap, QMovie, QImage, QShortcut, QKeySequence, QColor
 from src.logger import logger
 
@@ -3459,12 +3459,3 @@ class SuperCutUI(QWidget):
                 self._thread.started.disconnect()
             except (TypeError, RuntimeError):
                 pass
-
-    def changeEvent(self, event):
-        from PyQt6.QtCore import QEvent
-        super().changeEvent(event)
-        if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow():
-            terminal_widget = getattr(self, 'terminal_widget', None)
-            if terminal_widget is not None and terminal_widget.isVisible():
-                terminal_widget.raise_()
-                terminal_widget.activateWindow()
