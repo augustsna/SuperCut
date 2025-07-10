@@ -2340,6 +2340,37 @@ class SuperCutUI(QWidget):
         self.overlay7_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
         update_overlay6_7_effect_label_style()
 
+        # Lyric checkbox (placeholder - does nothing for now)
+        self.lyric_checkbox = QtWidgets.QCheckBox("Lyric:")
+        self.lyric_checkbox.setFixedWidth(82)
+        self.lyric_checkbox.setChecked(False)
+        def update_lyric_checkbox_style(state):
+            self.lyric_checkbox.setStyleSheet("")  # Always default color
+        self.lyric_checkbox.stateChanged.connect(update_lyric_checkbox_style)
+        update_lyric_checkbox_style(self.lyric_checkbox.checkState())
+
+        lyric_layout = QHBoxLayout()
+        lyric_layout.setSpacing(4)
+        lyric_layout.addWidget(self.lyric_checkbox)
+        lyric_layout.addStretch()
+        layout.addLayout(lyric_layout)
+
+        # Lyric dropdown (placeholder - does nothing for now)
+        self.lyric_dropdown = QtWidgets.QComboBox()
+        self.lyric_dropdown.setFixedWidth(125)
+        self.lyric_dropdown.addItem("Select option...")
+        self.lyric_dropdown.addItem("Option 1")
+        self.lyric_dropdown.addItem("Option 2")
+        self.lyric_dropdown.addItem("Option 3")
+        self.lyric_dropdown.setCurrentIndex(0)  # Default to "Select option..."
+
+        lyric_dropdown_layout = QHBoxLayout()
+        lyric_dropdown_layout.setSpacing(4)
+        lyric_dropdown_layout.addSpacing(82)  # Align with other controls (same width as checkbox)
+        lyric_dropdown_layout.addWidget(self.lyric_dropdown)
+        lyric_dropdown_layout.addStretch()
+        layout.addLayout(lyric_dropdown_layout)
+
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
