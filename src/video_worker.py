@@ -19,7 +19,7 @@ class VideoWorker(QObject):
                  folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False, min_mp3_count: int = 3, overlay1_path: str = "", overlay1_size_percent: int = 100, overlay1_x_percent: int = 0, overlay1_y_percent: int = 75,
                  use_overlay2: bool = False, overlay2_path: str = "", overlay2_size_percent: int = 10, overlay2_x_percent: int = 75, overlay2_y_percent: int = 0,
                  overlay1_start_at: int = 0, overlay2_start_at: int = 0,
-                 use_overlay3: bool = False, overlay3_path: str = "", overlay3_size_percent: int = 10, overlay3_position: str = "top_left",
+                 use_overlay3: bool = False, overlay3_path: str = "", overlay3_size_percent: int = 10, overlay3_x_percent: int = 75, overlay3_y_percent: int = 0,
                  use_overlay4: bool = False, overlay4_path: str = "", overlay4_size_percent: int = 10, overlay4_position: str = "top_left",
                  use_overlay5: bool = False, overlay5_path: str = "", overlay5_size_percent: int = 10, overlay5_position: str = "top_left",
                  use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_x_percent: int = 50, intro_y_percent: int = 50,
@@ -76,7 +76,8 @@ class VideoWorker(QObject):
         self.use_overlay3 = use_overlay3
         self.overlay3_path = overlay3_path
         self.overlay3_size_percent = overlay3_size_percent
-        self.overlay3_position = overlay3_position
+        self.overlay3_x_percent = overlay3_x_percent
+        self.overlay3_y_percent = overlay3_y_percent
         self.use_overlay4 = use_overlay4
         self.overlay4_path = overlay4_path
         self.overlay4_size_percent = overlay4_size_percent
@@ -325,10 +326,11 @@ class VideoWorker(QObject):
                 self.overlay2_size_percent,
                 self.overlay2_x_percent,
                 self.overlay2_y_percent,
-                self.use_overlay3,
-                self.overlay3_path,
-                self.overlay3_size_percent,
-                self.overlay3_position,
+                            self.use_overlay3,
+            self.overlay3_path,
+            self.overlay3_size_percent,
+            self.overlay3_x_percent,
+            self.overlay3_y_percent,
                 self.use_overlay4,
                 self.overlay4_path,
                 self.overlay4_size_percent,

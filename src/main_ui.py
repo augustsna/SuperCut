@@ -1408,8 +1408,9 @@ class SuperCutUI(QWidget):
                 overlay1_x_label.setStyleSheet("color: grey;")
                 overlay1_y_label.setStyleSheet("color: grey;")
         self.overlay_checkbox.stateChanged.connect(lambda _: set_overlay1_enabled(self.overlay_checkbox.checkState()))
-        overlay1_layout.addSpacing(3)
+        
         overlay1_layout.addWidget(self.overlay_checkbox)
+        overlay1_layout.addSpacing(3)
         overlay1_layout.addWidget(self.overlay1_edit)
         overlay1_layout.addSpacing(3)  # Space before select button
         overlay1_layout.addWidget(overlay1_btn)
@@ -1702,60 +1703,74 @@ class SuperCutUI(QWidget):
         self.overlay3_size_combo.setEditable(False)
         self.overlay3_size_combo.currentIndexChanged.connect(on_overlay3_size_changed)
         on_overlay3_size_changed(self.overlay3_size_combo.currentIndex())
-        # Overlay 3 position option
-        overlay3_position_label = QLabel("P:")
-        overlay3_position_label.setFixedWidth(18)
-        self.overlay3_position_combo = QtWidgets.QComboBox()
-        self.overlay3_position_combo.setFixedWidth(130)
-        positions = [
-            ("Center", "center"),
-            ("Top Left", "top_left"),
-            ("Top Right", "top_right"),
-            ("Bottom Left", "bottom_left"),
-            ("Bottom Right", "bottom_right")
-        ]
-        for label, value in positions:
-            self.overlay3_position_combo.addItem(label, value)
-        self.overlay3_position_combo.setCurrentIndex(2)  # Default top_right
-        self.overlay3_position = "top_right"
-        def on_overlay3_position_changed(idx):
-            self.overlay3_position = self.overlay3_position_combo.itemData(idx)
-        self.overlay3_position_combo.currentIndexChanged.connect(on_overlay3_position_changed)
-        on_overlay3_position_changed(self.overlay3_position_combo.currentIndex())
+        # Overlay3 X coordinate
+        overlay3_x_label = QLabel("X:")
+        overlay3_x_label.setFixedWidth(18)
+        self.overlay3_x_combo = QtWidgets.QComboBox()
+        self.overlay3_x_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay3_x_combo.addItem(f"{percent}%", percent)
+        self.overlay3_x_combo.setCurrentIndex(75)  # Default 75% (right)
+        self.overlay3_x_percent = 75
+        def on_overlay3_x_changed(idx):
+            self.overlay3_x_percent = self.overlay3_x_combo.itemData(idx)
+        self.overlay3_x_combo.currentIndexChanged.connect(on_overlay3_x_changed)
+        on_overlay3_x_changed(self.overlay3_x_combo.currentIndex())
+
+        # Overlay3 Y coordinate
+        overlay3_y_label = QLabel("Y:")
+        overlay3_y_label.setFixedWidth(18)
+        self.overlay3_y_combo = QtWidgets.QComboBox()
+        self.overlay3_y_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay3_y_combo.addItem(f"{percent}%", percent)
+        self.overlay3_y_combo.setCurrentIndex(0)  # Default 0% (top)
+        self.overlay3_y_percent = 0
+        def on_overlay3_y_changed(idx):
+            self.overlay3_y_percent = self.overlay3_y_combo.itemData(idx)
+        self.overlay3_y_combo.currentIndexChanged.connect(on_overlay3_y_changed)
+        on_overlay3_y_changed(self.overlay3_y_combo.currentIndex())
         def set_overlay3_enabled(state):
             enabled = state == Qt.CheckState.Checked
             self.overlay3_edit.setEnabled(enabled)
             overlay3_btn.setEnabled(enabled)
             self.overlay3_size_combo.setEnabled(enabled)
-            self.overlay3_position_combo.setEnabled(enabled)
+            self.overlay3_x_combo.setEnabled(enabled)
+            self.overlay3_y_combo.setEnabled(enabled)
             if enabled:
                 overlay3_btn.setStyleSheet("")
                 self.overlay3_edit.setStyleSheet("")
                 self.overlay3_size_combo.setStyleSheet("")
-                self.overlay3_position_combo.setStyleSheet("")
+                self.overlay3_x_combo.setStyleSheet("")
+                self.overlay3_y_combo.setStyleSheet("")
                 overlay3_size_label.setStyleSheet("")
-                overlay3_position_label.setStyleSheet("")
+                overlay3_x_label.setStyleSheet("")
+                overlay3_y_label.setStyleSheet("")
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 overlay3_btn.setStyleSheet(grey_btn_style)
                 self.overlay3_edit.setStyleSheet(grey_btn_style)
                 self.overlay3_size_combo.setStyleSheet(grey_btn_style)
-                self.overlay3_position_combo.setStyleSheet(grey_btn_style)
+                self.overlay3_x_combo.setStyleSheet(grey_btn_style)
+                self.overlay3_y_combo.setStyleSheet(grey_btn_style)
                 overlay3_size_label.setStyleSheet("color: grey;")
-                overlay3_position_label.setStyleSheet("color: grey;")
+                overlay3_x_label.setStyleSheet("color: grey;")
+                overlay3_y_label.setStyleSheet("color: grey;")
         self.overlay3_checkbox.stateChanged.connect(lambda _: set_overlay3_enabled(self.overlay3_checkbox.checkState()))
         set_overlay3_enabled(self.overlay3_checkbox.checkState())
         overlay3_layout.addWidget(self.overlay3_checkbox)
         overlay3_layout.addWidget(self.overlay3_edit)
-        overlay3_layout.addSpacing(6)
+        overlay3_layout.addSpacing(3)
         overlay3_layout.addWidget(overlay3_btn)
         overlay3_layout.addSpacing(4)
-        overlay3_layout.addWidget(overlay3_position_label)
-        overlay3_layout.addSpacing(2)
-        overlay3_layout.addWidget(self.overlay3_position_combo)
-        overlay3_layout.addSpacing(6)
         overlay3_layout.addWidget(overlay3_size_label)
         overlay3_layout.addWidget(self.overlay3_size_combo)
+        overlay3_layout.addSpacing(4)
+        overlay3_layout.addWidget(overlay3_x_label)
+        overlay3_layout.addWidget(self.overlay3_x_combo)
+        overlay3_layout.addSpacing(4)
+        overlay3_layout.addWidget(overlay3_y_label)
+        overlay3_layout.addWidget(self.overlay3_y_combo)
         layout.addLayout(overlay3_layout)
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
@@ -3025,13 +3040,14 @@ class SuperCutUI(QWidget):
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_x_percent, self.overlay1_y_percent,
             self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_x_percent, self.overlay2_y_percent,
             overlay1_start_at, overlay2_start_at,            
-            self.overlay3_checkbox.isChecked(), self.overlay3_path, self.overlay3_size_percent, self.overlay3_position,
+            self.overlay3_checkbox.isChecked(), self.overlay3_path, self.overlay3_size_percent, self.overlay3_x_percent, self.overlay3_y_percent,
             self.overlay4_checkbox.isChecked(), self.overlay4_path, self.overlay4_size_percent, self.overlay4_position,
             self.overlay5_checkbox.isChecked(), self.overlay5_path, self.overlay5_size_percent, self.overlay5_position,
             
             self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_x_percent, self.intro_y_percent,
             self.selected_effect, self.overlay_duration,
             self.intro_effect, self.intro_duration,
+            
             name_list=name_list,
             preset=preset,
             audio_bitrate=audio_bitrate,
@@ -3467,15 +3483,12 @@ class SuperCutUI(QWidget):
                 self.overlay2_size_combo.setCurrentIndex(idx)
         # Apply default overlay 3 settings if overlay 3 is checked and fields are empty
         default_overlay3_path = self.settings.value('default_overlay3_path', '', type=str)
-        default_overlay3_position = self.settings.value('default_overlay3_position', 'top_right', type=str)
         default_overlay3_size = self.settings.value('default_overlay3_size', 15, type=int)
         default_overlay3_enabled = self.settings.value('default_overlay3_enabled', False, type=bool)
         if default_overlay3_enabled:
             if self.overlay3_checkbox.isChecked():
                 if not self.overlay3_edit.text().strip():
                     self.overlay3_edit.setText(default_overlay3_path)
-                idx = next((i for i in range(self.overlay3_position_combo.count()) if self.overlay3_position_combo.itemData(i) == default_overlay3_position), 2)
-                self.overlay3_position_combo.setCurrentIndex(idx)
                 idx = next((i for i in range(self.overlay3_size_combo.count()) if self.overlay3_size_combo.itemData(i) == default_overlay3_size), 2)
                 self.overlay3_size_combo.setCurrentIndex(idx)
         # Apply default overlay 4 settings if overlay 4 is checked and fields are empty
