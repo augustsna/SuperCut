@@ -131,6 +131,58 @@ class TerminalWidget(QWidget):
                 padding: 8px;
                 selection-background-color: #58a6ff;
             }
+            QTextEdit QScrollBar:vertical {
+                background: transparent;
+                width: 8px;
+                margin: 2px 0 2px 0;
+                border-radius: 4px;
+            }
+            QTextEdit QScrollBar::handle:vertical {
+                background: #43464d;
+                min-height: 24px;
+                border-radius: 4px;
+                border: none;
+                opacity: 0.7;
+            }
+            QTextEdit QScrollBar::handle:vertical:hover {
+                background: #595d66;
+                opacity: 1.0;
+            }
+            QTextEdit QScrollBar::add-line:vertical,
+            QTextEdit QScrollBar::sub-line:vertical {
+                height: 0px;
+                background: none;
+                border: none;
+            }
+            QTextEdit QScrollBar::add-page:vertical, QTextEdit QScrollBar::sub-page:vertical {
+                background: none;
+            }
+            QTextEdit QScrollBar:horizontal {
+                background: transparent;
+                height: 8px;
+                margin: 0 2px 0 2px;
+                border-radius: 4px;
+            }
+            QTextEdit QScrollBar::handle:horizontal {
+                background: #43464d;
+                min-width: 24px;
+                border-radius: 4px;
+                border: none;
+                opacity: 0.7;
+            }
+            QTextEdit QScrollBar::handle:horizontal:hover {
+                background: #595d66;
+                opacity: 1.0;
+            }
+            QTextEdit QScrollBar::add-line:horizontal,
+            QTextEdit QScrollBar::sub-line:horizontal {
+                width: 0px;
+                background: none;
+                border: none;
+            }
+            QTextEdit QScrollBar::add-page:horizontal, QTextEdit QScrollBar::sub-page:horizontal {
+                background: none;
+            }
             QPushButton {
                 background-color: #404040;
                 border: 1px solid #505050;
