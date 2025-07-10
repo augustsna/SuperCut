@@ -2576,12 +2576,15 @@ class SuperCutUI(QWidget):
         self.stop_btn.setStyleSheet("QPushButton { background: transparent; border: none; } QPushButton:pressed { background: transparent; }")
         self.stop_btn.clicked.connect(self.stop_video_creation)
         progress_row.addWidget(self.stop_btn)
-
+        progress_row.addSpacing(16)  # Add 16px space between stop button and progress bar
+        progress_row.addStretch()
         self.progress_bar = QtWidgets.QProgressBar()
+        self.progress_bar.setFixedWidth(580)
         self.progress_bar.setMinimum(0)
         self.progress_bar.setMaximum(1)
         self.progress_bar.setValue(0)
-        self.progress_bar.setTextVisible(True)        
+        self.progress_bar.setTextVisible(True) 
+        progress_row.addSpacing(0)       
         self.progress_bar.setFormat("Batch: 0/0")
         self.progress_bar.setVisible(False)
         self.progress_bar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
@@ -2845,7 +2848,7 @@ class SuperCutUI(QWidget):
     def _set_ui_processing_state(self, processing, total_batches=0):
         """Enable/disable UI controls for processing state."""
         self.progress_bar.setMaximum(total_batches)
-        self.progress_bar.setValue(0)
+        self.progress_bar.setValue(0)        
         self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
         self.progress_bar.setVisible(processing)
         self.stop_btn.setEnabled(processing)
