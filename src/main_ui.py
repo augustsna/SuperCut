@@ -1186,10 +1186,10 @@ class SuperCutUI(QWidget):
         self.intro_effect_combo.currentIndexChanged.connect(on_intro_effect_changed)
         on_intro_effect_changed(self.intro_effect_combo.currentIndex())
 
-        intro_duration_label = QLabel("For (s): ")
+        intro_duration_label = QLabel("For: ")
         intro_duration_label.setFixedWidth(45)
         self.intro_duration_edit = QLineEdit("5")
-        self.intro_duration_edit.setFixedWidth(40)
+        self.intro_duration_edit.setFixedWidth(90)
         self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.intro_duration_edit.setPlaceholderText("5")
         self.intro_duration = 5
@@ -1252,6 +1252,19 @@ class SuperCutUI(QWidget):
         intro_layout.addWidget(intro_size_label)
         intro_layout.addWidget(self.intro_size_combo)
         layout.addLayout(intro_layout)
+
+        # Intro effect controls - moved directly below intro line
+        intro_effect_layout = QHBoxLayout()        
+        intro_effect_layout.addSpacing(285)  # Align with intro checkbox
+        intro_effect_layout.addWidget(intro_effect_label)
+        intro_effect_layout.addSpacing(4)
+        intro_effect_layout.addWidget(self.intro_effect_combo)
+        intro_effect_layout.addSpacing(0)
+        intro_effect_layout.addWidget(intro_duration_label)
+        intro_effect_layout.addSpacing(-22)
+        intro_effect_layout.addWidget(self.intro_duration_edit)
+        intro_effect_layout.addStretch()
+        layout.addLayout(intro_effect_layout)
 
         # Move PNG overlay checkbox below video settings
         self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1:")
@@ -1496,14 +1509,6 @@ class SuperCutUI(QWidget):
         effect_layout = QHBoxLayout()
         effect_layout.setContentsMargins(0, 0, 0, 0)
         effect_layout.addSpacing(30)
-        effect_layout.addWidget(intro_effect_label)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(self.intro_effect_combo)
-        effect_layout.addSpacing(-5)
-        effect_layout.addWidget(intro_duration_label)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(self.intro_duration_edit)
-        effect_layout.addSpacing(12)
         effect_layout.addWidget(effect_label)
         effect_layout.addSpacing(-10)
         effect_layout.addWidget(self.effect_combo)
