@@ -3254,7 +3254,7 @@ class SuperCutUI(QWidget):
         # Control horizontal scrollbar based on window width
         if hasattr(self, 'scroll_area') and self.scroll_area is not None:
             window_width = self.width()
-            if window_width < 660:
+            if window_width < 640:
                 # Show horizontal scrollbar when window is narrow
                 self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
             else:
