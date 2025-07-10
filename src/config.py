@@ -106,7 +106,7 @@ DEFAULT_CODECS = [
 ]
 
 DEFAULT_RESOLUTIONS = [
-    ("Full HD (1080p)", "1920x1080"),
+    ("(1080p)", "1920x1080"),
     ("4K UHD (2160p)", "3840x2160"),
     ("Vertical (9:16)", "1080x1920"),
     ("Square (1:1)", "1080x1080")

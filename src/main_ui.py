@@ -1035,7 +1035,7 @@ class SuperCutUI(QWidget):
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.update_output_name)
-        part_layout.addSpacing(7)
+        part_layout.addSpacing(0)
         part_layout.addWidget(self.name_list_checkbox)
         part_layout.addSpacing(-40)
         part_layout.addWidget(self.name_list_enter_btn)
@@ -1051,7 +1051,7 @@ class SuperCutUI(QWidget):
         part_layout.addWidget(self.mp3_count_checkbox)
         part_layout.addSpacing(-70)
         part_layout.addWidget(self.mp3_count_edit)
-        part_layout.addSpacing(15)
+        part_layout.addSpacing(50)
         layout.addLayout(part_layout)
         layout.addSpacing(1)  # Add spacing after export inputs
 
@@ -1062,7 +1062,7 @@ class SuperCutUI(QWidget):
         settings_layout.setSpacing(0)  # We'll add custom spacing
 
         # Codec selection
-        settings_layout.addSpacing(32)
+        settings_layout.addSpacing(-2)
         codec_label = QLabel("Codec:")        
         self.codec_combo = QtWidgets.QComboBox()
         self.codec_combo.setFixedWidth(130)
@@ -1072,30 +1072,30 @@ class SuperCutUI(QWidget):
             self.codec_combo.addItem(label, value)
         self.codec_combo.setCurrentIndex(0)
         settings_layout.addWidget(codec_label)
-        settings_layout.addSpacing(5)  # Small space between label and combo
+        settings_layout.addSpacing(0)  # Small space between label and combo
         settings_layout.addWidget(self.codec_combo)
-        settings_layout.addSpacing(18)  # Space between groups
+        settings_layout.addSpacing(10)  # Space between groups
 
         # Video resolution selection
         resolution_label = QLabel("Size:")
         resolution_label.setFixedWidth(35)
         self.resolution_combo = QtWidgets.QComboBox()
-        self.resolution_combo.setFixedWidth(140)
+        self.resolution_combo.setFixedWidth(100)
         self.resolution_combo.setMinimumHeight(28)
         self.resolution_combo.setMaximumHeight(28)
         for label, value in DEFAULT_RESOLUTIONS:
             self.resolution_combo.addItem(label, value)
         self.resolution_combo.setCurrentIndex(0)
         settings_layout.addWidget(resolution_label)
-        settings_layout.addSpacing(3)
+        settings_layout.addSpacing(0)
         settings_layout.addWidget(self.resolution_combo)
-        settings_layout.addSpacing(28)
+        settings_layout.addSpacing(10)
 
-        # FPS selection
+         # FPS selection
         fps_label = QLabel("FPS:")
         fps_label.setFixedWidth(30)
         self.fps_combo = QtWidgets.QComboBox()
-        self.fps_combo.setFixedWidth(120)
+        self.fps_combo.setFixedWidth(95)
         self.fps_combo.setMinimumHeight(28)
         self.fps_combo.setMaximumHeight(28)
         for label, value in DEFAULT_FPS_OPTIONS:
@@ -1108,9 +1108,28 @@ class SuperCutUI(QWidget):
         else:
             self.fps_combo.setCurrentIndex(0)
         settings_layout.addWidget(fps_label)
-        settings_layout.addSpacing(6)
+        settings_layout.addSpacing(0)
         settings_layout.addWidget(self.fps_combo)
 
+        settings_layout.addSpacing(10)
+
+# Preset selection
+        preset_label = QLabel("Preset:")
+        preset_label.setFixedWidth(45)
+        self.preset_combo = QtWidgets.QComboBox()
+        self.preset_combo.setFixedWidth(105)
+        self.preset_combo.setMinimumHeight(28)
+        self.preset_combo.setMaximumHeight(28)
+        for label, value in DEFAULT_FFMPEG_PRESETS:
+            self.preset_combo.addItem(label, value)
+        # Load default preset from settings
+        default_preset = self.settings.value('default_ffmpeg_preset', DEFAULT_FFMPEG_PRESET, type=str)
+        preset_index = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 6)  # Default to "slow"
+        self.preset_combo.setCurrentIndex(preset_index)
+        settings_layout.addWidget(preset_label)
+        settings_layout.addSpacing(0)
+        settings_layout.addWidget(self.preset_combo)     
+        
         settings_layout.addStretch()
         layout.addLayout(settings_layout)
 
@@ -1207,10 +1226,10 @@ class SuperCutUI(QWidget):
         self.intro_effect_combo.currentIndexChanged.connect(on_intro_effect_changed)
         on_intro_effect_changed(self.intro_effect_combo.currentIndex())
 
-        intro_duration_label = QLabel("For: ")
-        intro_duration_label.setFixedWidth(45)
+        intro_duration_label = QLabel("Duration:")
+        intro_duration_label.setFixedWidth(80)
         self.intro_duration_edit = QLineEdit("6")
-        self.intro_duration_edit.setFixedWidth(90)
+        self.intro_duration_edit.setFixedWidth(80)
         self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.intro_duration_edit.setPlaceholderText("6")
         self.intro_duration = 6
@@ -1284,13 +1303,13 @@ class SuperCutUI(QWidget):
 
         # Intro effect controls - moved directly below intro line
         intro_effect_layout = QHBoxLayout()        
-        intro_effect_layout.addSpacing(295)  # Align with intro checkbox
+        intro_effect_layout.addSpacing(292)  # Align with intro checkbox
         intro_effect_layout.addWidget(intro_effect_label)
         intro_effect_layout.addSpacing(-6)
         intro_effect_layout.addWidget(self.intro_effect_combo)
         intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(intro_duration_label)
-        intro_effect_layout.addSpacing(-22)
+        intro_effect_layout.addSpacing(-24)
         intro_effect_layout.addWidget(self.intro_duration_edit)
         intro_effect_layout.addStretch()
         layout.addLayout(intro_effect_layout)
@@ -2916,8 +2935,8 @@ class SuperCutUI(QWidget):
         self._thread = QThread()
         use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
         name_list = self.name_list if use_name_list else None
-        # Get ffmpeg preset from settings
-        preset = self.settings.value('default_ffmpeg_preset', DEFAULT_FFMPEG_PRESET, type=str)
+        # Get ffmpeg preset from UI selection
+        preset = self.preset_combo.currentData()
         # Get ffmpeg audio bitrate from settings
         audio_bitrate = self.settings.value('default_ffmpeg_audio_bitrate', DEFAULT_AUDIO_BITRATE, type=str)
         # Get ffmpeg video bitrate from settings
