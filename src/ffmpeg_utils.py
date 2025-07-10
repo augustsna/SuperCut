@@ -104,11 +104,12 @@ def create_video_with_ffmpeg(
     use_intro: bool = False,
     intro_path: str = "",
     intro_size_percent: int = 10,
-    intro_position: str = "center",
+    intro_x_percent: int = 50,
+    intro_y_percent: int = 50,
     effect: str = "fadein",
     effect_time: int = 5,
     intro_effect: str = "fadeout",
-    intro_duration: int = 5,
+    intro_duration: int = 6,
     preset: str = "slow",
     audio_bitrate: str = "384k",
     video_bitrate: str = "12M",
@@ -309,7 +310,9 @@ def create_video_with_ffmpeg(
                 "bottom_right": (f"W-w", f"H-h"),
                 "center": ("(W-w)/2", "(H-h)/2")
             }
-            ox_intro, oy_intro = position_map.get(intro_position, ("(W-w)/2", "(H-h)/2"))
+            # Calculate intro position using X and Y percentages
+            ox_intro = f"(W-w)*{intro_x_percent}/100" if intro_x_percent != 0 else "0"
+            oy_intro = f"(H-h)*(1-({intro_y_percent}/100))" if intro_y_percent != 100 else "0"
             ox1, oy1 = position_map.get(overlay1_position, ("0", "0"))
             ox2, oy2 = position_map.get(overlay2_position, ("0", "0"))
             ox3, oy3 = position_map.get(overlay3_position, ("0", "0"))

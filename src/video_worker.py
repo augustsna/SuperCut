@@ -22,9 +22,9 @@ class VideoWorker(QObject):
                  use_overlay3: bool = False, overlay3_path: str = "", overlay3_size_percent: int = 10, overlay3_position: str = "top_left",
                  use_overlay4: bool = False, overlay4_path: str = "", overlay4_size_percent: int = 10, overlay4_position: str = "top_left",
                  use_overlay5: bool = False, overlay5_path: str = "", overlay5_size_percent: int = 10, overlay5_position: str = "top_left",
-                 use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_position: str = "center",
+                 use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_x_percent: int = 50, intro_y_percent: int = 50,
                  effect: str = "fadein", effect_time: int = 5,
-                 intro_effect: str = "fadeout", intro_duration: int = 5,
+                 intro_effect: str = "fadeout", intro_duration: int = 6,
                  name_list: Optional[List[str]] = None,
                  preset: str = "slow",
                  audio_bitrate: str = "384k",
@@ -86,7 +86,8 @@ class VideoWorker(QObject):
         self.use_intro = use_intro
         self.intro_path = intro_path
         self.intro_size_percent = intro_size_percent
-        self.intro_position = intro_position
+        self.intro_x_percent = intro_x_percent
+        self.intro_y_percent = intro_y_percent
         self.effect = effect
         self.effect_time = effect_time
         self.intro_effect = intro_effect
@@ -343,7 +344,8 @@ class VideoWorker(QObject):
                 self.use_intro,
                 self.intro_path,
                 self.intro_size_percent,
-                self.intro_position,
+                self.intro_x_percent,
+                self.intro_y_percent,
                 self.effect,
                 self.effect_time,
                 self.intro_effect,

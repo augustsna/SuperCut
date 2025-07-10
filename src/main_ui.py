@@ -261,23 +261,27 @@ class SettingsDialog(QDialog):
         intro_path_layout.addWidget(self.default_intro_path_edit)
         intro_path_layout.addWidget(self.default_intro_path_btn)
         right_form.addRow("Intro Path:", intro_path_layout)
-        # --- Default Intro Position ---
-        self.default_intro_position_combo = QComboBox()
-        self.default_intro_position_combo.setFixedWidth(120)
-        intro_positions = [
-            ("Center", "center"),
-            ("Top Left", "top_left"),
-            ("Top Right", "top_right"),
-            ("Bottom Left", "bottom_left"),
-            ("Bottom Right", "bottom_right")
-        ]
-        for label, value in intro_positions:
-            self.default_intro_position_combo.addItem(label, value)
+        # --- Default Intro X Position ---
+        self.default_intro_x_combo = QComboBox()
+        self.default_intro_x_combo.setFixedWidth(120)
+        for percent in range(0, 101, 1):
+            self.default_intro_x_combo.addItem(f"{percent}%", percent)
         if self.settings is not None:
-            default_intro_position = self.settings.value('default_intro_position', 'center', type=str)
-            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_intro_position), 0)
-            self.default_intro_position_combo.setCurrentIndex(idx)
-        right_form.addRow("Intro Position:", self.default_intro_position_combo)
+            default_intro_x = self.settings.value('default_intro_x_percent', 50, type=int)
+            idx = default_intro_x if 0 <= default_intro_x <= 100 else 50
+            self.default_intro_x_combo.setCurrentIndex(idx)
+        right_form.addRow("Intro X:", self.default_intro_x_combo)
+        
+        # --- Default Intro Y Position ---
+        self.default_intro_y_combo = QComboBox()
+        self.default_intro_y_combo.setFixedWidth(120)
+        for percent in range(0, 101, 1):
+            self.default_intro_y_combo.addItem(f"{percent}%", percent)
+        if self.settings is not None:
+            default_intro_y = self.settings.value('default_intro_y_percent', 50, type=int)
+            idx = default_intro_y if 0 <= default_intro_y <= 100 else 50
+            self.default_intro_y_combo.setCurrentIndex(idx)
+        right_form.addRow("Intro Y:", self.default_intro_y_combo)
         # --- Default Intro Size ---
         self.default_intro_size_combo = QComboBox()
         self.default_intro_size_combo.setFixedWidth(120)
@@ -315,11 +319,18 @@ class SettingsDialog(QDialog):
         # --- Default Overlay 1 Position ---
         self.default_overlay1_position_combo = QComboBox()
         self.default_overlay1_position_combo.setFixedWidth(120)
-        for label, value in intro_positions:
+        overlay_positions = [
+            ("Center", "center"),
+            ("Top Left", "top_left"),
+            ("Top Right", "top_right"),
+            ("Bottom Left", "bottom_left"),
+            ("Bottom Right", "bottom_right")
+        ]
+        for label, value in overlay_positions:
             self.default_overlay1_position_combo.addItem(label, value)
         if self.settings is not None:
             default_overlay1_position = self.settings.value('default_overlay1_position', 'bottom_left', type=str)
-            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay1_position), 3)
+            idx = next((i for i, (label, value) in enumerate(overlay_positions) if value == default_overlay1_position), 3)
             self.default_overlay1_position_combo.setCurrentIndex(idx)
         right_form.addRow("Overlay 1 Position:", self.default_overlay1_position_combo)
         # --- Default Overlay 1 Size ---
@@ -359,11 +370,11 @@ class SettingsDialog(QDialog):
         # --- Default Overlay 2 Position ---
         self.default_overlay2_position_combo = QComboBox()
         self.default_overlay2_position_combo.setFixedWidth(120)
-        for label, value in intro_positions:
+        for label, value in overlay_positions:
             self.default_overlay2_position_combo.addItem(label, value)
         if self.settings is not None:
             default_overlay2_position = self.settings.value('default_overlay2_position', 'top_right', type=str)
-            idx = next((i for i, (label, value) in enumerate(intro_positions) if value == default_overlay2_position), 2)
+            idx = next((i for i, (label, value) in enumerate(overlay_positions) if value == default_overlay2_position), 2)
             self.default_overlay2_position_combo.setCurrentIndex(idx)
         right_form.addRow("Overlay 2 Position:", self.default_overlay2_position_combo)
         # --- Default Overlay 2 Size ---
@@ -420,7 +431,8 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_fps', self.selected_fps)
             self.settings.setValue('default_intro_enabled', self.default_intro_enabled_checkbox.isChecked())
             self.settings.setValue('default_intro_path', self.default_intro_path_edit.text())
-            self.settings.setValue('default_intro_position', self.default_intro_position_combo.currentData())
+            self.settings.setValue('default_intro_x_percent', self.default_intro_x_combo.currentData())
+            self.settings.setValue('default_intro_y_percent', self.default_intro_y_combo.currentData())
             self.settings.setValue('default_intro_size', self.default_intro_size_combo.currentData())
             self.settings.setValue('default_overlay1_path', self.default_overlay1_path_edit.text())
             self.settings.setValue('default_overlay1_position', self.default_overlay1_position_combo.currentData())
@@ -458,9 +470,11 @@ class SettingsDialog(QDialog):
         # Intro
         self.default_intro_enabled_checkbox.setChecked(True)
         self.default_intro_path_edit.setText("")
-        self.default_intro_position_combo.setCurrentIndex(0)  # Center
+        self.default_intro_x_combo.setCurrentIndex(10)  # 50% X
+        self.default_intro_y_combo.setCurrentIndex(10)  # 50% Y
         idx_intro_size = (50 // 5) - 1  # 50% size
         self.default_intro_size_combo.setCurrentIndex(idx_intro_size)
+        # Note: Default intro duration is now 6 seconds (set in main UI)
         # Overlay 1
         self.default_overlay1_path_edit.setText("")
         self.default_overlay1_position_combo.setCurrentIndex(3)  # Bottom Left
@@ -1143,26 +1157,33 @@ class SuperCutUI(QWidget):
         self.intro_size_combo.setEditable(False)
         self.intro_size_combo.currentIndexChanged.connect(on_intro_size_changed)
         on_intro_size_changed(self.intro_size_combo.currentIndex())
-        # Position option (add Center)
-        intro_position_label = QLabel("P:")
-        intro_position_label.setFixedWidth(18)
-        self.intro_position_combo = QtWidgets.QComboBox()
-        self.intro_position_combo.setFixedWidth(130)
-        intro_positions = [
-            ("Center", "center"),
-            ("Top Left", "top_left"),
-            ("Top Right", "top_right"),
-            ("Bottom Left", "bottom_left"),
-            ("Bottom Right", "bottom_right")
-        ]
-        for label, value in intro_positions:
-            self.intro_position_combo.addItem(label, value)
-        self.intro_position_combo.setCurrentIndex(0)  # Default Center
-        self.intro_position = "center"
-        def on_intro_position_changed(idx):
-            self.intro_position = self.intro_position_combo.itemData(idx)
-        self.intro_position_combo.currentIndexChanged.connect(on_intro_position_changed)
-        on_intro_position_changed(self.intro_position_combo.currentIndex())
+        # Intro X coordinate
+        intro_x_label = QLabel("X:")
+        intro_x_label.setFixedWidth(18)
+        self.intro_x_combo = QtWidgets.QComboBox()
+        self.intro_x_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.intro_x_combo.addItem(f"{percent}%", percent)
+        self.intro_x_combo.setCurrentIndex(50)  # Default 50%
+        self.intro_x_percent = 50
+        def on_intro_x_changed(idx):
+            self.intro_x_percent = self.intro_x_combo.itemData(idx)
+        self.intro_x_combo.currentIndexChanged.connect(on_intro_x_changed)
+        on_intro_x_changed(self.intro_x_combo.currentIndex())
+
+        # Intro Y coordinate
+        intro_y_label = QLabel("Y:")
+        intro_y_label.setFixedWidth(18)
+        self.intro_y_combo = QtWidgets.QComboBox()
+        self.intro_y_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.intro_y_combo.addItem(f"{percent}%", percent)
+        self.intro_y_combo.setCurrentIndex(50)  # Default 50%
+        self.intro_y_percent = 50
+        def on_intro_y_changed(idx):
+            self.intro_y_percent = self.intro_y_combo.itemData(idx)
+        self.intro_y_combo.currentIndexChanged.connect(on_intro_y_changed)
+        on_intro_y_changed(self.intro_y_combo.currentIndex())
 
         # (1) Create all intro widgets first
         combo_width = 130
@@ -1188,16 +1209,16 @@ class SuperCutUI(QWidget):
 
         intro_duration_label = QLabel("For: ")
         intro_duration_label.setFixedWidth(45)
-        self.intro_duration_edit = QLineEdit("5")
+        self.intro_duration_edit = QLineEdit("6")
         self.intro_duration_edit.setFixedWidth(90)
         self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
-        self.intro_duration_edit.setPlaceholderText("5")
-        self.intro_duration = 5
+        self.intro_duration_edit.setPlaceholderText("6")
+        self.intro_duration = 6
         def on_intro_duration_changed():
             try:
                 self.intro_duration = int(self.intro_duration_edit.text())
             except Exception:
-                self.intro_duration = 5
+                self.intro_duration = 6
         self.intro_duration_edit.textChanged.connect(on_intro_duration_changed)
         on_intro_duration_changed()
 
@@ -1207,7 +1228,8 @@ class SuperCutUI(QWidget):
             self.intro_edit.setEnabled(enabled)
             intro_btn.setEnabled(enabled)
             self.intro_size_combo.setEnabled(enabled)
-            self.intro_position_combo.setEnabled(enabled)
+            self.intro_x_combo.setEnabled(enabled)
+            self.intro_y_combo.setEnabled(enabled)
             self.intro_effect_combo.setEnabled(enabled)
             intro_duration_label.setEnabled(enabled)
             self.intro_duration_edit.setEnabled(enabled)
@@ -1215,24 +1237,28 @@ class SuperCutUI(QWidget):
                 intro_btn.setStyleSheet("")
                 self.intro_edit.setStyleSheet("")
                 self.intro_size_combo.setStyleSheet("")
-                self.intro_position_combo.setStyleSheet("")
+                self.intro_x_combo.setStyleSheet("")
+                self.intro_y_combo.setStyleSheet("")
                 self.intro_effect_combo.setStyleSheet("")
                 intro_duration_label.setStyleSheet("")
                 self.intro_duration_edit.setStyleSheet("")
                 intro_size_label.setStyleSheet("")
-                intro_position_label.setStyleSheet("")
+                intro_x_label.setStyleSheet("")
+                intro_y_label.setStyleSheet("")
                 intro_effect_label.setStyleSheet("")
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 intro_btn.setStyleSheet(grey_btn_style)
                 self.intro_edit.setStyleSheet(grey_btn_style)
                 self.intro_size_combo.setStyleSheet(grey_btn_style)
-                self.intro_position_combo.setStyleSheet(grey_btn_style)
+                self.intro_x_combo.setStyleSheet(grey_btn_style)
+                self.intro_y_combo.setStyleSheet(grey_btn_style)
                 self.intro_effect_combo.setStyleSheet(grey_btn_style)
                 intro_duration_label.setStyleSheet("color: grey;")
                 self.intro_duration_edit.setStyleSheet(grey_btn_style)
                 intro_size_label.setStyleSheet("color: grey;")
-                intro_position_label.setStyleSheet("color: grey;")
+                intro_x_label.setStyleSheet("color: grey;")
+                intro_y_label.setStyleSheet("color: grey;")
                 intro_effect_label.setStyleSheet("color: grey;")
         self.intro_checkbox.stateChanged.connect(lambda _: set_intro_enabled(self.intro_checkbox.checkState()))
         set_intro_enabled(self.intro_checkbox.checkState())
@@ -1248,9 +1274,11 @@ class SuperCutUI(QWidget):
         intro_layout.addWidget(intro_size_label)
         intro_layout.addWidget(self.intro_size_combo)
         intro_layout.addSpacing(4)
-        intro_layout.addWidget(intro_position_label)
+        intro_layout.addWidget(intro_x_label)
+        intro_layout.addWidget(self.intro_x_combo)
         intro_layout.addSpacing(4)
-        intro_layout.addWidget(self.intro_position_combo)
+        intro_layout.addWidget(intro_y_label)
+        intro_layout.addWidget(self.intro_y_combo)
         
         layout.addLayout(intro_layout)
 
@@ -1828,9 +1856,9 @@ class SuperCutUI(QWidget):
         song_title_x_label.setFixedWidth(28)
         self.song_title_x_combo = QtWidgets.QComboBox()
         self.song_title_x_combo.setFixedWidth(80)
-        for percent in range(0, 101, 5):
+        for percent in range(0, 101, 1):
             self.song_title_x_combo.addItem(f"{percent}%", percent)
-        self.song_title_x_combo.setCurrentIndex(10)  # Default 50%
+        self.song_title_x_combo.setCurrentIndex(50)  # Default 50%
         self.song_title_x_percent = 50
         def on_song_title_x_changed(idx):
             self.song_title_x_percent = self.song_title_x_combo.itemData(idx)
@@ -1841,9 +1869,9 @@ class SuperCutUI(QWidget):
         song_title_y_label.setFixedWidth(28)
         self.song_title_y_combo = QtWidgets.QComboBox()
         self.song_title_y_combo.setFixedWidth(80)
-        for percent in range(0, 101, 5):
+        for percent in range(0, 101, 1):
             self.song_title_y_combo.addItem(f"{percent}%", percent)
-        self.song_title_y_combo.setCurrentIndex(4)  # Default 20%
+        self.song_title_y_combo.setCurrentIndex(20)  # Default 20%
         self.song_title_y_percent = 20
         def on_song_title_y_changed(idx):
             self.song_title_y_percent = self.song_title_y_combo.itemData(idx)
@@ -2910,7 +2938,7 @@ class SuperCutUI(QWidget):
             self.overlay4_checkbox.isChecked(), self.overlay4_path, self.overlay4_size_percent, self.overlay4_position,
             self.overlay5_checkbox.isChecked(), self.overlay5_path, self.overlay5_size_percent, self.overlay5_position,
             
-            self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_position,
+            self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_x_percent, self.intro_y_percent,
             self.selected_effect, self.overlay_duration,
             self.intro_effect, self.intro_duration,
             name_list=name_list,
@@ -3308,13 +3336,16 @@ class SuperCutUI(QWidget):
         default_intro_enabled = self.settings.value('default_intro_enabled', True, type=bool)
         if default_intro_enabled:
             default_intro_path = self.settings.value('default_intro_path', '', type=str)
-            default_intro_position = self.settings.value('default_intro_position', 'center', type=str)
+            default_intro_x = self.settings.value('default_intro_x_percent', 50, type=int)
+            default_intro_y = self.settings.value('default_intro_y_percent', 50, type=int)
             default_intro_size = self.settings.value('default_intro_size', 50, type=int)
             if self.intro_checkbox.isChecked():
                 if not self.intro_edit.text().strip():
                     self.intro_edit.setText(default_intro_path)
-                idx = next((i for i in range(self.intro_position_combo.count()) if self.intro_position_combo.itemData(i) == default_intro_position), 0)
-                self.intro_position_combo.setCurrentIndex(idx)
+                idx = default_intro_x if 0 <= default_intro_x <= 100 else 50
+                self.intro_x_combo.setCurrentIndex(idx)
+                idx = default_intro_y if 0 <= default_intro_y <= 100 else 50
+                self.intro_y_combo.setCurrentIndex(idx)
                 idx = next((i for i in range(self.intro_size_combo.count()) if self.intro_size_combo.itemData(i) == default_intro_size), 9)
                 self.intro_size_combo.setCurrentIndex(idx)
         # Apply default overlay 1 settings if overlay 1 is checked and fields are empty
