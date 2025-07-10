@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import (
     QTimer, pyqtSignal, QThread, pyqtSlot, QPoint, Qt
 )
-from PyQt6.QtGui import QFont, QTextCursor, QPalette, QColor, QIcon, QCursor, QMouseEvent, QKeySequence
+from PyQt6.QtGui import QFont, QTextCursor, QPalette, QColor, QIcon, QCursor, QMouseEvent, QKeySequence, QPainter, QBrush
 import queue
 import threading
 import time
@@ -112,12 +112,13 @@ class TerminalWidget(QWidget):
         """Initialize the terminal UI"""
         # Remove title bar and make frameless
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setFixedSize(540, 600)        
+        self.setFixedSize(540, 600)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)  # Enable rounded corners for top-level window
         
         # Set modern styling
         self.setStyleSheet("""
             QWidget {
-                background-color: #2e2e2e;
+                /* background-color removed to avoid double painting */
                 color: #cccccc;
                 font-family: 'Cascadia Mono' , 'Consolas', 'Monaco', 'Courier New', monospace; 
                 font-size: 13px;
@@ -223,8 +224,8 @@ class TerminalWidget(QWidget):
                 background-color: #404040;
                 border-bottom: 1px solid #505050;
                 padding: 8px 12px;
-                border-top-left-radius: 18px;
-                border-top-right-radius: 18px;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
             }
         """)
         
@@ -404,6 +405,15 @@ class TerminalWidget(QWidget):
         self.update_timer.stop()
         self.closed.emit()
         event.accept()
+        
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        brush = QBrush(QColor('#2e2e2e'))
+        painter.setBrush(brush)
+        painter.setPen(Qt.PenStyle.NoPen)
+        rect = self.rect()
+        painter.drawRoundedRect(rect, 8, 8)  # 18 is the radius, match your stylesheet
         
     
         
