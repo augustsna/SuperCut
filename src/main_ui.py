@@ -1255,9 +1255,9 @@ class SuperCutUI(QWidget):
 
         # Intro effect controls - moved directly below intro line
         intro_effect_layout = QHBoxLayout()        
-        intro_effect_layout.addSpacing(285)  # Align with intro checkbox
+        intro_effect_layout.addSpacing(295)  # Align with intro checkbox
         intro_effect_layout.addWidget(intro_effect_label)
-        intro_effect_layout.addSpacing(4)
+        intro_effect_layout.addSpacing(-6)
         intro_effect_layout.addWidget(self.intro_effect_combo)
         intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(intro_duration_label)
