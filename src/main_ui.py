@@ -724,6 +724,8 @@ class SuperCutUI(QWidget):
         self.settings = QSettings('SuperCut', 'SuperCutUI')
         self._original_size = None  # Store original window size
         self._expanded_for_progress = False  # Track if expanded
+        self.quit_dialog = None
+        self._intended_total_batches = 0
         
         self.init_ui()
         self.restore_window_position()
@@ -2806,6 +2808,7 @@ class SuperCutUI(QWidget):
         media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count = inputs
         # Calculate total batches
         total_batches = min(len(original_image_files), len(original_mp3_files) // min_mp3_count)
+        self._intended_total_batches = total_batches
         if use_name_list:
             if len(self.name_list) < total_batches:
                 QMessageBox.critical(self, "❌ Not Enough Names", f"You provided {len(self.name_list)} names, but {total_batches} are required for all video batches.", QMessageBox.StandardButton.Ok)
@@ -3089,6 +3092,11 @@ class SuperCutUI(QWidget):
                 self._stopping_msgbox = None
             batch_count = self.progress_bar.value() if hasattr(self, 'progress_bar') else 0
             total_batches = self.progress_bar.maximum() if hasattr(self, 'progress_bar') else 0
+            if total_batches == 0:
+                total_batches = self._intended_total_batches
+            # If stopped and at least one batch was running, count the current batch as completed
+            if batch_count < total_batches and total_batches > 0:
+                batch_count += 1
             dlg = StoppedDialog(self, batch_count=batch_count, total_batches=total_batches)
             dlg.exec()
         else:
@@ -3164,6 +3172,15 @@ class SuperCutUI(QWidget):
                     min_mp3_count = DEFAULT_MIN_MP3_COUNT
             else:
                 min_mp3_count = DEFAULT_MIN_MP3_COUNT
+        # Close the waiting dialog if it exists before showing the success dialog
+        if hasattr(self, '_waiting_dialog_on_close') and self._waiting_dialog_on_close is not None:
+            self._waiting_dialog_on_close.close()
+            self._waiting_dialog_on_close.hide()
+            self._waiting_dialog_on_close = None
+        # Close the quit dialog if it exists
+        if hasattr(self, 'quit_dialog') and self.quit_dialog is not None:
+            self.quit_dialog.close()
+            self.quit_dialog = None
         dlg = SuccessDialog(
             self, 
             open_folder=self.open_result_folder, 
@@ -3196,40 +3213,45 @@ class SuperCutUI(QWidget):
             self.terminal_widget = None
         # If a video creation thread is running, warn the user
         if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
-            reply = QMessageBox.question(
-                self,
-                "Quit Program",
-                "Video creation is running. Are you sure you want to quit?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
-            if reply == QMessageBox.StandardButton.Yes:
-                waiting_dialog = QMessageBox(self)
-                waiting_dialog.setWindowTitle("Please Wait")
-                waiting_dialog.setText("Waiting for current batch to finish...")
-                waiting_dialog.setStandardButtons(QMessageBox.StandardButton.NoButton)
-                waiting_dialog.show()
-                # Request stop
-                if hasattr(self, "_worker") and self._worker is not None:
-                    stop_method = getattr(self._worker, 'stop', None)
-                    if callable(stop_method):
-                        try:
-                            stop_method()
-                        except RuntimeError:
-                            pass
-                # Set pending close flag
-                self._pending_close = True
-                # Store waiting dialog to close later
-                self._waiting_dialog_on_close = waiting_dialog
-                event.ignore()
-                return
-            else:
-                event.ignore()
-                return
+            if self.quit_dialog is not None:
+                self.quit_dialog.close()
+                self.quit_dialog = None
+            self.quit_dialog = QMessageBox(self)
+            self.quit_dialog.setWindowTitle("Quit Program")
+            self.quit_dialog.setText("Video creation is running. Are you sure you want to quit?")
+            self.quit_dialog.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            self.quit_dialog.setDefaultButton(QMessageBox.StandardButton.No)
+            self.quit_dialog.buttonClicked.connect(lambda btn: self.handle_quit_response(btn, event))
+            self.quit_dialog.show()
+            event.ignore()
+            return
         # Save window position and close as normal
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
         super().closeEvent(event)
+
+    def handle_quit_response(self, button, event):
+        if self.quit_dialog is not None and button == self.quit_dialog.button(QMessageBox.StandardButton.Yes):
+            waiting_dialog = QMessageBox(self)
+            waiting_dialog.setWindowTitle("Please Wait")
+            waiting_dialog.setText("Waiting for current batch to finish...")
+            waiting_dialog.setStandardButtons(QMessageBox.StandardButton.NoButton)
+            waiting_dialog.show()
+            if hasattr(self, "_worker") and self._worker is not None:
+                stop_method = getattr(self._worker, 'stop', None)
+                if callable(stop_method):
+                    try:
+                        stop_method()
+                    except RuntimeError:
+                        pass
+            self._pending_close = True
+            self._waiting_dialog_on_close = waiting_dialog
+            event.ignore()
+        else:
+            event.ignore()
+        if self.quit_dialog is not None:
+            self.quit_dialog.close()
+            self.quit_dialog = None
 
     def resizeEvent(self, event):
         """Handle window resize event to control horizontal scrollbar visibility"""
