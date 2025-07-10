@@ -1285,11 +1285,11 @@ class SuperCutUI(QWidget):
         intro_layout = QHBoxLayout()
         intro_layout.setSpacing(4)
         intro_layout.addWidget(self.intro_checkbox)
-        intro_layout.addSpacing(10)
+        intro_layout.addSpacing(14)
         intro_layout.addWidget(self.intro_edit)
-        intro_layout.addSpacing(4)
+        intro_layout.addSpacing(2)
         intro_layout.addWidget(intro_btn)
-        intro_layout.addSpacing(6)
+        intro_layout.addSpacing(4)
         intro_layout.addWidget(intro_size_label)
         intro_layout.addWidget(self.intro_size_combo)
         intro_layout.addSpacing(4)
@@ -1386,35 +1386,71 @@ class SuperCutUI(QWidget):
             self.overlay1_edit.setEnabled(enabled)
             overlay1_btn.setEnabled(enabled)
             self.overlay1_size_combo.setEnabled(enabled)
-            self.overlay1_position_combo.setEnabled(enabled)
+            self.overlay1_x_combo.setEnabled(enabled)
+            self.overlay1_y_combo.setEnabled(enabled)
             if enabled:
                 overlay1_btn.setStyleSheet("")  # Default style
                 self.overlay1_edit.setStyleSheet("")  # Default style
                 self.overlay1_size_combo.setStyleSheet("")
-                self.overlay1_position_combo.setStyleSheet("")
+                self.overlay1_x_combo.setStyleSheet("")
+                self.overlay1_y_combo.setStyleSheet("")
                 overlay1_size_label.setStyleSheet("")  # Default
-                overlay1_position_label.setStyleSheet("")
+                overlay1_x_label.setStyleSheet("")
+                overlay1_y_label.setStyleSheet("")
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 overlay1_btn.setStyleSheet(grey_btn_style)
                 self.overlay1_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")  # Lighter grey for textbox
                 self.overlay1_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay1_position_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay1_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay1_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 overlay1_size_label.setStyleSheet("color: grey;")
-                overlay1_position_label.setStyleSheet("color: grey;")
+                overlay1_x_label.setStyleSheet("color: grey;")
+                overlay1_y_label.setStyleSheet("color: grey;")
         self.overlay_checkbox.stateChanged.connect(lambda _: set_overlay1_enabled(self.overlay_checkbox.checkState()))
-        set_overlay1_enabled(self.overlay_checkbox.checkState())
+        overlay1_layout.addSpacing(3)
         overlay1_layout.addWidget(self.overlay_checkbox)
         overlay1_layout.addWidget(self.overlay1_edit)
-        overlay1_layout.addSpacing(6)  # Space before select button
+        overlay1_layout.addSpacing(3)  # Space before select button
         overlay1_layout.addWidget(overlay1_btn)
         overlay1_layout.addSpacing(4)  # Space before position label
-        overlay1_layout.addWidget(overlay1_position_label)
-        overlay1_layout.addSpacing(2)
-        overlay1_layout.addWidget(self.overlay1_position_combo)
-        overlay1_layout.addSpacing(6) 
         overlay1_layout.addWidget(overlay1_size_label)
         overlay1_layout.addWidget(self.overlay1_size_combo)
+        overlay1_layout.addSpacing(4)
+        # Overlay1 X coordinate
+        overlay1_x_label = QLabel("X:")
+        overlay1_x_label.setFixedWidth(18)
+        self.overlay1_x_combo = QtWidgets.QComboBox()
+        self.overlay1_x_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay1_x_combo.addItem(f"{percent}%", percent)
+        self.overlay1_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay1_x_percent = 0
+        def on_overlay1_x_changed(idx):
+            self.overlay1_x_percent = self.overlay1_x_combo.itemData(idx)
+        self.overlay1_x_combo.currentIndexChanged.connect(on_overlay1_x_changed)
+        on_overlay1_x_changed(self.overlay1_x_combo.currentIndex())
+
+        # Overlay1 Y coordinate
+        overlay1_y_label = QLabel("Y:")
+        overlay1_y_label.setFixedWidth(18)
+        self.overlay1_y_combo = QtWidgets.QComboBox()
+        self.overlay1_y_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay1_y_combo.addItem(f"{percent}%", percent)
+        self.overlay1_y_combo.setCurrentIndex(75)  # Default 75% (bottom)
+        self.overlay1_y_percent = 75
+        def on_overlay1_y_changed(idx):
+            self.overlay1_y_percent = self.overlay1_y_combo.itemData(idx)
+        self.overlay1_y_combo.currentIndexChanged.connect(on_overlay1_y_changed)
+        on_overlay1_y_changed(self.overlay1_y_combo.currentIndex())
+
+        overlay1_layout.addWidget(overlay1_x_label)
+        overlay1_layout.addWidget(self.overlay1_x_combo)
+        overlay1_layout.addSpacing(4)
+        overlay1_layout.addWidget(overlay1_y_label)
+        overlay1_layout.addWidget(self.overlay1_y_combo)
+        set_overlay1_enabled(self.overlay_checkbox.checkState())
         layout.addLayout(overlay1_layout)
 
         # Overlay 2 controls (similar to Overlay 1)
@@ -1948,7 +1984,7 @@ class SuperCutUI(QWidget):
         set_song_title_controls_enabled(self.song_title_checkbox.checkState())
         
         # First line: checkbox, effect, X, Y, start at
-        song_title_checkbox_layout.addSpacing(5)
+        song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(self.song_title_checkbox)
         song_title_checkbox_layout.addSpacing(5)
         song_title_checkbox_layout.addWidget(song_title_effect_label)
@@ -2950,7 +2986,7 @@ class SuperCutUI(QWidget):
         overlay2_start_at = self.overlay_duration
         self._worker = VideoWorker(
             media_sources, export_name, number, folder, codec, resolution, fps,
-            self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_position,
+            self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_x_percent, self.overlay1_y_percent,
             self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position,
             overlay1_start_at, overlay2_start_at,            
             self.overlay3_checkbox.isChecked(), self.overlay3_path, self.overlay3_size_percent, self.overlay3_position,
