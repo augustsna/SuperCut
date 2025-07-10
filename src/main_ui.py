@@ -1521,35 +1521,71 @@ class SuperCutUI(QWidget):
             self.overlay2_edit.setEnabled(enabled)
             overlay2_btn.setEnabled(enabled)
             self.overlay2_size_combo.setEnabled(enabled)
-            self.overlay2_position_combo.setEnabled(enabled)
+            self.overlay2_x_combo.setEnabled(enabled)
+            self.overlay2_y_combo.setEnabled(enabled)
             if enabled:
                 overlay2_btn.setStyleSheet("")
                 self.overlay2_edit.setStyleSheet("")
                 self.overlay2_size_combo.setStyleSheet("")
-                self.overlay2_position_combo.setStyleSheet("")
+                self.overlay2_x_combo.setStyleSheet("")
+                self.overlay2_y_combo.setStyleSheet("")
                 overlay2_size_label.setStyleSheet("")
-                overlay2_position_label.setStyleSheet("")
+                overlay2_x_label.setStyleSheet("")
+                overlay2_y_label.setStyleSheet("")
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 overlay2_btn.setStyleSheet(grey_btn_style)
                 self.overlay2_edit.setStyleSheet(grey_btn_style)
                 self.overlay2_size_combo.setStyleSheet(grey_btn_style)
-                self.overlay2_position_combo.setStyleSheet(grey_btn_style)
+                self.overlay2_x_combo.setStyleSheet(grey_btn_style)
+                self.overlay2_y_combo.setStyleSheet(grey_btn_style)
                 overlay2_size_label.setStyleSheet("color: grey;")
-                overlay2_position_label.setStyleSheet("color: grey;")
+                overlay2_x_label.setStyleSheet("color: grey;")
+                overlay2_y_label.setStyleSheet("color: grey;")
         self.overlay2_checkbox.stateChanged.connect(lambda _: set_overlay2_enabled(self.overlay2_checkbox.checkState()))
-        set_overlay2_enabled(self.overlay2_checkbox.checkState())
         overlay2_layout.addWidget(self.overlay2_checkbox)
+        overlay2_layout.addSpacing(3)
         overlay2_layout.addWidget(self.overlay2_edit)
-        overlay2_layout.addSpacing(6)
+        overlay2_layout.addSpacing(3)
         overlay2_layout.addWidget(overlay2_btn)
         overlay2_layout.addSpacing(4)
-        overlay2_layout.addWidget(overlay2_position_label)
-        overlay2_layout.addSpacing(2)
-        overlay2_layout.addWidget(self.overlay2_position_combo)
-        overlay2_layout.addSpacing(6)
         overlay2_layout.addWidget(overlay2_size_label)
         overlay2_layout.addWidget(self.overlay2_size_combo)
+        overlay2_layout.addSpacing(4)
+        # Overlay2 X coordinate
+        overlay2_x_label = QLabel("X:")
+        overlay2_x_label.setFixedWidth(18)
+        self.overlay2_x_combo = QtWidgets.QComboBox()
+        self.overlay2_x_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay2_x_combo.addItem(f"{percent}%", percent)
+        self.overlay2_x_combo.setCurrentIndex(75)  # Default 75% (right)
+        self.overlay2_x_percent = 75
+        def on_overlay2_x_changed(idx):
+            self.overlay2_x_percent = self.overlay2_x_combo.itemData(idx)
+        self.overlay2_x_combo.currentIndexChanged.connect(on_overlay2_x_changed)
+        on_overlay2_x_changed(self.overlay2_x_combo.currentIndex())
+
+        # Overlay2 Y coordinate
+        overlay2_y_label = QLabel("Y:")
+        overlay2_y_label.setFixedWidth(18)
+        self.overlay2_y_combo = QtWidgets.QComboBox()
+        self.overlay2_y_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay2_y_combo.addItem(f"{percent}%", percent)
+        self.overlay2_y_combo.setCurrentIndex(0)  # Default 0% (top)
+        self.overlay2_y_percent = 0
+        def on_overlay2_y_changed(idx):
+            self.overlay2_y_percent = self.overlay2_y_combo.itemData(idx)
+        self.overlay2_y_combo.currentIndexChanged.connect(on_overlay2_y_changed)
+        on_overlay2_y_changed(self.overlay2_y_combo.currentIndex())
+
+        overlay2_layout.addWidget(overlay2_x_label)
+        overlay2_layout.addWidget(self.overlay2_x_combo)
+        overlay2_layout.addSpacing(4)
+        overlay2_layout.addWidget(overlay2_y_label)
+        overlay2_layout.addWidget(self.overlay2_y_combo)
+        set_overlay2_enabled(self.overlay2_checkbox.checkState())
         layout.addLayout(overlay2_layout)
 
         # --- EFFECT CONTROL FOR INTRO & OVERLAY (moved below Overlay 2) ---
@@ -1598,7 +1634,7 @@ class SuperCutUI(QWidget):
         effect_layout.addWidget(self.effect_combo)
         effect_layout.addSpacing(1)
         effect_layout.addWidget(overlay_duration_label)
-        effect_layout.addSpacing(-18)
+        effect_layout.addSpacing(-15)
         effect_layout.addWidget(self.overlay_duration_edit)
         effect_layout.addStretch()
         layout.addLayout(effect_layout)
@@ -2987,7 +3023,7 @@ class SuperCutUI(QWidget):
         self._worker = VideoWorker(
             media_sources, export_name, number, folder, codec, resolution, fps,
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_x_percent, self.overlay1_y_percent,
-            self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_position,
+            self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_x_percent, self.overlay2_y_percent,
             overlay1_start_at, overlay2_start_at,            
             self.overlay3_checkbox.isChecked(), self.overlay3_path, self.overlay3_size_percent, self.overlay3_position,
             self.overlay4_checkbox.isChecked(), self.overlay4_path, self.overlay4_size_percent, self.overlay4_position,

@@ -81,7 +81,8 @@ def create_video_with_ffmpeg(
     use_overlay2: bool = False,
     overlay2_path: str = "",
     overlay2_size_percent: int = 10,
-    overlay2_position: str = "top_left",
+    overlay2_x_percent: int = 75,
+    overlay2_y_percent: int = 0,
     use_overlay3: bool = False,
     overlay3_path: str = "",
     overlay3_size_percent: int = 10,
@@ -316,7 +317,8 @@ def create_video_with_ffmpeg(
             oy_intro = f"(H-h)*(1-({intro_y_percent}/100))" if intro_y_percent != 100 else "0"
             ox1 = f"(W-w)*{overlay1_x_percent}/100" if overlay1_x_percent != 0 else "0"
             oy1 = f"(H-h)*(1-({overlay1_y_percent}/100))" if overlay1_y_percent != 100 else "0"
-            ox2, oy2 = position_map.get(overlay2_position, ("0", "0"))
+            ox2 = f"(W-w)*{overlay2_x_percent}/100" if overlay2_x_percent != 0 else "0"
+            oy2 = f"(H-h)*(1-({overlay2_y_percent}/100))" if overlay2_y_percent != 100 else "0"
             ox3, oy3 = position_map.get(overlay3_position, ("0", "0"))
             ox4, oy4 = position_map.get(overlay4_position, ("0", "0"))
             ox5, oy5 = position_map.get(overlay5_position, ("0", "0"))
