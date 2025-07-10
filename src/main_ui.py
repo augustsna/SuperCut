@@ -827,7 +827,7 @@ class SuperCutUI(QWidget):
                 padding-right: 0px;
             }
             QScrollBar:vertical {
-                background: rgba(240, 240, 240, 0.35);
+                background: rgba(240, 240, 240, 0.20);
                 width: 12px;
                 border-radius: 6px;
                 margin: 0px;
@@ -835,7 +835,7 @@ class SuperCutUI(QWidget):
                 right: 0px;
             }
             QScrollBar::handle:vertical {
-                background: rgba(192, 192, 192, 0.35);
+                background: rgba(192, 192, 192, 0.20);
                 border-radius: 6px;
                 min-height: 20px;
                 margin: 0px;
