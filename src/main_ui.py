@@ -2487,6 +2487,8 @@ class SuperCutUI(QWidget):
         layout.addLayout(lyric_layout)
 
         # Lyric dropdown (placeholder - does nothing for now)
+        lyric_dropdown_label = QtWidgets.QLabel("Lyric:")
+        lyric_dropdown_label.setFixedWidth(40)
         self.lyric_dropdown = QtWidgets.QComboBox()
         self.lyric_dropdown.setFixedWidth(125)
         self.lyric_dropdown.addItem("Select option...")
@@ -2497,7 +2499,7 @@ class SuperCutUI(QWidget):
 
         lyric_dropdown_layout = QHBoxLayout()
         lyric_dropdown_layout.setSpacing(4)
-        lyric_dropdown_layout.addSpacing(82)  # Align with other controls (same width as checkbox)
+        lyric_dropdown_layout.addWidget(lyric_dropdown_label)
         lyric_dropdown_layout.addWidget(self.lyric_dropdown)
         lyric_dropdown_layout.addStretch()
         layout.addLayout(lyric_dropdown_layout)
