@@ -190,7 +190,7 @@ class VideoWorker(QObject):
 
     def _print_export_summary(self, total_batches: int):
         """Print export configuration summary"""
-        print("\n----- EXPORT SUMMARY -----")
+        print("\n----- 📋 EXPORT SUMMARY -----")
         print(f"Export Name   : {self.export_name}")
         print(f"Output Folder : {self.folder}")
         print(f"Codec        : {self.codec}")
@@ -241,7 +241,7 @@ class VideoWorker(QObject):
         output_path = os.path.join(self.folder, output_filename)
 
         # Print batch info
-        print(f"\n--- Batch {batch_count + 1}/{total_batches} ---")
+        print(f"--- 📝 Batch {batch_count + 1}/{total_batches} 🚀 ---")
         print(f"Output: {output_filename}")
         print(f"Image: {os.path.basename(selected_image)}")
         print("MP3s:", ", ".join(os.path.basename(mp3) for mp3 in selected_mp3s))
@@ -272,9 +272,6 @@ class VideoWorker(QObject):
                     song_durations.append((cumulative_time, duration))
                     cumulative_time += duration
                 
-                print(f"[DEBUG] Song durations: {song_durations}")
-                print(f"[DEBUG] Total audio duration: {audio_duration}")
-                
                 if overlay_count == 1:
                     # REMOVE this block: Single song - use overlay start time or default to 5s
                     pass
@@ -290,8 +287,6 @@ class VideoWorker(QObject):
                     duration = get_audio_duration(mp3_path)
                     song_durations.append((cumulative_time, duration))
                     cumulative_time += duration
-                print(f"[DEBUG] Song durations: {song_durations}")
-                print(f"[DEBUG] Total audio duration: {audio_duration}")
                 for i, (song_start, song_duration) in enumerate(song_durations):
                     if i == 0:
                         # First overlay: start at user input, duration shortened if start_at > 0
@@ -302,7 +297,6 @@ class VideoWorker(QObject):
                         # Subsequent overlays: start at song start, full song duration
                         overlay_start = song_start
                         overlay_duration = song_duration
-                    print(f"[DEBUG] Song title overlay {i+1}: start={overlay_start}s, duration={overlay_duration}s")
                     extra_overlays.append({
                         'path': song_title_pngs[i]['path'],
                         'start': overlay_start,
@@ -405,7 +399,7 @@ class VideoWorker(QObject):
             time_str = f"{mins}m {secs}s"
         else:
             time_str = f"{int(batch_time_spent)}s"
-        print(f"\u2713 Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str})")
+        print(f"\u2713 Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str})") 
         
         return True, failed_moves
 

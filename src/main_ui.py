@@ -743,16 +743,10 @@ class SuperCutUI(QWidget):
         saved_width = self.settings.value('default_window_width', 660, type=int)
         saved_height = self.settings.value('default_window_height', WINDOW_SIZE[1], type=int)
         
-        # Debug: Print the values being loaded
-        print(f"Loading window size: saved_width={saved_width}, saved_height={saved_height}")
-        print(f"Default size: WINDOW_SIZE={WINDOW_SIZE}")
-        
         # Use saved values directly, but ensure they're reasonable
         width = max(saved_width, 400)  # Minimum reasonable width
         width = min(width, 680)  # Maximum width constraint
         height = max(saved_height, 400)  # Minimum reasonable height
-        
-        print(f"Final window size: width={width}, height={height}")
         
         self.setMinimumSize(400, 400)  # Set a reasonable minimum size
         self.setMaximumWidth(680)  # Set maximum width to 680px

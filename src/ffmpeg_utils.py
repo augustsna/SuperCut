@@ -136,47 +136,8 @@ def create_video_with_ffmpeg(
     overlay1_start_at: int = 0,
     overlay2_start_at: int = 0
 ) -> Tuple[bool, Optional[str]]:
-    print(f"[DEBUG] Overlay 1 start at: {overlay1_start_at}")
-    print(f"[DEBUG] Overlay 2 start at: {overlay2_start_at}")
-    if extra_overlays is None:
-        extra_overlays = []
     temp_png_path = None
     try:
-        # Debug: Print all file paths
-        print("[DEBUG] Background image:", image_path)
-        print("[DEBUG] Audio path:", audio_path)
-        print("[DEBUG] Output path:", output_path)
-        print("[DEBUG] Overlay 1 path:", overlay1_path)
-        print("[DEBUG] Overlay 2 path:", overlay2_path)
-        print("[DEBUG] Overlay Effect:", effect)
-        print("[DEBUG] Overlay Effect Start Time:", effect_time)
-        # Estimate required output file size
-        audio_duration = get_audio_duration(audio_path)
-        # Use the provided video_bitrate instead of VIDEO_SETTINGS['video_bitrate']
-        video_bitrate_str = str(video_bitrate)
-        maxrate_str = str(maxrate)
-        buffer_size_str = str(bufsize)
-        # Convert bitrate strings to int for calculation
-        if video_bitrate_str.lower().endswith('m'):
-            video_bitrate_int = int(float(video_bitrate_str[:-1]) * 1024 * 1024)
-        elif video_bitrate_str.lower().endswith('k'):
-            video_bitrate_int = int(float(video_bitrate_str[:-1]) * 1024)
-        else:
-            video_bitrate_int = int(video_bitrate_str)
-        audio_bitrate_str = str(audio_bitrate)
-        if audio_bitrate_str.lower().endswith('k'):
-            audio_bitrate_int = int(float(audio_bitrate_str[:-1]) * 1024)
-        else:
-            audio_bitrate_int = int(audio_bitrate_str)
-        total_bitrate = video_bitrate_int + audio_bitrate_int
-        estimated_size = int((total_bitrate / 8) * audio_duration)  # bytes
-        min_required = max(estimated_size * 2, 100 * 1024 * 1024)  # at least 2x estimated, or 100MB
-        output_dir = os.path.dirname(os.path.abspath(output_path)) or os.getcwd()
-        if not has_enough_disk_space(output_dir, min_required):
-            msg = f"❌ Not enough disk space to create output video in {output_dir}. At least {min_required // (1024*1024)}MB required."
-            logger.error(msg)
-            print(msg)
-            return False, msg
         # If input is JPG, convert to PNG using ffmpeg
         if image_path.lower().endswith('.jpg') or image_path.lower().endswith('.jpeg'):
             temp_png_path = create_temp_file(suffix='.png', prefix='supercut_')
@@ -309,7 +270,6 @@ def create_video_with_ffmpeg(
         # --- Add extra overlays (song titles) as inputs ---
         extra_overlay_indices = []
         if extra_overlays:
-            print("[DEBUG] extra_overlays (inputs):", extra_overlays)
             for overlay in extra_overlays:
                 cmd.extend(["-loop", "1", "-i", overlay['path']])
                 extra_overlay_indices.append(input_idx)
@@ -317,8 +277,6 @@ def create_video_with_ffmpeg(
         # --- End Song Title Overlay Filter Graph ---
         # Build filter graph with correct indices
         overlays_present = use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5 or use_overlay6 or use_overlay7 or bool(extra_overlays)
-        print("[DEBUG] overlays_present:", overlays_present)
-        print("[DEBUG] extra_overlays (filter graph):", extra_overlays)
         if overlays_present:
             scale_factor_intro = intro_size_percent / 100.0
             owi = f"iw*{scale_factor_intro:.3f}"
@@ -442,8 +400,6 @@ def create_video_with_ffmpeg(
                     chain += f"[{label}]"
                     filter_chains.append(chain)
                     overlay_labels.append((label, start, duration, x_expr, y_expr))
-            print("[DEBUG] filter_chains:", filter_chains)
-            print("[DEBUG] overlay_labels:", overlay_labels)
             # --- End Song Title Overlay Filter Graph ---
             # Compose overlays: Overlay 2, then Overlay 3, then Overlay 1, then Intro, then song title overlays
             filter_graph = filter_bg
@@ -499,14 +455,8 @@ def create_video_with_ffmpeg(
                     last_label = f"[{out_label}]"
             else:
                 filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout]"
-            # --- Debug print for filter_complex ---
-            print("[DEBUG] filter_complex:")
-            print(filter_graph)
         else:
             filter_graph = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
-            # --- Debug print for filter_complex ---
-            print("[DEBUG] filter_complex:")
-            print(filter_graph)
         cmd.extend(["-filter_complex", filter_graph, "-map", "[vout]", "-map", "1:a"])
 
         cmd.extend(["-c:v", codec, "-preset", preset])       
@@ -518,6 +468,10 @@ def create_video_with_ffmpeg(
             cmd.extend(["-rc", "cbr"])        
 
         # Video settings
+        video_bitrate_str = str(video_bitrate)
+        maxrate_str = str(maxrate)
+        buffer_size_str = str(bufsize)
+        audio_bitrate_str = str(audio_bitrate)
         cmd.extend([   
             "-b:v", video_bitrate_str,
             "-maxrate", maxrate_str,
@@ -547,13 +501,9 @@ def create_video_with_ffmpeg(
 
         # Display FFmpeg command with output video name
         video_name = os.path.basename(output_path)
-        logger.info(f"FFmpeg Video Creation Command for {video_name}:")
-        print(f"FFmpeg Video Creation Command for {video_name}:")
+        print(f"FFmpeg Command for {video_name}:")
         display_cmd = ['ffmpeg'] + cmd[1:]
-        logger.info(f"  {' '.join(display_cmd)}")
-        print(f"  {' '.join(display_cmd)}")
-        logger.info("")
-        print("")
+        print(f"  {' '.join(display_cmd)}")        
 
         audio_duration = get_audio_duration(audio_path)
         total_frames = int(audio_duration * fps)

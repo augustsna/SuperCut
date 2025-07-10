@@ -343,8 +343,7 @@ class TerminalWidget(QWidget):
     def test_progress_bar(self):
         """Test function to demonstrate progress bar functionality"""
         import time
-        
-        print("Starting progress bar test...")
+                
         total_frames = 100
         
         for i in range(total_frames + 1):
@@ -353,9 +352,6 @@ class TerminalWidget(QWidget):
             progress_text = f"\r{percentage:5.1f}% | Frame: {i}/{total_frames} | ETA: {eta}"
             print(progress_text, end="", flush=True)
             time.sleep(0.05)  # Simulate processing time
-            
-        print()  # New line after progress bar
-        print("Progress bar test completed!")
         
     def create_progress_bar(self, current, total, eta="00:00:00", prefix=""):
         """
