@@ -112,20 +112,22 @@ class TerminalWidget(QWidget):
         """Initialize the terminal UI"""
         # Remove title bar and make frameless
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setFixedSize(600, 400)
+        self.setFixedSize(540, 600)
         
         # Set modern styling
         self.setStyleSheet("""
             QWidget {
                 background-color: #2e2e2e;
-                color: #ffffff;
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                font-size: 11px;
+                color: #cccccc;
+                font-family: 'Cascadia Mono' , 'Consolas', 'Monaco', 'Courier New', monospace; 
+                font-size: 13px;
             }
             QTextEdit {
                 background-color: #1e1e1e;
                 border: 1px solid #404040;
                 border-radius: 6px;
+                font-size: 20;
+                font-color: #cccccc;
                 padding: 8px;
                 selection-background-color: #58a6ff;
             }
@@ -189,9 +191,9 @@ class TerminalWidget(QWidget):
         title_label = QLabel("SuperCut Terminal")
         title_label.setStyleSheet("""
             QLabel {
-                color: #ffffff;
+                color: #f2f2f2;
                 font-size: 14px;
-                font-weight: bold;
+                
             }
         """)
         
@@ -229,9 +231,18 @@ class TerminalWidget(QWidget):
         # Disable horizontal scrollbar
         self.terminal_output.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         
-        # Set monospace font
-        font = QFont("Consolas", 11)
-        font.setStyleHint(QFont.StyleHint.Monospace)
+        # Set monospace font to look like Windows Terminal
+        preferred_fonts = ["Cascadia Mono", "Consolas", "Courier New", "monospace"]
+        font = None
+        for fam in preferred_fonts:
+            f = QFont(fam, 16)
+            f.setStyleHint(QFont.StyleHint.Monospace)
+            if QFont(fam).exactMatch() or fam == "monospace":
+                font = f
+                break
+        if font is None:
+            font = QFont("Consolas", 16)
+            font.setStyleHint(QFont.StyleHint.Monospace)
         self.terminal_output.setFont(font)
         
         # Control buttons
@@ -262,9 +273,8 @@ class TerminalWidget(QWidget):
         self.setLayout(layout)
         
         # Add initial message
-        self.append_output("SuperCut Terminal initialized...\n")
-        self.append_output("Console output will appear here.\n")
-        self.append_output("-" * 50 + "\n")
+        self.append_output("💫 SuperCut is ready... \n")
+        self.append_output("-" * 25+ "\n")
         
     def close_terminal(self):
         """Close the terminal widget"""

@@ -568,7 +568,7 @@ def create_video_with_ffmpeg(
             process.wait()
             sys.stdout.flush()
         sys.stdout.write(
-            f"\r  100.0% | Frame: {total_frames}/{total_frames} | ETA: 00:00:00 | it/s: {current_its} \n"
+            f"\r  100.0% | Frame: {total_frames}/{total_frames} | ETA: 00:00:00 | it/s: {current_its} 🚀\n"
         )
         sys.stdout.flush()
         if process.returncode != 0:
