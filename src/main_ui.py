@@ -912,59 +912,51 @@ class SuperCutUI(QWidget):
         media_sources_layout = QHBoxLayout()
         label_media = QLabel("Media Folder:")
         label_media.setFixedWidth(folder_row_style["label_width"])
-        
         self.media_sources_edit = FolderDropLineEdit()
         self.media_sources_edit.setReadOnly(False)
         self.media_sources_edit.setMinimumWidth(folder_row_style["edit_min_width"])
         self.media_sources_edit.setPlaceholderText("Drag & drop or click Select Folder")
         self.media_sources_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
-        
-        # Add text change handler to clean file paths
         def clean_media_folder_path():
             current_text = self.media_sources_edit.text()
             cleaned_text = clean_file_path(current_text)
             if cleaned_text != current_text:
                 self.media_sources_edit.setText(cleaned_text)
         self.media_sources_edit.textChanged.connect(clean_media_folder_path)
-        
         media_sources_btn = QPushButton("Select Folder")
         media_sources_btn.setFixedWidth(folder_row_style["btn_width"])
         media_sources_btn.clicked.connect(self.select_media_sources_folder)
         self.media_sources_select_btn = media_sources_btn
-        
         media_sources_layout.addWidget(label_media)
         media_sources_layout.addWidget(self.media_sources_edit)
         media_sources_layout.addWidget(media_sources_btn)
         layout.addLayout(media_sources_layout)
+        layout.addSpacing(3)  # Add spacing after media folder
 
         # Output folder selection
         folder_layout = QHBoxLayout()
         label_output = QLabel("Output Folder:")
         label_output.setFixedWidth(folder_row_style["label_width"] + 1)
-        
         self.folder_edit = FolderDropLineEdit()
         self.folder_edit.setReadOnly(False)
         self.folder_edit.setMinimumWidth(folder_row_style["edit_min_width"])
         self.folder_edit.setPlaceholderText("Drag & drop or click Select Folder")
         self.folder_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
-        
-        # Add text change handler to clean file paths
         def clean_output_folder_path():
             current_text = self.folder_edit.text()
             cleaned_text = clean_file_path(current_text)
             if cleaned_text != current_text:
                 self.folder_edit.setText(cleaned_text)
         self.folder_edit.textChanged.connect(clean_output_folder_path)
-        
         folder_btn = QPushButton("Select Folder")
         folder_btn.setFixedWidth(folder_row_style["btn_width"])
         folder_btn.clicked.connect(self.select_output_folder)
         self.output_folder_select_btn = folder_btn
-        
         folder_layout.addWidget(label_output)
         folder_layout.addWidget(self.folder_edit)
         folder_layout.addWidget(folder_btn)
         layout.addLayout(folder_layout)
+        layout.addSpacing(3)  # Add spacing after output folder
 
     def create_export_inputs(self, layout):
         """Create export name, number, and mp3 per video inputs"""
@@ -976,45 +968,34 @@ class SuperCutUI(QWidget):
         self.part2_edit.setPlaceholderText("12345")
         self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
         self.part2_edit.setFixedWidth(60)   # Make Number textbox smaller
-        # --- Name list option ---
         self.name_list_checkbox = QtWidgets.QCheckBox("List name:")
         self.name_list_checkbox.setChecked(True)
         self.name_list_enter_btn = QPushButton("Enter")
         self.name_list_enter_btn.setFixedWidth(70)
-        # Remove Preview button from main UI if present
-        # self.name_list_preview_btn = QPushButton("Preview")
-        # self.name_list_preview_btn.setFixedWidth(70)
-        # Remove initial setEnabled, always update via handler
-        # Set initial style for name_list_enter_btn
         self.name_list = []  # Store the name list
         self.name_list_dialog = None
         def update_name_list_controls():
             checked = self.name_list_checkbox.isChecked()
             self.name_list_enter_btn.setEnabled(checked)
-            # self.name_list_preview_btn.setEnabled(checked)
             self.part1_edit.setEnabled(not checked)
             self.part2_edit.setEnabled(not checked)
             if checked:
                 self.name_list_enter_btn.setStyleSheet("")
-                # self.name_list_preview_btn.setStyleSheet("")
                 self.part1_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.part2_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
             else:
                 self.name_list_enter_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                # self.name_list_preview_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.part1_edit.setStyleSheet("")
                 self.part2_edit.setStyleSheet("")
             if not checked:
                 self.name_list = []
         self.name_list_checkbox.stateChanged.connect(lambda _: update_name_list_controls())
-        # Apply logic for initial state
         update_name_list_controls()
         def open_name_list_dialog():
             dlg = NameListDialog(self, self.name_list)
             if dlg.exec() == QDialog.DialogCode.Accepted:
                 self.name_list = dlg.get_names()
         self.name_list_enter_btn.clicked.connect(open_name_list_dialog)
-        # --- End name list option ---
         self.mp3_count_checkbox = QtWidgets.QCheckBox("MP3 #")
         self.mp3_count_checkbox.setChecked(False)
         self.mp3_count_edit = QLineEdit(str(DEFAULT_MIN_MP3_COUNT))
@@ -1023,7 +1004,6 @@ class SuperCutUI(QWidget):
         self.mp3_count_edit.setEnabled(False)
         self.mp3_count_edit.setFixedWidth(40)
         def set_mp3_count_edit_enabled(state):
-            # Accept both int and Qt.CheckState for compatibility
             if isinstance(state, int):
                 state = Qt.CheckState(state)
             checked = state == Qt.CheckState.Checked
@@ -1033,11 +1013,9 @@ class SuperCutUI(QWidget):
             else:
                 self.mp3_count_edit.setStyleSheet("background-color: #f2f2f2; color: #888;")  # Greyed out
         self.mp3_count_checkbox.stateChanged.connect(set_mp3_count_edit_enabled)
-        # Remove mp3_count_edit style logic from update_mp3_checkbox_style
         def update_mp3_checkbox_style(state):
             self.mp3_count_checkbox.setStyleSheet("")  # Always default
         self.mp3_count_checkbox.stateChanged.connect(update_mp3_checkbox_style)
-        # Initialize style and enabled state
         update_mp3_checkbox_style(self.mp3_count_checkbox.checkState())
         set_mp3_count_edit_enabled(self.mp3_count_checkbox.checkState())
         self.part1_edit.textChanged.connect(self.update_output_name)
@@ -1047,7 +1025,6 @@ class SuperCutUI(QWidget):
         part_layout.addWidget(self.name_list_checkbox)
         part_layout.addSpacing(-40)
         part_layout.addWidget(self.name_list_enter_btn)
-        # part_layout.addWidget(self.name_list_preview_btn)
         part_layout.addSpacing(15)
         part_layout.addWidget(QLabel("Name:"))
         part_layout.addSpacing(-88)  # Reduce space between label and textbox
@@ -1062,6 +1039,7 @@ class SuperCutUI(QWidget):
         part_layout.addWidget(self.mp3_count_edit)
         part_layout.addSpacing(15)
         layout.addLayout(part_layout)
+        layout.addSpacing(1)  # Add spacing after export inputs
 
     def create_video_settings(self, layout):
         """Create video settings controls"""
