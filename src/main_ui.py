@@ -1021,7 +1021,7 @@ class SuperCutUI(QWidget):
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.update_output_name)
-        part_layout.addSpacing(20)
+        part_layout.addSpacing(7)
         part_layout.addWidget(self.name_list_checkbox)
         part_layout.addSpacing(-40)
         part_layout.addWidget(self.name_list_enter_btn)
@@ -1048,7 +1048,7 @@ class SuperCutUI(QWidget):
         settings_layout.setSpacing(0)  # We'll add custom spacing
 
         # Codec selection
-        settings_layout.addSpacing(30)
+        settings_layout.addSpacing(32)
         codec_label = QLabel("Codec:")        
         self.codec_combo = QtWidgets.QComboBox()
         self.codec_combo.setFixedWidth(130)
