@@ -408,10 +408,12 @@ class SettingsDialog(QDialog):
             try:
                 window_width = int(self.default_window_width_edit.text())
                 window_height = int(self.default_window_height_edit.text())
+                print(f"Saving window size: width={window_width}, height={window_height}")
                 self.settings.setValue('default_window_width', window_width)
                 self.settings.setValue('default_window_height', window_height)
             except ValueError:
                 # If invalid values, use defaults
+                print(f"Invalid values, using defaults: width=660, height=640")
                 self.settings.setValue('default_window_width', 660)
                 self.settings.setValue('default_window_height', 640)
             
@@ -735,14 +737,22 @@ class SuperCutUI(QWidget):
         self.setWindowTitle(WINDOW_TITLE)
         
         # Load saved window size or use defaults
-        saved_width = self.settings.value('default_window_width', WINDOW_SIZE[0], type=int)
+        saved_width = self.settings.value('default_window_width', 660, type=int)
         saved_height = self.settings.value('default_window_height', WINDOW_SIZE[1], type=int)
         
-        # Ensure minimum size constraints
-        width = max(saved_width, WINDOW_SIZE[0])
-        height = max(saved_height, WINDOW_SIZE[1])
+        # Debug: Print the values being loaded
+        print(f"Loading window size: saved_width={saved_width}, saved_height={saved_height}")
+        print(f"Default size: WINDOW_SIZE={WINDOW_SIZE}")
         
-        self.setMinimumSize(WINDOW_SIZE[0], WINDOW_SIZE[1])  # Set minimum size instead of fixed size
+        # Use saved values directly, but ensure they're reasonable
+        width = max(saved_width, 400)  # Minimum reasonable width
+        width = min(width, 680)  # Maximum width constraint
+        height = max(saved_height, 400)  # Minimum reasonable height
+        
+        print(f"Final window size: width={width}, height={height}")
+        
+        self.setMinimumSize(400, 400)  # Set a reasonable minimum size
+        self.setMaximumWidth(680)  # Set maximum width to 680px
         self.resize(width, height)  # Set initial size from settings
         self.setStyleSheet(STYLE_SHEET)
         
@@ -809,7 +819,7 @@ class SuperCutUI(QWidget):
         # --- Create scrollable area for main content ---
         scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll_area.setStyleSheet("""
             QScrollArea {
@@ -838,6 +848,26 @@ class SuperCutUI(QWidget):
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0px;
             }
+            QScrollBar:horizontal {
+                background: rgba(240, 240, 240, 0.35);
+                height: 12px;
+                border-radius: 6px;
+                margin: 0px;
+                position: absolute;
+                bottom: 0px;
+            }
+            QScrollBar::handle:horizontal {
+                background: rgba(192, 192, 192, 0.35);
+                border-radius: 6px;
+                min-width: 20px;
+                margin: 0px;
+            }
+            QScrollBar::handle:horizontal:hover {
+                background: rgba(160, 160, 160, 0.35);
+            }
+            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+                width: 0px;
+            }
             QScrollBar::sub-control:corner {
                 background: transparent;
             }
@@ -846,7 +876,7 @@ class SuperCutUI(QWidget):
         # Create scrollable content widget with proper margins
         scroll_content = QtWidgets.QWidget()
         scroll_layout = QVBoxLayout(scroll_content)
-        scroll_layout.setContentsMargins(10, 0, 32, 0)  # Reduced left margin from 20px to 10px, right margin 32px for scrollbar
+        scroll_layout.setContentsMargins(8, 0, 32, 0)  # Reduced left margin from 20px to 10px, right margin 32px for scrollbar
         scroll_layout.setSpacing(9)
         
         # Add UI components to scrollable area
@@ -864,12 +894,13 @@ class SuperCutUI(QWidget):
         
         self.setLayout(layout)
         self.update_output_name()
-        # Apply intro defaults on startup
-        self.apply_settings()
         # Connect text change for media_sources_edit and folder_edit
         self.media_sources_edit.textChanged.connect(self.on_media_folder_changed)
         self.folder_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.on_output_folder_changed)
+        
+        # Store scroll area reference for resize handling
+        self.scroll_area = scroll_area
 
     def create_folder_inputs(self, layout):
         """Create folder selection inputs"""
@@ -3186,6 +3217,26 @@ class SuperCutUI(QWidget):
         settings.setValue('window_position', self.pos())
         super().closeEvent(event)
 
+    def resizeEvent(self, event):
+        """Handle window resize event to control horizontal scrollbar visibility"""
+        super().resizeEvent(event)
+        
+        # Control horizontal scrollbar based on window width
+        if hasattr(self, 'scroll_area') and self.scroll_area is not None:
+            window_width = self.width()
+            if window_width < 660:
+                # Show horizontal scrollbar when window is narrow
+                self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            else:
+                # Hide horizontal scrollbar when window is wide enough
+                self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        
+        # Reposition terminal widget if it exists and is visible
+        if (hasattr(self, 'terminal_widget') and 
+            self.terminal_widget is not None and 
+            self.terminal_widget.isVisible()):
+            self.position_terminal_widget()
+
     def moveEvent(self, event):
         """Handle window move event to reposition terminal widget"""
         super().moveEvent(event)
@@ -3214,6 +3265,23 @@ class SuperCutUI(QWidget):
             self.apply_settings()
 
     def apply_settings(self):
+        # Apply window size settings only if window is already shown (i.e., settings were changed)
+        if self.isVisible():
+            saved_width = self.settings.value('default_window_width', WINDOW_SIZE[0], type=int)
+            saved_height = self.settings.value('default_window_height', WINDOW_SIZE[1], type=int)
+            
+            print(f"Applying window size: saved_width={saved_width}, saved_height={saved_height}")
+            
+            # Use saved values directly, but ensure they're reasonable
+            width = max(saved_width, 400)  # Minimum reasonable width
+            width = min(width, 680)  # Maximum width constraint
+            height = max(saved_height, 400)  # Minimum reasonable height
+            
+            print(f"Resizing window to: width={width}, height={height}")
+            
+            # Resize the window to the new size
+            self.resize(width, height)
+        
         # Update FPS combo to reflect new default if not set by user yet
         default_fps = self.settings.value('default_fps', type=int)
         if default_fps is not None:
