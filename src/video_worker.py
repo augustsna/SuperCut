@@ -180,7 +180,7 @@ class VideoWorker(QObject):
                 batch_count += 1
                 self.progress.emit(batch_count, total_batches)
             print(f"\n💫 All {total_batches} batches completed successfully!")
-            print(f"Output folder: {self.folder}")
+            print(f"📂 Output folder: {self.folder}")
             self.finished.emit(mp3_files, list(self._used_images), all_failed_moves)
             
         except Exception as e:
@@ -241,7 +241,7 @@ class VideoWorker(QObject):
         output_path = os.path.join(self.folder, output_filename)
 
         # Print batch info
-        print(f"--- 📝 Batch {batch_count + 1}/{total_batches} 🚀 ---")
+        print(f"--- 📄 Batch {batch_count + 1}/{total_batches} ---")
         print(f"Output: {output_filename}")
         print(f"Image: {os.path.basename(selected_image)}")
         print("MP3s:", ", ".join(os.path.basename(mp3) for mp3 in selected_mp3s))
@@ -399,7 +399,7 @@ class VideoWorker(QObject):
             time_str = f"{mins}m {secs}s"
         else:
             time_str = f"{int(batch_time_spent)}s"
-        print(f"\u2713 Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str})") 
+        print(f"\u2713 Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str}) ✔️") 
         
         return True, failed_moves
 

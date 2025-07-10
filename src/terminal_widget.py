@@ -340,18 +340,7 @@ class TerminalWidget(QWidget):
         self.closed.emit()
         event.accept()
         
-    def test_progress_bar(self):
-        """Test function to demonstrate progress bar functionality"""
-        import time
-                
-        total_frames = 100
-        
-        for i in range(total_frames + 1):
-            percentage = (i / total_frames) * 100
-            eta = "00:00:00" if i == total_frames else "00:00:15"
-            progress_text = f"\r{percentage:5.1f}% | Frame: {i}/{total_frames} | ETA: {eta}"
-            print(progress_text, end="", flush=True)
-            time.sleep(0.05)  # Simulate processing time
+    
         
     def create_progress_bar(self, current, total, eta="00:00:00", prefix=""):
         """

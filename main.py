@@ -106,7 +106,7 @@ if os.path.exists(ACTIVATION_FILENAME):
             print(f"Warning: FFmpeg not found. {error_msg or 'The application will attempt to extract it on first use.'}")
         window = SuperCutUI()
         window.show()
-        print("Application started successfully!")        
+        print("Application started successfully! 💫 ")        
         sys.exit(app.exec())
 
     if __name__ == "__main__":

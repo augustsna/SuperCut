@@ -501,9 +501,9 @@ def create_video_with_ffmpeg(
 
         # Display FFmpeg command with output video name
         video_name = os.path.basename(output_path)
-        print(f"FFmpeg Command for {video_name}:")
-        display_cmd = ['ffmpeg'] + cmd[1:]
-        print(f"  {' '.join(display_cmd)}")        
+        print(f"📝 Commad:")
+        display_cmd = ['✨ ffmpeg'] + cmd[1:]
+        print(f"  {' '.join(display_cmd)} ✨")        
 
         audio_duration = get_audio_duration(audio_path)
         total_frames = int(audio_duration * fps)
@@ -523,7 +523,7 @@ def create_video_with_ffmpeg(
             eta_sec = int(remaining_frames / speed) if speed > 0 else 0
             eta_str = time.strftime('%H:%M:%S', time.gmtime(eta_sec)) if eta_sec > 0 else "--:--:--"
             sys.stdout.write(
-                f"\r  {percent:5.1f}% | Frame: {current_frame}/{total_frames} | ETA: {eta_str} | it/s: {current_its} "
+                f"\r  {percent:5.1f}% | Frame: {current_frame}/{total_frames} | ETA: {eta_str} | it/s: {current_its} 🚀 "
             )
             sys.stdout.flush()
         try:
