@@ -188,7 +188,7 @@ class TerminalWidget(QWidget):
         header_layout.setSpacing(8)
         
         # Title
-        title_label = QLabel("SuperCut Terminal")
+        title_label = QLabel("Main Terminal")
         title_label.setStyleSheet("""
             QLabel {
                 color: #f2f2f2;
@@ -220,7 +220,7 @@ class TerminalWidget(QWidget):
         
         # Content area
         content_layout = QVBoxLayout()
-        content_layout.setContentsMargins(12, 12, 12, 12)
+        content_layout.setContentsMargins(12, 0, 12, 12)
         content_layout.setSpacing(8)
         
         # Terminal output area
