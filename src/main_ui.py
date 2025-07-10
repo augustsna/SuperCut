@@ -979,7 +979,7 @@ class SuperCutUI(QWidget):
         self.name_list_checkbox = QtWidgets.QCheckBox("List name:")
         self.name_list_checkbox.setChecked(True)
         self.name_list_enter_btn = QPushButton("Enter")
-        self.name_list_enter_btn.setFixedWidth(60)
+        self.name_list_enter_btn.setFixedWidth(70)
         # Remove Preview button from main UI if present
         # self.name_list_preview_btn = QPushButton("Preview")
         # self.name_list_preview_btn.setFixedWidth(70)
@@ -1044,14 +1044,14 @@ class SuperCutUI(QWidget):
         self.folder_edit.textChanged.connect(self.update_output_name)
         part_layout.addSpacing(20)
         part_layout.addWidget(self.name_list_checkbox)
-        part_layout.addSpacing(-45)
+        part_layout.addSpacing(-40)
         part_layout.addWidget(self.name_list_enter_btn)
         # part_layout.addWidget(self.name_list_preview_btn)
-        part_layout.addSpacing(20)
+        part_layout.addSpacing(15)
         part_layout.addWidget(QLabel("Name:"))
-        part_layout.addSpacing(-90)  # Reduce space between label and textbox
+        part_layout.addSpacing(-88)  # Reduce space between label and textbox
         part_layout.addWidget(self.part1_edit)
-        part_layout.addSpacing(-10)
+        part_layout.addSpacing(0)
         part_layout.addWidget(QLabel("#"))
         part_layout.addSpacing(-120) 
         part_layout.addWidget(self.part2_edit)
