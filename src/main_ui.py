@@ -790,6 +790,7 @@ class SuperCutUI(QWidget):
         self.loading_label = loading_label  # Store as instance variable for later control
         title_layout.addSpacing(80)
         title_layout.addStretch()
+        title_layout.addSpacing(-20)
         title_layout.addWidget(title_icon)
         # Add spacing after title label
         title_layout.addSpacing(1)
@@ -811,7 +812,7 @@ class SuperCutUI(QWidget):
         layout.addWidget(title_widget)
         # Add spacer below title bar to prevent overlap
         layout.addSpacing(0)
-        # --- End program title ---
+        # --- End program title ---        
 
         # --- Create scrollable area for main content ---
         scroll_area = QtWidgets.QScrollArea()
@@ -1267,7 +1268,7 @@ class SuperCutUI(QWidget):
         intro_layout.addWidget(intro_btn)
         intro_layout.addSpacing(4)
         intro_layout.addWidget(intro_position_label)
-        intro_layout.addSpacing(0)
+        intro_layout.addSpacing(4)
         intro_layout.addWidget(self.intro_position_combo)
         intro_layout.addSpacing(6)
         intro_layout.addWidget(intro_size_label)
