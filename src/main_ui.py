@@ -695,15 +695,15 @@ class SuperCutUI(QWidget):
         
         # Create main layout
         layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(14, 20, 0, 0)  # Reduce left margin from 20px to 10px
+        layout.setSpacing(9)
 
-        # --- Add program title with icon at the top ---
+        # --- Add program title with icon at the top (FIXED) ---
         layout.addSpacing(0)
         title_widget = QtWidgets.QWidget()
-        title_widget.setFixedHeight(75)
+        title_widget.setFixedHeight(60)
         title_layout = QtWidgets.QHBoxLayout()
-        title_layout.setContentsMargins(0, 0, 0, 0)
+        title_layout.setContentsMargins(0, 0, 0, 20)
         title_layout.setSpacing(0)
         # Add PNG logo in front of SuperCut title
         title_icon = QLabel()
@@ -750,13 +750,62 @@ class SuperCutUI(QWidget):
         title_widget.setLayout(title_layout)
         layout.addWidget(title_widget)
         # Add spacer below title bar to prevent overlap
-        layout.addSpacing(50)
+        layout.addSpacing(0)
         # --- End program title ---
 
-        # Add UI components
-        self.create_folder_inputs(layout)
-        self.create_export_inputs(layout)
-        self.create_video_settings(layout)
+        # --- Create scrollable area for main content ---
+        scroll_area = QtWidgets.QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background: transparent;
+                margin-right: 0px;
+                padding-right: 0px;
+            }
+            QScrollBar:vertical {
+                background: #f0f0f0;
+                width: 12px;
+                border-radius: 6px;
+                margin: 0px;
+                position: absolute;
+                right: 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: #c0c0c0;
+                border-radius: 6px;
+                min-height: 20px;
+                margin: 0px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #a0a0a0;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+            QScrollBar::sub-control:corner {
+                background: transparent;
+            }
+        """)
+        
+        # Create scrollable content widget with proper margins
+        scroll_content = QtWidgets.QWidget()
+        scroll_layout = QVBoxLayout(scroll_content)
+        scroll_layout.setContentsMargins(10, 0, 32, 0)  # Reduced left margin from 20px to 10px, right margin 32px for scrollbar
+        scroll_layout.setSpacing(9)
+        
+        # Add UI components to scrollable area
+        self.create_folder_inputs(scroll_layout)
+        self.create_export_inputs(scroll_layout)
+        self.create_video_settings(scroll_layout)
+        
+        # Set the scroll content widget
+        scroll_area.setWidget(scroll_content)
+        layout.addWidget(scroll_area)
+        
+        # Add action buttons and progress controls outside scroll area (fixed at bottom)
         self.create_action_buttons(layout)
         self.create_progress_controls(layout)
         
