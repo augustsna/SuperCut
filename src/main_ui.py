@@ -82,6 +82,33 @@ class SettingsDialog(QDialog):
         right_form = QFormLayout()
         # Left column: FPS and Intro
         left_form = QFormLayout()
+        # --- Default Window Size ---
+        window_size_layout = QHBoxLayout()
+        self.default_window_width_edit = QLineEdit()
+        self.default_window_width_edit.setFixedWidth(45)
+        self.default_window_width_edit.setPlaceholderText("W")
+        self.default_window_width_edit.setValidator(QIntValidator(600, 1200, self))
+        if self.settings is not None:
+            default_width = self.settings.value('default_window_width', 660, type=int)
+            self.default_window_width_edit.setText(str(default_width))
+        else:
+            self.default_window_width_edit.setText("660")
+        
+        self.default_window_height_edit = QLineEdit()
+        self.default_window_height_edit.setFixedWidth(45)
+        self.default_window_height_edit.setPlaceholderText("H")
+        self.default_window_height_edit.setValidator(QIntValidator(500, 1000, self))
+        if self.settings is not None:
+            default_height = self.settings.value('default_window_height', 640, type=int)
+            self.default_window_height_edit.setText(str(default_height))
+        else:
+            self.default_window_height_edit.setText("640")
+        
+        window_size_layout.addWidget(self.default_window_width_edit)
+        window_size_layout.addWidget(QLabel("×"))
+        window_size_layout.addWidget(self.default_window_height_edit)
+        window_size_layout.addStretch()
+        
         # --- Default MP3 # Enabled Checkbox ---
         self.default_mp3_count_enabled_checkbox = QtWidgets.QCheckBox("Enable MP3 #")
         self.default_mp3_count_enabled_checkbox.setChecked(
@@ -191,6 +218,8 @@ class SettingsDialog(QDialog):
         idx = next((i for i, (label, value) in enumerate(DEFAULT_BUFSIZE_OPTIONS) if value == default_bufsize), 4)
         self.bufsize_combo.setCurrentIndex(idx)
         # Add to left_form in new order with reduced spacing
+        left_form.addRow("Window Size:", window_size_layout)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
@@ -375,6 +404,17 @@ class SettingsDialog(QDialog):
     def accept(self):
         self.selected_fps = self.fps_combo.currentData()
         if self.settings is not None:
+            # Save window size settings
+            try:
+                window_width = int(self.default_window_width_edit.text())
+                window_height = int(self.default_window_height_edit.text())
+                self.settings.setValue('default_window_width', window_width)
+                self.settings.setValue('default_window_height', window_height)
+            except ValueError:
+                # If invalid values, use defaults
+                self.settings.setValue('default_window_width', 660)
+                self.settings.setValue('default_window_height', 640)
+            
             self.settings.setValue('default_fps', self.selected_fps)
             self.settings.setValue('default_intro_enabled', self.default_intro_enabled_checkbox.isChecked())
             self.settings.setValue('default_intro_path', self.default_intro_path_edit.text())
@@ -435,6 +475,9 @@ class SettingsDialog(QDialog):
         self.default_list_name_enabled_checkbox.setChecked(False)
         # MP3 #
         self.default_mp3_count_enabled_checkbox.setChecked(False)
+        # Window Size
+        self.default_window_width_edit.setText("660")
+        self.default_window_height_edit.setText("640")
 
 class NameListDialog(QDialog):
     def __init__(self, parent=None, initial_names=None):
@@ -690,7 +733,17 @@ class SuperCutUI(QWidget):
         # Set window properties
         self.setWindowIcon(QIcon(ICON_PATH))
         self.setWindowTitle(WINDOW_TITLE)
-        self.setFixedSize(WINDOW_SIZE[0], WINDOW_SIZE[1])
+        
+        # Load saved window size or use defaults
+        saved_width = self.settings.value('default_window_width', WINDOW_SIZE[0], type=int)
+        saved_height = self.settings.value('default_window_height', WINDOW_SIZE[1], type=int)
+        
+        # Ensure minimum size constraints
+        width = max(saved_width, WINDOW_SIZE[0])
+        height = max(saved_height, WINDOW_SIZE[1])
+        
+        self.setMinimumSize(WINDOW_SIZE[0], WINDOW_SIZE[1])  # Set minimum size instead of fixed size
+        self.resize(width, height)  # Set initial size from settings
         self.setStyleSheet(STYLE_SHEET)
         
         # Create main layout
@@ -766,7 +819,7 @@ class SuperCutUI(QWidget):
                 padding-right: 0px;
             }
             QScrollBar:vertical {
-                background: #f0f0f0;
+                background: rgba(240, 240, 240, 0.35);
                 width: 12px;
                 border-radius: 6px;
                 margin: 0px;
@@ -774,13 +827,13 @@ class SuperCutUI(QWidget):
                 right: 0px;
             }
             QScrollBar::handle:vertical {
-                background: #c0c0c0;
+                background: rgba(192, 192, 192, 0.35);
                 border-radius: 6px;
                 min-height: 20px;
                 margin: 0px;
             }
             QScrollBar::handle:vertical:hover {
-                background: #a0a0a0;
+                background: rgba(160, 160, 160, 0.35);
             }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0px;
@@ -2423,7 +2476,7 @@ class SuperCutUI(QWidget):
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
-        button_layout.setContentsMargins(0, 0, 0, 15)  # Add 3px top and 2px bottom margins for 45px total height
+        button_layout.setContentsMargins(0, 0, 0, 12)  # Add 3px top and 2px bottom margins for 45px total height
 
         # Add settings button first, before terminal
         button_layout.addSpacing(10)
