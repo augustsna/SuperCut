@@ -180,15 +180,33 @@ def validate_inputs(media_sources: str, export_name: str, number: str) -> tuple[
         return False, "Number must be a valid integer."
     return True, ""
 
+def is_image_valid(path):
+    try:
+        with Image.open(path) as img:
+            img.verify()
+        return True
+    except Exception:
+        return False
+
+def is_mp3_valid(path):
+    try:
+        MP3(path)
+        return True
+    except Exception:
+        return False
+
 def validate_media_files(media_sources: str, min_mp3_count: int = 3) -> tuple[bool, str, list, list]:
     """Validate media files and return (is_valid, error_message, mp3_files, image_files)"""
     mp3_files = get_files_by_type(media_sources, "audio")
     image_files = get_files_by_type(media_sources, "image")
-    if not image_files:
-        return False, "No image files found in the media folder.", [], []
-    if not mp3_files or len(mp3_files) < min_mp3_count:
-        return False, f"Not enough mp3 files in folder (need at least {min_mp3_count} to start batch processing)", [], []
-    return True, "", mp3_files, image_files
+    # Filter out corrupt files
+    valid_mp3s = [f for f in mp3_files if is_mp3_valid(f)]
+    valid_images = [f for f in image_files if is_image_valid(f)]
+    if not valid_images:
+        return False, "No valid (non-corrupt) image files found in the media folder.", [], []
+    if not valid_mp3s or len(valid_mp3s) < min_mp3_count:
+        return False, f"Not enough valid (non-corrupt) mp3 files in folder (need at least {min_mp3_count})", [], []
+    return True, "", valid_mp3s, valid_images
 
 def extract_mp3_title(mp3_path):
     """
