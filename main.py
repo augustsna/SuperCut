@@ -21,6 +21,11 @@ with open('supercut.log', 'w'):
 # Clean up any leftover temp files before starting the program
 cleanup_temp_files()
 
+# Create the QApplication instance ONCE at the very start
+app = QApplication(sys.argv)
+app.setApplicationName("SuperCut")
+app.setApplicationVersion("1.0")
+
 class PasswordDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -32,12 +37,13 @@ class PasswordDialog(QDialog):
             self.setWindowIcon(QIcon(ICON_PATH))
         layout = QVBoxLayout(self)
         label = QLabel("Enter your one-time password:")
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         label.setStyleSheet("font-size: 14px; font-weight: bold; margin-bottom: 6px;")
         layout.addWidget(label)
         self.input = QLineEdit()
         self.input.setEchoMode(QLineEdit.EchoMode.Password)
         self.input.setPlaceholderText("Ask Sna")
-        self.input.setFixedHeight(24)
+        self.input.setFixedHeight(28)
         self.input.setStyleSheet("font-size: 13px; padding: 2px 2px;")
         layout.addWidget(self.input)
         self.error_label = QLabel("")
@@ -74,9 +80,6 @@ if current_pc_name is None:
     current_pc_name = ''
 
 if not os.path.exists(ACTIVATION_FILENAME):
-    app = QApplication(sys.argv)
-    app.setApplicationName("SuperCut")
-    app.setApplicationVersion("1.0")
     while True:
         dlg = PasswordDialog()
         if dlg.exec() == QDialog.DialogCode.Accepted:
@@ -90,23 +93,21 @@ if not os.path.exists(ACTIVATION_FILENAME):
                 continue
         else:
             sys.exit(0)
-    app.exit()
+    # No need to call app.exit() here; continue to main window
 
 # Only run main if the flag file exists (i.e., activation succeeded)
 if os.path.exists(ACTIVATION_FILENAME):
     def main():
         """Main application entry point"""
         print("Starting SuperCut Video Maker...")        
-        app = QApplication(sys.argv)
-        app.setApplicationName("SuperCut")
-        app.setApplicationVersion("1.0")
+        # QApplication already created above
         # Check FFmpeg installation
         ffmpeg_ok, error_msg = check_ffmpeg_installation()
         if not ffmpeg_ok:
             print(f"Warning: FFmpeg not found. {error_msg or 'The application will attempt to extract it on first use.'}")
         window = SuperCutUI()
         window.show()
-        print("Application started successfully! 💫 ")        
+        print("Application started successfully! \u2727 ")        
         sys.exit(app.exec())
 
     if __name__ == "__main__":
