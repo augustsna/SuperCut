@@ -1244,13 +1244,14 @@ class SuperCutUI(QWidget):
         intro_layout.addWidget(self.intro_edit)
         intro_layout.addSpacing(4)
         intro_layout.addWidget(intro_btn)
+        intro_layout.addSpacing(6)
+        intro_layout.addWidget(intro_size_label)
+        intro_layout.addWidget(self.intro_size_combo)
         intro_layout.addSpacing(4)
         intro_layout.addWidget(intro_position_label)
         intro_layout.addSpacing(4)
         intro_layout.addWidget(self.intro_position_combo)
-        intro_layout.addSpacing(6)
-        intro_layout.addWidget(intro_size_label)
-        intro_layout.addWidget(self.intro_size_combo)
+        
         layout.addLayout(intro_layout)
 
         # Intro effect controls - moved directly below intro line
@@ -1491,10 +1492,10 @@ class SuperCutUI(QWidget):
         self.effect_combo.currentIndexChanged.connect(on_effect_changed)
         on_effect_changed(self.effect_combo.currentIndex())
 
-        overlay_duration_label = QLabel("at (s):")
+        overlay_duration_label = QLabel("at:")
         overlay_duration_label.setFixedWidth(40)
         self.overlay_duration_edit = QLineEdit("5")
-        self.overlay_duration_edit.setFixedWidth(edit_width)
+        self.overlay_duration_edit.setFixedWidth(90)
         self.overlay_duration_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay_duration_edit.setPlaceholderText("5")
         self.overlay_duration = 5
@@ -1508,13 +1509,13 @@ class SuperCutUI(QWidget):
 
         effect_layout = QHBoxLayout()
         effect_layout.setContentsMargins(0, 0, 0, 0)
-        effect_layout.addSpacing(30)
+        effect_layout.addSpacing(255)
         effect_layout.addWidget(effect_label)
-        effect_layout.addSpacing(-10)
-        effect_layout.addWidget(self.effect_combo)
         effect_layout.addSpacing(-5)
+        effect_layout.addWidget(self.effect_combo)
+        effect_layout.addSpacing(1)
         effect_layout.addWidget(overlay_duration_label)
-        effect_layout.addSpacing(-10)
+        effect_layout.addSpacing(-18)
         effect_layout.addWidget(self.overlay_duration_edit)
         effect_layout.addStretch()
         layout.addLayout(effect_layout)
