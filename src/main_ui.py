@@ -2423,6 +2423,7 @@ class SuperCutUI(QWidget):
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
+        button_layout.setContentsMargins(0, 0, 0, 15)  # Add 3px top and 2px bottom margins for 45px total height
 
         # Add settings button first, before terminal
         button_layout.addSpacing(10)
@@ -2439,7 +2440,7 @@ class SuperCutUI(QWidget):
         # Add terminal button next
         button_layout.addSpacing(10)
         self.terminal_btn = QPushButton("💻 Terminal")
-        self.terminal_btn.setFixedHeight(35)
+        self.terminal_btn.setFixedHeight(38)
         self.terminal_btn.setFixedWidth(100)
         self.terminal_btn.clicked.connect(self.show_terminal)
         button_layout.addWidget(self.terminal_btn)
@@ -2447,7 +2448,7 @@ class SuperCutUI(QWidget):
         # Then add create video button, always after terminal
         button_layout.addSpacing(0)
         self.create_btn = QPushButton("Create Video")
-        self.create_btn.setFixedHeight(35)
+        self.create_btn.setFixedHeight(38)
         self.create_btn.setFixedWidth(350)
         self.create_btn.clicked.connect(self.create_video)
         button_layout.addWidget(self.create_btn)
@@ -2458,11 +2459,18 @@ class SuperCutUI(QWidget):
         rocket_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "rocket.png")
         self.placeholder_btn.setIcon(QIcon(rocket_icon_path))
         self.placeholder_btn.setIconSize(QSize(28, 28))
-        self.placeholder_btn.setFixedHeight(32)
-        self.placeholder_btn.setFixedWidth(32)
+        self.placeholder_btn.setFixedHeight(40)
+        self.placeholder_btn.setFixedWidth(40)
         self.placeholder_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         # self.placeholder_btn.setVisible(self.static_icon.isVisible())  # Ensure always visible
         button_layout.addWidget(self.placeholder_btn)
+
+        # Add version text after placeholder button
+        button_layout.addSpacing(8)
+        version_label = QLabel("v2025.1")
+        version_label.setStyleSheet("color: #666; font-size: 12px; font-weight: normal;")
+        version_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        button_layout.addWidget(version_label)
 
         button_layout.addStretch()  # Pushes spinner to the far right
 
