@@ -466,6 +466,53 @@ class ScrollableErrorDialog(QDialog):
         self.text_edit.setText(message)
         self.text_edit.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.text_edit.setMinimumHeight(200)
+        # --- Apply main UI scroll bar style ---
+        SCROLLBAR_STYLE = """
+        QScrollBar:vertical {
+            background: rgba(240, 240, 240, 0.20);
+            width: 12px;
+            border-radius: 6px;
+            margin: 0px;
+            position: absolute;
+            right: 0px;
+        }
+        QScrollBar::handle:vertical {
+            background: rgba(192, 192, 192, 0.20);
+            border-radius: 6px;
+            min-height: 20px;
+            margin: 0px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: rgba(160, 160, 160, 0.35);
+        }
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            height: 0px;
+        }
+        QScrollBar:horizontal {
+            background: rgba(240, 240, 240, 0.35);
+            height: 12px;
+            border-radius: 6px;
+            margin: 0px;
+            position: absolute;
+            bottom: 0px;
+        }
+        QScrollBar::handle:horizontal {
+            background: rgba(192, 192, 192, 0.35);
+            border-radius: 6px;
+            min-width: 20px;
+            margin: 0px;
+        }
+        QScrollBar::handle:horizontal:hover {
+            background: rgba(160, 160, 160, 0.35);
+        }
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+            width: 0px;
+        }
+        QScrollBar:sub-control:corner {
+            background: transparent;
+        }
+        """
+        self.text_edit.setStyleSheet(self.text_edit.styleSheet() + SCROLLBAR_STYLE)
         layout.addWidget(self.text_edit, 1)
 
         # OK button

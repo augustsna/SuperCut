@@ -47,6 +47,60 @@ from src.terminal_widget import TerminalWidget
 import time
 import threading
 
+# --- SCROLLBAR STYLE FOR CONSISTENCY ---
+SCROLLBAR_STYLE = """
+QScrollBar:vertical {
+    background: rgba(240, 240, 240, 0.20);
+    width: 12px;
+    border-radius: 6px;
+    margin: 0px;
+    position: absolute;
+    right: 0px;
+}
+QScrollBar::handle:vertical {
+    background: rgba(192, 192, 192, 0.20);
+    border-radius: 6px;
+    min-height: 20px;
+    margin: 0px;
+}
+QScrollBar::handle:vertical:hover {
+    background: rgba(160, 160, 160, 0.35);
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+QScrollBar:horizontal {
+    background: rgba(240, 240, 240, 0.35);
+    height: 12px;
+    border-radius: 6px;
+    margin: 0px;
+    position: absolute;
+    bottom: 0px;
+}
+QScrollBar::handle:horizontal {
+    background: rgba(192, 192, 192, 0.35);
+    border-radius: 6px;
+    min-width: 20px;
+    margin: 0px;
+}
+QScrollBar::handle:horizontal:hover {
+    background: rgba(160, 160, 160, 0.35);
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+QScrollBar:sub-control:corner {
+    background: transparent;
+}
+"""
+
+# --- BLUE BUTTON HELPER ---
+def set_blue_button(button):
+    """Set a QPushButton to blue style (background #4a90e2, white text, rounded, bold)."""
+    button.setStyleSheet(
+        "background-color: #4a90e2; color: white; border-radius: 6px;"
+    )
+
 class SettingsDialog(QDialog):
     def __init__(self, parent=None, settings=None, fps_options=None):
         super().__init__(parent)
@@ -547,6 +601,7 @@ class NameListDialog(QDialog):
         layout.addWidget(label)
         self.text_edit = QtWidgets.QPlainTextEdit()
         self.text_edit.setLineWrapMode(QtWidgets.QPlainTextEdit.LineWrapMode.NoWrap)
+        self.text_edit.setStyleSheet(self.text_edit.styleSheet() + SCROLLBAR_STYLE)
         if initial_names:
             self.set_names(initial_names)
         layout.addWidget(self.text_edit)
@@ -611,6 +666,7 @@ class NameListDialog(QDialog):
         layout.addWidget(label)
         preview_text = QPlainTextEdit()
         preview_text.setReadOnly(True)
+        preview_text.setStyleSheet(preview_text.styleSheet() + SCROLLBAR_STYLE)
         names = self.get_names()
         if names:
             lines = [f"{i+1}. {name}" for i, name in enumerate(names)]
@@ -3801,14 +3857,19 @@ Overlay7 Effect: {self.selected_overlay6_7_effect} | Time: {self.overlay6_7_star
         dlg = QtWidgets.QDialog(self)
         dlg.setWindowTitle("Preview: FFmpeg Settings")
         dlg.setMinimumSize(480, 500)
+        dlg.setStyleSheet("background-color: #f6f6f6;")
         layout = QVBoxLayout(dlg)
         text_edit = QtWidgets.QPlainTextEdit()
         text_edit.setReadOnly(True)
-        text_edit.setStyleSheet("background-color: #f6f6f6;")
+        text_edit.setStyleSheet(text_edit.styleSheet() + SCROLLBAR_STYLE + "\nbackground-color: #f6f6f6; font-size: 15px;")
         text_edit.setPlainText(settings_str.lstrip())
         layout.addWidget(text_edit)
         btn_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.StandardButton.Ok)
         btn_box.accepted.connect(dlg.accept)
+        # Set OK button to blue using the helper
+        ok_button = btn_box.button(QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        if ok_button is not None:
+            set_blue_button(ok_button)
         layout.addWidget(btn_box)
         dlg.exec()
 
