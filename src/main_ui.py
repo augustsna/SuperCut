@@ -326,7 +326,7 @@ class SettingsDialog(QDialog):
         if self.settings is not None:
             default_overlay1_x = self.settings.value('default_overlay1_x_percent', 0, type=int)
             idx = default_overlay1_x if 0 <= default_overlay1_x <= 100 else 0
-            self.default_overlay1_x_combo.setCurrentIndex(0)  # Default 0%
+            self.default_overlay1_x_combo.setCurrentIndex(idx)
         else:
             self.default_overlay1_x_combo.setCurrentIndex(0)  # Default 0%
         right_form.addRow("Overlay 1 X Position:", self.default_overlay1_x_combo)
@@ -338,7 +338,7 @@ class SettingsDialog(QDialog):
         if self.settings is not None:
             default_overlay1_y = self.settings.value('default_overlay1_y_percent', 0, type=int)
             idx = default_overlay1_y if 0 <= default_overlay1_y <= 100 else 0
-            self.default_overlay1_y_combo.setCurrentIndex(0)  # Default 0%
+            self.default_overlay1_y_combo.setCurrentIndex(idx)
         else:
             self.default_overlay1_y_combo.setCurrentIndex(0)  # Default 0%
         right_form.addRow("Overlay 1 Y Position:", self.default_overlay1_y_combo)
@@ -350,7 +350,7 @@ class SettingsDialog(QDialog):
         if self.settings is not None:
             default_overlay1_size = self.settings.value('default_overlay1_size', 50, type=int)
             idx = (default_overlay1_size // 5) - 1 if 5 <= default_overlay1_size <= 100 else 9
-            self.default_overlay1_size_combo.setCurrentIndex(9)  # Default 50%
+            self.default_overlay1_size_combo.setCurrentIndex(idx)
         else:
             self.default_overlay1_size_combo.setCurrentIndex(9)  # Default 50%
         right_form.addRow("Overlay 1 Size:", self.default_overlay1_size_combo)
@@ -386,7 +386,7 @@ class SettingsDialog(QDialog):
         if self.settings is not None:
             default_overlay2_x = self.settings.value('default_overlay2_x_percent', 0, type=int)
             idx = default_overlay2_x if 0 <= default_overlay2_x <= 100 else 0
-            self.default_overlay2_x_combo.setCurrentIndex(0)  # Default 0%
+            self.default_overlay2_x_combo.setCurrentIndex(idx)
         else:
             self.default_overlay2_x_combo.setCurrentIndex(0)  # Default 0%
         right_form.addRow("Overlay 2 X Position:", self.default_overlay2_x_combo)
@@ -398,7 +398,7 @@ class SettingsDialog(QDialog):
         if self.settings is not None:
             default_overlay2_y = self.settings.value('default_overlay2_y_percent', 0, type=int)
             idx = default_overlay2_y if 0 <= default_overlay2_y <= 100 else 0
-            self.default_overlay2_y_combo.setCurrentIndex(0)  # Default 0%
+            self.default_overlay2_y_combo.setCurrentIndex(idx)
         else:
             self.default_overlay2_y_combo.setCurrentIndex(0)  # Default 0%
         right_form.addRow("Overlay 2 Y Position:", self.default_overlay2_y_combo)
@@ -410,7 +410,7 @@ class SettingsDialog(QDialog):
         if self.settings is not None:
             default_overlay2_size = self.settings.value('default_overlay2_size', 50, type=int)
             idx = (default_overlay2_size // 5) - 1 if 5 <= default_overlay2_size <= 100 else 9
-            self.default_overlay2_size_combo.setCurrentIndex(9)  # Default 50%
+            self.default_overlay2_size_combo.setCurrentIndex(idx)
         else:
             self.default_overlay2_size_combo.setCurrentIndex(9)  # Default 50%
         right_form.addRow("Overlay 2 Size:", self.default_overlay2_size_combo)
