@@ -3973,8 +3973,245 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         dry_run_btn = QPushButton("Dry Run")
         dry_run_btn.setFixedWidth(80)
         dry_run_btn.setStyleSheet("background-color: #28a745; color: white; border-radius: 6px;")
-        # TODO: Add dry run functionality here
-        dry_run_btn.clicked.connect(lambda: print("Dry Run button clicked - placeholder"))
+        def run_dry_run():
+            from PyQt6.QtCore import QObject, QThread, pyqtSignal
+            from src.ffmpeg_utils import create_video_with_ffmpeg
+            from src.utils import extract_mp3_title, create_song_title_png, create_temp_file
+            import traceback
+            import os
+            class DryRunWorker(QObject):
+                finished = pyqtSignal(bool, str)
+                def __init__(self, params):
+                    super().__init__()
+                    self.params = params
+                def run(self):
+                    try:
+                        dry_img = self.params['dry_img']
+                        dry_mp3 = self.params['dry_mp3']
+                        dry_out = self.params['dry_out']
+                        resolution = self.params['resolution']
+                        fps = self.params['fps']
+                        codec = self.params['codec']
+                        preset = self.params['preset']
+                        audio_bitrate = self.params['audio_bitrate']
+                        video_bitrate = self.params['video_bitrate']
+                        maxrate = self.params['maxrate']
+                        bufsize = self.params['bufsize']
+                        use_overlay = self.params['use_overlay']
+                        overlay1_path = self.params['overlay1_path']
+                        overlay1_size_percent = self.params['overlay1_size_percent']
+                        overlay1_x_percent = self.params['overlay1_x_percent']
+                        overlay1_y_percent = self.params['overlay1_y_percent']
+                        use_overlay2 = self.params['use_overlay2']
+                        overlay2_path = self.params['overlay2_path']
+                        overlay2_size_percent = self.params['overlay2_size_percent']
+                        overlay2_x_percent = self.params['overlay2_x_percent']
+                        overlay2_y_percent = self.params['overlay2_y_percent']
+                        overlay1_start_at = self.params['overlay1_start_at']
+                        overlay2_start_at = self.params['overlay2_start_at']
+                        use_overlay3 = self.params['use_overlay3']
+                        overlay3_path = self.params['overlay3_path']
+                        overlay3_size_percent = self.params['overlay3_size_percent']
+                        overlay3_x_percent = self.params['overlay3_x_percent']
+                        overlay3_y_percent = self.params['overlay3_y_percent']
+                        use_overlay4 = self.params['use_overlay4']
+                        overlay4_path = self.params['overlay4_path']
+                        overlay4_size_percent = self.params['overlay4_size_percent']
+                        overlay4_x_percent = self.params['overlay4_x_percent']
+                        overlay4_y_percent = self.params['overlay4_y_percent']
+                        use_overlay5 = self.params['use_overlay5']
+                        overlay5_path = self.params['overlay5_path']
+                        overlay5_size_percent = self.params['overlay5_size_percent']
+                        overlay5_x_percent = self.params['overlay5_x_percent']
+                        overlay5_y_percent = self.params['overlay5_y_percent']
+                        use_overlay6 = self.params['use_overlay6']
+                        overlay6_path = self.params['overlay6_path']
+                        overlay6_size_percent = self.params['overlay6_size_percent']
+                        overlay6_x_percent = self.params['overlay6_x_percent']
+                        overlay6_y_percent = self.params['overlay6_y_percent']
+                        use_overlay7 = self.params['use_overlay7']
+                        overlay7_path = self.params['overlay7_path']
+                        overlay7_size_percent = self.params['overlay7_size_percent']
+                        overlay7_x_percent = self.params['overlay7_x_percent']
+                        overlay7_y_percent = self.params['overlay7_y_percent']
+                        overlay4_effect = self.params['overlay4_effect']
+                        overlay4_effect_time = self.params['overlay4_effect_time']
+                        overlay5_effect = self.params['overlay5_effect']
+                        overlay5_effect_time = self.params['overlay5_effect_time']
+                        overlay6_effect = self.params['overlay6_effect']
+                        overlay6_effect_time = self.params['overlay6_effect_time']
+                        overlay7_effect = self.params['overlay7_effect']
+                        overlay7_effect_time = self.params['overlay7_effect_time']
+                        use_intro = self.params['use_intro']
+                        intro_path = self.params['intro_path']
+                        intro_size_percent = self.params['intro_size_percent']
+                        intro_x_percent = self.params['intro_x_percent']
+                        intro_y_percent = self.params['intro_y_percent']
+                        intro_effect = self.params['intro_effect']
+                        intro_duration = self.params['intro_duration']
+                        effect = self.params['effect']
+                        effect_time = self.params['effect_time']
+                        use_song_title_overlay = self.params['use_song_title_overlay']
+                        song_title_effect = self.params['song_title_effect']
+                        song_title_font = self.params['song_title_font']
+                        song_title_font_size = self.params['song_title_font_size']
+                        song_title_color = self.params['song_title_color']
+                        song_title_bg = self.params['song_title_bg']
+                        song_title_bg_color = self.params['song_title_bg_color']
+                        song_title_opacity = self.params['song_title_opacity']
+                        song_title_x_percent = self.params['song_title_x_percent']
+                        song_title_y_percent = self.params['song_title_y_percent']
+                        song_title_start_at = self.params['song_title_start_at']
+                        song_title_scale_percent = self.params['song_title_scale_percent']
+                        extra_overlays = None
+                        if use_song_title_overlay:
+                            title = extract_mp3_title(dry_mp3)
+                            temp_png = create_temp_file(suffix='_dryrun_songtitle.png')
+                            create_song_title_png(title, temp_png, width=1920, height=240, font_size=song_title_font_size, font_name=song_title_font, color=song_title_color, bg=song_title_bg, bg_color=song_title_bg_color, opacity=song_title_opacity)
+                            extra_overlays = [{
+                                'path': temp_png,
+                                'start': song_title_start_at,
+                                'duration': 10,  # Show for 10s for dry run
+                                'x_percent': song_title_x_percent,
+                                'y_percent': song_title_y_percent
+                            }]
+                        success, err = create_video_with_ffmpeg(
+                            dry_img, dry_mp3, dry_out, resolution, fps, codec,
+                            use_overlay, overlay1_path, overlay1_size_percent, overlay1_x_percent, overlay1_y_percent,
+                            use_overlay2, overlay2_path, overlay2_size_percent, overlay2_x_percent, overlay2_y_percent,
+                            use_overlay3, overlay3_path, overlay3_size_percent, overlay3_x_percent, overlay3_y_percent,
+                            use_overlay4, overlay4_path, overlay4_size_percent, overlay4_x_percent, overlay4_y_percent,
+                            use_overlay5, overlay5_path, overlay5_size_percent, overlay5_x_percent, overlay5_y_percent,
+                            use_overlay6, overlay6_path, overlay6_size_percent, overlay6_x_percent, overlay6_y_percent,
+                            use_overlay7, overlay7_path, overlay7_size_percent, overlay7_x_percent, overlay7_y_percent,
+                            use_intro, intro_path, intro_size_percent, intro_x_percent, intro_y_percent,
+                            effect, effect_time, intro_effect, intro_duration, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
+                            extra_overlays=extra_overlays,
+                            song_title_effect=song_title_effect,
+                            song_title_font=song_title_font,
+                            song_title_font_size=song_title_font_size,
+                            song_title_color=song_title_color,
+                            song_title_bg=song_title_bg,
+                            song_title_bg_color=song_title_bg_color,
+                            song_title_opacity=song_title_opacity,
+                            song_title_scale_percent=song_title_scale_percent,
+                            overlay3_effect="fadein",
+                            overlay3_effect_time=song_title_start_at if (use_song_title_overlay and song_title_start_at is not None) else 5,
+                            overlay4_effect=overlay4_effect,
+                            overlay4_effect_time=overlay4_effect_time,
+                            overlay5_effect=overlay5_effect,
+                            overlay5_effect_time=overlay5_effect_time,
+                            overlay6_effect=overlay6_effect,
+                            overlay6_effect_time=overlay6_effect_time,
+                            overlay7_effect=overlay7_effect,
+                            overlay7_effect_time=overlay7_effect_time,
+                            overlay1_start_at=overlay1_start_at,
+                            overlay2_start_at=overlay2_start_at
+                        )
+                        self.finished.emit(success, err if not success else dry_out)
+                    except Exception as e:
+                        tb = traceback.format_exc()
+                        self.finished.emit(False, f"Exception during dry run:\n{e}\n{tb}")
+            # Prepare parameters from the main UI's self
+            params = dict(
+                dry_img=os.path.join(PROJECT_ROOT, "src", "Dry Run", "dryrun.png"),
+                dry_mp3=os.path.join(PROJECT_ROOT, "src", "Dry Run", "dryrun.mp3"),
+                dry_out=os.path.join(PROJECT_ROOT, "src", "Dry Run", "dryrun.mp4"),
+                resolution=self.resolution_combo.currentData(),
+                fps=self.fps_combo.currentData(),
+                codec=self.codec_combo.currentData(),
+                preset=self.preset_combo.currentData(),
+                audio_bitrate=self.settings.value('default_ffmpeg_audio_bitrate', DEFAULT_AUDIO_BITRATE, type=str),
+                video_bitrate=self.settings.value('default_ffmpeg_video_bitrate', DEFAULT_VIDEO_BITRATE, type=str),
+                maxrate=self.settings.value('default_ffmpeg_maxrate', DEFAULT_MAXRATE, type=str),
+                bufsize=self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str),
+                use_overlay=self.overlay_checkbox.isChecked(),
+                overlay1_path=self.overlay1_path,
+                overlay1_size_percent=self.overlay1_size_percent,
+                overlay1_x_percent=self.overlay1_x_percent,
+                overlay1_y_percent=self.overlay1_y_percent,
+                use_overlay2=self.overlay2_checkbox.isChecked(),
+                overlay2_path=self.overlay2_path,
+                overlay2_size_percent=self.overlay2_size_percent,
+                overlay2_x_percent=self.overlay2_x_percent,
+                overlay2_y_percent=self.overlay2_y_percent,
+                overlay1_start_at=self.overlay_duration,
+                overlay2_start_at=self.overlay_duration,
+                use_overlay3=self.overlay3_checkbox.isChecked(),
+                overlay3_path=self.overlay3_path,
+                overlay3_size_percent=self.overlay3_size_percent,
+                overlay3_x_percent=self.overlay3_x_percent,
+                overlay3_y_percent=self.overlay3_y_percent,
+                use_overlay4=self.overlay4_checkbox.isChecked(),
+                overlay4_path=self.overlay4_path,
+                overlay4_size_percent=self.overlay4_size_percent,
+                overlay4_x_percent=self.overlay4_x_percent,
+                overlay4_y_percent=self.overlay4_y_percent,
+                use_overlay5=self.overlay5_checkbox.isChecked(),
+                overlay5_path=self.overlay5_path,
+                overlay5_size_percent=self.overlay5_size_percent,
+                overlay5_x_percent=self.overlay5_x_percent,
+                overlay5_y_percent=self.overlay5_y_percent,
+                use_overlay6=self.overlay6_checkbox.isChecked() if hasattr(self, 'overlay6_checkbox') else False,
+                overlay6_path=self.overlay6_path if hasattr(self, 'overlay6_path') else "",
+                overlay6_size_percent=self.overlay6_size_percent if hasattr(self, 'overlay6_size_percent') else 10,
+                overlay6_x_percent=self.overlay6_x_percent if hasattr(self, 'overlay6_x_percent') else 75,
+                overlay6_y_percent=self.overlay6_y_percent if hasattr(self, 'overlay6_y_percent') else 0,
+                use_overlay7=self.overlay7_checkbox.isChecked() if hasattr(self, 'overlay7_checkbox') else False,
+                overlay7_path=self.overlay7_path if hasattr(self, 'overlay7_path') else "",
+                overlay7_size_percent=self.overlay7_size_percent if hasattr(self, 'overlay7_size_percent') else 10,
+                overlay7_x_percent=self.overlay7_x_percent if hasattr(self, 'overlay7_x_percent') else 75,
+                overlay7_y_percent=self.overlay7_y_percent if hasattr(self, 'overlay7_y_percent') else 0,
+                overlay4_effect=self.selected_overlay4_5_effect if hasattr(self, 'selected_overlay4_5_effect') else "fadein",
+                overlay4_effect_time=self.overlay4_5_start_at if hasattr(self, 'overlay4_5_start_at') else 5,
+                overlay5_effect=self.selected_overlay4_5_effect if hasattr(self, 'selected_overlay4_5_effect') else "fadein",
+                overlay5_effect_time=self.overlay4_5_start_at if hasattr(self, 'overlay4_5_start_at') else 5,
+                overlay6_effect=self.selected_overlay6_7_effect if hasattr(self, 'selected_overlay6_7_effect') else "fadein",
+                overlay6_effect_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5,
+                overlay7_effect=self.selected_overlay6_7_effect if hasattr(self, 'selected_overlay6_7_effect') else "fadein",
+                overlay7_effect_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5,
+                use_intro=self.intro_checkbox.isChecked(),
+                intro_path=self.intro_path,
+                intro_size_percent=self.intro_size_percent,
+                intro_x_percent=self.intro_x_percent,
+                intro_y_percent=self.intro_y_percent,
+                intro_effect=self.intro_effect,
+                intro_duration=self.intro_duration,
+                effect=self.selected_effect,
+                effect_time=self.overlay_duration,
+                use_song_title_overlay=self.song_title_checkbox.isChecked(),
+                song_title_effect=self.song_title_effect,
+                song_title_font=self.song_title_font,
+                song_title_font_size=self.song_title_font_size,
+                song_title_color=self.song_title_color,
+                song_title_bg=self.song_title_bg,
+                song_title_bg_color=self.song_title_bg_color,
+                song_title_opacity=self.song_title_opacity,
+                song_title_x_percent=self.song_title_x_percent,
+                song_title_y_percent=self.song_title_y_percent,
+                song_title_start_at=self.song_title_start_at,
+                song_title_scale_percent=self.song_title_scale_percent
+            )
+            worker = DryRunWorker(params)
+            thread = QThread()
+            worker.moveToThread(thread)
+            from src.ui_components import WaitingDialog
+            waiting_dialog = WaitingDialog(self)
+            waiting_dialog.label.setText("Creating dry run video, wait...")
+            def on_finished(success, msg):
+                if waiting_dialog is not None:
+                    waiting_dialog.accept()
+                if success:
+                    QMessageBox.information(self, "Dry Run Success", f"Dry run video created at:\n{msg}")
+                else:
+                    QMessageBox.critical(self, "Dry Run Error", f"{msg}")
+            worker.finished.connect(on_finished)
+            thread.started.connect(worker.run)
+            thread.start()
+            waiting_dialog.exec()
+            thread.quit()
+            thread.wait()
+        dry_run_btn.clicked.connect(run_dry_run)
         
         # Add Close button (renamed from OK)
         close_btn = QPushButton("Close")
