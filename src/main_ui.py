@@ -878,7 +878,7 @@ class SuperCutUI(QWidget):
         
         # Create main layout
         layout = QVBoxLayout()
-        layout.setContentsMargins(14, 18, 0, 20)  # Reduce left margin from 20px to 10px
+        layout.setContentsMargins(14, 18, 0, 2)  # Reduce left margin from 20px to 10px
         layout.setSpacing(9)
 
         # --- Add program title with icon at the top (FIXED) ---
@@ -2797,7 +2797,7 @@ class SuperCutUI(QWidget):
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
-        button_layout.setContentsMargins(0, 0, 0, 2)  # Add 3px top and 2px bottom margins for 45px total height
+        button_layout.setContentsMargins(0, 0, 0, 0)  # Remove bottom margin
 
         # Add settings button first, before terminal
         button_layout.addSpacing(10)
@@ -2864,8 +2864,6 @@ class SuperCutUI(QWidget):
         version_label.setStyleSheet("color: #666; font-size: 12px; font-weight: normal;")
         version_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         button_layout.addWidget(version_label)
-
-        button_layout.addStretch()  # Pushes spinner to the far right
 
         layout.addLayout(button_layout)
 
@@ -3932,12 +3930,12 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 painter.setBrush(brush)
                 painter.setPen(Qt.PenStyle.NoPen)
                 rect = self.rect()
-                painter.drawRoundedRect(rect, 12, 12)  # 12px radius to match stylesheet
+                painter.drawRoundedRect(rect, 8, 8)  # 12px radius to match stylesheet
         
         dlg = RoundedDialog()
         dlg.setWindowTitle("⚡ SuperCut Preview")
         dlg.setMinimumSize(480, 500)
-        dlg.resize(480, 500)  # Set fixed size
+        dlg.resize(500, 520)  # Set fixed size
         dlg.setStyleSheet("""
             QWidget {
                 background-color: transparent;
@@ -4163,7 +4161,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         # Add Dry Run button (placeholder for now)
         dry_run_btn = QPushButton("Dry Run")
         dry_run_btn.setFixedSize(80, 28)  # Bigger button
-        dry_run_btn.setStyleSheet("background-color: #4a90e2; color: white; border-radius: 6px;")
+        dry_run_btn.setStyleSheet("background-color: #4CAF50; color: white; border-radius: 6px;")
         def run_dry_run():
             # Close the preview dialog first
             dlg.close()
