@@ -2736,38 +2736,49 @@ class SuperCutUI(QWidget):
 
         # Add terminal button next
         button_layout.addSpacing(10)
-        self.terminal_btn = QPushButton("💻")
+        self.terminal_btn = QPushButton()
+        self.terminal_icon_off_path = os.path.join(PROJECT_ROOT, "src", "sources", "terminal.png")
+        self.terminal_icon_on_path = os.path.join(PROJECT_ROOT, "src", "sources", "terminal_on.png")
+        self.terminal_btn.setIcon(QIcon(self.terminal_icon_off_path))
+        self.terminal_btn.setIconSize(QSize(28, 28))
         self.terminal_btn.setFixedHeight(38)
-        self.terminal_btn.setFixedWidth(40)
+        self.terminal_btn.setFixedWidth(38)
+        self.terminal_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         self.terminal_btn.clicked.connect(self.show_terminal)
         button_layout.addWidget(self.terminal_btn)
 
-        # Add preview button between terminal and create video
-        self.preview_btn = QPushButton("🚧")
-        self.preview_btn.setFixedHeight(38)
-        self.preview_btn.setFixedWidth(40)
-        self.preview_btn.setToolTip("Preview")
-        self.preview_btn.clicked.connect(self.show_preview_dialog)
-        button_layout.addWidget(self.preview_btn)
-
-        # Then add create video button, always after preview
-        button_layout.addSpacing(0)
+        # Then add create video button
+        button_layout.addSpacing(10)
         self.create_btn = QPushButton("Create Video")
         self.create_btn.setFixedHeight(38)
         self.create_btn.setFixedWidth(370)
         self.create_btn.clicked.connect(self.create_video)
         button_layout.addWidget(self.create_btn)
 
+        # Add preview button after create video button
+        button_layout.addSpacing(5)
+        self.preview_btn = QPushButton()
+        preview_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "preview.png")
+        self.preview_btn.setIcon(QIcon(preview_icon_path))
+        self.preview_btn.setIconSize(QSize(28, 28))
+        self.preview_btn.setFixedHeight(38)
+        self.preview_btn.setFixedWidth(38)
+        self.preview_btn.setToolTip("Preview")
+        self.preview_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
+        self.preview_btn.clicked.connect(self.show_preview_dialog)
+        button_layout.addWidget(self.preview_btn)
+
         # Add placeholder button after create video button
-        button_layout.addSpacing(6)
+        button_layout.addSpacing(-5)
         self.placeholder_btn = QPushButton()
         rocket_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "rocket.png")
         self.placeholder_btn.setIcon(QIcon(rocket_icon_path))
         self.placeholder_btn.setIconSize(QSize(28, 28))
-        self.placeholder_btn.setFixedHeight(40)
-        self.placeholder_btn.setFixedWidth(40)
+        self.placeholder_btn.setFixedHeight(38)
+        self.placeholder_btn.setFixedWidth(38)
         self.placeholder_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         # self.placeholder_btn.setVisible(self.static_icon.isVisible())  # Ensure always visible
+        self.placeholder_btn.clicked.connect(self.open_iconsna_website)
         button_layout.addWidget(self.placeholder_btn)
 
         # Add version text after placeholder button
@@ -2850,14 +2861,14 @@ class SuperCutUI(QWidget):
             # Position terminal intelligently based on main window position
             self.position_terminal_widget()
             self.terminal_widget.show_and_raise()
-            # Update button text to show terminal is on
-            self.terminal_btn.setText("💻")
+            # Update button icon to show terminal is on
+            self.terminal_btn.setIcon(QIcon(self.terminal_icon_on_path))
         else:
             # Terminal exists, toggle it off
             self.terminal_widget.close()
             self.terminal_widget = None
-            # Update button text to show terminal is off
-            self.terminal_btn.setText("💻")
+            # Update button icon to show terminal is off
+            self.terminal_btn.setIcon(QIcon(self.terminal_icon_off_path))
 
     def position_terminal_widget(self):
         """Position the terminal widget intelligently based on main window position and screen space"""
@@ -2934,8 +2945,8 @@ class SuperCutUI(QWidget):
     def on_terminal_closed(self):
         """Handle terminal widget closed signal"""
         self.terminal_widget = None
-        # Reset button text when terminal is closed manually
-        self.terminal_btn.setText("💻 Terminal")
+        # Reset button icon when terminal is closed manually
+        self.terminal_btn.setIcon(QIcon(self.terminal_icon_off_path))
 
     def select_media_sources_folder(self):
         """Select media sources folder"""
@@ -3727,3 +3738,7 @@ class SuperCutUI(QWidget):
         dlg.setText("Hello World!")
         dlg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok | QtWidgets.QMessageBox.StandardButton.Cancel)
         dlg.exec()
+
+    def open_iconsna_website(self):
+        import webbrowser
+        webbrowser.open("https://iconsna.xyz/")
