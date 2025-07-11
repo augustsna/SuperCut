@@ -1223,8 +1223,8 @@ class SuperCutUI(QWidget):
 
         # (1) Create all intro widgets first
         combo_width = 130
-        intro_effect_label = QLabel("Intro:")
-        intro_effect_label.setFixedWidth(40)
+        intro_effect_label = QLabel("Effect:")
+        intro_effect_label.setFixedWidth(50)
         self.intro_effect_combo = QtWidgets.QComboBox()
         self.intro_effect_combo.setFixedWidth(combo_width)
         intro_effect_options = [
@@ -1244,7 +1244,7 @@ class SuperCutUI(QWidget):
         on_intro_effect_changed(self.intro_effect_combo.currentIndex())
 
         intro_duration_label = QLabel("Duration:")
-        intro_duration_label.setFixedWidth(80)
+        intro_duration_label.setFixedWidth(60)
         self.intro_duration_edit = QLineEdit("6")
         self.intro_duration_edit.setFixedWidth(80)
         self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
@@ -1320,13 +1320,13 @@ class SuperCutUI(QWidget):
 
         # Intro effect controls - moved directly below intro line
         intro_effect_layout = QHBoxLayout()        
-        intro_effect_layout.addSpacing(306)  # Align with intro checkbox
+        intro_effect_layout.addSpacing(245)  # Align with intro checkbox
         intro_effect_layout.addWidget(intro_effect_label)
-        intro_effect_layout.addSpacing(-9)
+        intro_effect_layout.addSpacing(7)
         intro_effect_layout.addWidget(self.intro_effect_combo)
-        intro_effect_layout.addSpacing(-6)
+        intro_effect_layout.addSpacing(9)
         intro_effect_layout.addWidget(intro_duration_label)
-        intro_effect_layout.addSpacing(-25)
+        intro_effect_layout.addSpacing(12)
         intro_effect_layout.addWidget(self.intro_duration_edit)
         intro_effect_layout.addStretch()
         layout.addLayout(intro_effect_layout)
@@ -1571,8 +1571,8 @@ class SuperCutUI(QWidget):
         # --- EFFECT CONTROL FOR INTRO & OVERLAY (moved below Overlay 2) ---
         combo_width = 130
         edit_width = 40
-        effect_label = QLabel("Overlay 1_2:")
-        effect_label.setFixedWidth(80)
+        effect_label = QLabel("Effect:")
+        effect_label.setFixedWidth(50)
         self.effect_combo = QtWidgets.QComboBox()
         self.effect_combo.setFixedWidth(combo_width)
         effect_options = [
@@ -1592,7 +1592,7 @@ class SuperCutUI(QWidget):
         on_effect_changed(self.effect_combo.currentIndex())
 
         overlay_duration_label = QLabel("Start at:")
-        overlay_duration_label.setFixedWidth(80)
+        overlay_duration_label.setFixedWidth(60)
         self.overlay_duration_edit = QLineEdit("5")
         self.overlay_duration_edit.setFixedWidth(80)
         self.overlay_duration_edit.setValidator(QIntValidator(0, 999, self))
@@ -1608,13 +1608,13 @@ class SuperCutUI(QWidget):
 
         effect_layout = QHBoxLayout()
         effect_layout.setContentsMargins(0, 0, 0, 0)
-        effect_layout.addSpacing(265)
+        effect_layout.addSpacing(245)
         effect_layout.addWidget(effect_label)
-        effect_layout.addSpacing(-8)
+        effect_layout.addSpacing(7)
         effect_layout.addWidget(self.effect_combo)
-        effect_layout.addSpacing(1)
+        effect_layout.addSpacing(13)
         effect_layout.addWidget(overlay_duration_label)
-        effect_layout.addSpacing(-31)
+        effect_layout.addSpacing(8)
         effect_layout.addWidget(self.overlay_duration_edit)
         effect_layout.addStretch()
         layout.addLayout(effect_layout)
@@ -2309,7 +2309,7 @@ class SuperCutUI(QWidget):
         layout.addLayout(overlay5_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 4_5 (identical for both overlays) ---
-        overlay4_5_label = QLabel("Overlay 4_5:")
+        overlay4_5_label = QLabel("Effect:")
         overlay4_5_label.setFixedWidth(80)
         self.overlay4_5_effect_combo = QtWidgets.QComboBox()
         self.overlay4_5_effect_combo.setFixedWidth(combo_width)
@@ -2339,13 +2339,13 @@ class SuperCutUI(QWidget):
 
         overlay4_5_layout = QHBoxLayout()
         overlay4_5_layout.setContentsMargins(0, 0, 0, 0)
-        overlay4_5_layout.addSpacing(265)
+        overlay4_5_layout.addSpacing(254)
         overlay4_5_layout.addWidget(overlay4_5_label)
-        overlay4_5_layout.addSpacing(-8)
+        overlay4_5_layout.addSpacing(-6)
         overlay4_5_layout.addWidget(self.overlay4_5_effect_combo)
-        overlay4_5_layout.addSpacing(-1)
+        overlay4_5_layout.addSpacing(0)
         overlay4_5_layout.addWidget(overlay4_5_start_label)
-        overlay4_5_layout.addSpacing(-31)
+        overlay4_5_layout.addSpacing(-24)
         overlay4_5_layout.addWidget(self.overlay4_5_start_edit)
         overlay4_5_layout.addStretch()
         layout.addLayout(overlay4_5_layout)
@@ -2603,8 +2603,8 @@ class SuperCutUI(QWidget):
         layout.addLayout(overlay7_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 6_7 (identical for both overlays) ---
-        overlay6_7_label = QLabel("Overlay 6_7:")
-        overlay6_7_label.setFixedWidth(80)
+        overlay6_7_label = QLabel("Effect:")
+        overlay6_7_label.setFixedWidth(50)
         self.overlay6_7_effect_combo = QtWidgets.QComboBox()
         self.overlay6_7_effect_combo.setFixedWidth(combo_width)
         for label, value in effect_options:
@@ -2617,7 +2617,7 @@ class SuperCutUI(QWidget):
         on_overlay6_7_effect_changed(self.overlay6_7_effect_combo.currentIndex())
 
         overlay6_7_start_label = QLabel("Start at:")
-        overlay6_7_start_label.setFixedWidth(80)
+        overlay6_7_start_label.setFixedWidth(60)
         self.overlay6_7_start_edit = QLineEdit("5")
         self.overlay6_7_start_edit.setFixedWidth(80)
         self.overlay6_7_start_edit.setValidator(QIntValidator(0, 999, self))
@@ -2633,13 +2633,13 @@ class SuperCutUI(QWidget):
 
         overlay6_7_layout = QHBoxLayout()
         overlay6_7_layout.setContentsMargins(0, 0, 0, 0)
-        overlay6_7_layout.addSpacing(265)
+        overlay6_7_layout.addSpacing(245)
         overlay6_7_layout.addWidget(overlay6_7_label)
-        overlay6_7_layout.addSpacing(-8)
+        overlay6_7_layout.addSpacing(7)
         overlay6_7_layout.addWidget(self.overlay6_7_effect_combo)
-        overlay6_7_layout.addSpacing(-1)
+        overlay6_7_layout.addSpacing(13)
         overlay6_7_layout.addWidget(overlay6_7_start_label)
-        overlay6_7_layout.addSpacing(-31)
+        overlay6_7_layout.addSpacing(8)
         overlay6_7_layout.addWidget(self.overlay6_7_start_edit)
         overlay6_7_layout.addStretch()
         layout.addLayout(overlay6_7_layout)
