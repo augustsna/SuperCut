@@ -3111,6 +3111,13 @@ class SuperCutUI(QWidget):
                 self.setFixedSize(self._original_size)
                 self._expanded_for_progress = False
 
+        # Disable/enable all widgets in the scroll area during processing
+        if hasattr(self, 'scroll_area'):
+            scroll_content = self.scroll_area.widget()
+            if scroll_content:
+                for child in scroll_content.findChildren(QtWidgets.QWidget):
+                    child.setEnabled(not processing)
+
     def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count):
         """Set up the VideoWorker and QThread, connect signals, and start processing."""
         self._thread = QThread()
