@@ -94,12 +94,7 @@ QScrollBar:sub-control:corner {
 }
 """
 
-# --- BLUE BUTTON HELPER ---
-def set_blue_button(button):
-    """Set a QPushButton to blue style (background #4a90e2, white text, rounded, bold)."""
-    button.setStyleSheet(
-        "background-color: #4a90e2; color: white; border-radius: 6px;"
-    )
+# Blue button styling is now the default in the global stylesheet
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None, settings=None, fps_options=None):
@@ -153,10 +148,10 @@ class SettingsDialog(QDialog):
         self.default_window_height_edit.setPlaceholderText("H")
         self.default_window_height_edit.setValidator(QIntValidator(500, 1000, self))
         if self.settings is not None:
-            default_height = self.settings.value('default_window_height', 640, type=int)
+            default_height = self.settings.value('default_window_height', 660, type=int)
             self.default_window_height_edit.setText(str(default_height))
         else:
-            self.default_window_height_edit.setText("640")
+            self.default_window_height_edit.setText("660")
         
         window_size_layout.addWidget(self.default_window_width_edit)
         window_size_layout.addWidget(QLabel("×"))
@@ -520,9 +515,9 @@ class SettingsDialog(QDialog):
                 self.settings.setValue('default_window_height', window_height)
             except ValueError:
                 # If invalid values, use defaults
-                print(f"Invalid values, using defaults: width=666, height=640")
+                print(f"Invalid values, using defaults: width=666, height=660")
                 self.settings.setValue('default_window_width', 666)
-                self.settings.setValue('default_window_height', 640)
+                self.settings.setValue('default_window_height', 660)
             
             self.settings.setValue('default_fps', self.selected_fps)
             self.settings.setValue('default_intro_enabled', self.default_intro_enabled_checkbox.isChecked())
@@ -601,9 +596,9 @@ class SettingsDialog(QDialog):
         self.default_list_name_enabled_checkbox.setChecked(False)
         # MP3 #
         self.default_mp3_count_enabled_checkbox.setChecked(False)
-        # Window Size (reset uses 650 as default, matching main default)
+        # Window Size (reset uses 660 as default, matching main default)
         self.default_window_width_edit.setText("666")
-        self.default_window_height_edit.setText("650")
+        self.default_window_height_edit.setText("660")
 
 class NameListDialog(QDialog):
     def __init__(self, parent=None, initial_names=None):
@@ -882,13 +877,13 @@ class SuperCutUI(QWidget):
         
         # Create main layout
         layout = QVBoxLayout()
-        layout.setContentsMargins(14, 20, 0, 10)  # Reduce left margin from 20px to 10px
+        layout.setContentsMargins(14, 18, 0, 20)  # Reduce left margin from 20px to 10px
         layout.setSpacing(9)
 
         # --- Add program title with icon at the top (FIXED) ---
         layout.addSpacing(0)
         title_widget = QtWidgets.QWidget()
-        title_widget.setFixedHeight(60)
+        title_widget.setFixedHeight(70)
         title_layout = QtWidgets.QHBoxLayout()
         title_layout.setContentsMargins(0, 0, 0, 0)
         title_layout.setSpacing(0)
@@ -917,7 +912,7 @@ class SuperCutUI(QWidget):
         self.loading_label = loading_label  # Store as instance variable for later control
         title_layout.addSpacing(80)
         title_layout.addStretch()
-        title_layout.addSpacing(-20)
+        title_layout.addSpacing(-10)
         title_layout.addWidget(title_icon)
         # Add spacing after title label
         title_layout.addSpacing(1)
@@ -3813,7 +3808,8 @@ class SuperCutUI(QWidget):
         # Gather all FFmpeg settings as would be passed to video creation
         inputs = self._gather_and_validate_inputs()
         if not inputs:
-            return
+            print("Preview dialog: Input validation failed, dialog will not be shown")
+            return  # Don't show dialog when there are warnings/errors
         (
             media_sources, export_name, number, folder, codec, resolution, fps, mp3_files, image_files, min_mp3_count
         ) = inputs
@@ -3828,7 +3824,7 @@ class SuperCutUI(QWidget):
         overlay2_start_at = self.overlay_duration
         # Compose a string with all settings
         settings_str = f"""
-FFmpeg Settings Preview:
+📄 FFmpeg Settings Preview:
 
 Name list: {'True' if name_list else 'N/A'}
 Export name: {export_name if export_name else 'N/A'}
@@ -3892,11 +3888,166 @@ Scale: {self.song_title_scale_percent}%
 X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self.song_title_start_at}
 """
         # Show in a scrollable dialog
-        dlg = QtWidgets.QDialog(self)
-        dlg.setWindowTitle("Preview: FFmpeg Settings")
+        print("Preview dialog: Creating dialog...")
+        
+        class RoundedDialog(QtWidgets.QDialog):
+            def __init__(self, parent=None):
+                super().__init__(parent)
+                self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+                self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+                self.setModal(True)  # Make dialog modal - blocks main UI
+                
+            def paintEvent(self, event):
+                from PyQt6.QtGui import QPainter, QBrush, QColor
+                painter = QPainter(self)
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+                brush = QBrush(QColor('#2e2e2e'))
+                painter.setBrush(brush)
+                painter.setPen(Qt.PenStyle.NoPen)
+                rect = self.rect()
+                painter.drawRoundedRect(rect, 12, 12)  # 12px radius to match stylesheet
+        
+        dlg = RoundedDialog()
+        dlg.setWindowTitle("⚡ SuperCut Preview")
         dlg.setMinimumSize(480, 500)
-        dlg.setStyleSheet("background-color: #f3f3f3;")
+        dlg.resize(480, 500)  # Set fixed size
+        dlg.setStyleSheet("""
+            QWidget {
+                background-color: transparent;
+            }
+            #exitButton {
+                background-color: #6e7681 !important;
+                border: 1px solid #6e7681 !important;
+                border-radius: 7px !important;
+                padding: 0px !important;
+                font-size: 11px !important;
+                font-weight: 700 !important;
+                min-width: 14px !important;
+                max-width: 14px !important;
+                min-height: 14px !important;
+                max-height: 14px !important;
+                color: white !important;
+                text-align: center !important;
+                line-height: 14px !important;
+            }
+            #exitButton:hover {
+                background-color: #da3633 !important;
+                border-color: #da3633 !important;
+            }
+            QPlainTextEdit {
+                background-color: #1e1e1e;
+                border: 1px solid #404040;
+                border-radius: 8px;
+                font-size: 15px;
+                font-family: Cascadia Mono;
+                color: #cccccc;
+                padding: 8px;
+            }
+            QPushButton:not(#exitButton) {
+                background-color: #404040;
+                border: 1px solid #505050;
+                border-radius: 10px;
+                padding: 8px 16px;
+                color: #ffffff;
+                font-weight: 500;
+                font-size: 13px;
+            }
+            QPushButton:not(#exitButton):hover {
+                background-color: #505050;
+                border-color: #58a6ff;
+            }
+            QPushButton:not(#exitButton):pressed {
+                background-color: #1f6feb;
+            }
+        """)
+        
+        # Position the dialog in front of the main UI, slightly up from center
+        main_geometry = self.geometry()
+        dialog_x = main_geometry.x() + (main_geometry.width() - 480) // 2
+        dialog_y = main_geometry.y() + (main_geometry.height() - 500) // 2 - 50  # Move 50px up from center
+        dlg.move(dialog_x, dialog_y)
+        print(f"Preview dialog: Main UI geometry: {main_geometry}")
+        print(f"Preview dialog: Positioning at ({dialog_x}, {dialog_y})")
+        
+        # Main layout
         layout = QVBoxLayout(dlg)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        
+        # Custom header with drag area and close button
+        class DraggableHeader(QtWidgets.QWidget):
+            def __init__(self, parent=None):
+                super().__init__(parent)
+                self.parent_window = parent
+                self.dragging = False
+                self.drag_position = QPoint()
+                
+            def mousePressEvent(self, event):
+                if event.button() == Qt.MouseButton.LeftButton and self.parent_window:
+                    self.dragging = True
+                    self.drag_position = event.globalPosition().toPoint() - self.parent_window.frameGeometry().topLeft()
+                    event.accept()
+                else:
+                    super().mousePressEvent(event)
+                    
+            def mouseMoveEvent(self, event):
+                if event.buttons() == Qt.MouseButton.LeftButton and self.dragging and self.parent_window:
+                    self.parent_window.move(event.globalPosition().toPoint() - self.drag_position)
+                    event.accept()
+                else:
+                    super().mouseMoveEvent(event)
+                    
+            def mouseReleaseEvent(self, event):
+                if event.button() == Qt.MouseButton.LeftButton:
+                    self.dragging = False
+                    event.accept()
+                else:
+                    super().mouseReleaseEvent(event)
+        
+        header_widget = DraggableHeader(dlg)
+        header_widget.setObjectName("headerArea")
+        header_widget.setFixedHeight(40)
+        header_widget.setStyleSheet("""
+            #headerArea {
+                background-color: #404040;
+                border-bottom: 1px solid #505050;
+                padding: 0px;
+                border-top-left-radius: 12px;
+                border-top-right-radius: 12px;
+            }
+        """)
+        
+        header_layout = QtWidgets.QHBoxLayout(header_widget)
+        header_layout.setContentsMargins(12, 8, 12, 8)
+        header_layout.setSpacing(8)
+        
+        # Title
+        title_label = QtWidgets.QLabel("⚡SuperCut Preview")
+        title_label.setStyleSheet("""
+            QLabel {
+                color: #f2f2f2;
+                font-size: 13px;
+                font-weight: 500;
+                font-family: 'Cascadia Mono';
+            }
+        """)
+        
+        # Close button
+        close_btn = QtWidgets.QPushButton("X")
+        close_btn.setObjectName("exitButton")
+        close_btn.setToolTip("Close Preview")
+        close_btn.setFixedSize(14, 14)  # Fixed size like terminal
+        close_btn.clicked.connect(dlg.close)
+        
+        header_layout.addWidget(title_label)
+        header_layout.addStretch()
+        header_layout.addWidget(close_btn)
+        
+        # Content area
+        content_layout = QtWidgets.QVBoxLayout()
+        content_layout.setContentsMargins(12, 0, 12, 12)
+        content_layout.setSpacing(8)
+        
         text_edit = QtWidgets.QPlainTextEdit()
         text_edit.setReadOnly(True)
         
@@ -3910,53 +4061,63 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         # Apply stylesheet with font-size override and custom scrollbar
         stylesheet = f"""
         QPlainTextEdit {{
-            background-color: #f0f0f0;
-            font-size: 17px;
-            font-family: Arial;
-            color: #000000;
+            background-color: #1e1e1e;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: Cascadia Mono;
+            color: #cccccc;
+            padding: 8px;
         }}
         QScrollBar:vertical {{
-            background: #e9ebec;
-            width: 12px;
-            border-radius: 6px;
-            margin: 0px;
-            position: absolute;
-            right: 0px;
+            background: transparent;
+            width: 8px;
+            margin: 2px 0 2px 0;
+            border-radius: 4px;
         }}
         QScrollBar::handle:vertical {{
-            background: #e5e7e8;
-            border-radius: 6px;
-            min-height: 20px;
-            margin: 0px;
+            background: #43464d;
+            min-height: 24px;
+            border-radius: 4px;
+            border: none;
+            opacity: 0.7;
         }}
         QScrollBar::handle:vertical:hover {{
-            background: #cfd2d3;
+            background: #595d66;
+            opacity: 1.0;
         }}
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
             height: 0px;
+            background: none;
+            border: none;
+        }}
+        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+            background: none;
         }}
         QScrollBar:horizontal {{
-            background: #e9ebec;
-            height: 12px;
-            border-radius: 6px;
-            margin: 0px;
-            position: absolute;
-            bottom: 0px;
+            background: transparent;
+            height: 8px;
+            margin: 0 2px 0 2px;
+            border-radius: 4px;
         }}
         QScrollBar::handle:horizontal {{
-            background: #e5e7e8;
-            border-radius: 6px;
-            min-width: 20px;
-            margin: 0px;
+            background: #43464d;
+            min-width: 24px;
+            border-radius: 4px;
+            border: none;
+            opacity: 0.7;
         }}
         QScrollBar::handle:horizontal:hover {{
-            background: #cfd2d3;
+            background: #595d66;
+            opacity: 1.0;
         }}
         QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
             width: 0px;
+            background: none;
+            border: none;
         }}
-        QScrollBar::sub-control:corner {{
-            background: transparent;
+        QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {{
+            background: none;
         }}
         """
         text_edit.setStyleSheet(stylesheet)
@@ -3964,15 +4125,19 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         # Set font size using multiple methods to ensure it works
         
         text_edit.setPlainText(settings_str.lstrip())
-        layout.addWidget(text_edit)
+        content_layout.addWidget(text_edit)
+        
+        # Add header and content to main layout
+        layout.addWidget(header_widget)
+        layout.addLayout(content_layout)
         
         # Create button layout
         btn_layout = QHBoxLayout()
         
         # Add Dry Run button (placeholder for now)
         dry_run_btn = QPushButton("Dry Run")
-        dry_run_btn.setFixedWidth(80)
-        dry_run_btn.setStyleSheet("background-color: #28a745; color: white; border-radius: 6px;")
+        dry_run_btn.setFixedSize(80, 28)  # Bigger button
+        dry_run_btn.setStyleSheet("background-color: #4a90e2; color: white; border-radius: 6px;")
         def run_dry_run():
             from PyQt6.QtCore import QObject, QThread, pyqtSignal
             from src.ffmpeg_utils import create_video_with_ffmpeg
@@ -4215,7 +4380,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         
         # Add Close button (renamed from OK)
         close_btn = QPushButton("Close")
-        close_btn.setFixedWidth(80)
+        close_btn.setFixedSize(80, 28)  # Bigger button
         close_btn.setStyleSheet("background-color: #4a90e2; color: white; border-radius: 6px;")
         close_btn.clicked.connect(dlg.accept)
         
@@ -4226,8 +4391,15 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         btn_layout.addWidget(close_btn)
         btn_layout.addStretch()
         
-        layout.addLayout(btn_layout)
+        content_layout.addLayout(btn_layout)
+        print("Preview dialog: Showing dialog...")
+        print(f"Preview dialog: Dialog visible: {dlg.isVisible()}")
+        print(f"Preview dialog: Dialog geometry: {dlg.geometry()}")
+        dlg.show()
+        dlg.raise_()
+        dlg.activateWindow()
         dlg.exec()
+        print("Preview dialog: Dialog closed")
 
     def open_iconsna_website(self):
         import webbrowser
