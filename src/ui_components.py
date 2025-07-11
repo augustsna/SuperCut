@@ -544,7 +544,7 @@ class DryRunSuccessDialog(QDialog):
         super().__init__(parent)
         self.video_path = video_path
         self.open_folder = open_folder
-        self.setWindowTitle("Dry Run Completed")
+        self.setWindowTitle("Dry Run Success")
         
         # Fixed size similar to SuccessDialog
         self.setFixedSize(300, 200)
@@ -573,15 +573,15 @@ class DryRunSuccessDialog(QDialog):
                 margin-bottom: 8px;
             }
             QPushButton.dryrun-btn {
-                min-width: 70px !important;
-                max-width: 70px !important;
-                width: 70px !important;
+                min-width: 80px !important;
+                max-width: 80px !important;
+                width: 80px !important;
                 padding-left: 0px; padding-right: 0px;
             }
             QPushButton#okBtn.dryrun-btn {
-                min-width: 70px !important;
-                max-width: 70px !important;
-                width: 70px !important;
+                min-width: 80px !important;
+                max-width: 80px !important;
+                width: 80px !important;
             }
             QPushButton {
                 background-color: #4a90e2;
@@ -616,7 +616,7 @@ class DryRunSuccessDialog(QDialog):
         vbox.addWidget(icon)
 
         # Main message
-        msg = QLabel("Dry run completed successfully!")
+        msg = QLabel("Dry Run completed successfully!")
         msg.setObjectName("msgLabel")
         msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         vbox.addWidget(msg)
@@ -634,14 +634,14 @@ class DryRunSuccessDialog(QDialog):
         btn_row.addSpacerItem(QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
 
         self.view_video_btn = QPushButton("View")
-        self.view_video_btn.setFixedWidth(70)
+        self.view_video_btn.setFixedWidth(80)
         self.view_video_btn.setProperty("class", "dryrun-btn")
         self.view_video_btn.setObjectName("viewBtn")
         self.view_video_btn.clicked.connect(self.on_view_video)
         btn_row.addWidget(self.view_video_btn)
 
         self.folder_btn = QPushButton("Folder")
-        self.folder_btn.setFixedWidth(70)
+        self.folder_btn.setFixedWidth(80)
         self.folder_btn.setProperty("class", "dryrun-btn")
         self.folder_btn.setObjectName("folderBtn")
         self.folder_btn.clicked.connect(self.on_folder)
@@ -650,7 +650,7 @@ class DryRunSuccessDialog(QDialog):
         self.ok_btn = QPushButton("OK")
         self.ok_btn.setObjectName("okBtn")
         self.ok_btn.setProperty("class", "dryrun-btn")
-        self.ok_btn.setFixedWidth(70)
+        self.ok_btn.setFixedWidth(80)
         self.ok_btn.setDefault(True)
         self.ok_btn.clicked.connect(self.accept)
         btn_row.addWidget(self.ok_btn)
