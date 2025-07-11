@@ -316,23 +316,26 @@ class SettingsDialog(QDialog):
         overlay1_path_layout.addWidget(self.default_overlay1_path_edit)
         overlay1_path_layout.addWidget(self.default_overlay1_path_btn)
         right_form.addRow("Overlay 1 Path:", overlay1_path_layout)
-        # --- Default Overlay 1 Position ---
-        self.default_overlay1_position_combo = QComboBox()
-        self.default_overlay1_position_combo.setFixedWidth(120)
-        overlay_positions = [
-            ("Center", "center"),
-            ("Top Left", "top_left"),
-            ("Top Right", "top_right"),
-            ("Bottom Left", "bottom_left"),
-            ("Bottom Right", "bottom_right")
-        ]
-        for label, value in overlay_positions:
-            self.default_overlay1_position_combo.addItem(label, value)
+        # --- Default Overlay 1 X Position ---
+        self.default_overlay1_x_combo = QComboBox()
+        self.default_overlay1_x_combo.setFixedWidth(120)
+        for percent in range(0, 101, 1):
+            self.default_overlay1_x_combo.addItem(f"{percent}%", percent)
         if self.settings is not None:
-            default_overlay1_position = self.settings.value('default_overlay1_position', 'bottom_left', type=str)
-            idx = next((i for i, (label, value) in enumerate(overlay_positions) if value == default_overlay1_position), 3)
-            self.default_overlay1_position_combo.setCurrentIndex(idx)
-        right_form.addRow("Overlay 1 Position:", self.default_overlay1_position_combo)
+            default_overlay1_x = self.settings.value('default_overlay1_x_percent', 0, type=int)
+            idx = default_overlay1_x if 0 <= default_overlay1_x <= 100 else 0
+            self.default_overlay1_x_combo.setCurrentIndex(idx)
+        right_form.addRow("Overlay 1 X Position:", self.default_overlay1_x_combo)
+        # --- Default Overlay 1 Y Position ---
+        self.default_overlay1_y_combo = QComboBox()
+        self.default_overlay1_y_combo.setFixedWidth(120)
+        for percent in range(0, 101, 1):
+            self.default_overlay1_y_combo.addItem(f"{percent}%", percent)
+        if self.settings is not None:
+            default_overlay1_y = self.settings.value('default_overlay1_y_percent', 75, type=int)
+            idx = default_overlay1_y if 0 <= default_overlay1_y <= 100 else 75
+            self.default_overlay1_y_combo.setCurrentIndex(idx)
+        right_form.addRow("Overlay 1 Y Position:", self.default_overlay1_y_combo)
         # --- Default Overlay 1 Size ---
         self.default_overlay1_size_combo = QComboBox()
         self.default_overlay1_size_combo.setFixedWidth(120)
@@ -367,16 +370,26 @@ class SettingsDialog(QDialog):
         overlay2_path_layout.addWidget(self.default_overlay2_path_edit)
         overlay2_path_layout.addWidget(self.default_overlay2_path_btn)
         right_form.addRow("Overlay 2 Path:", overlay2_path_layout)
-        # --- Default Overlay 2 Position ---
-        self.default_overlay2_position_combo = QComboBox()
-        self.default_overlay2_position_combo.setFixedWidth(120)
-        for label, value in overlay_positions:
-            self.default_overlay2_position_combo.addItem(label, value)
+        # --- Default Overlay 2 X Position ---
+        self.default_overlay2_x_combo = QComboBox()
+        self.default_overlay2_x_combo.setFixedWidth(120)
+        for percent in range(0, 101, 1):
+            self.default_overlay2_x_combo.addItem(f"{percent}%", percent)
         if self.settings is not None:
-            default_overlay2_position = self.settings.value('default_overlay2_position', 'top_right', type=str)
-            idx = next((i for i, (label, value) in enumerate(overlay_positions) if value == default_overlay2_position), 2)
-            self.default_overlay2_position_combo.setCurrentIndex(idx)
-        right_form.addRow("Overlay 2 Position:", self.default_overlay2_position_combo)
+            default_overlay2_x = self.settings.value('default_overlay2_x_percent', 75, type=int)
+            idx = default_overlay2_x if 0 <= default_overlay2_x <= 100 else 75
+            self.default_overlay2_x_combo.setCurrentIndex(idx)
+        right_form.addRow("Overlay 2 X Position:", self.default_overlay2_x_combo)
+        # --- Default Overlay 2 Y Position ---
+        self.default_overlay2_y_combo = QComboBox()
+        self.default_overlay2_y_combo.setFixedWidth(120)
+        for percent in range(0, 101, 1):
+            self.default_overlay2_y_combo.addItem(f"{percent}%", percent)
+        if self.settings is not None:
+            default_overlay2_y = self.settings.value('default_overlay2_y_percent', 0, type=int)
+            idx = default_overlay2_y if 0 <= default_overlay2_y <= 100 else 0
+            self.default_overlay2_y_combo.setCurrentIndex(idx)
+        right_form.addRow("Overlay 2 Y Position:", self.default_overlay2_y_combo)
         # --- Default Overlay 2 Size ---
         self.default_overlay2_size_combo = QComboBox()
         self.default_overlay2_size_combo.setFixedWidth(120)
@@ -435,10 +448,12 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_intro_y_percent', self.default_intro_y_combo.currentData())
             self.settings.setValue('default_intro_size', self.default_intro_size_combo.currentData())
             self.settings.setValue('default_overlay1_path', self.default_overlay1_path_edit.text())
-            self.settings.setValue('default_overlay1_position', self.default_overlay1_position_combo.currentData())
+            self.settings.setValue('default_overlay1_x_percent', self.default_overlay1_x_combo.currentData())
+            self.settings.setValue('default_overlay1_y_percent', self.default_overlay1_y_combo.currentData())
             self.settings.setValue('default_overlay1_size', self.default_overlay1_size_combo.currentData())
             self.settings.setValue('default_overlay2_path', self.default_overlay2_path_edit.text())
-            self.settings.setValue('default_overlay2_position', self.default_overlay2_position_combo.currentData())
+            self.settings.setValue('default_overlay2_x_percent', self.default_overlay2_x_combo.currentData())
+            self.settings.setValue('default_overlay2_y_percent', self.default_overlay2_y_combo.currentData())
             self.settings.setValue('default_overlay2_size', self.default_overlay2_size_combo.currentData())
             self.settings.setValue('default_overlay1_enabled', self.default_overlay1_enabled_checkbox.isChecked())
             self.settings.setValue('default_overlay2_enabled', self.default_overlay2_enabled_checkbox.isChecked())
@@ -477,13 +492,15 @@ class SettingsDialog(QDialog):
         # Note: Default intro duration is now 6 seconds (set in main UI)
         # Overlay 1
         self.default_overlay1_path_edit.setText("")
-        self.default_overlay1_position_combo.setCurrentIndex(3)  # Bottom Left
+        self.default_overlay1_x_combo.setCurrentIndex(0)  # 0% X
+        self.default_overlay1_y_combo.setCurrentIndex(75)  # 75% Y
         idx_overlay1_size = (15 // 5) - 1  # 15% size
         self.default_overlay1_size_combo.setCurrentIndex(idx_overlay1_size)
         self.default_overlay1_enabled_checkbox.setChecked(True)
         # Overlay 2
         self.default_overlay2_path_edit.setText("")
-        self.default_overlay2_position_combo.setCurrentIndex(2)  # Top Right
+        self.default_overlay2_x_combo.setCurrentIndex(75)  # 75% X
+        self.default_overlay2_y_combo.setCurrentIndex(0)  # 0% Y
         idx_overlay2_size = (15 // 5) - 1  # 15% size
         self.default_overlay2_size_combo.setCurrentIndex(idx_overlay2_size)
         self.default_overlay2_enabled_checkbox.setChecked(True)
@@ -1360,26 +1377,7 @@ class SuperCutUI(QWidget):
         self.overlay1_size_combo.setEditable(False)
         self.overlay1_size_combo.currentIndexChanged.connect(on_overlay1_size_changed)
         on_overlay1_size_changed(self.overlay1_size_combo.currentIndex())
-        # Overlay 1 position option
-        overlay1_position_label = QLabel("P:")
-        overlay1_position_label.setFixedWidth(18)
-        self.overlay1_position_combo = QtWidgets.QComboBox()
-        self.overlay1_position_combo.setFixedWidth(130)
-        positions = [
-            ("Center", "center"),
-            ("Top Left", "top_left"),
-            ("Top Right", "top_right"),
-            ("Bottom Left", "bottom_left"),
-            ("Bottom Right", "bottom_right")
-        ]
-        for label, value in positions:
-            self.overlay1_position_combo.addItem(label, value)
-        self.overlay1_position_combo.setCurrentIndex(3)  # Default bottom_left
-        self.overlay1_position = "bottom_left"
-        def on_overlay1_position_changed(idx):
-            self.overlay1_position = self.overlay1_position_combo.itemData(idx)
-        self.overlay1_position_combo.currentIndexChanged.connect(on_overlay1_position_changed)
-        on_overlay1_position_changed(self.overlay1_position_combo.currentIndex())
+
         # Enable/disable overlay1_edit, overlay1_btn, and overlay1_size_combo based on checkbox
         def set_overlay1_enabled(state):
             enabled = state == Qt.CheckState.Checked
@@ -1497,26 +1495,7 @@ class SuperCutUI(QWidget):
         self.overlay2_size_combo.setEditable(False)
         self.overlay2_size_combo.currentIndexChanged.connect(on_overlay2_size_changed)
         on_overlay2_size_changed(self.overlay2_size_combo.currentIndex())
-        # Overlay 2 position option
-        overlay2_position_label = QLabel("P:")
-        overlay2_position_label.setFixedWidth(18)
-        self.overlay2_position_combo = QtWidgets.QComboBox()
-        self.overlay2_position_combo.setFixedWidth(130)
-        positions = [
-            ("Center", "center"),
-            ("Top Left", "top_left"),
-            ("Top Right", "top_right"),
-            ("Bottom Left", "bottom_left"),
-            ("Bottom Right", "bottom_right")
-        ]
-        for label, value in positions:
-            self.overlay2_position_combo.addItem(label, value)
-        self.overlay2_position_combo.setCurrentIndex(2)  # Default top_right
-        self.overlay2_position = "top_right"
-        def on_overlay2_position_changed(idx):
-            self.overlay2_position = self.overlay2_position_combo.itemData(idx)
-        self.overlay2_position_combo.currentIndexChanged.connect(on_overlay2_position_changed)
-        on_overlay2_position_changed(self.overlay2_position_combo.currentIndex())
+
         def set_overlay2_enabled(state):
             enabled = state == Qt.CheckState.Checked
             self.overlay2_edit.setEnabled(enabled)
@@ -3528,28 +3507,34 @@ class SuperCutUI(QWidget):
                 self.intro_size_combo.setCurrentIndex(idx)
         # Apply default overlay 1 settings if overlay 1 is checked and fields are empty
         default_overlay1_path = self.settings.value('default_overlay1_path', '', type=str)
-        default_overlay1_position = self.settings.value('default_overlay1_position', 'bottom_left', type=str)
+        default_overlay1_x = self.settings.value('default_overlay1_x_percent', 0, type=int)
+        default_overlay1_y = self.settings.value('default_overlay1_y_percent', 75, type=int)
         default_overlay1_size = self.settings.value('default_overlay1_size', 15, type=int)
         default_overlay1_enabled = self.settings.value('default_overlay1_enabled', True, type=bool)
         if default_overlay1_enabled:
             if self.overlay_checkbox.isChecked():
                 if not self.overlay1_edit.text().strip():
                     self.overlay1_edit.setText(default_overlay1_path)
-                idx = next((i for i in range(self.overlay1_position_combo.count()) if self.overlay1_position_combo.itemData(i) == default_overlay1_position), 3)
-                self.overlay1_position_combo.setCurrentIndex(idx)
+                idx = default_overlay1_x if 0 <= default_overlay1_x <= 100 else 0
+                self.overlay1_x_combo.setCurrentIndex(idx)
+                idx = default_overlay1_y if 0 <= default_overlay1_y <= 100 else 75
+                self.overlay1_y_combo.setCurrentIndex(idx)
                 idx = next((i for i in range(self.overlay1_size_combo.count()) if self.overlay1_size_combo.itemData(i) == default_overlay1_size), 2)
                 self.overlay1_size_combo.setCurrentIndex(idx)
         # Apply default overlay 2 settings if overlay 2 is checked and fields are empty
         default_overlay2_path = self.settings.value('default_overlay2_path', '', type=str)
-        default_overlay2_position = self.settings.value('default_overlay2_position', 'top_right', type=str)
+        default_overlay2_x = self.settings.value('default_overlay2_x_percent', 75, type=int)
+        default_overlay2_y = self.settings.value('default_overlay2_y_percent', 0, type=int)
         default_overlay2_size = self.settings.value('default_overlay2_size', 15, type=int)
         default_overlay2_enabled = self.settings.value('default_overlay2_enabled', True, type=bool)
         if default_overlay2_enabled:
             if self.overlay2_checkbox.isChecked():
                 if not self.overlay2_edit.text().strip():
                     self.overlay2_edit.setText(default_overlay2_path)
-                idx = next((i for i in range(self.overlay2_position_combo.count()) if self.overlay2_position_combo.itemData(i) == default_overlay2_position), 2)
-                self.overlay2_position_combo.setCurrentIndex(idx)
+                idx = default_overlay2_x if 0 <= default_overlay2_x <= 100 else 75
+                self.overlay2_x_combo.setCurrentIndex(idx)
+                idx = default_overlay2_y if 0 <= default_overlay2_y <= 100 else 0
+                self.overlay2_y_combo.setCurrentIndex(idx)
                 idx = next((i for i in range(self.overlay2_size_combo.count()) if self.overlay2_size_combo.itemData(i) == default_overlay2_size), 2)
                 self.overlay2_size_combo.setCurrentIndex(idx)
         # Apply default overlay 3 settings if overlay 3 is checked and fields are empty
