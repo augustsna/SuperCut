@@ -3676,6 +3676,12 @@ class SuperCutUI(QWidget):
             if hasattr(self, 'lyric_dropdown_label'):
                 self.lyric_dropdown_label.setVisible(show_placeholder)
 
+        # Set preset combo state from settings
+        default_preset = self.settings.value('default_ffmpeg_preset', DEFAULT_FFMPEG_PRESET, type=str)
+        if default_preset is not None and hasattr(self, 'preset_combo'):
+            idx = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 6)
+            self.preset_combo.setCurrentIndex(idx)
+
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""
         if hasattr(self, '_worker') and self._worker is not None:
