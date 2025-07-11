@@ -523,9 +523,12 @@ def create_video_with_ffmpeg(
 
         # Display FFmpeg command with output video name
         video_name = os.path.basename(output_path)
-        print(f"📝 Commad:")
+        print(f"\n{'='*80}")
+        print(f"📝 FFMPEG COMMAND:")
+        print(f"{'='*80}")
         display_cmd = ['✨ ffmpeg'] + cmd[1:]
-        print(f"  {' '.join(display_cmd)} ✨")        
+        print(f"  {' '.join(display_cmd)} ✨")
+        print(f"{'='*80}\n")        
 
         audio_duration = get_audio_duration(audio_path)
         total_frames = int(audio_duration * fps)

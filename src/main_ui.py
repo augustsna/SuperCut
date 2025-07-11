@@ -3861,7 +3861,27 @@ Overlay7 Effect: {self.selected_overlay6_7_effect} | Time: {self.overlay6_7_star
         layout = QVBoxLayout(dlg)
         text_edit = QtWidgets.QPlainTextEdit()
         text_edit.setReadOnly(True)
-        text_edit.setStyleSheet(text_edit.styleSheet() + SCROLLBAR_STYLE + "\nbackground-color: #f6f6f6; font-size: 15px;")
+        
+        # Set font size using multiple methods to ensure it works
+        from PyQt6.QtGui import QFont
+        font = QFont()
+        font.setPointSize(14)  # Much larger font size for testing
+        font.setFamily("Arial")  # Use a common font family
+        text_edit.setFont(font)
+        
+        # Apply stylesheet with font-size override
+        stylesheet = f"""
+        QPlainTextEdit {{
+            background-color: #f6f6f6;
+            font-size: 15px;
+            font-family: Arial;
+        }}
+        {SCROLLBAR_STYLE}
+        """
+        text_edit.setStyleSheet(stylesheet)
+        
+        # Set font size using multiple methods to ensure it works
+        
         text_edit.setPlainText(settings_str.lstrip())
         layout.addWidget(text_edit)
         btn_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.StandardButton.Ok)
