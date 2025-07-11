@@ -3835,7 +3835,7 @@ class SuperCutUI(QWidget):
         # Gather all FFmpeg settings as would be passed to video creation
         inputs = self._gather_and_validate_inputs()
         if not inputs:
-            print("Preview dialog: Input validation failed, dialog will not be shown")
+    
             return  # Don't show dialog when there are warnings/errors
         (
             media_sources, export_name, number, folder, codec, resolution, fps, mp3_files, image_files, min_mp3_count
@@ -3915,7 +3915,7 @@ Scale: {self.song_title_scale_percent}%
 X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self.song_title_start_at}
 """
         # Show in a scrollable dialog
-        print("Preview dialog: Creating dialog...")
+
         
         class RoundedDialog(QtWidgets.QDialog):
             def __init__(self, parent=None):
@@ -3993,8 +3993,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         dialog_x = main_geometry.x() + (main_geometry.width() - 480) // 2
         dialog_y = main_geometry.y() + (main_geometry.height() - 500) // 2 - 50  # Move 50px up from center
         dlg.move(dialog_x, dialog_y)
-        print(f"Preview dialog: Main UI geometry: {main_geometry}")
-        print(f"Preview dialog: Positioning at ({dialog_x}, {dialog_y})")
+
         
         # Main layout
         layout = QVBoxLayout(dlg)
@@ -4403,6 +4402,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
             def on_finished(success, msg):
                 # Re-enable UI controls
                 self._set_ui_processing_state(False)
+                # Re-enable preview button after dry run
+                self.preview_btn.setEnabled(True)
                 # Clear thread reference
                 self._dry_run_thread = None
                 
@@ -4472,14 +4473,11 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         btn_layout.addStretch()
         
         content_layout.addLayout(btn_layout)
-        print("Preview dialog: Showing dialog...")
-        print(f"Preview dialog: Dialog visible: {dlg.isVisible()}")
-        print(f"Preview dialog: Dialog geometry: {dlg.geometry()}")
+
         dlg.show()
         dlg.raise_()
         dlg.activateWindow()
         dlg.exec()
-        print("Preview dialog: Dialog closed")
 
     def open_iconsna_website(self):
         import webbrowser
