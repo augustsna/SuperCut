@@ -439,6 +439,14 @@ class SettingsDialog(QDialog):
         self.save_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
         self.setFixedSize(640, 640)
+
+        # --- Add to SettingsDialog: Show Placeholder Controls Checkbox ---
+        self.show_placeholder_checkbox = QtWidgets.QCheckBox("Show Placeholder Controls")
+        self.show_placeholder_checkbox.setChecked(
+            self.settings.value('show_placeholder_controls', False, type=bool) if self.settings is not None else False
+        )
+        left_form.addRow("Show Placeholder:", self.show_placeholder_checkbox)
+
     def accept(self):
         self.selected_fps = self.fps_combo.currentData()
         if self.settings is not None:
@@ -479,6 +487,7 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_ffmpeg_video_bitrate', self.video_bitrate_combo.currentData())
             self.settings.setValue('default_ffmpeg_maxrate', self.maxrate_combo.currentData())
             self.settings.setValue('default_ffmpeg_bufsize', self.bufsize_combo.currentData())
+            self.settings.setValue('show_placeholder_controls', self.show_placeholder_checkbox.isChecked())
         super().accept()
 
     def reset_to_defaults(self):
@@ -2675,8 +2684,8 @@ class SuperCutUI(QWidget):
         update_lyric_checkbox_style(self.lyric_checkbox.checkState())
 
         # Placeholder dropdown (placeholder - does nothing for now)
-        lyric_dropdown_label = QtWidgets.QLabel("Placeholder:")
-        lyric_dropdown_label.setFixedWidth(80)
+        self.lyric_dropdown_label = QtWidgets.QLabel("Placeholder:")
+        self.lyric_dropdown_label.setFixedWidth(80)
         self.lyric_dropdown = QtWidgets.QComboBox()
         self.lyric_dropdown.setFixedWidth(125)
         self.lyric_dropdown.addItem("Select option...")
@@ -2689,7 +2698,7 @@ class SuperCutUI(QWidget):
         def set_lyric_dropdown_enabled(state):
             enabled = state == Qt.CheckState.Checked
             self.lyric_dropdown.setEnabled(enabled)
-            lyric_dropdown_label.setStyleSheet("" if enabled else "color: grey;")
+            self.lyric_dropdown_label.setStyleSheet("" if enabled else "color: grey;")
             if not enabled:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.lyric_dropdown.setStyleSheet(grey_btn_style)
@@ -2702,7 +2711,7 @@ class SuperCutUI(QWidget):
         lyric_layout.setSpacing(4)
         lyric_layout.addWidget(self.lyric_checkbox)
         lyric_layout.addSpacing(5)
-        lyric_layout.addWidget(lyric_dropdown_label)
+        lyric_layout.addWidget(self.lyric_dropdown_label)
         lyric_layout.addWidget(self.lyric_dropdown)
         lyric_layout.addStretch()
         layout.addLayout(lyric_layout)
@@ -3657,6 +3666,15 @@ class SuperCutUI(QWidget):
         if hasattr(self, 'resolution_combo'):
             idx = next((i for i, (label, value) in enumerate(DEFAULT_RESOLUTIONS) if value == default_resolution), 0)
             self.resolution_combo.setCurrentIndex(idx)
+
+        # Show/hide placeholder controls based on settings
+        show_placeholder = self.settings.value('show_placeholder_controls', False, type=bool)
+        if hasattr(self, 'lyric_checkbox') and hasattr(self, 'lyric_dropdown'):
+            self.lyric_checkbox.setVisible(show_placeholder)
+            self.lyric_dropdown.setVisible(show_placeholder)
+            # Also hide the label if present
+            if hasattr(self, 'lyric_dropdown_label'):
+                self.lyric_dropdown_label.setVisible(show_placeholder)
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""
