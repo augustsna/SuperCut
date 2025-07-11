@@ -1597,7 +1597,7 @@ class SuperCutUI(QWidget):
         ]
         for label, value in effect_options:
             self.effect_combo.addItem(label, value)
-        self.effect_combo.setCurrentIndex(1)
+        self.effect_combo.setCurrentIndex(1)  # Default to 'Fade in' for Overlay 1_2 effect
         self.selected_effect = "fadein"
         def on_effect_changed(idx):
             self.selected_effect = self.effect_combo.itemData(idx)
@@ -1879,7 +1879,7 @@ class SuperCutUI(QWidget):
         self.overlay4_5_effect_combo.setFixedWidth(combo_width)
         for label, value in effect_options:
             self.overlay4_5_effect_combo.addItem(label, value)
-        self.overlay4_5_effect_combo.setCurrentIndex(1)
+        self.overlay4_5_effect_combo.setCurrentIndex(1)  # Default to 'Fade in' for Overlay 4_5 effect
         self.selected_overlay4_5_effect = "fadein"
         def on_overlay4_5_effect_changed(idx):
             self.selected_overlay4_5_effect = self.overlay4_5_effect_combo.itemData(idx)
