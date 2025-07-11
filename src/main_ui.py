@@ -3733,10 +3733,83 @@ class SuperCutUI(QWidget):
                 pass
 
     def show_preview_dialog(self):
-        dlg = QtWidgets.QMessageBox(self)
-        dlg.setWindowTitle("Preview")
-        dlg.setText("Hello World!")
-        dlg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok | QtWidgets.QMessageBox.StandardButton.Cancel)
+        # Gather all FFmpeg settings as would be passed to video creation
+        inputs = self._gather_and_validate_inputs()
+        if not inputs:
+            return
+        (
+            media_sources, export_name, number, folder, codec, resolution, fps, mp3_files, image_files, min_mp3_count
+        ) = inputs
+        use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
+        name_list = self.name_list if use_name_list else None
+        preset = self.preset_combo.currentData()
+        audio_bitrate = self.settings.value('default_ffmpeg_audio_bitrate', DEFAULT_AUDIO_BITRATE, type=str)
+        video_bitrate = self.settings.value('default_ffmpeg_video_bitrate', DEFAULT_VIDEO_BITRATE, type=str)
+        maxrate = self.settings.value('default_ffmpeg_maxrate', DEFAULT_MAXRATE, type=str)
+        bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
+        overlay1_start_at = self.overlay_duration
+        overlay2_start_at = self.overlay_duration
+        # Compose a string with all settings
+        settings_str = f"""
+FFmpeg Settings Preview:\n
+Media sources: {media_sources}
+Export name: {export_name}
+Number: {number}
+Output folder: {folder}
+Codec: {codec}
+Resolution: {resolution}
+FPS: {fps}
+Preset: {preset}
+Audio bitrate: {audio_bitrate}
+Video bitrate: {video_bitrate}
+Maxrate: {maxrate}
+Bufsize: {bufsize}
+Min MP3 count: {min_mp3_count}
+Name list: {name_list if name_list else 'N/A'}
+
+--- Overlay & Intro ---
+Overlay 1: {self.overlay_checkbox.isChecked()} | Path: {self.overlay1_path} | Size: {self.overlay1_size_percent}% | X: {self.overlay1_x_percent}% | Y: {self.overlay1_y_percent}%
+Overlay 2: {self.overlay2_checkbox.isChecked()} | Path: {self.overlay2_path} | Size: {self.overlay2_size_percent}% | X: {self.overlay2_x_percent}% | Y: {self.overlay2_y_percent}%
+Overlay 3: {self.overlay3_checkbox.isChecked()} | Path: {self.overlay3_path} | Size: {self.overlay3_size_percent}% | X: {self.overlay3_x_percent}% | Y: {self.overlay3_y_percent}%
+Overlay 4: {self.overlay4_checkbox.isChecked()} | Path: {self.overlay4_path} | Size: {self.overlay4_size_percent}% | X: {self.overlay4_x_percent}% | Y: {self.overlay4_y_percent}%
+Overlay 5: {self.overlay5_checkbox.isChecked()} | Path: {self.overlay5_path} | Size: {self.overlay5_size_percent}% | X: {self.overlay5_x_percent}% | Y: {self.overlay5_y_percent}%
+Overlay 6: {self.overlay6_checkbox.isChecked()} | Path: {self.overlay6_path} | Size: {self.overlay6_size_percent}% | X: {self.overlay6_x_percent}% | Y: {self.overlay6_y_percent}%
+Overlay 7: {self.overlay7_checkbox.isChecked()} | Path: {self.overlay7_path} | Size: {self.overlay7_size_percent}% | X: {self.overlay7_x_percent}% | Y: {self.overlay7_y_percent}%
+Overlay1 Start: {overlay1_start_at} | Overlay2 Start: {overlay2_start_at}
+
+Intro: {self.intro_checkbox.isChecked()} | Path: {self.intro_path} | Size: {self.intro_size_percent}% | X: {self.intro_x_percent}% | Y: {self.intro_y_percent}% | Effect: {self.intro_effect} | Duration: {self.intro_duration}
+
+--- Song Title Overlay ---
+Use Song Title Overlay: {self.song_title_checkbox.isChecked()}
+Effect: {self.song_title_effect}
+Font: {self.song_title_font}
+Font Size: {self.song_title_font_size}
+Color: {self.song_title_color}
+BG: {self.song_title_bg}
+BG Color: {self.song_title_bg_color}
+BG Opacity: {self.song_title_opacity}
+Scale: {self.song_title_scale_percent}%
+X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self.song_title_start_at}
+
+--- Effects ---
+Overlay4 Effect: {self.selected_overlay4_5_effect} | Time: {self.overlay4_5_start_at}
+Overlay5 Effect: {self.selected_overlay4_5_effect} | Time: {self.overlay4_5_start_at}
+Overlay6 Effect: {self.selected_overlay6_7_effect} | Time: {self.overlay6_7_start_at}
+Overlay7 Effect: {self.selected_overlay6_7_effect} | Time: {self.overlay6_7_start_at}
+"""
+        # Show in a scrollable dialog
+        dlg = QtWidgets.QDialog(self)
+        dlg.setWindowTitle("Preview: FFmpeg Settings")
+        dlg.setMinimumSize(480, 500)
+        layout = QVBoxLayout(dlg)
+        text_edit = QtWidgets.QPlainTextEdit()
+        text_edit.setReadOnly(True)
+        text_edit.setStyleSheet("background-color: #f6f6f6;")
+        text_edit.setPlainText(settings_str.lstrip())
+        layout.addWidget(text_edit)
+        btn_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        btn_box.accepted.connect(dlg.accept)
+        layout.addWidget(btn_box)
         dlg.exec()
 
     def open_iconsna_website(self):
