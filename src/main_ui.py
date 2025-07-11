@@ -89,10 +89,10 @@ class SettingsDialog(QDialog):
         self.default_window_width_edit.setPlaceholderText("W")
         self.default_window_width_edit.setValidator(QIntValidator(600, 1200, self))
         if self.settings is not None:
-            default_width = self.settings.value('default_window_width', 660, type=int)
+            default_width = self.settings.value('default_window_width', 666, type=int)
             self.default_window_width_edit.setText(str(default_width))
         else:
-            self.default_window_width_edit.setText("660")
+            self.default_window_width_edit.setText("666")
         
         self.default_window_height_edit = QLineEdit()
         self.default_window_height_edit.setFixedWidth(45)
@@ -437,8 +437,8 @@ class SettingsDialog(QDialog):
                 self.settings.setValue('default_window_height', window_height)
             except ValueError:
                 # If invalid values, use defaults
-                print(f"Invalid values, using defaults: width=660, height=640")
-                self.settings.setValue('default_window_width', 660)
+                print(f"Invalid values, using defaults: width=666, height=640")
+                self.settings.setValue('default_window_width', 666)
                 self.settings.setValue('default_window_height', 640)
             
             self.settings.setValue('default_fps', self.selected_fps)
@@ -509,7 +509,7 @@ class SettingsDialog(QDialog):
         # MP3 #
         self.default_mp3_count_enabled_checkbox.setChecked(False)
         # Window Size
-        self.default_window_width_edit.setText("660")
+        self.default_window_width_edit.setText("666")
         self.default_window_height_edit.setText("640")
 
 class NameListDialog(QDialog):
@@ -771,16 +771,16 @@ class SuperCutUI(QWidget):
         self.setWindowTitle(WINDOW_TITLE)
         
         # Load saved window size or use defaults
-        saved_width = self.settings.value('default_window_width', 660, type=int)
+        saved_width = self.settings.value('default_window_width', 666, type=int)
         saved_height = self.settings.value('default_window_height', WINDOW_SIZE[1], type=int)
         
         # Use saved values directly, but ensure they're reasonable
         width = max(saved_width, 400)  # Minimum reasonable width
-        width = min(width, 680)  # Maximum width constraint
+        width = min(width, 686)  # Maximum width constraint
         height = max(saved_height, 400)  # Minimum reasonable height
         
         self.setMinimumSize(400, 400)  # Set a reasonable minimum size
-        self.setMaximumWidth(680)  # Set maximum width to 680px
+        self.setMaximumWidth(686)  # Set maximum width to 686px
         self.resize(width, height)  # Set initial size from settings
         self.setStyleSheet(STYLE_SHEET)
         
@@ -1079,7 +1079,7 @@ class SuperCutUI(QWidget):
         settings_layout.setSpacing(0)  # We'll add custom spacing
 
         # Codec selection
-        settings_layout.addSpacing(-2)
+        settings_layout.addSpacing(2)
         codec_label = QLabel("Codec:")        
         self.codec_combo = QtWidgets.QComboBox()
         self.codec_combo.setFixedWidth(130)
@@ -3510,7 +3510,7 @@ class SuperCutUI(QWidget):
             
             # Use saved values directly, but ensure they're reasonable
             width = max(saved_width, 400)  # Minimum reasonable width
-            width = min(width, 680)  # Maximum width constraint
+            width = min(width, 686)  # Maximum width constraint
             height = max(saved_height, 400)  # Minimum reasonable height
             
             print(f"Resizing window to: width={width}, height={height}")
