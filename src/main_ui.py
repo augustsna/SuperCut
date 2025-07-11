@@ -3934,7 +3934,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         
         dlg = RoundedDialog()
         dlg.setWindowTitle("⚡ SuperCut Preview")
-        dlg.setMinimumSize(480, 500)
+        dlg.setMinimumSize(500, 520)
         dlg.resize(500, 520)  # Set fixed size
         dlg.setStyleSheet("""
             QWidget {
@@ -3986,10 +3986,70 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
             }
         """)
         
-        # Position the dialog in front of the main UI, slightly up from center
+        # Position the dialog intelligently next to the main UI based on available space
         main_geometry = self.geometry()
-        dialog_x = main_geometry.x() + (main_geometry.width() - 480) // 2
-        dialog_y = main_geometry.y() + (main_geometry.height() - 500) // 2 - 50  # Move 50px up from center
+        dialog_width = 500
+        dialog_height = 520
+        
+        # Get screen geometry
+        screen = self.screen() if hasattr(self, 'screen') and self.screen() else QApplication.primaryScreen()
+        if screen is not None:
+            screen_geometry = screen.geometry()
+            screen_width = screen_geometry.width()
+            screen_height = screen_geometry.height()
+        else:
+            screen_width = 1920
+            screen_height = 1080
+        
+        # Calculate title bar height offset (typical Windows title bar is ~30px)
+        title_bar_height = 30
+        
+        # Calculate available space on left and right, accounting for title bar
+        space_on_right = screen_width - (main_geometry.x() + main_geometry.width())
+        space_on_left = main_geometry.x()
+        
+        # Adjust for title bar in vertical positioning
+        available_height = screen_height - title_bar_height
+        
+        # Determine optimal position
+        if space_on_right >= dialog_width + 10:
+            # Enough space on the right - position there
+            dialog_x = main_geometry.x() + main_geometry.width() + 10
+            dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+            position_side = "right"
+        elif space_on_left >= dialog_width + 10:
+            # Enough space on the left - position there
+            dialog_x = main_geometry.x() - dialog_width - 10
+            dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+            position_side = "left"
+        else:
+            # Not enough space on either side, try to fit it
+            if space_on_right > space_on_left:
+                # More space on right, try to fit there
+                dialog_x = main_geometry.x() + main_geometry.width() + 5
+                dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+                position_side = "right (tight)"
+            else:
+                # More space on left, try to fit there
+                dialog_x = main_geometry.x() - dialog_width - 5
+                dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+                position_side = "left (tight)"
+        
+        # Ensure dialog doesn't go off-screen vertically (accounting for title bar)
+        if dialog_y + dialog_height > available_height:
+            dialog_y = available_height - dialog_height - 10
+        
+        if dialog_y < title_bar_height:
+            dialog_y = title_bar_height + 10
+        
+        # Ensure dialog doesn't go off-screen horizontally
+        if dialog_x + dialog_width > screen_width:
+            dialog_x = screen_width - dialog_width - 10
+        
+        if dialog_x < 0:
+            dialog_x = 10
+        
+        # Position the dialog
         dlg.move(dialog_x, dialog_y)
 
         
