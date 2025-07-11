@@ -40,7 +40,7 @@ from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
     validate_inputs, validate_media_files, clean_file_path
 )
-from src.ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, DryRunSuccessDialog, ScrollableErrorDialog, ImageDropLineEdit
+from src.ui_components import FolderDropLineEdit, PleaseWaitDialog, StoppedDialog, SuccessDialog, DryRunSuccessDialog, ScrollableErrorDialog, ImageDropLineEdit
 from src.video_worker import VideoWorker
 from src.terminal_widget import TerminalWidget
 

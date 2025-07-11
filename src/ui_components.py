@@ -100,39 +100,6 @@ class ImageDropLineEdit(QLineEdit):
         else:
             super().paste()
 
-class WaitingDialog(QDialog):
-    """Dialog shown while processing video creation"""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Running...")
-        self.setModal(True)
-        self.setFixedSize(180, 150)
-        
-        layout = QVBoxLayout(self)
-        
-        # Status label
-        self.label = QLabel("Creating video, wait...")
-        font = self.label.font()
-        font.setPointSize(10)
-        self.label.setFont(font)
-        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.label)
-        
-        # Spinner
-        self.spinner = QLabel()
-        self.spinner.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        gif_path = os.path.join(os.path.dirname(__file__), "sources/spinner.gif")
-        self.movie = QMovie(gif_path)
-        self.spinner.setMovie(self.movie)
-        layout.addWidget(self.spinner)
-        self.movie.start()
-        
-        # OK button
-        self.ok_button = QPushButton("OK")
-        self.ok_button.setFixedHeight(30)
-        self.ok_button.clicked.connect(self.accept)
-        layout.addWidget(self.ok_button)
-
 class PleaseWaitDialog(QDialog):
     """Dialog shown when stopping video creation"""
     def __init__(self, parent=None):
@@ -158,10 +125,7 @@ class PleaseWaitDialog(QDialog):
         vbox.setContentsMargins(16, 16, 16, 16)
         vbox.setSpacing(10)
         label = QLabel("Wait, current batch to finish")
-        font = label.font()
-        font.setBold(True)
-        label.setFont(font)
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         vbox.addWidget(label)
         self.setLayout(vbox)
     def closeEvent(self, event):
