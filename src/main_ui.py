@@ -441,7 +441,7 @@ class SettingsDialog(QDialog):
         self.setFixedSize(640, 640)
 
         # --- Add to SettingsDialog: Show Placeholder Controls Checkbox ---
-        self.show_placeholder_checkbox = QtWidgets.QCheckBox("Show Placeholder Controls")
+        self.show_placeholder_checkbox = QtWidgets.QCheckBox("Show Placeholder")
         self.show_placeholder_checkbox.setChecked(
             self.settings.value('show_placeholder_controls', False, type=bool) if self.settings is not None else False
         )
@@ -508,8 +508,8 @@ class SettingsDialog(QDialog):
         # Intro
         self.default_intro_enabled_checkbox.setChecked(True)
         self.default_intro_path_edit.setText("")
-        self.default_intro_x_combo.setCurrentIndex(10)  # 50% X
-        self.default_intro_y_combo.setCurrentIndex(10)  # 50% Y
+        self.default_intro_x_combo.setCurrentIndex(50)  # 50% X
+        self.default_intro_y_combo.setCurrentIndex(50)  # 50% Y
         idx_intro_size = 9  # 50% size
         self.default_intro_size_combo.setCurrentIndex(idx_intro_size)
         # Note: Default intro duration is now 6 seconds (set in main UI)
@@ -531,9 +531,9 @@ class SettingsDialog(QDialog):
         self.default_list_name_enabled_checkbox.setChecked(False)
         # MP3 #
         self.default_mp3_count_enabled_checkbox.setChecked(False)
-        # Window Size
+        # Window Size (reset uses 650 as default, matching main default)
         self.default_window_width_edit.setText("666")
-        self.default_window_height_edit.setText("640")
+        self.default_window_height_edit.setText("650")
 
 class NameListDialog(QDialog):
     def __init__(self, parent=None, initial_names=None):
