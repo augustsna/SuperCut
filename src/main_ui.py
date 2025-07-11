@@ -1223,8 +1223,8 @@ class SuperCutUI(QWidget):
 
         # (1) Create all intro widgets first
         combo_width = 130
-        intro_effect_label = QLabel("Intro:")
-        intro_effect_label.setFixedWidth(40)
+        intro_effect_label = QLabel("Intro :")
+        intro_effect_label.setFixedWidth(45)
         self.intro_effect_combo = QtWidgets.QComboBox()
         self.intro_effect_combo.setFixedWidth(combo_width)
         intro_effect_options = [
@@ -1320,13 +1320,13 @@ class SuperCutUI(QWidget):
 
         # Intro effect controls - moved directly below intro line
         intro_effect_layout = QHBoxLayout()        
-        intro_effect_layout.addSpacing(306)  # Align with intro checkbox
+        intro_effect_layout.addSpacing(301)  # Align with intro checkbox
         intro_effect_layout.addWidget(intro_effect_label)
         intro_effect_layout.addSpacing(-9)
         intro_effect_layout.addWidget(self.intro_effect_combo)
         intro_effect_layout.addSpacing(-6)
         intro_effect_layout.addWidget(intro_duration_label)
-        intro_effect_layout.addSpacing(-25)
+        intro_effect_layout.addSpacing(-27)
         intro_effect_layout.addWidget(self.intro_duration_edit)
         intro_effect_layout.addStretch()
         layout.addLayout(intro_effect_layout)
@@ -1608,13 +1608,13 @@ class SuperCutUI(QWidget):
 
         effect_layout = QHBoxLayout()
         effect_layout.setContentsMargins(0, 0, 0, 0)
-        effect_layout.addSpacing(265)
+        effect_layout.addSpacing(260)
         effect_layout.addWidget(effect_label)
-        effect_layout.addSpacing(-8)
+        effect_layout.addSpacing(-3)
         effect_layout.addWidget(self.effect_combo)
-        effect_layout.addSpacing(1)
+        effect_layout.addSpacing(-1)
         effect_layout.addWidget(overlay_duration_label)
-        effect_layout.addSpacing(-31)
+        effect_layout.addSpacing(-32)
         effect_layout.addWidget(self.overlay_duration_edit)
         effect_layout.addStretch()
         layout.addLayout(effect_layout)
@@ -1917,9 +1917,9 @@ class SuperCutUI(QWidget):
         
         # Effect control (moved to next line)
         song_title_effect_layout = QHBoxLayout()
-        song_title_effect_layout.setSpacing(4)
-        song_title_effect_label = QLabel("E:")
-        song_title_effect_label.setFixedWidth(18)
+        song_title_effect_layout.setSpacing(0)
+        song_title_effect_label = QLabel("Titles:")
+        song_title_effect_label.setFixedWidth(40)
         self.song_title_effect_combo = QtWidgets.QComboBox()
         self.song_title_effect_combo.setFixedWidth(combo_width)
         song_title_effect_options = [
@@ -2057,7 +2057,7 @@ class SuperCutUI(QWidget):
         
         # Second line: bg, opacity, effect, start at
         song_title_controls_layout = QHBoxLayout()        
-        song_title_controls_layout.addSpacing(20)  # Align with song title checkbox
+        song_title_controls_layout.addSpacing(10)  # Align with song title checkbox
         song_title_controls_layout.addWidget(song_title_bg_label)
         song_title_controls_layout.addSpacing(-7)
         song_title_controls_layout.addWidget(self.song_title_bg_combo)
@@ -2065,13 +2065,13 @@ class SuperCutUI(QWidget):
         song_title_controls_layout.addWidget(self.song_title_bg_color_btn)
         song_title_controls_layout.addSpacing(-5)
         song_title_controls_layout.addWidget(self.song_title_opacity_combo)
-        song_title_controls_layout.addSpacing(10)
+        song_title_controls_layout.addSpacing(6)
         song_title_controls_layout.addWidget(song_title_effect_label)
-        song_title_controls_layout.addSpacing(1)
+        song_title_controls_layout.addSpacing(2)
         song_title_controls_layout.addWidget(self.song_title_effect_combo)
-        song_title_controls_layout.addSpacing(0)
+        song_title_controls_layout.addSpacing(-1)
         song_title_controls_layout.addWidget(song_title_start_label)
-        song_title_controls_layout.addSpacing(-24)
+        song_title_controls_layout.addSpacing(-32)
         song_title_controls_layout.addWidget(self.song_title_start_edit)
         song_title_controls_layout.addStretch()
         layout.addLayout(song_title_controls_layout)
@@ -2339,13 +2339,13 @@ class SuperCutUI(QWidget):
 
         overlay4_5_layout = QHBoxLayout()
         overlay4_5_layout.setContentsMargins(0, 0, 0, 0)
-        overlay4_5_layout.addSpacing(265)
+        overlay4_5_layout.addSpacing(260)
         overlay4_5_layout.addWidget(overlay4_5_label)
-        overlay4_5_layout.addSpacing(-8)
+        overlay4_5_layout.addSpacing(-3)
         overlay4_5_layout.addWidget(self.overlay4_5_effect_combo)
         overlay4_5_layout.addSpacing(-1)
         overlay4_5_layout.addWidget(overlay4_5_start_label)
-        overlay4_5_layout.addSpacing(-31)
+        overlay4_5_layout.addSpacing(-32)
         overlay4_5_layout.addWidget(self.overlay4_5_start_edit)
         overlay4_5_layout.addStretch()
         layout.addLayout(overlay4_5_layout)
@@ -2633,13 +2633,13 @@ class SuperCutUI(QWidget):
 
         overlay6_7_layout = QHBoxLayout()
         overlay6_7_layout.setContentsMargins(0, 0, 0, 0)
-        overlay6_7_layout.addSpacing(265)
+        overlay6_7_layout.addSpacing(260)
         overlay6_7_layout.addWidget(overlay6_7_label)
-        overlay6_7_layout.addSpacing(-8)
+        overlay6_7_layout.addSpacing(-3)
         overlay6_7_layout.addWidget(self.overlay6_7_effect_combo)
         overlay6_7_layout.addSpacing(-1)
         overlay6_7_layout.addWidget(overlay6_7_start_label)
-        overlay6_7_layout.addSpacing(-31)
+        overlay6_7_layout.addSpacing(-32)
         overlay6_7_layout.addWidget(self.overlay6_7_start_edit)
         overlay6_7_layout.addStretch()
         layout.addLayout(overlay6_7_layout)
