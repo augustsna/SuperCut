@@ -1754,7 +1754,8 @@ class SuperCutUI(QWidget):
         layout.addLayout(overlay3_layout)
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
-        self.song_title_checkbox = QtWidgets.QCheckBox("Song Titles:")
+        self.song_title_checkbox = QtWidgets.QCheckBox("  Titles:")
+        self.song_title_checkbox.setFixedWidth(82)
         self.song_title_checkbox.setChecked(True)
         def update_song_title_checkbox_style(state):
             self.song_title_checkbox.setStyleSheet("")
@@ -1769,7 +1770,7 @@ class SuperCutUI(QWidget):
         song_title_font_label = QLabel("Font:")
         song_title_font_label.setFixedWidth(40)
         self.song_title_font_combo = QtWidgets.QComboBox()
-        self.song_title_font_combo.setFixedWidth(120)
+        self.song_title_font_combo.setFixedWidth(125)
         song_title_font_options = [
             ("Default", "default"),
             ("Kantumruy Pro", "KantumruyPro-VariableFont_wght.ttf"),
@@ -1791,10 +1792,10 @@ class SuperCutUI(QWidget):
         # (Remove the font size combo box and related logic)
 
         # Titles Scale control
-        song_title_scale_label = QLabel("Titles Scale:")
-        song_title_scale_label.setFixedWidth(80)
+        song_title_scale_label = QLabel("S:")
+        song_title_scale_label.setFixedWidth(18)
         self.song_title_scale_combo = QtWidgets.QComboBox()
-        self.song_title_scale_combo.setFixedWidth(86)
+        self.song_title_scale_combo.setFixedWidth(90)
         for percent in range(5, 101, 5):
             self.song_title_scale_combo.addItem(f"{percent}%", percent)
         self.song_title_scale_combo.setCurrentIndex(19)  # Default 100%
@@ -1805,8 +1806,8 @@ class SuperCutUI(QWidget):
         on_song_title_scale_changed(self.song_title_scale_combo.currentIndex())
         
         # Color control
-        song_title_color_label = QLabel("Color:")
-        song_title_color_label.setFixedWidth(40)
+        song_title_color_label = QLabel("C:")
+        song_title_color_label.setFixedWidth(18)
         self.song_title_color_btn = QPushButton()
         self.song_title_color_btn.setFixedSize(27, 27)
         self.song_title_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
@@ -1952,7 +1953,7 @@ class SuperCutUI(QWidget):
         on_song_title_x_changed(self.song_title_x_combo.currentIndex())
 
         song_title_y_label = QLabel("Y:")
-        song_title_y_label.setFixedWidth(28)
+        song_title_y_label.setFixedWidth(18)
         self.song_title_y_combo = QtWidgets.QComboBox()
         self.song_title_y_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
@@ -2014,40 +2015,47 @@ class SuperCutUI(QWidget):
         self.song_title_checkbox.stateChanged.connect(lambda _: set_song_title_controls_enabled(self.song_title_checkbox.checkState()))
         set_song_title_controls_enabled(self.song_title_checkbox.checkState())
         
-        # First line: checkbox, effect, X, Y, start at
+        # First line: checkbox, font, size, color, X, Y
         song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(self.song_title_checkbox)
-        song_title_checkbox_layout.addSpacing(5)
-        song_title_checkbox_layout.addWidget(song_title_effect_label)
-        song_title_checkbox_layout.addWidget(self.song_title_effect_combo)
-        song_title_checkbox_layout.addSpacing(5)
+        song_title_checkbox_layout.addSpacing(7)
+        #song_title_checkbox_layout.addWidget(song_title_font_label)        
+        song_title_checkbox_layout.addWidget(self.song_title_font_combo)
+        song_title_checkbox_layout.addSpacing(4)        
+        song_title_checkbox_layout.addWidget(song_title_color_label)
+        song_title_checkbox_layout.addSpacing(4)
+        song_title_checkbox_layout.addWidget(self.song_title_color_btn)
+        song_title_checkbox_layout.addSpacing(6)
+        song_title_checkbox_layout.addWidget(song_title_scale_label)
+        song_title_checkbox_layout.addSpacing(0)
+        song_title_checkbox_layout.addWidget(self.song_title_scale_combo)
+        song_title_checkbox_layout.addSpacing(4)
         song_title_checkbox_layout.addWidget(song_title_x_label)
+        song_title_checkbox_layout.addSpacing(-10)
         song_title_checkbox_layout.addWidget(self.song_title_x_combo)
-        song_title_checkbox_layout.addSpacing(5)
+        song_title_checkbox_layout.addSpacing(4)
         song_title_checkbox_layout.addWidget(song_title_y_label)
+        song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(self.song_title_y_combo)
-        song_title_checkbox_layout.addSpacing(5)
-        song_title_checkbox_layout.addWidget(song_title_start_label)
-        song_title_checkbox_layout.addWidget(self.song_title_start_edit)
         song_title_checkbox_layout.addStretch()
         layout.addLayout(song_title_checkbox_layout)
         
-        # Second line: font, size, color, bg, opacity
-        song_title_controls_layout = QHBoxLayout()
-        song_title_controls_layout.setSpacing(2)
-        song_title_controls_layout.addWidget(song_title_font_label)        
-        song_title_controls_layout.addWidget(self.song_title_font_combo)
-        song_title_controls_layout.addSpacing(4)        
-        song_title_controls_layout.addWidget(self.song_title_scale_combo) 
-        song_title_controls_layout.addWidget(song_title_color_label)
-        song_title_controls_layout.addWidget(self.song_title_color_btn)
-        song_title_controls_layout.addSpacing(8)
+        # Second line: bg, opacity, effect, start at
+        song_title_controls_layout = QHBoxLayout()        
+        song_title_controls_layout.addSpacing(0)  # Align with song title checkbox
         song_title_controls_layout.addWidget(song_title_bg_label)
         song_title_controls_layout.addWidget(self.song_title_bg_combo)
         song_title_controls_layout.addSpacing(3)
         song_title_controls_layout.addWidget(self.song_title_bg_color_btn)
         song_title_controls_layout.addSpacing(1)
         song_title_controls_layout.addWidget(self.song_title_opacity_combo)
+        song_title_controls_layout.addSpacing(5)
+        song_title_controls_layout.addWidget(song_title_effect_label)
+        song_title_controls_layout.addSpacing(-6)
+        song_title_controls_layout.addWidget(self.song_title_effect_combo)
+        song_title_controls_layout.addSpacing(5)
+        song_title_controls_layout.addWidget(song_title_start_label)
+        song_title_controls_layout.addWidget(self.song_title_start_edit)
         song_title_controls_layout.addStretch()
         layout.addLayout(song_title_controls_layout)
 
@@ -2318,7 +2326,7 @@ class SuperCutUI(QWidget):
         overlay4_5_layout.addWidget(overlay4_5_label)
         overlay4_5_layout.addSpacing(-6)
         overlay4_5_layout.addWidget(self.overlay4_5_effect_combo)
-        overlay4_5_layout.addSpacing(-0)
+        overlay4_5_layout.addSpacing(0)
         overlay4_5_layout.addWidget(overlay4_5_start_label)
         overlay4_5_layout.addSpacing(-24)
         overlay4_5_layout.addWidget(self.overlay4_5_start_edit)
