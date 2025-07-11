@@ -91,19 +91,23 @@ def create_video_with_ffmpeg(
     use_overlay4: bool = False,
     overlay4_path: str = "",
     overlay4_size_percent: int = 10,
-    overlay4_position: str = "top_left",
+    overlay4_x_percent: int = 75,
+    overlay4_y_percent: int = 0,
     use_overlay5: bool = False,
     overlay5_path: str = "",
     overlay5_size_percent: int = 10,
-    overlay5_position: str = "top_left",
+    overlay5_x_percent: int = 75,
+    overlay5_y_percent: int = 0,
     use_overlay6: bool = False,
     overlay6_path: str = "",
     overlay6_size_percent: int = 10,
-    overlay6_position: str = "top_left",
+    overlay6_x_percent: int = 75,
+    overlay6_y_percent: int = 0,
     use_overlay7: bool = False,
     overlay7_path: str = "",
     overlay7_size_percent: int = 10,
-    overlay7_position: str = "top_left",
+    overlay7_x_percent: int = 75,
+    overlay7_y_percent: int = 0,
     use_intro: bool = False,
     intro_path: str = "",
     intro_size_percent: int = 10,
@@ -322,10 +326,14 @@ def create_video_with_ffmpeg(
             oy2 = f"(H-h)*(1-({overlay2_y_percent}/100))" if overlay2_y_percent != 100 else "0"
             ox3 = f"(W-w)*{overlay3_x_percent}/100" if overlay3_x_percent != 0 else "0"
             oy3 = f"(H-h)*(1-({overlay3_y_percent}/100))" if overlay3_y_percent != 100 else "0"
-            ox4, oy4 = position_map.get(overlay4_position, ("0", "0"))
-            ox5, oy5 = position_map.get(overlay5_position, ("0", "0"))
-            ox6, oy6 = position_map.get(overlay6_position, ("0", "0"))
-            ox7, oy7 = position_map.get(overlay7_position, ("0", "0"))
+            ox4 = f"(W-w)*{overlay4_x_percent}/100" if overlay4_x_percent != 0 else "0"
+            oy4 = f"(H-h)*(1-({overlay4_y_percent}/100))" if overlay4_y_percent != 100 else "0"
+            ox5 = f"(W-w)*{overlay5_x_percent}/100" if overlay5_x_percent != 0 else "0"
+            oy5 = f"(H-h)*(1-({overlay5_y_percent}/100))" if overlay5_y_percent != 100 else "0"
+            ox6 = f"(W-w)*{overlay6_x_percent}/100" if overlay6_x_percent != 0 else "0"
+            oy6 = f"(H-h)*(1-({overlay6_y_percent}/100))" if overlay6_y_percent != 100 else "0"
+            ox7 = f"(W-w)*{overlay7_x_percent}/100" if overlay7_x_percent != 0 else "0"
+            oy7 = f"(H-h)*(1-({overlay7_y_percent}/100))" if overlay7_y_percent != 100 else "0"
             filter_bg = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height}[bg]"
 
             # Effect logic for overlays

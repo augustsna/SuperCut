@@ -20,8 +20,8 @@ class VideoWorker(QObject):
                  use_overlay2: bool = False, overlay2_path: str = "", overlay2_size_percent: int = 10, overlay2_x_percent: int = 75, overlay2_y_percent: int = 0,
                  overlay1_start_at: int = 0, overlay2_start_at: int = 0,
                  use_overlay3: bool = False, overlay3_path: str = "", overlay3_size_percent: int = 10, overlay3_x_percent: int = 75, overlay3_y_percent: int = 0,
-                 use_overlay4: bool = False, overlay4_path: str = "", overlay4_size_percent: int = 10, overlay4_position: str = "top_left",
-                 use_overlay5: bool = False, overlay5_path: str = "", overlay5_size_percent: int = 10, overlay5_position: str = "top_left",
+                 use_overlay4: bool = False, overlay4_path: str = "", overlay4_size_percent: int = 10, overlay4_x_percent: int = 75, overlay4_y_percent: int = 0,
+                 use_overlay5: bool = False, overlay5_path: str = "", overlay5_size_percent: int = 10, overlay5_x_percent: int = 75, overlay5_y_percent: int = 0,
                  use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_x_percent: int = 50, intro_y_percent: int = 50,
                  effect: str = "fadein", effect_time: int = 5,
                  intro_effect: str = "fadeout", intro_duration: int = 6,
@@ -48,8 +48,8 @@ class VideoWorker(QObject):
                  overlay5_effect: str = "fadein",
                  overlay5_effect_time: int = 5,
                  # --- Add overlay6, overlay7, overlay6_7 effect ---
-                 use_overlay6: bool = False, overlay6_path: str = "", overlay6_size_percent: int = 10, overlay6_position: str = "top_left",
-                 use_overlay7: bool = False, overlay7_path: str = "", overlay7_size_percent: int = 10, overlay7_position: str = "top_left",
+                 use_overlay6: bool = False, overlay6_path: str = "", overlay6_size_percent: int = 10, overlay6_x_percent: int = 75, overlay6_y_percent: int = 0,
+                 use_overlay7: bool = False, overlay7_path: str = "", overlay7_size_percent: int = 10, overlay7_x_percent: int = 75, overlay7_y_percent: int = 0,
                  overlay6_effect: str = "fadein", overlay6_effect_time: int = 5,
                  overlay7_effect: str = "fadein", overlay7_effect_time: int = 5):
         super().__init__()
@@ -81,11 +81,13 @@ class VideoWorker(QObject):
         self.use_overlay4 = use_overlay4
         self.overlay4_path = overlay4_path
         self.overlay4_size_percent = overlay4_size_percent
-        self.overlay4_position = overlay4_position
+        self.overlay4_x_percent = overlay4_x_percent
+        self.overlay4_y_percent = overlay4_y_percent
         self.use_overlay5 = use_overlay5
         self.overlay5_path = overlay5_path
         self.overlay5_size_percent = overlay5_size_percent
-        self.overlay5_position = overlay5_position
+        self.overlay5_x_percent = overlay5_x_percent
+        self.overlay5_y_percent = overlay5_y_percent
         self.use_intro = use_intro
         self.intro_path = intro_path
         self.intro_size_percent = intro_size_percent
@@ -122,11 +124,13 @@ class VideoWorker(QObject):
         self.use_overlay6 = use_overlay6
         self.overlay6_path = overlay6_path
         self.overlay6_size_percent = overlay6_size_percent
-        self.overlay6_position = overlay6_position
+        self.overlay6_x_percent = overlay6_x_percent
+        self.overlay6_y_percent = overlay6_y_percent
         self.use_overlay7 = use_overlay7
         self.overlay7_path = overlay7_path
         self.overlay7_size_percent = overlay7_size_percent
-        self.overlay7_position = overlay7_position
+        self.overlay7_x_percent = overlay7_x_percent
+        self.overlay7_y_percent = overlay7_y_percent
         self.overlay6_effect = overlay6_effect
         self.overlay6_effect_time = overlay6_effect_time
         self.overlay7_effect = overlay7_effect
@@ -334,19 +338,23 @@ class VideoWorker(QObject):
                 self.use_overlay4,
                 self.overlay4_path,
                 self.overlay4_size_percent,
-                self.overlay4_position,
+                self.overlay4_x_percent,
+                self.overlay4_y_percent,
                 self.use_overlay5,
                 self.overlay5_path,
                 self.overlay5_size_percent,
-                self.overlay5_position,
+                self.overlay5_x_percent,
+                self.overlay5_y_percent,
                 self.use_overlay6,
                 self.overlay6_path,
                 self.overlay6_size_percent,
-                self.overlay6_position,
+                self.overlay6_x_percent,
+                self.overlay6_y_percent,
                 self.use_overlay7,
                 self.overlay7_path,
                 self.overlay7_size_percent,
-                self.overlay7_position,
+                self.overlay7_x_percent,
+                self.overlay7_y_percent,
                 self.use_intro,
                 self.intro_path,
                 self.intro_size_percent,
