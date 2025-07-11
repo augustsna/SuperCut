@@ -234,13 +234,21 @@ class StoppedDialog(QDialog):
         batch_info.setTextFormat(Qt.TextFormat.RichText)
         layout.addWidget(batch_info)
 
+        # Buttons row
+        btn_row = QHBoxLayout()
+        btn_row.addStretch()
+        # Open Folder button
+        open_folder_btn = QPushButton("Open Folder")
+        open_folder_btn.setMinimumWidth(120)
+        def on_open_folder():
+            if parent and hasattr(parent, 'open_result_folder'):
+                parent.open_result_folder()
+        open_folder_btn.clicked.connect(on_open_folder)
+        btn_row.addWidget(open_folder_btn)
         # OK button
         ok_btn = QPushButton("OK")
         ok_btn.setDefault(True)
         ok_btn.clicked.connect(self.accept)
-
-        btn_row = QHBoxLayout()
-        btn_row.addStretch()
         btn_row.addWidget(ok_btn)
         btn_row.addStretch()
         layout.addLayout(btn_row)
