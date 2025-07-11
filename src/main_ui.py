@@ -326,7 +326,9 @@ class SettingsDialog(QDialog):
         if self.settings is not None:
             default_overlay1_x = self.settings.value('default_overlay1_x_percent', 0, type=int)
             idx = default_overlay1_x if 0 <= default_overlay1_x <= 100 else 0
-            self.default_overlay1_x_combo.setCurrentIndex(idx)
+            self.default_overlay1_x_combo.setCurrentIndex(0)  # Default 0%
+        else:
+            self.default_overlay1_x_combo.setCurrentIndex(0)  # Default 0%
         right_form.addRow("Overlay 1 X Position:", self.default_overlay1_x_combo)
         # --- Default Overlay 1 Y Position ---
         self.default_overlay1_y_combo = QComboBox()
@@ -334,9 +336,11 @@ class SettingsDialog(QDialog):
         for percent in range(0, 101, 1):
             self.default_overlay1_y_combo.addItem(f"{percent}%", percent)
         if self.settings is not None:
-            default_overlay1_y = self.settings.value('default_overlay1_y_percent', 75, type=int)
-            idx = default_overlay1_y if 0 <= default_overlay1_y <= 100 else 75
-            self.default_overlay1_y_combo.setCurrentIndex(idx)
+            default_overlay1_y = self.settings.value('default_overlay1_y_percent', 0, type=int)
+            idx = default_overlay1_y if 0 <= default_overlay1_y <= 100 else 0
+            self.default_overlay1_y_combo.setCurrentIndex(0)  # Default 0%
+        else:
+            self.default_overlay1_y_combo.setCurrentIndex(0)  # Default 0%
         right_form.addRow("Overlay 1 Y Position:", self.default_overlay1_y_combo)
         # --- Default Overlay 1 Size ---
         self.default_overlay1_size_combo = QComboBox()
@@ -380,9 +384,11 @@ class SettingsDialog(QDialog):
         for percent in range(0, 101, 1):
             self.default_overlay2_x_combo.addItem(f"{percent}%", percent)
         if self.settings is not None:
-            default_overlay2_x = self.settings.value('default_overlay2_x_percent', 75, type=int)
-            idx = default_overlay2_x if 0 <= default_overlay2_x <= 100 else 75
-            self.default_overlay2_x_combo.setCurrentIndex(idx)
+            default_overlay2_x = self.settings.value('default_overlay2_x_percent', 0, type=int)
+            idx = default_overlay2_x if 0 <= default_overlay2_x <= 100 else 0
+            self.default_overlay2_x_combo.setCurrentIndex(0)  # Default 0%
+        else:
+            self.default_overlay2_x_combo.setCurrentIndex(0)  # Default 0%
         right_form.addRow("Overlay 2 X Position:", self.default_overlay2_x_combo)
         # --- Default Overlay 2 Y Position ---
         self.default_overlay2_y_combo = QComboBox()
@@ -392,7 +398,9 @@ class SettingsDialog(QDialog):
         if self.settings is not None:
             default_overlay2_y = self.settings.value('default_overlay2_y_percent', 0, type=int)
             idx = default_overlay2_y if 0 <= default_overlay2_y <= 100 else 0
-            self.default_overlay2_y_combo.setCurrentIndex(idx)
+            self.default_overlay2_y_combo.setCurrentIndex(0)  # Default 0%
+        else:
+            self.default_overlay2_y_combo.setCurrentIndex(0)  # Default 0%
         right_form.addRow("Overlay 2 Y Position:", self.default_overlay2_y_combo)
         # --- Default Overlay 2 Size ---
         self.default_overlay2_size_combo = QComboBox()
@@ -499,13 +507,13 @@ class SettingsDialog(QDialog):
         # Overlay 1
         self.default_overlay1_path_edit.setText("")
         self.default_overlay1_x_combo.setCurrentIndex(0)  # 0% X
-        self.default_overlay1_y_combo.setCurrentIndex(75)  # 75% Y
+        self.default_overlay1_y_combo.setCurrentIndex(0)  # 0% Y
         idx_overlay1_size = 9  # 50% size
         self.default_overlay1_size_combo.setCurrentIndex(idx_overlay1_size)
         self.default_overlay1_enabled_checkbox.setChecked(True)
         # Overlay 2
         self.default_overlay2_path_edit.setText("")
-        self.default_overlay2_x_combo.setCurrentIndex(75)  # 75% X
+        self.default_overlay2_x_combo.setCurrentIndex(0)  # 0% X
         self.default_overlay2_y_combo.setCurrentIndex(0)  # 0% Y
         idx_overlay2_size = 9  # 50% size
         self.default_overlay2_size_combo.setCurrentIndex(idx_overlay2_size)
@@ -1442,8 +1450,8 @@ class SuperCutUI(QWidget):
         self.overlay1_y_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay1_y_combo.addItem(f"{percent}%", percent)
-        self.overlay1_y_combo.setCurrentIndex(75)  # Default 75% (bottom)
-        self.overlay1_y_percent = 75
+        self.overlay1_y_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay1_y_percent = 0
         def on_overlay1_y_changed(idx):
             self.overlay1_y_percent = self.overlay1_y_combo.itemData(idx)
         self.overlay1_y_combo.currentIndexChanged.connect(on_overlay1_y_changed)
@@ -1544,8 +1552,8 @@ class SuperCutUI(QWidget):
         self.overlay2_x_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay2_x_combo.addItem(f"{percent}%", percent)
-        self.overlay2_x_combo.setCurrentIndex(75)  # Default 75% (right)
-        self.overlay2_x_percent = 75
+        self.overlay2_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay2_x_percent = 0
         def on_overlay2_x_changed(idx):
             self.overlay2_x_percent = self.overlay2_x_combo.itemData(idx)
         self.overlay2_x_combo.currentIndexChanged.connect(on_overlay2_x_changed)
@@ -1558,7 +1566,7 @@ class SuperCutUI(QWidget):
         self.overlay2_y_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay2_y_combo.addItem(f"{percent}%", percent)
-        self.overlay2_y_combo.setCurrentIndex(0)  # Default 0% (top)
+        self.overlay2_y_combo.setCurrentIndex(0)  # Default 0%
         self.overlay2_y_percent = 0
         def on_overlay2_y_changed(idx):
             self.overlay2_y_percent = self.overlay2_y_combo.itemData(idx)
@@ -1694,8 +1702,8 @@ class SuperCutUI(QWidget):
         self.overlay3_x_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay3_x_combo.addItem(f"{percent}%", percent)
-        self.overlay3_x_combo.setCurrentIndex(75)  # Default 75% (right)
-        self.overlay3_x_percent = 75
+        self.overlay3_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay3_x_percent = 0
         def on_overlay3_x_changed(idx):
             self.overlay3_x_percent = self.overlay3_x_combo.itemData(idx)
         self.overlay3_x_combo.currentIndexChanged.connect(on_overlay3_x_changed)
@@ -1708,7 +1716,7 @@ class SuperCutUI(QWidget):
         self.overlay3_y_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay3_y_combo.addItem(f"{percent}%", percent)
-        self.overlay3_y_combo.setCurrentIndex(0)  # Default 0% (top)
+        self.overlay3_y_combo.setCurrentIndex(0)  # Default 0%
         self.overlay3_y_percent = 0
         def on_overlay3_y_changed(idx):
             self.overlay3_y_percent = self.overlay3_y_combo.itemData(idx)
@@ -2131,8 +2139,8 @@ class SuperCutUI(QWidget):
         self.overlay4_x_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay4_x_combo.addItem(f"{percent}%", percent)
-        self.overlay4_x_combo.setCurrentIndex(75)  # Default 75% (right)
-        self.overlay4_x_percent = 75
+        self.overlay4_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay4_x_percent = 0
         def on_overlay4_x_changed(idx):
             self.overlay4_x_percent = self.overlay4_x_combo.itemData(idx)
         self.overlay4_x_combo.currentIndexChanged.connect(on_overlay4_x_changed)
@@ -2145,7 +2153,7 @@ class SuperCutUI(QWidget):
         self.overlay4_y_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay4_y_combo.addItem(f"{percent}%", percent)
-        self.overlay4_y_combo.setCurrentIndex(0)  # Default 0% (top)
+        self.overlay4_y_combo.setCurrentIndex(0)  # Default 0%
         self.overlay4_y_percent = 0
         def on_overlay4_y_changed(idx):
             self.overlay4_y_percent = self.overlay4_y_combo.itemData(idx)
@@ -2247,8 +2255,8 @@ class SuperCutUI(QWidget):
         self.overlay5_x_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay5_x_combo.addItem(f"{percent}%", percent)
-        self.overlay5_x_combo.setCurrentIndex(75)  # Default 75% (right)
-        self.overlay5_x_percent = 75
+        self.overlay5_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay5_x_percent = 0
         def on_overlay5_x_changed(idx):
             self.overlay5_x_percent = self.overlay5_x_combo.itemData(idx)
         self.overlay5_x_combo.currentIndexChanged.connect(on_overlay5_x_changed)
@@ -2261,7 +2269,7 @@ class SuperCutUI(QWidget):
         self.overlay5_y_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay5_y_combo.addItem(f"{percent}%", percent)
-        self.overlay5_y_combo.setCurrentIndex(0)  # Default 0% (top)
+        self.overlay5_y_combo.setCurrentIndex(0)  # Default 0%
         self.overlay5_y_percent = 0
         def on_overlay5_y_changed(idx):
             self.overlay5_y_percent = self.overlay5_y_combo.itemData(idx)
@@ -2425,8 +2433,8 @@ class SuperCutUI(QWidget):
         self.overlay6_x_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay6_x_combo.addItem(f"{percent}%", percent)
-        self.overlay6_x_combo.setCurrentIndex(75)  # Default 75% (right)
-        self.overlay6_x_percent = 75
+        self.overlay6_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay6_x_percent = 0
         def on_overlay6_x_changed(idx):
             self.overlay6_x_percent = self.overlay6_x_combo.itemData(idx)
         self.overlay6_x_combo.currentIndexChanged.connect(on_overlay6_x_changed)
@@ -2439,7 +2447,7 @@ class SuperCutUI(QWidget):
         self.overlay6_y_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay6_y_combo.addItem(f"{percent}%", percent)
-        self.overlay6_y_combo.setCurrentIndex(0)  # Default 0% (top)
+        self.overlay6_y_combo.setCurrentIndex(0)  # Default 0%
         self.overlay6_y_percent = 0
         def on_overlay6_y_changed(idx):
             self.overlay6_y_percent = self.overlay6_y_combo.itemData(idx)
@@ -2541,8 +2549,8 @@ class SuperCutUI(QWidget):
         self.overlay7_x_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay7_x_combo.addItem(f"{percent}%", percent)
-        self.overlay7_x_combo.setCurrentIndex(75)  # Default 75% (right)
-        self.overlay7_x_percent = 75
+        self.overlay7_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay7_x_percent = 0
         def on_overlay7_x_changed(idx):
             self.overlay7_x_percent = self.overlay7_x_combo.itemData(idx)
         self.overlay7_x_combo.currentIndexChanged.connect(on_overlay7_x_changed)
@@ -2555,7 +2563,7 @@ class SuperCutUI(QWidget):
         self.overlay7_y_combo.setFixedWidth(80)
         for percent in range(0, 101, 1):
             self.overlay7_y_combo.addItem(f"{percent}%", percent)
-        self.overlay7_y_combo.setCurrentIndex(0)  # Default 0% (top)
+        self.overlay7_y_combo.setCurrentIndex(0)  # Default 0%
         self.overlay7_y_percent = 0
         def on_overlay7_y_changed(idx):
             self.overlay7_y_percent = self.overlay7_y_combo.itemData(idx)
@@ -3547,7 +3555,7 @@ class SuperCutUI(QWidget):
         # Apply default overlay 1 settings if overlay 1 is checked and fields are empty
         default_overlay1_path = self.settings.value('default_overlay1_path', '', type=str)
         default_overlay1_x = self.settings.value('default_overlay1_x_percent', 0, type=int)
-        default_overlay1_y = self.settings.value('default_overlay1_y_percent', 75, type=int)
+        default_overlay1_y = self.settings.value('default_overlay1_y_percent', 0, type=int)
         default_overlay1_size = self.settings.value('default_overlay1_size', 50, type=int)
         default_overlay1_enabled = self.settings.value('default_overlay1_enabled', True, type=bool)
         if default_overlay1_enabled:
@@ -3556,13 +3564,13 @@ class SuperCutUI(QWidget):
                     self.overlay1_edit.setText(default_overlay1_path)
                 idx = default_overlay1_x if 0 <= default_overlay1_x <= 100 else 0
                 self.overlay1_x_combo.setCurrentIndex(idx)
-                idx = default_overlay1_y if 0 <= default_overlay1_y <= 100 else 75
+                idx = default_overlay1_y if 0 <= default_overlay1_y <= 100 else 0
                 self.overlay1_y_combo.setCurrentIndex(idx)
                 idx = next((i for i in range(self.overlay1_size_combo.count()) if self.overlay1_size_combo.itemData(i) == default_overlay1_size), 9)
                 self.overlay1_size_combo.setCurrentIndex(idx)
         # Apply default overlay 2 settings if overlay 2 is checked and fields are empty
         default_overlay2_path = self.settings.value('default_overlay2_path', '', type=str)
-        default_overlay2_x = self.settings.value('default_overlay2_x_percent', 75, type=int)
+        default_overlay2_x = self.settings.value('default_overlay2_x_percent', 0, type=int)
         default_overlay2_y = self.settings.value('default_overlay2_y_percent', 0, type=int)
         default_overlay2_size = self.settings.value('default_overlay2_size', 50, type=int)
         default_overlay2_enabled = self.settings.value('default_overlay2_enabled', True, type=bool)
@@ -3588,7 +3596,7 @@ class SuperCutUI(QWidget):
                 self.overlay3_size_combo.setCurrentIndex(idx)
         # Apply default overlay 4 settings if overlay 4 is checked and fields are empty
         default_overlay4_path = self.settings.value('default_overlay4_path', '', type=str)
-        default_overlay4_x = self.settings.value('default_overlay4_x_percent', 75, type=int)
+        default_overlay4_x = self.settings.value('default_overlay4_x_percent', 0, type=int)
         default_overlay4_y = self.settings.value('default_overlay4_y_percent', 0, type=int)
         default_overlay4_size = self.settings.value('default_overlay4_size', 50, type=int)
         default_overlay4_enabled = self.settings.value('default_overlay4_enabled', False, type=bool)
@@ -3615,7 +3623,7 @@ class SuperCutUI(QWidget):
         self.overlay4_checkbox.setChecked(default_overlay4_enabled)
         # Set overlay5 checkbox state from settings
         default_overlay5_path = self.settings.value('default_overlay5_path', '', type=str)
-        default_overlay5_x = self.settings.value('default_overlay5_x_percent', 75, type=int)
+        default_overlay5_x = self.settings.value('default_overlay5_x_percent', 0, type=int)
         default_overlay5_y = self.settings.value('default_overlay5_y_percent', 0, type=int)
         default_overlay5_size = self.settings.value('default_overlay5_size', 50, type=int)
         default_overlay5_enabled = self.settings.value('default_overlay5_enabled', False, type=bool)
