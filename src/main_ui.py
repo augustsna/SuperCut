@@ -1999,17 +1999,32 @@ class SuperCutUI(QWidget):
             song_title_font_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_color_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_bg_label.setStyleSheet("" if enabled else "color: grey;")
+            song_title_scale_label.setStyleSheet("" if enabled else "color: grey;")
             if not enabled:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.song_title_effect_combo.setStyleSheet(grey_btn_style)
+                self.song_title_font_combo.setStyleSheet(grey_btn_style)
                 self.song_title_x_combo.setStyleSheet(grey_btn_style)
                 self.song_title_y_combo.setStyleSheet(grey_btn_style)
                 self.song_title_start_edit.setStyleSheet(grey_btn_style)
+                self.song_title_scale_combo.setStyleSheet(grey_btn_style)
+                self.song_title_bg_combo.setStyleSheet(grey_btn_style)
+                self.song_title_opacity_combo.setStyleSheet(grey_btn_style)
+                self.song_title_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
             else:
                 self.song_title_effect_combo.setStyleSheet("")
+                self.song_title_font_combo.setStyleSheet("")
                 self.song_title_x_combo.setStyleSheet("")
                 self.song_title_y_combo.setStyleSheet("")
                 self.song_title_start_edit.setStyleSheet("")
+                self.song_title_scale_combo.setStyleSheet("")
+                self.song_title_bg_combo.setStyleSheet("")
+                self.song_title_opacity_combo.setStyleSheet("")
+                # Restore color button style based on current settings
+                if self.song_title_bg == "custom":
+                    self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.last_custom_bg_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                else:
+                    self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
             # Update background color button state
             update_bg_color_state()
         self.song_title_checkbox.stateChanged.connect(lambda _: set_song_title_controls_enabled(self.song_title_checkbox.checkState()))
@@ -2649,24 +2664,18 @@ class SuperCutUI(QWidget):
         self.overlay7_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
         update_overlay6_7_effect_label_style()
 
-        # Lyric checkbox (placeholder - does nothing for now)
-        self.lyric_checkbox = QtWidgets.QCheckBox("Lyric:")
-        self.lyric_checkbox.setFixedWidth(82)
+        # Placeholder checkbox (placeholder - does nothing for now)
+        self.lyric_checkbox = QtWidgets.QCheckBox("Placeholder:")
+        self.lyric_checkbox.setFixedWidth(100)
         self.lyric_checkbox.setChecked(False)
         def update_lyric_checkbox_style(state):
             self.lyric_checkbox.setStyleSheet("")  # Always default color
         self.lyric_checkbox.stateChanged.connect(update_lyric_checkbox_style)
         update_lyric_checkbox_style(self.lyric_checkbox.checkState())
 
-        lyric_layout = QHBoxLayout()
-        lyric_layout.setSpacing(4)
-        lyric_layout.addWidget(self.lyric_checkbox)
-        lyric_layout.addStretch()
-        layout.addLayout(lyric_layout)
-
-        # Lyric dropdown (placeholder - does nothing for now)
-        lyric_dropdown_label = QtWidgets.QLabel("Lyric:")
-        lyric_dropdown_label.setFixedWidth(40)
+        # Placeholder dropdown (placeholder - does nothing for now)
+        lyric_dropdown_label = QtWidgets.QLabel("Placeholder:")
+        lyric_dropdown_label.setFixedWidth(80)
         self.lyric_dropdown = QtWidgets.QComboBox()
         self.lyric_dropdown.setFixedWidth(125)
         self.lyric_dropdown.addItem("Select option...")
@@ -2675,12 +2684,27 @@ class SuperCutUI(QWidget):
         self.lyric_dropdown.addItem("Option 3")
         self.lyric_dropdown.setCurrentIndex(0)  # Default to "Select option..."
 
-        lyric_dropdown_layout = QHBoxLayout()
-        lyric_dropdown_layout.setSpacing(4)
-        lyric_dropdown_layout.addWidget(lyric_dropdown_label)
-        lyric_dropdown_layout.addWidget(self.lyric_dropdown)
-        lyric_dropdown_layout.addStretch()
-        layout.addLayout(lyric_dropdown_layout)
+        # Enable/disable placeholder dropdown based on checkbox
+        def set_lyric_dropdown_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.lyric_dropdown.setEnabled(enabled)
+            lyric_dropdown_label.setStyleSheet("" if enabled else "color: grey;")
+            if not enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.lyric_dropdown.setStyleSheet(grey_btn_style)
+            else:
+                self.lyric_dropdown.setStyleSheet("")
+        self.lyric_checkbox.stateChanged.connect(lambda _: set_lyric_dropdown_enabled(self.lyric_checkbox.checkState()))
+        set_lyric_dropdown_enabled(self.lyric_checkbox.checkState())
+
+        lyric_layout = QHBoxLayout()
+        lyric_layout.setSpacing(4)
+        lyric_layout.addWidget(self.lyric_checkbox)
+        lyric_layout.addSpacing(5)
+        lyric_layout.addWidget(lyric_dropdown_label)
+        lyric_layout.addWidget(self.lyric_dropdown)
+        lyric_layout.addStretch()
+        layout.addLayout(lyric_layout)
 
     def create_action_buttons(self, layout):
         """Create action buttons"""
