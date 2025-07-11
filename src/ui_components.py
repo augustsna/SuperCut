@@ -269,7 +269,7 @@ class SuccessDialog(QDialog):
         self.setWindowTitle("Task Completed")
         
         # Always use fixed size 370x200
-        self.setFixedSize(350, 200)
+        self.setFixedSize(300, 200)
         
         self.setStyleSheet("""
             QDialog {
@@ -531,6 +531,153 @@ class SuccessWithLeftoverDialog(QDialog):
 
     def on_folder(self):
         """Open result folder when folder button is clicked"""
+        if self.open_folder:
+            self.open_folder()
+
+    def _close_dialog(self):
+        self.close()
+        return None
+
+class DryRunSuccessDialog(QDialog):
+    """Dialog shown when dry run completes successfully"""
+    def __init__(self, parent=None, video_path=None, open_folder=None):
+        super().__init__(parent)
+        self.video_path = video_path
+        self.open_folder = open_folder
+        self.setWindowTitle("Dry Run Completed")
+        
+        # Fixed size similar to SuccessDialog
+        self.setFixedSize(300, 200)
+        
+        self.setStyleSheet("""
+            QDialog {
+                background: #f5f7fa;
+                border-radius: 10px;
+            }
+            QLabel#iconLabel {
+                font-size: 44px;
+                color: #4BB543;
+                margin-bottom: 0px;
+            }
+            QLabel#msgLabel {
+                font-size: 16px;
+                color: #222;
+                font-weight: bold;
+                margin-bottom: 8px;
+                margin-top: 6px;
+            }
+            QLabel#pathLabel {
+                font-size: 11px;
+                color: #555;
+                margin-left: 8px;
+                margin-bottom: 8px;
+            }
+            QPushButton.dryrun-btn {
+                min-width: 70px !important;
+                max-width: 70px !important;
+                width: 70px !important;
+                padding-left: 0px; padding-right: 0px;
+            }
+            QPushButton#okBtn.dryrun-btn {
+                min-width: 70px !important;
+                max-width: 70px !important;
+                width: 70px !important;
+            }
+            QPushButton {
+                background-color: #4a90e2;
+                color: white;
+                border-radius: 6px;
+                padding: 7px 0px;
+                font-size: 13px;
+                margin-top: 8px;
+            }
+            QPushButton#okBtn {
+                background-color: #4BB543;
+                font-size: 13px;
+                margin-top: 8px;
+            }
+            QPushButton:hover {
+                background-color: #357ABD;
+            }
+            QPushButton#okBtn:hover {
+                background-color: #388e3c;
+            }
+        """)
+        
+        vbox = QVBoxLayout(self)
+        vbox.setContentsMargins(24, 18, 24, 18)
+        vbox.setSpacing(8)
+
+        # Success icon
+        icon = QLabel("✓")
+        icon.setObjectName("iconLabel")
+        icon.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        icon.setStyleSheet("font-size: 28px; color: #4BB543; border: none; background: transparent;")
+        vbox.addWidget(icon)
+
+        # Main message
+        msg = QLabel("Dry run completed successfully!")
+        msg.setObjectName("msgLabel")
+        msg.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        vbox.addWidget(msg)
+
+        # Video path info
+        if video_path:
+            path_label = QLabel(f"{os.path.basename(video_path)}")
+            path_label.setObjectName("pathLabel")
+            path_label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            vbox.addWidget(path_label)
+
+        # Buttons row
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(18)
+        btn_row.addSpacerItem(QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+
+        self.view_video_btn = QPushButton("View")
+        self.view_video_btn.setFixedWidth(70)
+        self.view_video_btn.setProperty("class", "dryrun-btn")
+        self.view_video_btn.setObjectName("viewBtn")
+        self.view_video_btn.clicked.connect(self.on_view_video)
+        btn_row.addWidget(self.view_video_btn)
+
+        self.folder_btn = QPushButton("Folder")
+        self.folder_btn.setFixedWidth(70)
+        self.folder_btn.setProperty("class", "dryrun-btn")
+        self.folder_btn.setObjectName("folderBtn")
+        self.folder_btn.clicked.connect(self.on_folder)
+        btn_row.addWidget(self.folder_btn)
+
+        self.ok_btn = QPushButton("OK")
+        self.ok_btn.setObjectName("okBtn")
+        self.ok_btn.setProperty("class", "dryrun-btn")
+        self.ok_btn.setFixedWidth(70)
+        self.ok_btn.setDefault(True)
+        self.ok_btn.clicked.connect(self.accept)
+        btn_row.addWidget(self.ok_btn)
+
+        btn_row.addSpacerItem(QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+        vbox.addLayout(btn_row)
+
+        # Shortcut
+        QShortcut(QKeySequence("Ctrl+W"), self, self._close_dialog)
+
+    def on_view_video(self):
+        """Open the dry run video when view video button is clicked"""
+        if self.video_path and os.path.exists(self.video_path):
+            import subprocess
+            import platform
+            try:
+                if platform.system() == "Windows":
+                    os.startfile(self.video_path)
+                elif platform.system() == "Darwin":  # macOS
+                    subprocess.run(["open", self.video_path])
+                else:  # Linux
+                    subprocess.run(["xdg-open", self.video_path])
+            except Exception as e:
+                print(f"Failed to open video: {e}")
+
+    def on_folder(self):
+        """Open folder when folder button is clicked"""
         if self.open_folder:
             self.open_folder()
 

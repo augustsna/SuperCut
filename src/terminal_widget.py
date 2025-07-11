@@ -129,7 +129,7 @@ class TerminalWidget(QWidget):
                 border: 1px solid #404040;
                 border-radius: 8px;
                 font-size: 20;
-                font-color: #cccccc;
+                color: #cccccc;
                 padding: 8px;
                 selection-background-color: #58a6ff;
             }

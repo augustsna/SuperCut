@@ -40,7 +40,7 @@ from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
     validate_inputs, validate_media_files, clean_file_path
 )
-from src.ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, ScrollableErrorDialog, ImageDropLineEdit
+from src.ui_components import FolderDropLineEdit, WaitingDialog, PleaseWaitDialog, StoppedDialog, SuccessDialog, DryRunSuccessDialog, ScrollableErrorDialog, ImageDropLineEdit
 from src.video_worker import VideoWorker
 from src.terminal_widget import TerminalWidget
 
@@ -838,6 +838,7 @@ class SuperCutUI(QWidget):
         self.output_folder_manual = False
         self._worker = None
         self._thread = None
+        self._dry_run_thread = None
         self._stopped_by_user = False
         self._auto_close_on_stop = False
         self._stopping_msgbox = None
@@ -3540,6 +3541,21 @@ class SuperCutUI(QWidget):
             self.quit_dialog.show()
             event.ignore()
             return
+        
+        # If a dry run thread is running, warn the user
+        if hasattr(self, '_dry_run_thread') and self._dry_run_thread is not None and self._dry_run_thread.isRunning():
+            if self.quit_dialog is not None:
+                self.quit_dialog.close()
+                self.quit_dialog = None
+            self.quit_dialog = QMessageBox(self)
+            self.quit_dialog.setWindowTitle("Quit Program")
+            self.quit_dialog.setText("Dry run is running. Are you sure you want to quit?")
+            self.quit_dialog.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            self.quit_dialog.setDefaultButton(QMessageBox.StandardButton.No)
+            self.quit_dialog.buttonClicked.connect(lambda btn: self.handle_quit_response(btn, event))
+            self.quit_dialog.show()
+            event.ignore()
+            return
         # Save window position and close as normal
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
@@ -3547,11 +3563,11 @@ class SuperCutUI(QWidget):
 
     def handle_quit_response(self, button, event):
         if self.quit_dialog is not None and button == self.quit_dialog.button(QMessageBox.StandardButton.Yes):
-            waiting_dialog = QMessageBox(self)
-            waiting_dialog.setWindowTitle("Please Wait")
-            waiting_dialog.setText("Waiting for current batch to finish...")
-            waiting_dialog.setStandardButtons(QMessageBox.StandardButton.NoButton)
-            waiting_dialog.show()
+            # Close the quit dialog immediately
+            self.quit_dialog.close()
+            self.quit_dialog = None
+            
+            # Stop video creation if running
             if hasattr(self, "_worker") and self._worker is not None:
                 stop_method = getattr(self._worker, 'stop', None)
                 if callable(stop_method):
@@ -3559,14 +3575,25 @@ class SuperCutUI(QWidget):
                         stop_method()
                     except RuntimeError:
                         pass
+                # Show waiting dialog for video creation
+                self._stopping_msgbox = PleaseWaitDialog(self)
+                self._stopping_msgbox.show()
+            
+            # Stop dry run if running
+            if hasattr(self, "_dry_run_thread") and self._dry_run_thread is not None:
+                self._dry_run_thread.quit()
+                self._dry_run_thread = None
+                # Show waiting dialog for dry run
+                self._stopping_msgbox = PleaseWaitDialog(self)
+                self._stopping_msgbox.show()
+            
             self._pending_close = True
-            self._waiting_dialog_on_close = waiting_dialog
             event.ignore()
         else:
             event.ignore()
-        if self.quit_dialog is not None:
-            self.quit_dialog.close()
-            self.quit_dialog = None
+            if self.quit_dialog is not None:
+                self.quit_dialog.close()
+                self.quit_dialog = None
 
     def resizeEvent(self, event):
         """Handle window resize event to control horizontal scrollbar visibility"""
@@ -4139,6 +4166,13 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         dry_run_btn.setFixedSize(80, 28)  # Bigger button
         dry_run_btn.setStyleSheet("background-color: #4a90e2; color: white; border-radius: 6px;")
         def run_dry_run():
+            # Close the preview dialog first
+            dlg.close()
+            dlg.accept()
+            
+            # Disable preview button during dry run
+            self.preview_btn.setEnabled(False)
+            
             from PyQt6.QtCore import QObject, QThread, pyqtSignal
             from src.ffmpeg_utils import create_video_with_ffmpeg
             from src.utils import extract_mp3_title, create_song_title_png, create_temp_file
@@ -4276,12 +4310,12 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         self.finished.emit(success, err if not success else dry_out)
                     except Exception as e:
                         tb = traceback.format_exc()
-                        self.finished.emit(False, f"Exception during dry run:\n{e}\n{tb}")
+                        self.finished.emit(False, f"Exception during Dry Run:\n{e}\n{tb}")
             # Prepare parameters from the main UI's self
             params = dict(
-                dry_img=os.path.join(PROJECT_ROOT, "src", "Dry Run", "dryrun.png"),
-                dry_mp3=os.path.join(PROJECT_ROOT, "src", "Dry Run", "dryrun.mp3"),
-                dry_out=os.path.join(PROJECT_ROOT, "src", "Dry Run", "dryrun.mp4"),
+                dry_img=os.path.join(PROJECT_ROOT, "src", "Dry Run", "Dry Run.png"),
+                dry_mp3=os.path.join(PROJECT_ROOT, "src", "Dry Run", "Dry Run.mp3"),
+                dry_out=os.path.join(PROJECT_ROOT, "src", "Dry Run", "Dry Run.mp4"),
                 resolution=self.resolution_combo.currentData(),
                 fps=self.fps_combo.currentData(),
                 codec=self.codec_combo.currentData(),
@@ -4360,22 +4394,68 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
             worker = DryRunWorker(params)
             thread = QThread()
             worker.moveToThread(thread)
-            from src.ui_components import WaitingDialog
-            waiting_dialog = WaitingDialog(self)
-            waiting_dialog.label.setText("Creating dry run video, wait...")
+            # Store thread reference for quit handling
+            self._dry_run_thread = thread
+            
+            # Disable UI controls during dry run (same as video creation)
+            self._set_ui_processing_state(True, total_batches=1)
+            
             def on_finished(success, msg):
-                if waiting_dialog is not None:
-                    waiting_dialog.accept()
+                # Re-enable UI controls
+                self._set_ui_processing_state(False)
+                # Clear thread reference
+                self._dry_run_thread = None
+                
+                # Close the quit dialog if it exists (same as video creation)
+                if hasattr(self, 'quit_dialog') and self.quit_dialog is not None:
+                    self.quit_dialog.close()
+                    self.quit_dialog = None
+                
+                # Close the waiting dialog if it exists (same as video creation)
+                if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                    self._stopping_msgbox.close()
+                    self._stopping_msgbox.hide()
+                    QtWidgets.QApplication.processEvents()
+                    self._stopping_msgbox = None
+                
                 if success:
-                    QMessageBox.information(self, "Dry Run Success", f"Dry run video created at:\n{msg}")
+                    # Create a function to open the dry run folder
+                    def open_dry_run_folder():
+                        dry_run_folder = os.path.dirname(msg)
+                        open_folder_in_explorer(dry_run_folder)
+                    
+                    # Show the new dry run success dialog
+                    dlg = DryRunSuccessDialog(
+                        self, 
+                        video_path=msg,
+                        open_folder=open_dry_run_folder
+                    )
+                    # If pending close, auto-close after 3 seconds
+                    if hasattr(self, '_pending_close') and self._pending_close:
+                        timer = QTimer(self)
+                        timer.singleShot(3000, dlg.close)
+                        self._pending_close = False
+                        dlg.exec()
+                        QtWidgets.QApplication.processEvents()
+                        self.close()
+                    else:
+                        dlg.exec()
                 else:
                     QMessageBox.critical(self, "Dry Run Error", f"{msg}")
+                # Clean up the worker and thread
+                worker.deleteLater()
+                thread.deleteLater()
+                
+                # --- Handle pending close after dry run finishes ---
+                if hasattr(self, '_pending_close') and self._pending_close:
+                    self._pending_close = False
+                    QtWidgets.QApplication.processEvents()
+                    self.close()
+            
             worker.finished.connect(on_finished)
+            worker.finished.connect(thread.quit)
             thread.started.connect(worker.run)
             thread.start()
-            waiting_dialog.exec()
-            thread.quit()
-            thread.wait()
         dry_run_btn.clicked.connect(run_dry_run)
         
         # Add Close button (renamed from OK)
