@@ -2223,7 +2223,7 @@ class SuperCutUI(QWidget):
         self.overlay6_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
         self.overlay7_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
         update_overlay6_7_effect_label_style()
-        
+
         # Overlay 3 controls (similar to Overlay 2)
         self.overlay3_checkbox = QtWidgets.QCheckBox("Overlay 3:")
         self.overlay3_checkbox.setFixedWidth(82)
@@ -2340,7 +2340,7 @@ class SuperCutUI(QWidget):
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
         self.song_title_checkbox = QtWidgets.QCheckBox("  Titles:")
-        self.song_title_checkbox.setFixedWidth(82)
+        self.song_title_checkbox.setFixedWidth(80)
         self.song_title_checkbox.setChecked(True)
         def update_song_title_checkbox_style(state):
             self.song_title_checkbox.setStyleSheet("")
@@ -2618,10 +2618,10 @@ class SuperCutUI(QWidget):
         # First line: checkbox, font, size, color, X, Y
         song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(self.song_title_checkbox)
-        song_title_checkbox_layout.addSpacing(7)
+        song_title_checkbox_layout.addSpacing(5)
         #song_title_checkbox_layout.addWidget(song_title_font_label)        
         song_title_checkbox_layout.addWidget(self.song_title_font_combo)
-        song_title_checkbox_layout.addSpacing(4)        
+        song_title_checkbox_layout.addSpacing(8)        
         song_title_checkbox_layout.addWidget(song_title_color_label)
         song_title_checkbox_layout.addSpacing(4)
         song_title_checkbox_layout.addWidget(self.song_title_color_btn)
