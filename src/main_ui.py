@@ -2736,17 +2736,25 @@ class SuperCutUI(QWidget):
 
         # Add terminal button next
         button_layout.addSpacing(10)
-        self.terminal_btn = QPushButton("💻 Terminal")
+        self.terminal_btn = QPushButton("💻")
         self.terminal_btn.setFixedHeight(38)
-        self.terminal_btn.setFixedWidth(100)
+        self.terminal_btn.setFixedWidth(40)
         self.terminal_btn.clicked.connect(self.show_terminal)
         button_layout.addWidget(self.terminal_btn)
 
-        # Then add create video button, always after terminal
+        # Add preview button between terminal and create video
+        self.preview_btn = QPushButton("🚧")
+        self.preview_btn.setFixedHeight(38)
+        self.preview_btn.setFixedWidth(40)
+        self.preview_btn.setToolTip("Preview")
+        self.preview_btn.clicked.connect(self.show_preview_dialog)
+        button_layout.addWidget(self.preview_btn)
+
+        # Then add create video button, always after preview
         button_layout.addSpacing(0)
         self.create_btn = QPushButton("Create Video")
         self.create_btn.setFixedHeight(38)
-        self.create_btn.setFixedWidth(350)
+        self.create_btn.setFixedWidth(370)
         self.create_btn.clicked.connect(self.create_video)
         button_layout.addWidget(self.create_btn)
 
@@ -2843,13 +2851,13 @@ class SuperCutUI(QWidget):
             self.position_terminal_widget()
             self.terminal_widget.show_and_raise()
             # Update button text to show terminal is on
-            self.terminal_btn.setText("💻 Terminal ON")
+            self.terminal_btn.setText("💻")
         else:
             # Terminal exists, toggle it off
             self.terminal_widget.close()
             self.terminal_widget = None
             # Update button text to show terminal is off
-            self.terminal_btn.setText("💻 Terminal")
+            self.terminal_btn.setText("💻")
 
     def position_terminal_widget(self):
         """Position the terminal widget intelligently based on main window position and screen space"""
@@ -3712,3 +3720,10 @@ class SuperCutUI(QWidget):
                 self._thread.started.disconnect()
             except (TypeError, RuntimeError):
                 pass
+
+    def show_preview_dialog(self):
+        dlg = QtWidgets.QMessageBox(self)
+        dlg.setWindowTitle("Preview")
+        dlg.setText("Hello World!")
+        dlg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok | QtWidgets.QMessageBox.StandardButton.Cancel)
+        dlg.exec()
