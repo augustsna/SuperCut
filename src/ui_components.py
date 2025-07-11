@@ -255,7 +255,7 @@ class StoppedDialog(QDialog):
 
 class SuccessDialog(QDialog):
     """Dialog shown when video creation completes successfully"""
-    def __init__(self, parent=None, open_folder=None, leftover_files=None, leftover_images=None, min_mp3_count=3):
+    def __init__(self, parent=None, open_folder=None, leftover_files=None, leftover_images=None, min_mp3_count=3, batch_count=None):
         super().__init__(parent)
         self.open_folder = open_folder
         self.setWindowTitle("Task Completed")
@@ -361,6 +361,13 @@ class SuccessDialog(QDialog):
             img_file_list.setObjectName("fileListLabel")
             img_file_list.setAlignment(Qt.AlignmentFlag.AlignHCenter)
             vbox.addWidget(img_file_list)
+
+        # Batch info (if available)
+        if batch_count is not None:
+            batch_info = QLabel(f"Batches completed: {batch_count}")
+            batch_info.setObjectName("batchLabel")
+            batch_info.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            vbox.addWidget(batch_info)
 
         # Buttons row
         btn_row = QHBoxLayout()

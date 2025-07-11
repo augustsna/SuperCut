@@ -780,6 +780,7 @@ class SuperCutUI(QWidget):
         self._expanded_for_progress = False  # Track if expanded
         self.quit_dialog = None
         self._intended_total_batches = 0
+        self._completed_batches = 0  # Track completed batches
         
         self.init_ui()
         self.restore_window_position()
@@ -3206,6 +3207,7 @@ class SuperCutUI(QWidget):
         self.progress_bar.setMaximum(total_batches)
         self.progress_bar.setValue(batch_count)
         self.progress_bar.setFormat(f"Batch: {batch_count}/{total_batches}")
+        self._completed_batches = batch_count  # Track completed batches
         QtWidgets.QApplication.processEvents()
 
     def on_worker_error(self, message):
@@ -3307,13 +3309,10 @@ class SuperCutUI(QWidget):
                 self._stopping_msgbox.hide()
                 QtWidgets.QApplication.processEvents()
                 self._stopping_msgbox = None
-            batch_count = self.progress_bar.value() if hasattr(self, 'progress_bar') else 0
+            batch_count = self._completed_batches
             total_batches = self.progress_bar.maximum() if hasattr(self, 'progress_bar') else 0
             if total_batches == 0:
                 total_batches = self._intended_total_batches
-            # If stopped and at least one batch was running, count the current batch as completed
-            if batch_count < total_batches and total_batches > 0:
-                batch_count += 1
             dlg = StoppedDialog(self, batch_count=batch_count, total_batches=total_batches)
             dlg.exec()
         else:
@@ -3321,6 +3320,8 @@ class SuperCutUI(QWidget):
             import os
             real_leftover_mp3s = [f for f in leftover_mp3s if os.path.exists(f)] if leftover_mp3s else []
             real_leftover_images = [f for f in leftover_images if os.path.exists(f)] if leftover_images else []
+            # Determine completed batch count for success dialog
+            batch_count = self._intended_total_batches
             # Debug prints for leftovers
             # print("[DEBUG] leftover_mp3s:", leftover_mp3s)
             # print("[DEBUG] used_images:", used_images)
@@ -3342,7 +3343,7 @@ class SuperCutUI(QWidget):
                     timer.singleShot(2000, dlg.close)
                 dlg.exec()
             else:
-                self.show_success_options(min_mp3_count=min_mp3_count)
+                self.show_success_options(batch_count=batch_count, min_mp3_count=min_mp3_count)
         # Show warning if any files failed to move (only if they still exist and were used)
         if failed_moves:
             import os
@@ -3372,7 +3373,7 @@ class SuperCutUI(QWidget):
                 QtWidgets.QApplication.processEvents()
                 self._stopping_msgbox = None
 
-    def show_success_options(self, leftover_files=None, leftover_images=None, min_mp3_count=None):
+    def show_success_options(self, batch_count=None, leftover_files=None, leftover_images=None, min_mp3_count=None):
         """Show success dialog with options. All UI updates are performed in the main thread via signals/slots."""
         # Play notification sound
         try:
@@ -3398,12 +3399,14 @@ class SuperCutUI(QWidget):
         if hasattr(self, 'quit_dialog') and self.quit_dialog is not None:
             self.quit_dialog.close()
             self.quit_dialog = None
+        # Pass batch_count to SuccessDialog if available
         dlg = SuccessDialog(
             self, 
             open_folder=self.open_result_folder, 
             leftover_files=leftover_files, 
             leftover_images=leftover_images,
-            min_mp3_count=min_mp3_count
+            min_mp3_count=min_mp3_count,
+            batch_count=batch_count
         )
         # Auto-close after 2 seconds if pending close is set
         if hasattr(self, '_pending_close') and self._pending_close:
