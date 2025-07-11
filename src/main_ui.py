@@ -1918,10 +1918,10 @@ class SuperCutUI(QWidget):
         # Effect control (moved to next line)
         song_title_effect_layout = QHBoxLayout()
         song_title_effect_layout.setSpacing(4)
-        song_title_effect_label = QLabel("Effect:")
-        song_title_effect_label.setFixedWidth(50)
+        song_title_effect_label = QLabel("E:")
+        song_title_effect_label.setFixedWidth(18)
         self.song_title_effect_combo = QtWidgets.QComboBox()
-        self.song_title_effect_combo.setFixedWidth(100)
+        self.song_title_effect_combo.setFixedWidth(combo_width)
         song_title_effect_options = [
             ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
@@ -1966,10 +1966,10 @@ class SuperCutUI(QWidget):
         on_song_title_y_changed(self.song_title_y_combo.currentIndex())
 
         # --- Song Title Start At (s) ---
-        song_title_start_label = QLabel("at (s):")
-        song_title_start_label.setFixedWidth(40)
+        song_title_start_label = QLabel("Start at:")
+        song_title_start_label.setFixedWidth(80)
         self.song_title_start_edit = QLineEdit("5")
-        self.song_title_start_edit.setFixedWidth(40)
+        self.song_title_start_edit.setFixedWidth(80)
         self.song_title_start_edit.setValidator(QIntValidator(0, 999, self))
         self.song_title_start_edit.setPlaceholderText("5")
         self.song_title_start_at = 5
@@ -2042,19 +2042,21 @@ class SuperCutUI(QWidget):
         
         # Second line: bg, opacity, effect, start at
         song_title_controls_layout = QHBoxLayout()        
-        song_title_controls_layout.addSpacing(0)  # Align with song title checkbox
+        song_title_controls_layout.addSpacing(20)  # Align with song title checkbox
         song_title_controls_layout.addWidget(song_title_bg_label)
+        song_title_controls_layout.addSpacing(-7)
         song_title_controls_layout.addWidget(self.song_title_bg_combo)
-        song_title_controls_layout.addSpacing(3)
+        song_title_controls_layout.addSpacing(-5)
         song_title_controls_layout.addWidget(self.song_title_bg_color_btn)
-        song_title_controls_layout.addSpacing(1)
+        song_title_controls_layout.addSpacing(-5)
         song_title_controls_layout.addWidget(self.song_title_opacity_combo)
-        song_title_controls_layout.addSpacing(5)
+        song_title_controls_layout.addSpacing(10)
         song_title_controls_layout.addWidget(song_title_effect_label)
-        song_title_controls_layout.addSpacing(-6)
+        song_title_controls_layout.addSpacing(1)
         song_title_controls_layout.addWidget(self.song_title_effect_combo)
-        song_title_controls_layout.addSpacing(5)
+        song_title_controls_layout.addSpacing(0)
         song_title_controls_layout.addWidget(song_title_start_label)
+        song_title_controls_layout.addSpacing(-24)
         song_title_controls_layout.addWidget(self.song_title_start_edit)
         song_title_controls_layout.addStretch()
         layout.addLayout(song_title_controls_layout)
