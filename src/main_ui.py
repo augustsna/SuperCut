@@ -238,6 +238,8 @@ class SettingsDialog(QDialog):
             default_audio_bitrate = DEFAULT_AUDIO_BITRATE
         idx = next((i for i, (label, value) in enumerate(DEFAULT_AUDIO_BITRATE_OPTIONS) if value == default_audio_bitrate), 5)
         self.audio_bitrate_combo.setCurrentIndex(idx)
+        
+
         # --- FFmpeg Video Bitrate Combo ---
         self.video_bitrate_combo = QComboBox(self)
         self.video_bitrate_combo.setFixedWidth(120)
@@ -249,6 +251,8 @@ class SettingsDialog(QDialog):
             default_video_bitrate = DEFAULT_VIDEO_BITRATE
         idx = next((i for i, (label, value) in enumerate(DEFAULT_VIDEO_BITRATE_OPTIONS) if value == default_video_bitrate), 5)
         self.video_bitrate_combo.setCurrentIndex(idx)
+        
+
         # --- FFmpeg Maxrate Combo ---
         self.maxrate_combo = QComboBox(self)
         self.maxrate_combo.setFixedWidth(120)
@@ -260,6 +264,8 @@ class SettingsDialog(QDialog):
             default_maxrate = DEFAULT_MAXRATE
         idx = next((i for i, (label, value) in enumerate(DEFAULT_MAXRATE_OPTIONS) if value == default_maxrate), 5)
         self.maxrate_combo.setCurrentIndex(idx)
+        
+
         # --- FFmpeg Bufsize Combo ---
         self.bufsize_combo = QComboBox(self)
         self.bufsize_combo.setFixedWidth(120)
@@ -271,6 +277,8 @@ class SettingsDialog(QDialog):
             default_bufsize = DEFAULT_BUFSIZE
         idx = next((i for i, (label, value) in enumerate(DEFAULT_BUFSIZE_OPTIONS) if value == default_bufsize), 4)
         self.bufsize_combo.setCurrentIndex(idx)
+        
+
         # Add to left_form in new order with reduced spacing
         left_form.addRow("Window Size:", window_size_layout)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
@@ -290,7 +298,7 @@ class SettingsDialog(QDialog):
         left_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
         left_form.addRow("Video Bitrate:", self.video_bitrate_combo)
         left_form.addRow("Maxrate:", self.maxrate_combo)
-        left_form.addRow("Bufsize:", self.bufsize_combo)
+        left_form.addRow("Buffsize:", self.bufsize_combo)
         # --- Default Intro Path ---
         intro_path_layout = QHBoxLayout()
         self.default_intro_path_edit = QLineEdit()
@@ -508,7 +516,6 @@ class SettingsDialog(QDialog):
             try:
                 window_width = int(self.default_window_width_edit.text())
                 window_height = int(self.default_window_height_edit.text())
-                print(f"Saving window size: width={window_width}, height={window_height}")
                 self.settings.setValue('default_window_width', window_width)
                 self.settings.setValue('default_window_height', window_height)
             except ValueError:
@@ -535,6 +542,15 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_overlay2_enabled', self.default_overlay2_enabled_checkbox.isChecked())
             self.settings.setValue('default_list_name_enabled', self.default_list_name_enabled_checkbox.isChecked())
             self.settings.setValue('default_mp3_count_enabled', self.default_mp3_count_enabled_checkbox.isChecked())
+            # Debug prints for video settings when saving
+            print(f"FPS: {self.selected_fps}")
+            print(f"Resolution: {self.resolution_combo.currentData()}")
+            print(f"Preset: {self.preset_combo.currentData()}")
+            print(f"Audio bitrate: {self.audio_bitrate_combo.currentData()}")
+            print(f"Video bitrate: {self.video_bitrate_combo.currentData()}")
+            print(f"Maxrate: {self.maxrate_combo.currentData()}")
+            print(f"Bufsize: {self.bufsize_combo.currentData()}")
+            
             self.settings.setValue('default_resolution', self.resolution_combo.currentData())
             self.settings.setValue('default_ffmpeg_preset', self.preset_combo.currentData())
             self.settings.setValue('default_ffmpeg_audio_bitrate', self.audio_bitrate_combo.currentData())
@@ -866,7 +882,7 @@ class SuperCutUI(QWidget):
         
         # Create main layout
         layout = QVBoxLayout()
-        layout.setContentsMargins(14, 20, 0, 0)  # Reduce left margin from 20px to 10px
+        layout.setContentsMargins(14, 20, 0, 10)  # Reduce left margin from 20px to 10px
         layout.setSpacing(9)
 
         # --- Add program title with icon at the top (FIXED) ---
@@ -874,7 +890,7 @@ class SuperCutUI(QWidget):
         title_widget = QtWidgets.QWidget()
         title_widget.setFixedHeight(60)
         title_layout = QtWidgets.QHBoxLayout()
-        title_layout.setContentsMargins(0, 0, 0, 20)
+        title_layout.setContentsMargins(0, 0, 0, 0)
         title_layout.setSpacing(0)
         # Add PNG logo in front of SuperCut title
         title_icon = QLabel()
@@ -1183,6 +1199,9 @@ class SuperCutUI(QWidget):
         for label, value in DEFAULT_RESOLUTIONS:
             self.resolution_combo.addItem(label, value)
         self.resolution_combo.setCurrentIndex(0)
+        
+
+        
         settings_layout.addWidget(resolution_label)
         settings_layout.addSpacing(0)
         settings_layout.addWidget(self.resolution_combo)
@@ -1204,6 +1223,9 @@ class SuperCutUI(QWidget):
             self.fps_combo.setCurrentIndex(fps_index)
         else:
             self.fps_combo.setCurrentIndex(0)
+        
+
+        
         settings_layout.addWidget(fps_label)
         settings_layout.addSpacing(0)
         settings_layout.addWidget(self.fps_combo)
@@ -1223,6 +1245,9 @@ class SuperCutUI(QWidget):
         default_preset = self.settings.value('default_ffmpeg_preset', DEFAULT_FFMPEG_PRESET, type=str)
         preset_index = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 6)  # Default to "slow"
         self.preset_combo.setCurrentIndex(preset_index)
+        
+
+        
         settings_layout.addWidget(preset_label)
         settings_layout.addSpacing(0)
         settings_layout.addWidget(self.preset_combo)     
@@ -3601,14 +3626,10 @@ class SuperCutUI(QWidget):
             saved_width = self.settings.value('default_window_width', WINDOW_SIZE[0], type=int)
             saved_height = self.settings.value('default_window_height', WINDOW_SIZE[1], type=int)
             
-            print(f"Applying window size: saved_width={saved_width}, saved_height={saved_height}")
-            
             # Use saved values directly, but ensure they're reasonable
             width = max(saved_width, 400)  # Minimum reasonable width
             width = min(width, 686)  # Maximum width constraint
             height = max(saved_height, 400)  # Minimum reasonable height
-            
-            print(f"Resizing window to: width={width}, height={height}")
             
             # Resize the window to the new size
             self.resize(width, height)
@@ -3819,7 +3840,7 @@ Preset: {preset}
 Audio bitrate: {audio_bitrate}
 Video bitrate: {video_bitrate}
 Maxrate: {maxrate}
-Bufsize: {bufsize}
+Buffsize: {bufsize}
 Min MP3 count: {min_mp3_count}
 Media sources: {media_sources}
 Output folder: {folder}
@@ -3874,7 +3895,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         dlg = QtWidgets.QDialog(self)
         dlg.setWindowTitle("Preview: FFmpeg Settings")
         dlg.setMinimumSize(480, 500)
-        dlg.setStyleSheet("background-color: #f6f6f6;")
+        dlg.setStyleSheet("background-color: #f3f3f3;")
         layout = QVBoxLayout(dlg)
         text_edit = QtWidgets.QPlainTextEdit()
         text_edit.setReadOnly(True)
@@ -3886,14 +3907,57 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         font.setFamily("Arial")  # Use a common font family
         text_edit.setFont(font)
         
-        # Apply stylesheet with font-size override
+        # Apply stylesheet with font-size override and custom scrollbar
         stylesheet = f"""
         QPlainTextEdit {{
-            background-color: #f6f6f6;
-            font-size: 15px;
+            background-color: #f0f0f0;
+            font-size: 17px;
             font-family: Arial;
+            color: #000000;
         }}
-        {SCROLLBAR_STYLE}
+        QScrollBar:vertical {{
+            background: #e9ebec;
+            width: 12px;
+            border-radius: 6px;
+            margin: 0px;
+            position: absolute;
+            right: 0px;
+        }}
+        QScrollBar::handle:vertical {{
+            background: #e5e7e8;
+            border-radius: 6px;
+            min-height: 20px;
+            margin: 0px;
+        }}
+        QScrollBar::handle:vertical:hover {{
+            background: #cfd2d3;
+        }}
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+            height: 0px;
+        }}
+        QScrollBar:horizontal {{
+            background: #e9ebec;
+            height: 12px;
+            border-radius: 6px;
+            margin: 0px;
+            position: absolute;
+            bottom: 0px;
+        }}
+        QScrollBar::handle:horizontal {{
+            background: #e5e7e8;
+            border-radius: 6px;
+            min-width: 20px;
+            margin: 0px;
+        }}
+        QScrollBar::handle:horizontal:hover {{
+            background: #cfd2d3;
+        }}
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+            width: 0px;
+        }}
+        QScrollBar::sub-control:corner {{
+            background: transparent;
+        }}
         """
         text_edit.setStyleSheet(stylesheet)
         
@@ -3901,13 +3965,31 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         
         text_edit.setPlainText(settings_str.lstrip())
         layout.addWidget(text_edit)
-        btn_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.StandardButton.Ok)
-        btn_box.accepted.connect(dlg.accept)
-        # Set OK button to blue using the helper
-        ok_button = btn_box.button(QtWidgets.QDialogButtonBox.StandardButton.Ok)
-        if ok_button is not None:
-            set_blue_button(ok_button)
-        layout.addWidget(btn_box)
+        
+        # Create button layout
+        btn_layout = QHBoxLayout()
+        
+        # Add Dry Run button (placeholder for now)
+        dry_run_btn = QPushButton("Dry Run")
+        dry_run_btn.setFixedWidth(80)
+        dry_run_btn.setStyleSheet("background-color: #28a745; color: white; border-radius: 6px;")
+        # TODO: Add dry run functionality here
+        dry_run_btn.clicked.connect(lambda: print("Dry Run button clicked - placeholder"))
+        
+        # Add Close button (renamed from OK)
+        close_btn = QPushButton("Close")
+        close_btn.setFixedWidth(80)
+        close_btn.setStyleSheet("background-color: #4a90e2; color: white; border-radius: 6px;")
+        close_btn.clicked.connect(dlg.accept)
+        
+        # Add buttons to layout with spacing
+        btn_layout.addStretch()
+        btn_layout.addWidget(dry_run_btn)
+        btn_layout.addSpacing(10)
+        btn_layout.addWidget(close_btn)
+        btn_layout.addStretch()
+        
+        layout.addLayout(btn_layout)
         dlg.exec()
 
     def open_iconsna_website(self):
