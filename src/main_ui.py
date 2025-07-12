@@ -1344,10 +1344,19 @@ class SuperCutUI(QWidget):
         self.intro_effect_combo.currentIndexChanged.connect(on_intro_effect_changed)
         on_intro_effect_changed(self.intro_effect_combo.currentIndex())
 
+        # Intro duration checkbox and input
+        self.intro_duration_full_checkbox = QtWidgets.QCheckBox("Full")
+        self.intro_duration_full_checkbox.setFixedWidth(80)
+        self.intro_duration_full_checkbox.setChecked(False)
+        def update_intro_duration_full_checkbox_style(state):
+            self.intro_duration_full_checkbox.setStyleSheet("")  # Always default color
+        self.intro_duration_full_checkbox.stateChanged.connect(update_intro_duration_full_checkbox_style)
+        update_intro_duration_full_checkbox_style(self.intro_duration_full_checkbox.checkState())
+        
         intro_duration_label = QLabel("Duration:")
         intro_duration_label.setFixedWidth(80)
         self.intro_duration_edit = QLineEdit("6")
-        self.intro_duration_edit.setFixedWidth(80)
+        self.intro_duration_edit.setFixedWidth(40)
         self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.intro_duration_edit.setPlaceholderText("6")
         self.intro_duration = 6
@@ -1360,16 +1369,13 @@ class SuperCutUI(QWidget):
         on_intro_duration_changed()
 
         # Intro start at/from checkbox and inputs
-        self.intro_start_checkbox = QtWidgets.QCheckBox("Start at:")
+        self.intro_start_checkbox = QtWidgets.QCheckBox("Start at")
         self.intro_start_checkbox.setFixedWidth(80)
-        self.intro_start_checkbox.setChecked(False)
-        def update_intro_start_checkbox_style(state):
-            self.intro_start_checkbox.setStyleSheet("")  # Always default color
-        self.intro_start_checkbox.stateChanged.connect(update_intro_start_checkbox_style)
-        update_intro_start_checkbox_style(self.intro_start_checkbox.checkState())
+        self.intro_start_checkbox.setChecked(True)
         
+        # Intro start at input
         self.intro_start_edit = QLineEdit("0")
-        self.intro_start_edit.setFixedWidth(80)
+        self.intro_start_edit.setFixedWidth(40)
         self.intro_start_edit.setValidator(QIntValidator(0, 999, self))
         self.intro_start_edit.setPlaceholderText("0")
         self.intro_start_at = 0
@@ -1385,7 +1391,7 @@ class SuperCutUI(QWidget):
         intro_start_from_label = QLabel("Start from:")
         intro_start_from_label.setFixedWidth(80)
         self.intro_start_from_edit = QLineEdit("0")
-        self.intro_start_from_edit.setFixedWidth(80)
+        self.intro_start_from_edit.setFixedWidth(40)
         self.intro_start_from_edit.setValidator(QIntValidator(0, 999, self))
         self.intro_start_from_edit.setPlaceholderText("0")
         self.intro_start_from = 0
@@ -1406,8 +1412,25 @@ class SuperCutUI(QWidget):
             self.intro_x_combo.setEnabled(enabled)
             self.intro_y_combo.setEnabled(enabled)
             self.intro_effect_combo.setEnabled(enabled)
-            intro_duration_label.setEnabled(enabled)
-            self.intro_duration_edit.setEnabled(enabled)
+            self.intro_duration_full_checkbox.setEnabled(enabled)
+            # Duration field is controlled by duration full checkbox, not intro checkbox
+            if enabled:
+                # When intro is enabled, let the duration full checkbox control the duration field
+                # Force the duration field to match the full checkbox state
+                full_checked = self.intro_duration_full_checkbox.isChecked()
+                self.intro_duration_edit.setEnabled(not full_checked)
+                intro_duration_label.setEnabled(not full_checked)
+                if full_checked:
+                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                    self.intro_duration_edit.setStyleSheet(grey_btn_style)
+                    intro_duration_label.setStyleSheet("color: grey;")
+                else:
+                    self.intro_duration_edit.setStyleSheet("")
+                    intro_duration_label.setStyleSheet("")
+            else:
+                # When intro is disabled, disable duration field regardless of full checkbox
+                intro_duration_label.setEnabled(False)
+                self.intro_duration_edit.setEnabled(False)
             self.intro_start_checkbox.setEnabled(enabled)
             # Start at field is controlled by its own checkbox
             if enabled:
@@ -1423,6 +1446,9 @@ class SuperCutUI(QWidget):
                 intro_x_label.setStyleSheet("")
                 intro_y_label.setStyleSheet("")
                 intro_effect_label.setStyleSheet("")
+                # When intro is enabled, reset checkbox styling and let the start at checkbox control its own styling
+                self.intro_start_checkbox.setStyleSheet("")
+                set_intro_start_enabled(self.intro_start_checkbox.checkState())
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 intro_btn.setStyleSheet(grey_btn_style)
@@ -1436,29 +1462,54 @@ class SuperCutUI(QWidget):
                 intro_size_label.setStyleSheet("color: grey;")
                 intro_x_label.setStyleSheet("color: grey;")
                 intro_y_label.setStyleSheet("color: grey;")
+                intro_effect_label.setStyleSheet("color: grey;")
+                # Also grey out the checkboxes and start at input when intro is disabled
+                self.intro_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.intro_start_checkbox.setStyleSheet("color: grey;")
+                self.intro_start_edit.setStyleSheet(grey_btn_style)
         
         # Function to control intro start at/from fields based on its checkbox
         def set_intro_start_enabled(state):
             enabled = state == Qt.CheckState.Checked
-            # When checkbox is checked, enable start from field and disable start at field
-            self.intro_start_from_edit.setEnabled(enabled)
-            self.intro_start_edit.setEnabled(not enabled)  # Disable start at when checkbox is checked
+            # When checkbox is checked, enable start at field and disable start from field
+            # When checkbox is unchecked, enable start from field and disable start at field
+            self.intro_start_edit.setEnabled(enabled)
+            self.intro_start_from_edit.setEnabled(not enabled)
             
             if enabled:
-                self.intro_start_from_edit.setStyleSheet("")
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.intro_start_edit.setStyleSheet(grey_btn_style)
-                intro_start_from_label.setStyleSheet("")
-            else:
+                # Start at checkbox is checked - use start at logic
                 self.intro_start_edit.setStyleSheet("")
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.intro_start_from_edit.setStyleSheet(grey_btn_style)
                 intro_start_from_label.setStyleSheet("color: grey;")
+            else:
+                # Start at checkbox is unchecked - use start from logic
+                self.intro_start_from_edit.setStyleSheet("")
+                intro_start_from_label.setStyleSheet("")  # Start from label is active
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.intro_start_edit.setStyleSheet(grey_btn_style)
+        
+        # Function to control intro duration field based on duration full checkbox
+        def set_intro_duration_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When duration full checkbox is checked, disable duration input field
+            self.intro_duration_edit.setEnabled(not enabled)
+            intro_duration_label.setEnabled(not enabled)
+            
+            if enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.intro_duration_edit.setStyleSheet(grey_btn_style)
+                intro_duration_label.setStyleSheet("color: grey;")
+            else:
+                self.intro_duration_edit.setStyleSheet("")
+                intro_duration_label.setStyleSheet("")
         
         self.intro_checkbox.stateChanged.connect(lambda _: set_intro_enabled(self.intro_checkbox.checkState()))
         self.intro_start_checkbox.stateChanged.connect(lambda _: set_intro_start_enabled(self.intro_start_checkbox.checkState()))
+        self.intro_duration_full_checkbox.stateChanged.connect(lambda _: set_intro_duration_enabled(self.intro_duration_full_checkbox.checkState()))
         set_intro_enabled(self.intro_checkbox.checkState())
         set_intro_start_enabled(self.intro_start_checkbox.checkState())
+        set_intro_duration_enabled(self.intro_duration_full_checkbox.checkState())
 
         intro_layout = QHBoxLayout()
         intro_layout.setSpacing(4)
@@ -1490,12 +1541,14 @@ class SuperCutUI(QWidget):
         intro_effect_layout.addSpacing(-27)
         intro_effect_layout.addWidget(self.intro_duration_edit)
         intro_effect_layout.addSpacing(-6)
+        intro_effect_layout.addWidget(self.intro_duration_full_checkbox)
+        intro_effect_layout.addSpacing(-26)
         intro_effect_layout.addWidget(self.intro_start_checkbox)
-        intro_effect_layout.addSpacing(-27)
+        intro_effect_layout.addSpacing(-10)
         intro_effect_layout.addWidget(self.intro_start_edit)
         intro_effect_layout.addSpacing(-6)
         intro_effect_layout.addWidget(intro_start_from_label)
-        intro_effect_layout.addSpacing(-27)
+        intro_effect_layout.addSpacing(-10)
         intro_effect_layout.addWidget(self.intro_start_from_edit)
         intro_effect_layout.addStretch()
         layout.addLayout(intro_effect_layout)
@@ -3334,7 +3387,7 @@ class SuperCutUI(QWidget):
             
             self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_x_percent, self.intro_y_percent,
             self.selected_effect, self.overlay_duration,
-            self.intro_effect, self.intro_duration, self.intro_start_at, self.intro_start_from, self.intro_start_checkbox.isChecked(),
+            self.intro_effect, self.intro_duration, self.intro_start_at, self.intro_start_from, self.intro_start_checkbox.isChecked(), self.intro_duration_full_checkbox.isChecked(),
             
             name_list=name_list,
             preset=preset,
@@ -4452,6 +4505,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         intro_start_at = self.params['intro_start_at']
                         intro_start_from = self.params['intro_start_from']
                         intro_start_checkbox_checked = self.params['intro_start_checkbox_checked']
+                        intro_duration_full_checkbox_checked = self.params['intro_duration_full_checkbox_checked']
                         effect = self.params['effect']
                         effect_time = self.params['effect_time']
                         use_song_title_overlay = self.params['use_song_title_overlay']
@@ -4479,16 +4533,22 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                                 'y_percent': song_title_y_percent
                             }]
                         
-                        # Calculate actual intro start time based on checkbox state for dry run
+                        # Calculate actual intro start time and duration based on checkbox states for dry run
                         from src.ffmpeg_utils import get_audio_duration
+                        total_duration = get_audio_duration(dry_mp3)
+                        
                         actual_intro_start_at = 0
                         if intro_start_checkbox_checked:
                             # Use start from logic: total_duration - start_from_value
-                            total_duration = get_audio_duration(dry_mp3)
                             actual_intro_start_at = int(max(0, total_duration - intro_start_from))
                         else:
                             # Use start at value directly
                             actual_intro_start_at = intro_start_at
+                        
+                        actual_intro_duration = intro_duration
+                        if intro_duration_full_checkbox_checked:
+                            # Use full remaining duration: total_duration - start_at
+                            actual_intro_duration = int(max(1, total_duration - actual_intro_start_at))
                         
                         success, err = create_video_with_ffmpeg(
                             dry_img, dry_mp3, dry_out, resolution, fps, codec,
@@ -4500,7 +4560,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             use_overlay6, overlay6_path, overlay6_size_percent, overlay6_x_percent, overlay6_y_percent,
                             use_overlay7, overlay7_path, overlay7_size_percent, overlay7_x_percent, overlay7_y_percent,
                             use_intro, intro_path, intro_size_percent, intro_x_percent, intro_y_percent,
-                            effect, effect_time, intro_effect, intro_duration, actual_intro_start_at, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
+                            effect, effect_time, intro_effect, actual_intro_duration, actual_intro_start_at, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
                             extra_overlays=extra_overlays,
                             song_title_effect=song_title_effect,
                             song_title_font=song_title_font,
@@ -4595,6 +4655,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 intro_start_at=self.intro_start_at,
                 intro_start_from=self.intro_start_from,
                 intro_start_checkbox_checked=self.intro_start_checkbox.isChecked(),
+                intro_duration_full_checkbox_checked=self.intro_duration_full_checkbox.isChecked(),
                 effect=self.selected_effect,
                 effect_time=self.overlay_duration,
                 use_song_title_overlay=self.song_title_checkbox.isChecked(),

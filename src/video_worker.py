@@ -24,7 +24,7 @@ class VideoWorker(QObject):
                  use_overlay5: bool = False, overlay5_path: str = "", overlay5_size_percent: int = 10, overlay5_x_percent: int = 75, overlay5_y_percent: int = 0,
                  use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_x_percent: int = 50, intro_y_percent: int = 50,
                  effect: str = "fadein", effect_time: int = 5,
-                 intro_effect: str = "fadeout", intro_duration: int = 6, intro_start_at: int = 0, intro_start_from: int = 0, intro_start_checkbox_checked: bool = False,
+                 intro_effect: str = "fadeout", intro_duration: int = 6, intro_start_at: int = 0, intro_start_from: int = 0, intro_start_checkbox_checked: bool = False, intro_duration_full_checkbox_checked: bool = False,
                  name_list: Optional[List[str]] = None,
                  preset: str = "slow",
                  audio_bitrate: str = "384k",
@@ -100,6 +100,7 @@ class VideoWorker(QObject):
         self.intro_start_at = intro_start_at
         self.intro_start_from = intro_start_from
         self.intro_start_checkbox_checked = intro_start_checkbox_checked
+        self.intro_duration_full_checkbox_checked = intro_duration_full_checkbox_checked
         self.name_list = name_list if name_list is not None else []
         self.preset = preset
         self.audio_bitrate = audio_bitrate
@@ -316,16 +317,22 @@ class VideoWorker(QObject):
                         'y_percent': song_title_pngs[i]['y_percent']
                     })
             
-            # Calculate actual intro start time based on checkbox state
+            # Calculate actual intro start time and duration based on checkbox states
             from src.ffmpeg_utils import get_audio_duration
+            total_duration = get_audio_duration(merged_audio_path)
+            
             actual_intro_start_at = 0
             if self.intro_start_checkbox_checked:
                 # Use start from logic: total_duration - start_from_value
-                total_duration = get_audio_duration(merged_audio_path)
                 actual_intro_start_at = int(max(0, total_duration - self.intro_start_from))
             else:
                 # Use start at value directly
                 actual_intro_start_at = self.intro_start_at
+            
+            actual_intro_duration = self.intro_duration
+            if self.intro_duration_full_checkbox_checked:
+                # Use full remaining duration: total_duration - start_at
+                actual_intro_duration = int(max(1, total_duration - actual_intro_start_at))
             
             # Create video (Overlay 1: GIF/PNG, with size)
             success, error_msg = create_video_with_ffmpeg(
@@ -378,7 +385,7 @@ class VideoWorker(QObject):
                 self.effect,
                 self.effect_time,
                 self.intro_effect,
-                self.intro_duration,
+                actual_intro_duration,
                 actual_intro_start_at,
                 self.preset,
                 self.audio_bitrate,
