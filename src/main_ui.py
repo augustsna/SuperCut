@@ -3150,8 +3150,8 @@ class SuperCutUI(QWidget):
         self.overlay8_popup_interval_combo.setFixedWidth(60)
         for value in range(1, 101, 1):
             self.overlay8_popup_interval_combo.addItem(f"{value}", value)
-        self.overlay8_popup_interval_combo.setCurrentIndex(9)  # Default 10
-        self.overlay8_popup_interval_percent = 10
+        self.overlay8_popup_interval_combo.setCurrentIndex(0)  # Default 1
+        self.overlay8_popup_interval_percent = 1
         def on_overlay8_popup_interval_changed(idx):
             self.overlay8_popup_interval_percent = self.overlay8_popup_interval_combo.itemData(idx)
         self.overlay8_popup_interval_combo.currentIndexChanged.connect(on_overlay8_popup_interval_changed)
