@@ -1813,20 +1813,20 @@ class SuperCutUI(QWidget):
         self.effect_combo.currentIndexChanged.connect(on_effect_changed)
         on_effect_changed(self.effect_combo.currentIndex())
 
-        overlay_duration_label = QLabel("Start at:")
-        overlay_duration_label.setFixedWidth(80)
-        self.overlay_duration_edit = QLineEdit("5")
-        self.overlay_duration_edit.setFixedWidth(80)
-        self.overlay_duration_edit.setValidator(QIntValidator(0, 999, self))
-        self.overlay_duration_edit.setPlaceholderText("5")
-        self.overlay_duration = 5
-        def on_overlay_duration_changed():
+        overlay_start_at_label = QLabel("Start at:")
+        overlay_start_at_label.setFixedWidth(80)
+        self.overlay_start_at_edit = QLineEdit("5")
+        self.overlay_start_at_edit.setFixedWidth(80)
+        self.overlay_start_at_edit.setValidator(QIntValidator(0, 999, self))
+        self.overlay_start_at_edit.setPlaceholderText("5")
+        self.overlay_start_at = 5
+        def on_overlay_start_at_changed():
             try:
-                self.overlay_duration = int(self.overlay_duration_edit.text())
+                self.overlay_start_at = int(self.overlay_start_at_edit.text())
             except Exception:
-                self.overlay_duration = 5
-        self.overlay_duration_edit.textChanged.connect(on_overlay_duration_changed)
-        on_overlay_duration_changed()
+                self.overlay_start_at = 5
+        self.overlay_start_at_edit.textChanged.connect(on_overlay_start_at_changed)
+        on_overlay_start_at_changed()
 
         effect_layout = QHBoxLayout()
         effect_layout.setContentsMargins(0, 0, 0, 0)
@@ -1835,9 +1835,9 @@ class SuperCutUI(QWidget):
         effect_layout.addSpacing(-3)
         effect_layout.addWidget(self.effect_combo)
         effect_layout.addSpacing(-1)
-        effect_layout.addWidget(overlay_duration_label)
+        effect_layout.addWidget(overlay_start_at_label)
         effect_layout.addSpacing(-32)
-        effect_layout.addWidget(self.overlay_duration_edit)
+        effect_layout.addWidget(self.overlay_start_at_edit)
         effect_layout.addStretch()
         layout.addLayout(effect_layout)
 
@@ -1847,16 +1847,16 @@ class SuperCutUI(QWidget):
                 effect_label.setStyleSheet("color: grey;")
                 self.effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.effect_combo.setEnabled(False)
-                overlay_duration_label.setStyleSheet("color: grey;")
-                self.overlay_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay_duration_edit.setEnabled(False)
+                overlay_start_at_label.setStyleSheet("color: grey;")
+                self.overlay_start_at_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay_start_at_edit.setEnabled(False)
             else:
                 effect_label.setStyleSheet("")
                 self.effect_combo.setStyleSheet("")
                 self.effect_combo.setEnabled(True)
-                overlay_duration_label.setStyleSheet("")
-                self.overlay_duration_edit.setStyleSheet("")
-                self.overlay_duration_edit.setEnabled(True)
+                overlay_start_at_label.setStyleSheet("")
+                self.overlay_start_at_edit.setStyleSheet("")
+                self.overlay_start_at_edit.setEnabled(True)
         self.overlay_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         self.overlay2_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         update_overlay_effect_label_style()
@@ -3550,9 +3550,9 @@ class SuperCutUI(QWidget):
         maxrate = self.settings.value('default_ffmpeg_maxrate', DEFAULT_MAXRATE, type=str)
         # Get ffmpeg bufsize from settings
         bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
-        # Use overlay_duration as the start time for both overlay 1 and overlay 2
-        overlay1_start_at = self.overlay_duration
-        overlay2_start_at = self.overlay_duration
+        # Use overlay_start_at as the start time for both overlay 1 and overlay 2
+        overlay1_start_at = self.overlay_start_at
+        overlay2_start_at = self.overlay_start_at
         self._worker = VideoWorker(
             media_sources, export_name, number, folder, codec, resolution, fps,
             self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_x_percent, self.overlay1_y_percent,
@@ -3563,7 +3563,7 @@ class SuperCutUI(QWidget):
             self.overlay5_checkbox.isChecked(), self.overlay5_path, self.overlay5_size_percent, self.overlay5_x_percent, self.overlay5_y_percent,
             
             self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_x_percent, self.intro_y_percent,
-            self.selected_effect, self.overlay_duration,
+            self.selected_effect, self.overlay_start_at,
             self.intro_effect, self.intro_duration, self.intro_start_at, self.intro_start_from, self.intro_start_checkbox.isChecked(), self.intro_duration_full_checkbox.isChecked(),
             
             name_list=name_list,
@@ -4174,8 +4174,8 @@ class SuperCutUI(QWidget):
         video_bitrate = self.settings.value('default_ffmpeg_video_bitrate', DEFAULT_VIDEO_BITRATE, type=str)
         maxrate = self.settings.value('default_ffmpeg_maxrate', DEFAULT_MAXRATE, type=str)
         bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
-        overlay1_start_at = self.overlay_duration
-        overlay2_start_at = self.overlay_duration
+        overlay1_start_at = self.overlay_start_at
+        overlay2_start_at = self.overlay_start_at
         # Compose a string with all settings
         settings_str = f"""
 📄 FFmpeg Settings Preview:
@@ -4808,8 +4808,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay2_size_percent=self.overlay2_size_percent,
                 overlay2_x_percent=self.overlay2_x_percent,
                 overlay2_y_percent=self.overlay2_y_percent,
-                overlay1_start_at=self.overlay_duration,
-                overlay2_start_at=self.overlay_duration,
+                overlay1_start_at=self.overlay_start_at,
+                overlay2_start_at=self.overlay_start_at,
                 use_overlay3=self.overlay3_checkbox.isChecked(),
                 overlay3_path=self.overlay3_path,
                 overlay3_size_percent=self.overlay3_size_percent,
@@ -4862,7 +4862,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 intro_start_checkbox_checked=self.intro_start_checkbox.isChecked(),
                 intro_duration_full_checkbox_checked=self.intro_duration_full_checkbox.isChecked(),
                 effect=self.selected_effect,
-                effect_time=self.overlay_duration,
+                effect_time=self.overlay_start_at,
                 use_song_title_overlay=self.song_title_checkbox.isChecked(),
                 song_title_effect=self.song_title_effect,
                 song_title_font=self.song_title_font,
