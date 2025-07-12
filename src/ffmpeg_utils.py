@@ -378,6 +378,11 @@ def create_video_with_ffmpeg(
             def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext, duration=None):
                 if idx is None:
                     return ""
+                
+                # Debug effect chain parameters
+                if label == "ol8":
+                    print(f"Effect Chain Debug - {label}: effect_time={effect_time}, effect={effect}, duration={duration}")
+                
                 chain = f"[{idx}:v]"
                 if ext == ".gif":
                     chain += "fps=30,"
@@ -470,6 +475,9 @@ def create_video_with_ffmpeg(
             overlay8_actual_duration = None
             if not overlay8_duration_full_checkbox_checked:
                 overlay8_actual_duration = overlay8_duration
+            
+            # Debug overlay8 parameters
+            print(f"FFmpeg Debug - Overlay8: start_time={overlay8_start_time}, duration={overlay8_duration}, effect={overlay8_effect}")
             
             filter_overlay8 = overlay_effect_chain(overlay8_idx, f"{ow8}:{oh8}", "ol8", overlay8_effect, overlay8_start_time, ext8, overlay8_actual_duration) if overlay8_idx is not None else ""
             # --- Song Title Overlay Filter Graph ---

@@ -388,10 +388,38 @@ class VideoWorker(QObject):
                 actual_overlay7_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
             
             # Calculate actual overlay8 start time based on checkbox state
-            actual_overlay8_start_at = self.overlay8_start_time
             if not self.overlay8_start_at_checkbox_checked:
-                # Use start from logic: countdown from end
-                actual_overlay8_start_at = int(max(0, total_duration - self.overlay8_start_from))
+                # Use start from logic
+                if self.overlay8_duration_full_checkbox_checked:
+                    # Full duration: simple percentage of total duration
+                    actual_overlay8_start_at = int((self.overlay8_start_from / 100.0) * total_duration)
+                else:
+                    # Limited duration: (total_duration * percentage) - effect_duration
+                    effect_duration = self.overlay8_duration
+                    percentage_time = (self.overlay8_start_from / 100.0) * total_duration
+                    actual_overlay8_start_at = int(max(0, percentage_time - effect_duration))
+                # Ensure the start time doesn't exceed the video duration
+                actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
+            else:
+                # Use start at logic: simple percentage of total duration (NO duration subtraction)
+                actual_overlay8_start_at = int((self.overlay8_start_time / 100.0) * total_duration)
+                # Ensure the start time doesn't exceed the video duration
+                actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
+            
+            # Final validation to ensure start time is valid
+            actual_overlay8_start_at = max(0, actual_overlay8_start_at)
+            
+            # Debug output for overlay8 timing
+            print(f"Overlay8 Debug - Total duration: {total_duration}s, Start time: {actual_overlay8_start_at}s, Duration: {self.overlay8_duration}s")
+            print(f"Overlay8 Debug - Start from percent: {self.overlay8_start_from}, Start time percent: {self.overlay8_start_time}")
+            
+            # Additional validation for overlay8 parameters
+            if actual_overlay8_start_at < 0:
+                print(f"Warning: Overlay8 start time is negative: {actual_overlay8_start_at}, setting to 0")
+                actual_overlay8_start_at = 0
+            if self.overlay8_duration < 0:
+                print(f"Warning: Overlay8 duration is negative: {self.overlay8_duration}, setting to 1")
+                self.overlay8_duration = 1
             
             # Create video (Overlay 1: GIF/PNG, with size)
             success, error_msg = create_video_with_ffmpeg(

@@ -3032,34 +3032,30 @@ class SuperCutUI(QWidget):
 
         overlay8_start_label = QLabel("Start at:")
         overlay8_start_label.setFixedWidth(80)
-        self.overlay8_start_edit = QLineEdit("5")
-        self.overlay8_start_edit.setFixedWidth(40)
-        self.overlay8_start_edit.setValidator(QIntValidator(0, 999, self))
-        self.overlay8_start_edit.setPlaceholderText("5")
-        self.overlay8_start_at = 5
-        def on_overlay8_start_changed():
-            try:
-                self.overlay8_start_at = int(self.overlay8_start_edit.text())
-            except Exception:
-                self.overlay8_start_at = 5
-        self.overlay8_start_edit.textChanged.connect(on_overlay8_start_changed)
-        on_overlay8_start_changed()
+        self.overlay8_start_combo = QtWidgets.QComboBox()
+        self.overlay8_start_combo.setFixedWidth(60)
+        for percent in range(1, 101, 1):
+            self.overlay8_start_combo.addItem(f"{percent}%", percent)
+        self.overlay8_start_combo.setCurrentIndex(4)  # Default 5%
+        self.overlay8_start_percent = 5
+        def on_overlay8_start_changed(idx):
+            self.overlay8_start_percent = self.overlay8_start_combo.itemData(idx)
+        self.overlay8_start_combo.currentIndexChanged.connect(on_overlay8_start_changed)
+        on_overlay8_start_changed(self.overlay8_start_combo.currentIndex())
 
         # Overlay8 Start from field
         overlay8_start_from_label = QLabel("Start from:")
         overlay8_start_from_label.setFixedWidth(80)
-        self.overlay8_start_from_edit = QLineEdit("0")
-        self.overlay8_start_from_edit.setFixedWidth(40)
-        self.overlay8_start_from_edit.setValidator(QIntValidator(0, 999, self))
-        self.overlay8_start_from_edit.setPlaceholderText("0")
-        self.overlay8_start_from = 0
-        def on_overlay8_start_from_changed():
-            try:
-                self.overlay8_start_from = int(self.overlay8_start_from_edit.text())
-            except Exception:
-                self.overlay8_start_from = 0
-        self.overlay8_start_from_edit.textChanged.connect(on_overlay8_start_from_changed)
-        on_overlay8_start_from_changed()
+        self.overlay8_start_from_combo = QtWidgets.QComboBox()
+        self.overlay8_start_from_combo.setFixedWidth(60)
+        for percent in range(1, 101, 1):
+            self.overlay8_start_from_combo.addItem(f"{percent}%", percent)
+        self.overlay8_start_from_combo.setCurrentIndex(0)  # Default 1%
+        self.overlay8_start_from_percent = 1
+        def on_overlay8_start_from_changed(idx):
+            self.overlay8_start_from_percent = self.overlay8_start_from_combo.itemData(idx)
+        self.overlay8_start_from_combo.currentIndexChanged.connect(on_overlay8_start_from_changed)
+        on_overlay8_start_from_changed(self.overlay8_start_from_combo.currentIndex())
 
         overlay8_layout = QHBoxLayout()
         overlay8_layout.setContentsMargins(0, 0, 0, 0)
@@ -3078,25 +3074,25 @@ class SuperCutUI(QWidget):
         overlay8_layout.addSpacing(-6)
         overlay8_layout.addWidget(overlay8_start_label)
         overlay8_layout.addSpacing(-32)
-        overlay8_layout.addWidget(self.overlay8_start_edit)
+        overlay8_layout.addWidget(self.overlay8_start_combo)
         overlay8_layout.addSpacing(-6)
         overlay8_layout.addWidget(overlay8_start_from_label)
         overlay8_layout.addSpacing(-32)
-        overlay8_layout.addWidget(self.overlay8_start_from_edit)
+        overlay8_layout.addWidget(self.overlay8_start_from_combo)
         overlay8_layout.addStretch()
         layout.addLayout(overlay8_layout)
 
         # --- Overlay 8 effect greying logic ---
         def set_overlay8_start_enabled(state):
             enabled = state == Qt.CheckState.Checked
-            self.overlay8_start_edit.setEnabled(enabled)
+            self.overlay8_start_combo.setEnabled(enabled)
             overlay8_start_label.setStyleSheet("" if enabled else "color: grey;")
-            self.overlay8_start_edit.setStyleSheet("" if enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            self.overlay8_start_combo.setStyleSheet("" if enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
             
             # Enable/disable start from field based on opposite state
-            self.overlay8_start_from_edit.setEnabled(not enabled)
+            self.overlay8_start_from_combo.setEnabled(not enabled)
             overlay8_start_from_label.setStyleSheet("" if not enabled else "color: grey;")
-            self.overlay8_start_from_edit.setStyleSheet("" if not enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            self.overlay8_start_from_combo.setStyleSheet("" if not enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
 
         def update_overlay8_effect_label_style():
             if not self.overlay8_checkbox.isChecked():
@@ -3106,11 +3102,11 @@ class SuperCutUI(QWidget):
                 self.overlay8_start_at_checkbox.setStyleSheet("color: grey;")
                 self.overlay8_start_at_checkbox.setEnabled(False)
                 overlay8_start_label.setStyleSheet("color: grey;")
-                self.overlay8_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay8_start_edit.setEnabled(False)
+                self.overlay8_start_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_start_combo.setEnabled(False)
                 overlay8_start_from_label.setStyleSheet("color: grey;")
-                self.overlay8_start_from_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay8_start_from_edit.setEnabled(False)
+                self.overlay8_start_from_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_start_from_combo.setEnabled(False)
                 # Also grey out duration controls when overlay8 is disabled
                 overlay8_duration_label.setStyleSheet("color: grey;")
                 self.overlay8_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
@@ -4163,8 +4159,8 @@ class SuperCutUI(QWidget):
             overlay8_size_percent=self.overlay8_size_percent,
             overlay8_x_percent=self.overlay8_x_percent, overlay8_y_percent=self.overlay8_y_percent,
             overlay8_effect=self.selected_overlay8_effect,
-            overlay8_start_time=self.overlay8_start_at,
-            overlay8_start_from=self.overlay8_start_from,
+                            overlay8_start_time=self.overlay8_start_percent,
+                            overlay8_start_from=self.overlay8_start_from_percent,
             overlay8_duration=self.overlay8_duration,
             overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked(),
             overlay8_start_at_checkbox_checked=self.overlay8_start_at_checkbox.isChecked()
@@ -4799,7 +4795,7 @@ Size: {self.overlay7_size_percent}% | X: {self.overlay7_x_percent}% | Y: {self.o
 
 Overlay 8: {self.overlay8_checkbox.isChecked()} | Path: {self.overlay8_path}
 Size: {self.overlay8_size_percent}% | X: {self.overlay8_x_percent}% | Y: {self.overlay8_y_percent}%
-Overlay8 Effect: {self.selected_overlay8_effect} | Start at: {self.overlay8_start_at}
+                Overlay8 Effect: {self.selected_overlay8_effect} | Start at: {self.overlay8_start_percent}%
 
 --- Song Title Overlay ---
 Soundwave Overlay: {self.overlay3_checkbox.isChecked()} | Path: {self.overlay3_path}
@@ -5469,7 +5465,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay8_x_percent=self.overlay8_x_percent if hasattr(self, 'overlay8_x_percent') else 75,
                 overlay8_y_percent=self.overlay8_y_percent if hasattr(self, 'overlay8_y_percent') else 0,
                 overlay8_effect=self.selected_overlay8_effect if hasattr(self, 'selected_overlay8_effect') else "fadein",
-                overlay8_start_time=self.overlay8_start_at if hasattr(self, 'overlay8_start_at') else 5,
+                overlay8_start_time=self.overlay8_start_percent if hasattr(self, 'overlay8_start_percent') else 5,
                 overlay8_duration=self.overlay8_duration if hasattr(self, 'overlay8_duration') else 6,
                 overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked() if hasattr(self, 'overlay8_duration_full_checkbox') else False,
                 use_intro=self.intro_checkbox.isChecked(),
