@@ -120,7 +120,7 @@ def create_video_with_ffmpeg(
     intro_x_percent: int = 50,
     intro_y_percent: int = 50,
     effect: str = "fadein",
-    effect_time: int = 5,
+    overlay1_2_start_time: int = 5,
     overlay1_2_duration: int = 6,
     overlay1_2_duration_full_checkbox_checked: bool = False,
     intro_effect: str = "fadeout",
@@ -142,25 +142,25 @@ def create_video_with_ffmpeg(
     song_title_opacity: float = 1.0,
     song_title_scale_percent: int = 100,
     overlay3_effect: str = "fadein",
-    overlay3_effect_time: int = 5,
+    overlay3_start_time: int = 5,
     overlay4_effect: str = "fadein",
-    overlay4_effect_time: int = 5,
+    overlay4_start_time: int = 5,
     overlay4_duration: int = 6,
     overlay4_duration_full_checkbox_checked: bool = False,
     overlay5_effect: str = "fadein",
-    overlay5_effect_time: int = 5,
+    overlay5_start_time: int = 5,
     overlay5_duration: int = 6,
     overlay5_duration_full_checkbox_checked: bool = False,
     overlay6_effect: str = "fadein",
-    overlay6_effect_time: int = 5,
+    overlay6_start_time: int = 5,
     overlay6_duration: int = 6,
     overlay6_duration_full_checkbox_checked: bool = False,
     overlay7_effect: str = "fadein",
-    overlay7_effect_time: int = 5,
+    overlay7_start_time: int = 5,
     overlay7_duration: int = 6,
     overlay7_duration_full_checkbox_checked: bool = False,
     overlay8_effect: str = "fadein",
-    overlay8_effect_time: int = 5,
+    overlay8_start_time: int = 5,
     overlay8_duration: int = 6,
     overlay8_duration_full_checkbox_checked: bool = False,
     overlay1_start_at: int = 0,
@@ -443,9 +443,9 @@ def create_video_with_ffmpeg(
             if not overlay1_2_duration_full_checkbox_checked:
                 overlay1_2_actual_duration = overlay1_2_duration
             
-            filter_overlay1 = overlay_effect_chain(overlay1_idx, f"{ow1}:{oh1}", "ol1", effect, effect_time, ext1, overlay1_2_actual_duration) if overlay1_idx is not None else ""
-            filter_overlay2 = overlay_effect_chain(overlay2_idx, f"{ow2}:{oh2}", "ol2", effect, effect_time, ext2, overlay1_2_actual_duration) if overlay2_idx is not None else ""
-            filter_overlay3 = overlay_effect_chain(overlay3_idx, f"{ow3}:{oh3}", "ol3", overlay3_effect, overlay3_effect_time, ext3) if overlay3_idx is not None else ""
+            filter_overlay1 = overlay_effect_chain(overlay1_idx, f"{ow1}:{oh1}", "ol1", effect, overlay1_2_start_time, ext1, overlay1_2_actual_duration) if overlay1_idx is not None else ""
+            filter_overlay2 = overlay_effect_chain(overlay2_idx, f"{ow2}:{oh2}", "ol2", effect, overlay1_2_start_time, ext2, overlay1_2_actual_duration) if overlay2_idx is not None else ""
+            filter_overlay3 = overlay_effect_chain(overlay3_idx, f"{ow3}:{oh3}", "ol3", overlay3_effect, overlay3_start_time, ext3) if overlay3_idx is not None else ""
             # Calculate duration for overlay4_5 based on full duration checkbox
             overlay4_actual_duration = None
             overlay5_actual_duration = None
@@ -454,8 +454,8 @@ def create_video_with_ffmpeg(
             if not overlay5_duration_full_checkbox_checked:
                 overlay5_actual_duration = overlay5_duration
             
-            filter_overlay4 = overlay_effect_chain(overlay4_idx, f"{ow4}:{oh4}", "ol4", overlay4_effect, overlay4_effect_time, ext4, overlay4_actual_duration) if overlay4_idx is not None else ""
-            filter_overlay5 = overlay_effect_chain(overlay5_idx, f"{ow5}:{oh5}", "ol5", overlay5_effect, overlay5_effect_time, ext5, overlay5_actual_duration) if overlay5_idx is not None else ""
+            filter_overlay4 = overlay_effect_chain(overlay4_idx, f"{ow4}:{oh4}", "ol4", overlay4_effect, overlay4_start_time, ext4, overlay4_actual_duration) if overlay4_idx is not None else ""
+            filter_overlay5 = overlay_effect_chain(overlay5_idx, f"{ow5}:{oh5}", "ol5", overlay5_effect, overlay5_start_time, ext5, overlay5_actual_duration) if overlay5_idx is not None else ""
             # Calculate duration for overlay6_7 based on full duration checkbox
             overlay6_actual_duration = None
             overlay7_actual_duration = None
@@ -464,14 +464,14 @@ def create_video_with_ffmpeg(
             if not overlay7_duration_full_checkbox_checked:
                 overlay7_actual_duration = overlay7_duration
             
-            filter_overlay6 = overlay_effect_chain(overlay6_idx, f"{ow6}:{oh6}", "ol6", overlay6_effect, overlay6_effect_time, ext6, overlay6_actual_duration) if overlay6_idx is not None else ""
-            filter_overlay7 = overlay_effect_chain(overlay7_idx, f"{ow7}:{oh7}", "ol7", overlay7_effect, overlay7_effect_time, ext7, overlay7_actual_duration) if overlay7_idx is not None else ""
+            filter_overlay6 = overlay_effect_chain(overlay6_idx, f"{ow6}:{oh6}", "ol6", overlay6_effect, overlay6_start_time, ext6, overlay6_actual_duration) if overlay6_idx is not None else ""
+            filter_overlay7 = overlay_effect_chain(overlay7_idx, f"{ow7}:{oh7}", "ol7", overlay7_effect, overlay7_start_time, ext7, overlay7_actual_duration) if overlay7_idx is not None else ""
             # Calculate duration for overlay8 based on full duration checkbox
             overlay8_actual_duration = None
             if not overlay8_duration_full_checkbox_checked:
                 overlay8_actual_duration = overlay8_duration
             
-            filter_overlay8 = overlay_effect_chain(overlay8_idx, f"{ow8}:{oh8}", "ol8", overlay8_effect, overlay8_effect_time, ext8, overlay8_actual_duration) if overlay8_idx is not None else ""
+            filter_overlay8 = overlay_effect_chain(overlay8_idx, f"{ow8}:{oh8}", "ol8", overlay8_effect, overlay8_start_time, ext8, overlay8_actual_duration) if overlay8_idx is not None else ""
             # --- Song Title Overlay Filter Graph ---
             filter_chains = []
             overlay_labels = []
@@ -542,10 +542,10 @@ def create_video_with_ffmpeg(
                 # Use duration control like overlay8 if duration full checkbox is not checked
                 if overlay4_duration_full_checkbox_checked:
                     # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}:enable='gte(t,{overlay4_effect_time})'[tmp4]"
+                    filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}:enable='gte(t,{overlay4_start_time})'[tmp4]"
                 else:
                     # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}:enable='between(t,{overlay4_effect_time},{overlay4_effect_time+overlay4_duration})'[tmp4]"
+                    filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}:enable='between(t,{overlay4_start_time},{overlay4_start_time+overlay4_duration})'[tmp4]"
                 last_label = "[tmp4]"
             # Overlay 5
             if filter_overlay5:
@@ -553,10 +553,10 @@ def create_video_with_ffmpeg(
                 # Use duration control like overlay8 if duration full checkbox is not checked
                 if overlay5_duration_full_checkbox_checked:
                     # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}:enable='gte(t,{overlay5_effect_time})'[tmp5]"
+                    filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}:enable='gte(t,{overlay5_start_time})'[tmp5]"
                 else:
                     # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}:enable='between(t,{overlay5_effect_time},{overlay5_effect_time+overlay5_duration})'[tmp5]"
+                    filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}:enable='between(t,{overlay5_start_time},{overlay5_start_time+overlay5_duration})'[tmp5]"
                 last_label = "[tmp5]"
             # Overlay 6
             if filter_overlay6:
@@ -564,10 +564,10 @@ def create_video_with_ffmpeg(
                 # Use duration control like overlay8 if duration full checkbox is not checked
                 if overlay6_duration_full_checkbox_checked:
                     # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol6]overlay={ox6}:{oy6}:enable='gte(t,{overlay6_effect_time})'[tmp6]"
+                    filter_graph += f";{last_label}[ol6]overlay={ox6}:{oy6}:enable='gte(t,{overlay6_start_time})'[tmp6]"
                 else:
                     # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol6]overlay={ox6}:{oy6}:enable='between(t,{overlay6_effect_time},{overlay6_effect_time+overlay6_duration})'[tmp6]"
+                    filter_graph += f";{last_label}[ol6]overlay={ox6}:{oy6}:enable='between(t,{overlay6_start_time},{overlay6_start_time+overlay6_duration})'[tmp6]"
                 last_label = "[tmp6]"
             # Overlay 7
             if filter_overlay7:
@@ -575,10 +575,10 @@ def create_video_with_ffmpeg(
                 # Use duration control like overlay8 if duration full checkbox is not checked
                 if overlay7_duration_full_checkbox_checked:
                     # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol7]overlay={ox7}:{oy7}:enable='gte(t,{overlay7_effect_time})'[tmp7]"
+                    filter_graph += f";{last_label}[ol7]overlay={ox7}:{oy7}:enable='gte(t,{overlay7_start_time})'[tmp7]"
                 else:
                     # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol7]overlay={ox7}:{oy7}:enable='between(t,{overlay7_effect_time},{overlay7_effect_time+overlay7_duration})'[tmp7]"
+                    filter_graph += f";{last_label}[ol7]overlay={ox7}:{oy7}:enable='between(t,{overlay7_start_time},{overlay7_start_time+overlay7_duration})'[tmp7]"
                 last_label = "[tmp7]"
             # Overlay 8
             if filter_overlay8:
@@ -586,10 +586,10 @@ def create_video_with_ffmpeg(
                 # Use duration control like intro if duration full checkbox is not checked
                 if overlay8_duration_full_checkbox_checked:
                     # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol8]overlay={ox8}:{oy8}:enable='gte(t,{overlay8_effect_time})'[tmp8]"
+                    filter_graph += f";{last_label}[ol8]overlay={ox8}:{oy8}:enable='gte(t,{overlay8_start_time})'[tmp8]"
                 else:
                     # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol8]overlay={ox8}:{oy8}:enable='between(t,{overlay8_effect_time},{overlay8_effect_time+overlay8_duration})'[tmp8]"
+                    filter_graph += f";{last_label}[ol8]overlay={ox8}:{oy8}:enable='between(t,{overlay8_start_time},{overlay8_start_time+overlay8_duration})'[tmp8]"
                 last_label = "[tmp8]"
             # Intro
             if filter_intro:

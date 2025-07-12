@@ -3022,10 +3022,18 @@ class SuperCutUI(QWidget):
         self.overlay8_effect_combo.currentIndexChanged.connect(on_overlay8_effect_changed)
         on_overlay8_effect_changed(self.overlay8_effect_combo.currentIndex())
 
+        # Overlay8 Start at checkbox
+        self.overlay8_start_at_checkbox = QtWidgets.QCheckBox("Start at")
+        self.overlay8_start_at_checkbox.setChecked(True)
+        def update_overlay8_start_at_checkbox_style(state):
+            self.overlay8_start_at_checkbox.setStyleSheet("")
+        self.overlay8_start_at_checkbox.stateChanged.connect(update_overlay8_start_at_checkbox_style)
+        update_overlay8_start_at_checkbox_style(self.overlay8_start_at_checkbox.checkState())
+
         overlay8_start_label = QLabel("Start at:")
         overlay8_start_label.setFixedWidth(80)
         self.overlay8_start_edit = QLineEdit("5")
-        self.overlay8_start_edit.setFixedWidth(80)
+        self.overlay8_start_edit.setFixedWidth(40)
         self.overlay8_start_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay8_start_edit.setPlaceholderText("5")
         self.overlay8_start_at = 5
@@ -3037,34 +3045,72 @@ class SuperCutUI(QWidget):
         self.overlay8_start_edit.textChanged.connect(on_overlay8_start_changed)
         on_overlay8_start_changed()
 
+        # Overlay8 Start from field
+        overlay8_start_from_label = QLabel("Start from:")
+        overlay8_start_from_label.setFixedWidth(80)
+        self.overlay8_start_from_edit = QLineEdit("0")
+        self.overlay8_start_from_edit.setFixedWidth(40)
+        self.overlay8_start_from_edit.setValidator(QIntValidator(0, 999, self))
+        self.overlay8_start_from_edit.setPlaceholderText("0")
+        self.overlay8_start_from = 0
+        def on_overlay8_start_from_changed():
+            try:
+                self.overlay8_start_from = int(self.overlay8_start_from_edit.text())
+            except Exception:
+                self.overlay8_start_from = 0
+        self.overlay8_start_from_edit.textChanged.connect(on_overlay8_start_from_changed)
+        on_overlay8_start_from_changed()
+
         overlay8_layout = QHBoxLayout()
         overlay8_layout.setContentsMargins(0, 0, 0, 0)
-        overlay8_layout.addSpacing(20)
+        overlay8_layout.addSpacing(-20)
         overlay8_layout.addWidget(overlay8_label)
         overlay8_layout.addSpacing(-3)
         overlay8_layout.addWidget(self.overlay8_effect_combo)
-        overlay8_layout.addSpacing(-1)
-        overlay8_layout.addWidget(overlay8_start_label)
-        overlay8_layout.addSpacing(-32)
-        overlay8_layout.addWidget(self.overlay8_start_edit)
         overlay8_layout.addSpacing(-6)
         overlay8_layout.addWidget(overlay8_duration_label)
         overlay8_layout.addSpacing(-27)
         overlay8_layout.addWidget(self.overlay8_duration_edit)
         overlay8_layout.addSpacing(-6)
         overlay8_layout.addWidget(self.overlay8_duration_full_checkbox)
+        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addWidget(self.overlay8_start_at_checkbox)
+        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addWidget(overlay8_start_label)
+        overlay8_layout.addSpacing(-32)
+        overlay8_layout.addWidget(self.overlay8_start_edit)
+        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addWidget(overlay8_start_from_label)
+        overlay8_layout.addSpacing(-32)
+        overlay8_layout.addWidget(self.overlay8_start_from_edit)
         overlay8_layout.addStretch()
         layout.addLayout(overlay8_layout)
 
         # --- Overlay 8 effect greying logic ---
+        def set_overlay8_start_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay8_start_edit.setEnabled(enabled)
+            overlay8_start_label.setStyleSheet("" if enabled else "color: grey;")
+            self.overlay8_start_edit.setStyleSheet("" if enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            
+            # Enable/disable start from field based on opposite state
+            self.overlay8_start_from_edit.setEnabled(not enabled)
+            overlay8_start_from_label.setStyleSheet("" if not enabled else "color: grey;")
+            self.overlay8_start_from_edit.setStyleSheet("" if not enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+
         def update_overlay8_effect_label_style():
             if not self.overlay8_checkbox.isChecked():
                 overlay8_label.setStyleSheet("color: grey;")
                 self.overlay8_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay8_effect_combo.setEnabled(False)
+                self.overlay8_start_at_checkbox.setStyleSheet("color: grey;")
+                self.overlay8_start_at_checkbox.setEnabled(False)
                 overlay8_start_label.setStyleSheet("color: grey;")
                 self.overlay8_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay8_start_edit.setEnabled(False)
+                overlay8_start_from_label.setStyleSheet("color: grey;")
+                self.overlay8_start_from_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_start_from_edit.setEnabled(False)
                 # Also grey out duration controls when overlay8 is disabled
                 overlay8_duration_label.setStyleSheet("color: grey;")
                 self.overlay8_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
@@ -3075,15 +3121,17 @@ class SuperCutUI(QWidget):
                 overlay8_label.setStyleSheet("")
                 self.overlay8_effect_combo.setStyleSheet("")
                 self.overlay8_effect_combo.setEnabled(True)
-                overlay8_start_label.setStyleSheet("")
-                self.overlay8_start_edit.setStyleSheet("")
-                self.overlay8_start_edit.setEnabled(True)
+                self.overlay8_start_at_checkbox.setStyleSheet("")
+                self.overlay8_start_at_checkbox.setEnabled(True)
+                # Let the start at checkbox control the start field styling
+                set_overlay8_start_enabled(self.overlay8_start_at_checkbox.checkState())
                 # Re-enable duration controls when overlay8 is enabled
                 self.overlay8_duration_full_checkbox.setEnabled(True)
                 self.overlay8_duration_full_checkbox.setStyleSheet("")
                 # Let the duration full checkbox control the duration field styling
                 set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
         self.overlay8_checkbox.stateChanged.connect(lambda _: update_overlay8_effect_label_style())
+        self.overlay8_start_at_checkbox.stateChanged.connect(lambda _: set_overlay8_start_enabled(self.overlay8_start_at_checkbox.checkState()))
         update_overlay8_effect_label_style()
 
         # Overlay 3 controls (similar to Overlay 2)
@@ -4062,11 +4110,11 @@ class SuperCutUI(QWidget):
             song_title_start_at=self.song_title_start_at,
             song_title_scale_percent=self.song_title_scale_percent,
             overlay4_effect=self.selected_overlay4_5_effect,
-            overlay4_effect_time=self.overlay4_5_start_at,
+            overlay4_start_time=self.overlay4_5_start_at,
             overlay4_duration=self.overlay4_5_duration,
             overlay4_duration_full_checkbox_checked=self.overlay4_5_duration_full_checkbox.checkState() == Qt.CheckState.Checked,
             overlay5_effect=self.selected_overlay4_5_effect,
-            overlay5_effect_time=self.overlay4_5_start_at,
+            overlay5_start_time=self.overlay4_5_start_at,
             overlay5_duration=self.overlay4_5_duration,
             overlay5_duration_full_checkbox_checked=self.overlay4_5_duration_full_checkbox.checkState() == Qt.CheckState.Checked, overlay4_5_start_from=self.overlay4_5_start_from, overlay4_5_start_at_checkbox_checked=self.overlay4_5_start_at_checkbox.isChecked(),
             # --- Add overlay6, overlay7, overlay6_7 effect ---
@@ -4079,11 +4127,11 @@ class SuperCutUI(QWidget):
             overlay7_size_percent=self.overlay7_size_percent,
             overlay7_x_percent=self.overlay7_x_percent, overlay7_y_percent=self.overlay7_y_percent,
             overlay6_effect=self.selected_overlay6_7_effect,
-            overlay6_effect_time=self.overlay6_7_start_at,
+            overlay6_start_time=self.overlay6_7_start_at,
             overlay6_duration=self.overlay6_7_duration,
             overlay6_duration_full_checkbox_checked=self.overlay6_7_duration_full_checkbox.checkState() == Qt.CheckState.Checked, overlay6_7_start_from=self.overlay6_7_start_from, overlay6_7_start_at_checkbox_checked=self.overlay6_7_start_at_checkbox.isChecked(),
             overlay7_effect=self.selected_overlay6_7_effect,
-            overlay7_effect_time=self.overlay6_7_start_at,
+            overlay7_start_time=self.overlay6_7_start_at,
             overlay7_duration=self.overlay6_7_duration,
             overlay7_duration_full_checkbox_checked=self.overlay6_7_duration_full_checkbox.checkState() == Qt.CheckState.Checked,
             # --- Add overlay8, overlay8 effect ---
@@ -4092,9 +4140,11 @@ class SuperCutUI(QWidget):
             overlay8_size_percent=self.overlay8_size_percent,
             overlay8_x_percent=self.overlay8_x_percent, overlay8_y_percent=self.overlay8_y_percent,
             overlay8_effect=self.selected_overlay8_effect,
-            overlay8_effect_time=self.overlay8_start_at,
+            overlay8_start_time=self.overlay8_start_at,
+            overlay8_start_from=self.overlay8_start_from,
             overlay8_duration=self.overlay8_duration,
-            overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked()
+            overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked(),
+            overlay8_start_at_checkbox_checked=self.overlay8_start_at_checkbox.isChecked()
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
@@ -5168,19 +5218,19 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         overlay7_x_percent = self.params['overlay7_x_percent']
                         overlay7_y_percent = self.params['overlay7_y_percent']
                         overlay4_effect = self.params['overlay4_effect']
-                        overlay4_effect_time = self.params['overlay4_effect_time']
+                        overlay4_start_time = self.params['overlay4_start_time']
                         overlay4_duration = self.params['overlay4_duration']
                         overlay4_duration_full_checkbox_checked = self.params['overlay4_duration_full_checkbox_checked']
                         overlay5_effect = self.params['overlay5_effect']
-                        overlay5_effect_time = self.params['overlay5_effect_time']
+                        overlay5_start_time = self.params['overlay5_start_time']
                         overlay5_duration = self.params['overlay5_duration']
                         overlay5_duration_full_checkbox_checked = self.params['overlay5_duration_full_checkbox_checked']
                         overlay6_effect = self.params['overlay6_effect']
-                        overlay6_effect_time = self.params['overlay6_effect_time']
+                        overlay6_start_time = self.params['overlay6_start_time']
                         overlay6_duration = self.params['overlay6_duration']
                         overlay6_duration_full_checkbox_checked = self.params['overlay6_duration_full_checkbox_checked']
                         overlay7_effect = self.params['overlay7_effect']
-                        overlay7_effect_time = self.params['overlay7_effect_time']
+                        overlay7_start_time = self.params['overlay7_start_time']
                         overlay7_duration = self.params['overlay7_duration']
                         overlay7_duration_full_checkbox_checked = self.params['overlay7_duration_full_checkbox_checked']
                         use_overlay8 = self.params['use_overlay8']
@@ -5189,7 +5239,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         overlay8_x_percent = self.params['overlay8_x_percent']
                         overlay8_y_percent = self.params['overlay8_y_percent']
                         overlay8_effect = self.params['overlay8_effect']
-                        overlay8_effect_time = self.params['overlay8_effect_time']
+                        overlay8_start_time = self.params['overlay8_start_time']
                         overlay8_duration = self.params['overlay8_duration']
                         overlay8_duration_full_checkbox_checked = self.params['overlay8_duration_full_checkbox_checked']
                         use_intro = self.params['use_intro']
@@ -5283,25 +5333,25 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             song_title_opacity=song_title_opacity,
                             song_title_scale_percent=song_title_scale_percent,
                             overlay3_effect="fadein",
-                            overlay3_effect_time=song_title_start_at if (use_song_title_overlay and song_title_start_at is not None) else 5,
+                            overlay3_start_time=song_title_start_at if (use_song_title_overlay and song_title_start_at is not None) else 5,
                             overlay4_effect=overlay4_effect,
-                            overlay4_effect_time=overlay4_effect_time,
+                            overlay4_start_time=overlay4_start_time,
                             overlay4_duration=overlay4_duration,
                             overlay4_duration_full_checkbox_checked=overlay4_duration_full_checkbox_checked,
                             overlay5_effect=overlay5_effect,
-                            overlay5_effect_time=overlay5_effect_time,
+                            overlay5_start_time=overlay5_start_time,
                             overlay5_duration=overlay5_duration,
                             overlay5_duration_full_checkbox_checked=overlay5_duration_full_checkbox_checked,
                             overlay6_effect=overlay6_effect,
-                            overlay6_effect_time=overlay6_effect_time,
+                            overlay6_start_time=overlay6_start_time,
                             overlay6_duration=overlay6_duration,
                             overlay6_duration_full_checkbox_checked=overlay6_duration_full_checkbox_checked,
                             overlay7_effect=overlay7_effect,
-                            overlay7_effect_time=overlay7_effect_time,
+                            overlay7_start_time=overlay7_start_time,
                             overlay7_duration=overlay7_duration,
                             overlay7_duration_full_checkbox_checked=overlay7_duration_full_checkbox_checked,
                             overlay8_effect=overlay8_effect,
-                            overlay8_effect_time=overlay8_effect_time,
+                            overlay8_start_time=overlay8_start_time,
                             overlay8_duration=overlay8_duration,
                             overlay8_duration_full_checkbox_checked=overlay8_duration_full_checkbox_checked,
                             overlay1_start_at=overlay1_start_at,
@@ -5362,19 +5412,19 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay7_x_percent=self.overlay7_x_percent if hasattr(self, 'overlay7_x_percent') else 75,
                 overlay7_y_percent=self.overlay7_y_percent if hasattr(self, 'overlay7_y_percent') else 0,
                 overlay4_effect=self.selected_overlay4_5_effect if hasattr(self, 'selected_overlay4_5_effect') else "fadein",
-                overlay4_effect_time=self.overlay4_5_start_at if hasattr(self, 'overlay4_5_start_at') else 5,
+                overlay4_start_time=self.overlay4_5_start_at if hasattr(self, 'overlay4_5_start_at') else 5,
                 overlay4_duration=self.overlay4_5_duration if hasattr(self, 'overlay4_5_duration') else 6,
                 overlay4_duration_full_checkbox_checked=self.overlay4_5_duration_full_checkbox.isChecked() if hasattr(self, 'overlay4_5_duration_full_checkbox') else False,
                 overlay5_effect=self.selected_overlay4_5_effect if hasattr(self, 'selected_overlay4_5_effect') else "fadein",
-                overlay5_effect_time=self.overlay4_5_start_at if hasattr(self, 'overlay4_5_start_at') else 5,
+                overlay5_start_time=self.overlay4_5_start_at if hasattr(self, 'overlay4_5_start_at') else 5,
                 overlay5_duration=self.overlay4_5_duration if hasattr(self, 'overlay4_5_duration') else 6,
                 overlay5_duration_full_checkbox_checked=self.overlay4_5_duration_full_checkbox.isChecked() if hasattr(self, 'overlay4_5_duration_full_checkbox') else False,
                 overlay6_effect=self.selected_overlay6_7_effect if hasattr(self, 'selected_overlay6_7_effect') else "fadein",
-                overlay6_effect_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5, overlay6_7_start_from=self.overlay6_7_start_from if hasattr(self, 'overlay6_7_start_from') else 0, overlay6_7_start_at_checkbox_checked=self.overlay6_7_start_at_checkbox.isChecked() if hasattr(self, 'overlay6_7_start_at_checkbox') else True,
+                overlay6_start_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5, overlay6_7_start_from=self.overlay6_7_start_from if hasattr(self, 'overlay6_7_start_from') else 0, overlay6_7_start_at_checkbox_checked=self.overlay6_7_start_at_checkbox.isChecked() if hasattr(self, 'overlay6_7_start_at_checkbox') else True,
                 overlay6_duration=self.overlay6_7_duration if hasattr(self, 'overlay6_7_duration') else 6,
                 overlay6_duration_full_checkbox_checked=self.overlay6_7_duration_full_checkbox.isChecked() if hasattr(self, 'overlay6_7_duration_full_checkbox') else False,
                 overlay7_effect=self.selected_overlay6_7_effect if hasattr(self, 'selected_overlay6_7_effect') else "fadein",
-                overlay7_effect_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5,
+                overlay7_start_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5,
                 overlay7_duration=self.overlay6_7_duration if hasattr(self, 'overlay6_7_duration') else 6,
                 overlay7_duration_full_checkbox_checked=self.overlay6_7_duration_full_checkbox.isChecked() if hasattr(self, 'overlay6_7_duration_full_checkbox') else False,
                 use_overlay8=self.overlay8_checkbox.isChecked() if hasattr(self, 'overlay8_checkbox') else False,
@@ -5383,7 +5433,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay8_x_percent=self.overlay8_x_percent if hasattr(self, 'overlay8_x_percent') else 75,
                 overlay8_y_percent=self.overlay8_y_percent if hasattr(self, 'overlay8_y_percent') else 0,
                 overlay8_effect=self.selected_overlay8_effect if hasattr(self, 'selected_overlay8_effect') else "fadein",
-                overlay8_effect_time=self.overlay8_start_at if hasattr(self, 'overlay8_start_at') else 5,
+                overlay8_start_time=self.overlay8_start_at if hasattr(self, 'overlay8_start_at') else 5,
                 overlay8_duration=self.overlay8_duration if hasattr(self, 'overlay8_duration') else 6,
                 overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked() if hasattr(self, 'overlay8_duration_full_checkbox') else False,
                 use_intro=self.intro_checkbox.isChecked(),

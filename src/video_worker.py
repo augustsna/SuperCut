@@ -23,7 +23,7 @@ class VideoWorker(QObject):
                  use_overlay4: bool = False, overlay4_path: str = "", overlay4_size_percent: int = 10, overlay4_x_percent: int = 75, overlay4_y_percent: int = 0,
                  use_overlay5: bool = False, overlay5_path: str = "", overlay5_size_percent: int = 10, overlay5_x_percent: int = 75, overlay5_y_percent: int = 0,
                  use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_x_percent: int = 50, intro_y_percent: int = 50,
-                 effect: str = "fadein", effect_time: int = 5, overlay1_2_duration: int = 6, overlay1_2_duration_full_checkbox_checked: bool = False, overlay1_2_start_from: int = 0, overlay1_2_start_at_checkbox_checked: bool = True,
+                 effect: str = "fadein", overlay1_2_start_time: int = 5, overlay1_2_duration: int = 6, overlay1_2_duration_full_checkbox_checked: bool = False, overlay1_2_start_from: int = 0, overlay1_2_start_at_checkbox_checked: bool = True,
                  intro_effect: str = "fadeout", intro_duration: int = 6, intro_start_at: int = 0, intro_start_from: int = 0, intro_start_checkbox_checked: bool = False, intro_duration_full_checkbox_checked: bool = False,
                  name_list: Optional[List[str]] = None,
                  preset: str = "slow",
@@ -43,16 +43,16 @@ class VideoWorker(QObject):
                  song_title_y_percent: int = 25,
                  song_title_start_at: int = 5,
                  song_title_scale_percent: int = 100,
-                 overlay4_effect: str = "fadein", overlay4_effect_time: int = 5, overlay4_duration: int = 6, overlay4_duration_full_checkbox_checked: bool = False,
-                 overlay5_effect: str = "fadein", overlay5_effect_time: int = 5, overlay5_duration: int = 6, overlay5_duration_full_checkbox_checked: bool = False, overlay4_5_start_from: int = 0, overlay4_5_start_at_checkbox_checked: bool = True,
+                 overlay4_effect: str = "fadein", overlay4_start_time: int = 5, overlay4_duration: int = 6, overlay4_duration_full_checkbox_checked: bool = False,
+                 overlay5_effect: str = "fadein", overlay5_start_time: int = 5, overlay5_duration: int = 6, overlay5_duration_full_checkbox_checked: bool = False, overlay4_5_start_from: int = 0, overlay4_5_start_at_checkbox_checked: bool = True,
                  # --- Add overlay6, overlay7, overlay6_7 effect ---
                  use_overlay6: bool = False, overlay6_path: str = "", overlay6_size_percent: int = 10, overlay6_x_percent: int = 75, overlay6_y_percent: int = 0,
                  use_overlay7: bool = False, overlay7_path: str = "", overlay7_size_percent: int = 10, overlay7_x_percent: int = 75, overlay7_y_percent: int = 0,
-                 overlay6_effect: str = "fadein", overlay6_effect_time: int = 5, overlay6_duration: int = 6, overlay6_duration_full_checkbox_checked: bool = False, overlay6_7_start_from: int = 0, overlay6_7_start_at_checkbox_checked: bool = True,
-                 overlay7_effect: str = "fadein", overlay7_effect_time: int = 5, overlay7_duration: int = 6, overlay7_duration_full_checkbox_checked: bool = False,
+                 overlay6_effect: str = "fadein", overlay6_start_time: int = 5, overlay6_duration: int = 6, overlay6_duration_full_checkbox_checked: bool = False, overlay6_7_start_from: int = 0, overlay6_7_start_at_checkbox_checked: bool = True,
+                 overlay7_effect: str = "fadein", overlay7_start_time: int = 5, overlay7_duration: int = 6, overlay7_duration_full_checkbox_checked: bool = False,
                  # --- Add overlay8, overlay8 effect ---
                  use_overlay8: bool = False, overlay8_path: str = "", overlay8_size_percent: int = 10, overlay8_x_percent: int = 75, overlay8_y_percent: int = 0,
-                 overlay8_effect: str = "fadein", overlay8_effect_time: int = 5, overlay8_duration: int = 6, overlay8_duration_full_checkbox_checked: bool = False):
+                 overlay8_effect: str = "fadein", overlay8_start_time: int = 5, overlay8_start_from: int = 0, overlay8_duration: int = 6, overlay8_duration_full_checkbox_checked: bool = False, overlay8_start_at_checkbox_checked: bool = True):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -95,7 +95,7 @@ class VideoWorker(QObject):
         self.intro_x_percent = intro_x_percent
         self.intro_y_percent = intro_y_percent
         self.effect = effect
-        self.effect_time = effect_time
+        self.overlay1_2_start_time = overlay1_2_start_time
         self.overlay1_2_duration = overlay1_2_duration
         self.overlay1_2_duration_full_checkbox_checked = overlay1_2_duration_full_checkbox_checked
         self.overlay1_2_start_from = overlay1_2_start_from
@@ -127,11 +127,11 @@ class VideoWorker(QObject):
         self.song_title_start_at = song_title_start_at
         self.song_title_scale_percent = song_title_scale_percent
         self.overlay4_effect = overlay4_effect
-        self.overlay4_effect_time = overlay4_effect_time
+        self.overlay4_start_time = overlay4_start_time
         self.overlay4_duration = overlay4_duration
         self.overlay4_duration_full_checkbox_checked = overlay4_duration_full_checkbox_checked
         self.overlay5_effect = overlay5_effect
-        self.overlay5_effect_time = overlay5_effect_time
+        self.overlay5_start_time = overlay5_start_time
         self.overlay5_duration = overlay5_duration
         self.overlay5_duration_full_checkbox_checked = overlay5_duration_full_checkbox_checked
         self.overlay4_5_start_from = overlay4_5_start_from
@@ -147,13 +147,13 @@ class VideoWorker(QObject):
         self.overlay7_x_percent = overlay7_x_percent
         self.overlay7_y_percent = overlay7_y_percent
         self.overlay6_effect = overlay6_effect
-        self.overlay6_effect_time = overlay6_effect_time
+        self.overlay6_start_time = overlay6_start_time
         self.overlay6_duration = overlay6_duration
         self.overlay6_duration_full_checkbox_checked = overlay6_duration_full_checkbox_checked
         self.overlay6_7_start_from = overlay6_7_start_from
         self.overlay6_7_start_at_checkbox_checked = overlay6_7_start_at_checkbox_checked
         self.overlay7_effect = overlay7_effect
-        self.overlay7_effect_time = overlay7_effect_time
+        self.overlay7_start_time = overlay7_start_time
         self.overlay7_duration = overlay7_duration
         self.overlay7_duration_full_checkbox_checked = overlay7_duration_full_checkbox_checked
         # --- Add overlay8 attributes ---
@@ -163,9 +163,11 @@ class VideoWorker(QObject):
         self.overlay8_x_percent = overlay8_x_percent
         self.overlay8_y_percent = overlay8_y_percent
         self.overlay8_effect = overlay8_effect
-        self.overlay8_effect_time = overlay8_effect_time
+        self.overlay8_start_time = overlay8_start_time
+        self.overlay8_start_from = overlay8_start_from
         self.overlay8_duration = overlay8_duration
         self.overlay8_duration_full_checkbox_checked = overlay8_duration_full_checkbox_checked
+        self.overlay8_start_at_checkbox_checked = overlay8_start_at_checkbox_checked
 
     def stop(self):
         """Stop the video processing"""
@@ -370,20 +372,26 @@ class VideoWorker(QObject):
                 actual_overlay2_start_at = int(max(0, total_duration - self.overlay1_2_start_from))
             
             # Calculate actual overlay4_5 start times based on checkbox state
-            actual_overlay4_start_at = self.overlay4_effect_time
-            actual_overlay5_start_at = self.overlay5_effect_time
+            actual_overlay4_start_at = self.overlay4_start_time
+            actual_overlay5_start_at = self.overlay5_start_time
             if not self.overlay4_5_start_at_checkbox_checked:
                 # Use start from logic: countdown from end
                 actual_overlay4_start_at = int(max(0, total_duration - self.overlay4_5_start_from))
                 actual_overlay5_start_at = int(max(0, total_duration - self.overlay4_5_start_from))
             
             # Calculate actual overlay6_7 start times based on checkbox state
-            actual_overlay6_start_at = self.overlay6_effect_time
-            actual_overlay7_start_at = self.overlay7_effect_time
+            actual_overlay6_start_at = self.overlay6_start_time
+            actual_overlay7_start_at = self.overlay7_start_time
             if not self.overlay6_7_start_at_checkbox_checked:
                 # Use start from logic: countdown from end
                 actual_overlay6_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
                 actual_overlay7_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
+            
+            # Calculate actual overlay8 start time based on checkbox state
+            actual_overlay8_start_at = self.overlay8_start_time
+            if not self.overlay8_start_at_checkbox_checked:
+                # Use start from logic: countdown from end
+                actual_overlay8_start_at = int(max(0, total_duration - self.overlay8_start_from))
             
             # Create video (Overlay 1: GIF/PNG, with size)
             success, error_msg = create_video_with_ffmpeg(
@@ -439,7 +447,7 @@ class VideoWorker(QObject):
                 self.intro_x_percent,
                 self.intro_y_percent,
                 self.effect,
-                self.effect_time,
+                self.overlay1_2_start_time,
                 self.overlay1_2_duration,
                 self.overlay1_2_duration_full_checkbox_checked,
                 self.intro_effect,
@@ -461,25 +469,25 @@ class VideoWorker(QObject):
                 song_title_opacity=self.song_title_opacity,
                 song_title_scale_percent=self.song_title_scale_percent,
                 overlay3_effect="fadein",
-                overlay3_effect_time=self.song_title_start_at if (self.use_song_title_overlay and self.song_title_start_at is not None) else 5,
+                overlay3_start_time=self.song_title_start_at if (self.use_song_title_overlay and self.song_title_start_at is not None) else 5,
                 overlay4_effect=self.overlay4_effect,
-                overlay4_effect_time=actual_overlay4_start_at,
+                overlay4_start_time=actual_overlay4_start_at,
                 overlay4_duration=self.overlay4_duration,
                 overlay4_duration_full_checkbox_checked=self.overlay4_duration_full_checkbox_checked,
                 overlay5_effect=self.overlay5_effect,
-                overlay5_effect_time=actual_overlay5_start_at,
+                overlay5_start_time=actual_overlay5_start_at,
                 overlay5_duration=self.overlay5_duration,
                 overlay5_duration_full_checkbox_checked=self.overlay5_duration_full_checkbox_checked,
                 overlay6_effect=self.overlay6_effect,
-                overlay6_effect_time=actual_overlay6_start_at,
+                overlay6_start_time=actual_overlay6_start_at,
                 overlay6_duration=self.overlay6_duration,
                 overlay6_duration_full_checkbox_checked=self.overlay6_duration_full_checkbox_checked,
                 overlay7_effect=self.overlay7_effect,
-                overlay7_effect_time=actual_overlay7_start_at,
+                overlay7_start_time=actual_overlay7_start_at,
                 overlay7_duration=self.overlay7_duration,
                 overlay7_duration_full_checkbox_checked=self.overlay7_duration_full_checkbox_checked,
                 overlay8_effect=self.overlay8_effect,
-                overlay8_effect_time=self.overlay8_effect_time,
+                overlay8_start_time=actual_overlay8_start_at,
                 overlay8_duration=self.overlay8_duration,
                 overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox_checked,
                 overlay1_start_at=actual_overlay1_start_at,
