@@ -3929,22 +3929,46 @@ class SuperCutUI(QWidget):
                 QMessageBox.warning(self, "⚠️ Overlay Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 1.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 2 validation
-        if self.overlay2_checkbox.isChecked():
+        if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
             overlay2_path = self.overlay2_edit.text().strip()
             if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png']:
                 QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 2.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 3 validation
-        if self.overlay3_checkbox.isChecked():
+        if hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked():
             overlay3_path = self.overlay3_edit.text().strip()
             if not overlay3_path or not os.path.isfile(overlay3_path) or os.path.splitext(overlay3_path)[1].lower() not in ['.gif', '.png']:
                 QMessageBox.warning(self, "⚠️ Overlay 3 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 3.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 4 validation
-        if self.overlay4_checkbox.isChecked():
+        if hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked():
             overlay4_path = self.overlay4_edit.text().strip()
             if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png']:
                 QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 4.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 5 validation
+        if hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked():
+            overlay5_path = self.overlay5_edit.text().strip()
+            if not overlay5_path or not os.path.isfile(overlay5_path) or os.path.splitext(overlay5_path)[1].lower() not in ['.gif', '.png']:
+                QMessageBox.warning(self, "⚠️ Overlay 5 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 5.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 6 validation
+        if hasattr(self, 'overlay6_checkbox') and self.overlay6_checkbox.isChecked():
+            overlay6_path = self.overlay6_edit.text().strip()
+            if not overlay6_path or not os.path.isfile(overlay6_path) or os.path.splitext(overlay6_path)[1].lower() not in ['.gif', '.png']:
+                QMessageBox.warning(self, "⚠️ Overlay 6 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 6.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 7 validation
+        if hasattr(self, 'overlay7_checkbox') and self.overlay7_checkbox.isChecked():
+            overlay7_path = self.overlay7_edit.text().strip()
+            if not overlay7_path or not os.path.isfile(overlay7_path) or os.path.splitext(overlay7_path)[1].lower() not in ['.gif', '.png']:
+                QMessageBox.warning(self, "⚠️ Overlay 7 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 7.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 8 validation
+        if hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked():
+            overlay8_path = self.overlay8_edit.text().strip()
+            if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png']:
+                QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 8.", QMessageBox.StandardButton.Ok)
                 return
         # --- Name list validation ---
         use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
@@ -5151,6 +5175,12 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay7_path = self.overlay7_edit.text().strip()
                 if not overlay7_path or not os.path.isfile(overlay7_path) or os.path.splitext(overlay7_path)[1].lower() not in ['.gif', '.png']:
                     QMessageBox.warning(self, "⚠️ Overlay 7 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 7.", QMessageBox.StandardButton.Ok)
+                    return
+            # Overlay 8 validation
+            if hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked():
+                overlay8_path = self.overlay8_edit.text().strip()
+                if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png']:
+                    QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 8.", QMessageBox.StandardButton.Ok)
                     return
             
             # Disable preview button during dry run
