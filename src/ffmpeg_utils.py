@@ -30,7 +30,7 @@ def get_audio_duration(file_path: str) -> float:
         return 0.0
 
 def merge_mp3s_with_ffmpeg(input_files: list, output_file: str) -> bool:
-    """Merge multiple MP3 files using ffmpeg"""
+    """Merge multiple MP3 files using ffmpeg and convert to AAC/M4A format"""
     try:
         # Create a file list for ffmpeg
         file_list_path = create_temp_file(suffix='.txt')
@@ -38,13 +38,14 @@ def merge_mp3s_with_ffmpeg(input_files: list, output_file: str) -> bool:
             for file_path in input_files:
                 f.write(f"file '{file_path}'\n")
         
-        # Use ffmpeg to concatenate
+        # Use ffmpeg to concatenate and convert to AAC
         cmd = [
             FFMPEG_BINARY,
             "-f", "concat",
             "-safe", "0",
             "-i", file_list_path,
-            "-c", "copy",
+            "-c:a", "aac",        # Convert to AAC codec
+            "-b:a", "384k",       # High quality bitrate matching video settings
             output_file,
             "-y"  # Overwrite output file
         ]
@@ -645,7 +646,7 @@ def merge_random_mp3s(selected_mp3s: list) -> Tuple[Optional[str], float]:
     """Merge MP3 files using ffmpeg - returns output path and duration"""
     from src.utils import create_temp_file
     
-    output_path = create_temp_file(suffix=".mp3")
+    output_path = create_temp_file(suffix=".m4a")  # Changed from .mp3 to .m4a
     
     if merge_mp3s_with_ffmpeg(selected_mp3s, output_path):
         duration = get_audio_duration(output_path)

@@ -2740,7 +2740,7 @@ class SuperCutUI(QWidget):
         # --- SONG TITLE OVERLAY CHECKBOX ---
         self.song_title_checkbox = QtWidgets.QCheckBox("  Titles:")
         self.song_title_checkbox.setFixedWidth(80)
-        self.song_title_checkbox.setChecked(True)
+        self.song_title_checkbox.setChecked(False)
         def update_song_title_checkbox_style(state):
             self.song_title_checkbox.setStyleSheet("")
         self.song_title_checkbox.stateChanged.connect(update_song_title_checkbox_style)
