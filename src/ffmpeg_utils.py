@@ -484,36 +484,82 @@ def create_video_with_ffmpeg(
             filter_chains = []
             overlay_labels = []
             if extra_overlays:
-                scale = song_title_scale_percent / 100.0 if song_title_scale_percent else 1.0
-                scaled_w = round(1920 * scale)
-                scaled_h = round(240 * scale)
                 for i, overlay in enumerate(extra_overlays):
                     idx = extra_overlay_indices[i]
-                    label = f"songol{i+1}"
                     start = overlay.get('start', 0)
                     duration = overlay.get('duration', 0)
                     x_percent = overlay.get('x_percent', 0)
                     y_percent = overlay.get('y_percent', 0)
-                    # Calculate x/y as expressions based on percent
-                    x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
-                    # For Y: 0% = bottom, 100% = top
-                    y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
-                    chain = f"[{idx}:v]format=rgba,scale={scaled_w}:{scaled_h}"
                     
-                    # Apply song title effect based on song_title_effect parameter
-                    if song_title_effect == "fadeinout":
-                        chain += f",fade=t=in:st={start}:d=1:alpha=1,fade=t=out:st={start+duration-1}:d=1:alpha=1"
-                    elif song_title_effect == "fadein":
-                        chain += f",fade=t=in:st={start}:d=1:alpha=1"
-                    elif song_title_effect == "fadeout":
-                        chain += f",fade=t=out:st={start+duration-1}:d=1:alpha=1"
-                    elif song_title_effect == "zoompan":
-                        chain += f",zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
-                    # For "none" effect, no additional effects are applied
+                    # Check if this is an overlay8 popup overlay (has size_percent and effect)
+                    is_overlay8_popup = 'size_percent' in overlay and 'effect' in overlay
                     
-                    chain += f"[{label}]"
-                    filter_chains.append(chain)
-                    overlay_labels.append((label, start, duration, x_expr, y_expr))
+                    if is_overlay8_popup:
+                        # Overlay8 popup overlay - use its own scaling and effects
+                        size_percent = overlay.get('size_percent', 100)
+                        effect = overlay.get('effect', 'fadein')
+                        scale_factor = size_percent / 100.0
+                        scale_expr = f"iw*{scale_factor:.3f}:ih*{scale_factor:.3f}"
+                        label = f"popupol{i+1}"
+                        
+                        # Calculate x/y as expressions based on percent
+                        x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
+                        y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
+                        
+                        # Build effect chain for overlay8 popup
+                        chain = f"[{idx}:v]"
+                        ext = os.path.splitext(overlay.get('path', ''))[1].lower()
+                        if ext == ".gif":
+                            chain += "fps=30,"
+                        chain += "format=rgba,"
+                        
+                        # Apply effect based on overlay8 effect
+                        fade_alpha = ":alpha=1" if ext == ".png" else ""
+                        if effect == "fadeinout":
+                            fadein_duration = 1.5
+                            fadeout_duration = 1.5
+                            hold_duration = max(0, duration - fadein_duration - fadeout_duration)
+                            fadein_end = start + fadein_duration
+                            fadeout_start = fadein_end + hold_duration
+                            chain += f"fade=t=in:st={start}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
+                        elif effect == "fadein":
+                            chain += f"fade=t=in:st={start}:d=1{fade_alpha},"
+                        elif effect == "fadeout":
+                            chain += f"fade=t=out:st={start}:d=1{fade_alpha},"
+                        elif effect == "zoompan":
+                            chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                        
+                        chain += f"scale={scale_expr}[{label}]"
+                        filter_chains.append(chain)
+                        overlay_labels.append((label, start, duration, x_expr, y_expr))
+                        
+                    else:
+                        # Song title overlay - use existing logic
+                        scale = song_title_scale_percent / 100.0 if song_title_scale_percent else 1.0
+                        scaled_w = round(1920 * scale)
+                        scaled_h = round(240 * scale)
+                        label = f"songol{i+1}"
+                        
+                        # Calculate x/y as expressions based on percent
+                        x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
+                        # For Y: 0% = bottom, 100% = top
+                        y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
+                        chain = f"[{idx}:v]format=rgba,scale={scaled_w}:{scaled_h}"
+                        
+                        # Apply song title effect based on song_title_effect parameter
+                        if song_title_effect == "fadeinout":
+                            chain += f",fade=t=in:st={start}:d=1:alpha=1,fade=t=out:st={start+duration-1}:d=1:alpha=1"
+                        elif song_title_effect == "fadein":
+                            chain += f",fade=t=in:st={start}:d=1:alpha=1"
+                        elif song_title_effect == "fadeout":
+                            chain += f",fade=t=out:st={start+duration-1}:d=1:alpha=1"
+                        elif song_title_effect == "zoompan":
+                            chain += f",zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+                        # For "none" effect, no additional effects are applied
+                        
+                        chain += f"[{label}]"
+                        filter_chains.append(chain)
+                        overlay_labels.append((label, start, duration, x_expr, y_expr))
             # --- End Song Title Overlay Filter Graph ---
             filter_graph = filter_bg
             last_label = "[bg]"
