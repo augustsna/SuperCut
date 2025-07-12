@@ -2388,6 +2388,15 @@ class SuperCutUI(QWidget):
             self.overlay3_size_combo.setEnabled(enabled)
             self.overlay3_x_combo.setEnabled(enabled)
             self.overlay3_y_combo.setEnabled(enabled)
+            
+            # Also enable/disable song title start at field when overlay 3 is checked
+            # Check if song_title_checkbox exists before accessing it
+            if hasattr(self, 'song_title_checkbox') and hasattr(self, 'song_title_start_edit'):
+                song_title_enabled = self.song_title_checkbox.isChecked()
+                song_title_start_enabled = song_title_enabled or enabled
+                self.song_title_start_edit.setEnabled(song_title_start_enabled)
+                song_title_start_label.setStyleSheet("" if song_title_start_enabled else "color: grey;")
+            
             if enabled:
                 overlay3_btn.setStyleSheet("")
                 self.overlay3_edit.setStyleSheet("")
@@ -2407,6 +2416,10 @@ class SuperCutUI(QWidget):
                 overlay3_size_label.setStyleSheet("color: grey;")
                 overlay3_x_label.setStyleSheet("color: grey;")
                 overlay3_y_label.setStyleSheet("color: grey;")
+            
+            # Update song title controls styling to ensure proper appearance
+            if hasattr(self, 'song_title_checkbox'):
+                set_song_title_controls_enabled(self.song_title_checkbox.checkState())
         self.overlay3_checkbox.stateChanged.connect(lambda _: set_overlay3_enabled(self.overlay3_checkbox.checkState()))
         set_overlay3_enabled(self.overlay3_checkbox.checkState())
         overlay3_layout.addWidget(self.overlay3_checkbox)
@@ -2656,6 +2669,12 @@ class SuperCutUI(QWidget):
         # Enable/disable song title controls based on checkbox
         def set_song_title_controls_enabled(state):
             enabled = state == Qt.CheckState.Checked
+            # Check if overlay3_checkbox exists before accessing it
+            overlay3_enabled = self.overlay3_checkbox.isChecked() if hasattr(self, 'overlay3_checkbox') else False
+            
+            # Song title start at field should be enabled if either song title checkbox OR overlay 3 is checked
+            song_title_start_enabled = enabled or overlay3_enabled
+            
             self.song_title_effect_combo.setEnabled(enabled)
             self.song_title_font_combo.setEnabled(enabled)
             self.song_title_color_btn.setEnabled(enabled)
@@ -2663,11 +2682,11 @@ class SuperCutUI(QWidget):
             self.song_title_opacity_combo.setEnabled(enabled)
             self.song_title_x_combo.setEnabled(enabled)
             self.song_title_y_combo.setEnabled(enabled)
-            self.song_title_start_edit.setEnabled(enabled)
+            self.song_title_start_edit.setEnabled(song_title_start_enabled)
             song_title_effect_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_x_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_y_label.setStyleSheet("" if enabled else "color: grey;")
-            song_title_start_label.setStyleSheet("" if enabled else "color: grey;")
+            song_title_start_label.setStyleSheet("" if song_title_start_enabled else "color: grey;")
             song_title_font_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_color_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_bg_label.setStyleSheet("" if enabled else "color: grey;")
@@ -2678,11 +2697,15 @@ class SuperCutUI(QWidget):
                 self.song_title_font_combo.setStyleSheet(grey_btn_style)
                 self.song_title_x_combo.setStyleSheet(grey_btn_style)
                 self.song_title_y_combo.setStyleSheet(grey_btn_style)
-                self.song_title_start_edit.setStyleSheet(grey_btn_style)
                 self.song_title_scale_combo.setStyleSheet(grey_btn_style)
                 self.song_title_bg_combo.setStyleSheet(grey_btn_style)
                 self.song_title_opacity_combo.setStyleSheet(grey_btn_style)
                 self.song_title_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+                # Only grey out song title start edit if both song title and overlay 3 are disabled
+                if not song_title_start_enabled:
+                    self.song_title_start_edit.setStyleSheet(grey_btn_style)
+                else:
+                    self.song_title_start_edit.setStyleSheet("")
             else:
                 self.song_title_effect_combo.setStyleSheet("")
                 self.song_title_font_combo.setStyleSheet("")
@@ -4226,6 +4249,58 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
             # Close the preview dialog first
             dlg.close()
             dlg.accept()
+            
+            import os
+            
+            # Validate overlay and intro paths before proceeding
+            # Intro validation
+            if self.intro_checkbox.isChecked():
+                intro_path = self.intro_edit.text().strip()
+                if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png']:
+                    QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Intro.", QMessageBox.StandardButton.Ok)
+                    return
+            # Overlay 1 validation
+            if self.overlay_checkbox.isChecked():
+                overlay_path = self.overlay1_edit.text().strip()
+                if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png']:
+                    QMessageBox.warning(self, "⚠️ Overlay Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 1.", QMessageBox.StandardButton.Ok)
+                    return
+            # Overlay 2 validation
+            if self.overlay2_checkbox.isChecked():
+                overlay2_path = self.overlay2_edit.text().strip()
+                if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png']:
+                    QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 2.", QMessageBox.StandardButton.Ok)
+                    return
+            # Overlay 3 validation
+            if self.overlay3_checkbox.isChecked():
+                overlay3_path = self.overlay3_edit.text().strip()
+                if not overlay3_path or not os.path.isfile(overlay3_path) or os.path.splitext(overlay3_path)[1].lower() not in ['.gif', '.png']:
+                    QMessageBox.warning(self, "⚠️ Overlay 3 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 3.", QMessageBox.StandardButton.Ok)
+                    return
+            # Overlay 4 validation
+            if self.overlay4_checkbox.isChecked():
+                overlay4_path = self.overlay4_edit.text().strip()
+                if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png']:
+                    QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 4.", QMessageBox.StandardButton.Ok)
+                    return
+            # Overlay 5 validation
+            if self.overlay5_checkbox.isChecked():
+                overlay5_path = self.overlay5_edit.text().strip()
+                if not overlay5_path or not os.path.isfile(overlay5_path) or os.path.splitext(overlay5_path)[1].lower() not in ['.gif', '.png']:
+                    QMessageBox.warning(self, "⚠️ Overlay 5 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 5.", QMessageBox.StandardButton.Ok)
+                    return
+            # Overlay 6 validation
+            if hasattr(self, 'overlay6_checkbox') and self.overlay6_checkbox.isChecked():
+                overlay6_path = self.overlay6_edit.text().strip()
+                if not overlay6_path or not os.path.isfile(overlay6_path) or os.path.splitext(overlay6_path)[1].lower() not in ['.gif', '.png']:
+                    QMessageBox.warning(self, "⚠️ Overlay 6 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 6.", QMessageBox.StandardButton.Ok)
+                    return
+            # Overlay 7 validation
+            if hasattr(self, 'overlay7_checkbox') and self.overlay7_checkbox.isChecked():
+                overlay7_path = self.overlay7_edit.text().strip()
+                if not overlay7_path or not os.path.isfile(overlay7_path) or os.path.splitext(overlay7_path)[1].lower() not in ['.gif', '.png']:
+                    QMessageBox.warning(self, "⚠️ Overlay 7 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 7.", QMessageBox.StandardButton.Ok)
+                    return
             
             # Disable preview button during dry run
             self.preview_btn.setEnabled(False)
