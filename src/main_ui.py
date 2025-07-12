@@ -1813,10 +1813,17 @@ class SuperCutUI(QWidget):
         self.effect_combo.currentIndexChanged.connect(on_effect_changed)
         on_effect_changed(self.effect_combo.currentIndex())
 
-        overlay_start_at_label = QLabel("Start at:")
-        overlay_start_at_label.setFixedWidth(80)
+        # Overlay 1_2 start at controls
+        self.overlay1_2_start_at_checkbox = QtWidgets.QCheckBox("")
+        self.overlay1_2_start_at_checkbox.setFixedWidth(80)
+        self.overlay1_2_start_at_checkbox.setChecked(True)
+        def update_overlay1_2_start_at_checkbox_style(state):
+            self.overlay1_2_start_at_checkbox.setStyleSheet("")  # Always default color
+        self.overlay1_2_start_at_checkbox.stateChanged.connect(update_overlay1_2_start_at_checkbox_style)
+        update_overlay1_2_start_at_checkbox_style(self.overlay1_2_start_at_checkbox.checkState())
+        
         self.overlay_start_at_edit = QLineEdit("5")
-        self.overlay_start_at_edit.setFixedWidth(80)
+        self.overlay_start_at_edit.setFixedWidth(40)
         self.overlay_start_at_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay_start_at_edit.setPlaceholderText("5")
         self.overlay_start_at = 5
@@ -1827,6 +1834,43 @@ class SuperCutUI(QWidget):
                 self.overlay_start_at = 5
         self.overlay_start_at_edit.textChanged.connect(on_overlay_start_at_changed)
         on_overlay_start_at_changed()
+
+        # Overlay 1_2 start from input
+        overlay1_2_start_from_label = QLabel("Start from:")
+        overlay1_2_start_from_label.setFixedWidth(80)
+        self.overlay1_2_start_from_edit = QLineEdit("0")
+        self.overlay1_2_start_from_edit.setFixedWidth(40)
+        self.overlay1_2_start_from_edit.setValidator(QIntValidator(0, 999, self))
+        self.overlay1_2_start_from_edit.setPlaceholderText("0")
+        self.overlay1_2_start_from = 0
+        def on_overlay1_2_start_from_changed():
+            try:
+                self.overlay1_2_start_from = int(self.overlay1_2_start_from_edit.text())
+            except Exception:
+                self.overlay1_2_start_from = 0
+        self.overlay1_2_start_from_edit.textChanged.connect(on_overlay1_2_start_from_changed)
+        on_overlay1_2_start_from_changed()
+
+        # Function to control overlay1_2 start at/from fields based on start at checkbox
+        def set_overlay1_2_start_at_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When start at checkbox is checked, enable start at field and disable start from field
+            # When start at checkbox is unchecked, enable start from field and disable start at field
+            self.overlay_start_at_edit.setEnabled(enabled)
+            self.overlay1_2_start_from_edit.setEnabled(not enabled)
+            
+            if enabled:
+                # Start at checkbox is checked - use start at logic
+                self.overlay_start_at_edit.setStyleSheet("")
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay1_2_start_from_edit.setStyleSheet(grey_btn_style)
+                overlay1_2_start_from_label.setStyleSheet("color: grey;")
+            else:
+                # Start at checkbox is unchecked - use start from logic
+                self.overlay1_2_start_from_edit.setStyleSheet("")
+                overlay1_2_start_from_label.setStyleSheet("")  # Start from label is active
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay_start_at_edit.setStyleSheet(grey_btn_style)
 
         # Overlay 1_2 duration controls (similar to overlay8 duration)
         self.overlay1_2_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
@@ -1869,14 +1913,22 @@ class SuperCutUI(QWidget):
 
         effect_layout = QHBoxLayout()
         effect_layout.setContentsMargins(0, 0, 0, 0)
-        effect_layout.addSpacing(20)
+        effect_layout.addSpacing(-40)
         effect_layout.addWidget(effect_label)
         effect_layout.addSpacing(-3)
         effect_layout.addWidget(self.effect_combo)
         effect_layout.addSpacing(-1)
-        effect_layout.addWidget(overlay_start_at_label)
-        effect_layout.addSpacing(-32)
+        effect_layout.addWidget(self.overlay1_2_start_at_checkbox)
+        effect_layout.addSpacing(0)
+        overlay1_2_start_at_label = QLabel("at:")
+        overlay1_2_start_at_label.setFixedWidth(25)
+        effect_layout.addWidget(overlay1_2_start_at_label)
+        effect_layout.addSpacing(-5)
         effect_layout.addWidget(self.overlay_start_at_edit)
+        effect_layout.addSpacing(-6)
+        effect_layout.addWidget(overlay1_2_start_from_label)
+        effect_layout.addSpacing(-10)
+        effect_layout.addWidget(self.overlay1_2_start_from_edit)
         effect_layout.addSpacing(-6)
         effect_layout.addWidget(overlay1_2_duration_label)
         effect_layout.addSpacing(-27)
@@ -1892,9 +1944,14 @@ class SuperCutUI(QWidget):
                 effect_label.setStyleSheet("color: grey;")
                 self.effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.effect_combo.setEnabled(False)
-                overlay_start_at_label.setStyleSheet("color: grey;")
+                self.overlay1_2_start_at_checkbox.setStyleSheet("color: grey;")
+                overlay1_2_start_at_label.setStyleSheet("color: grey;")
                 self.overlay_start_at_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay_start_at_edit.setEnabled(False)
+                self.overlay1_2_start_at_checkbox.setEnabled(False)
+                overlay1_2_start_from_label.setStyleSheet("color: grey;")
+                self.overlay1_2_start_from_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay1_2_start_from_edit.setEnabled(False)
                 # Also grey out duration controls when overlay1_2 is disabled
                 overlay1_2_duration_label.setStyleSheet("color: grey;")
                 self.overlay1_2_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
@@ -1905,19 +1962,29 @@ class SuperCutUI(QWidget):
                 effect_label.setStyleSheet("")
                 self.effect_combo.setStyleSheet("")
                 self.effect_combo.setEnabled(True)
-                overlay_start_at_label.setStyleSheet("")
+                self.overlay1_2_start_at_checkbox.setStyleSheet("")
+                overlay1_2_start_at_label.setStyleSheet("")
                 self.overlay_start_at_edit.setStyleSheet("")
                 self.overlay_start_at_edit.setEnabled(True)
+                self.overlay1_2_start_at_checkbox.setEnabled(True)
+                overlay1_2_start_from_label.setStyleSheet("")
+                self.overlay1_2_start_from_edit.setStyleSheet("")
+                self.overlay1_2_start_from_edit.setEnabled(True)
+                # Let the checkbox control the field states
+                set_overlay1_2_start_at_enabled(self.overlay1_2_start_at_checkbox.checkState())
                 # Re-enable duration controls when overlay1_2 is enabled
                 self.overlay1_2_duration_full_checkbox.setEnabled(True)
                 self.overlay1_2_duration_full_checkbox.setStyleSheet("")
                 # Let the duration full checkbox control the duration field styling
                 set_overlay1_2_duration_enabled(self.overlay1_2_duration_full_checkbox.checkState())
         self.overlay1_2_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay1_2_duration_enabled(self.overlay1_2_duration_full_checkbox.checkState()))
+        self.overlay1_2_start_at_checkbox.stateChanged.connect(lambda _: set_overlay1_2_start_at_enabled(self.overlay1_2_start_at_checkbox.checkState()))
         self.overlay_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         self.overlay2_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         update_overlay_effect_label_style()
         set_overlay1_2_duration_enabled(self.overlay1_2_duration_full_checkbox.checkState())
+        # Initialize start at/from fields based on checkbox state
+        set_overlay1_2_start_at_enabled(self.overlay1_2_start_at_checkbox.checkState())
 
         # Overlay 4 controls (similar to Overlay 3)
         def update_overlay4_checkbox_style(state):
@@ -2152,8 +2219,15 @@ class SuperCutUI(QWidget):
             self.selected_overlay4_5_effect = self.overlay4_5_effect_combo.itemData(idx)
         self.overlay4_5_effect_combo.currentIndexChanged.connect(on_overlay4_5_effect_changed)
         on_overlay4_5_effect_changed(self.overlay4_5_effect_combo.currentIndex())
-        overlay4_5_start_label = QLabel("Start at:")
-        overlay4_5_start_label.setFixedWidth(80)
+        # Overlay 4_5 start at controls
+        self.overlay4_5_start_at_checkbox = QtWidgets.QCheckBox("")
+        self.overlay4_5_start_at_checkbox.setFixedWidth(80)
+        self.overlay4_5_start_at_checkbox.setChecked(True)
+        def update_overlay4_5_start_at_checkbox_style(state):
+            self.overlay4_5_start_at_checkbox.setStyleSheet("")  # Always default color
+        self.overlay4_5_start_at_checkbox.stateChanged.connect(update_overlay4_5_start_at_checkbox_style)
+        update_overlay4_5_start_at_checkbox_style(self.overlay4_5_start_at_checkbox.checkState())
+        
         self.overlay4_5_start_edit = QLineEdit("5")
         self.overlay4_5_start_edit.setFixedWidth(80)
         self.overlay4_5_start_edit.setValidator(QIntValidator(0, 999, self))
@@ -2166,6 +2240,46 @@ class SuperCutUI(QWidget):
                 self.overlay4_5_start_at = 5
         self.overlay4_5_start_edit.textChanged.connect(on_overlay4_5_start_changed)
         on_overlay4_5_start_changed()
+
+        # Overlay 4_5 start from input
+        overlay4_5_start_from_label = QLabel("Start from:")
+        overlay4_5_start_from_label.setFixedWidth(80)
+        self.overlay4_5_start_from_edit = QLineEdit("0")
+        self.overlay4_5_start_from_edit.setFixedWidth(40)
+        self.overlay4_5_start_from_edit.setValidator(QIntValidator(0, 999, self))
+        self.overlay4_5_start_from_edit.setPlaceholderText("0")
+        self.overlay4_5_start_from = 0
+        def on_overlay4_5_start_from_changed():
+            try:
+                self.overlay4_5_start_from = int(self.overlay4_5_start_from_edit.text())
+            except Exception:
+                self.overlay4_5_start_from = 0
+        self.overlay4_5_start_from_edit.textChanged.connect(on_overlay4_5_start_from_changed)
+        on_overlay4_5_start_from_changed()
+
+        # Function to control overlay4_5 start at/from fields based on start at checkbox
+        def set_overlay4_5_start_at_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # Only control the toggle behavior if overlay4_5 controls are already enabled
+            # (i.e., if either overlay4 or overlay5 is checked)
+            if self.overlay4_checkbox.isChecked() or self.overlay5_checkbox.isChecked():
+                # When start at checkbox is checked, enable start at field and disable start from field
+                # When start at checkbox is unchecked, enable start from field and disable start at field
+                self.overlay4_5_start_edit.setEnabled(enabled)
+                self.overlay4_5_start_from_edit.setEnabled(not enabled)
+                
+                if enabled:
+                    # Start at checkbox is checked - use start at logic
+                    self.overlay4_5_start_edit.setStyleSheet("")
+                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                    self.overlay4_5_start_from_edit.setStyleSheet(grey_btn_style)
+                    overlay4_5_start_from_label.setStyleSheet("color: grey;")
+                else:
+                    # Start at checkbox is unchecked - use start from logic
+                    self.overlay4_5_start_from_edit.setStyleSheet("")
+                    overlay4_5_start_from_label.setStyleSheet("")  # Start from label is active
+                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                    self.overlay4_5_start_edit.setStyleSheet(grey_btn_style)
 
         # Overlay 4_5 duration controls (similar to overlay8 duration)
         self.overlay4_5_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
@@ -2213,9 +2327,17 @@ class SuperCutUI(QWidget):
         overlay4_5_layout.addSpacing(-3)
         overlay4_5_layout.addWidget(self.overlay4_5_effect_combo)
         overlay4_5_layout.addSpacing(-1)
-        overlay4_5_layout.addWidget(overlay4_5_start_label)
-        overlay4_5_layout.addSpacing(-32)
+        overlay4_5_layout.addWidget(self.overlay4_5_start_at_checkbox)
+        overlay4_5_layout.addSpacing(0)
+        overlay4_5_start_at_label = QLabel("at:")
+        overlay4_5_start_at_label.setFixedWidth(25)
+        overlay4_5_layout.addWidget(overlay4_5_start_at_label)
+        overlay4_5_layout.addSpacing(-5)
         overlay4_5_layout.addWidget(self.overlay4_5_start_edit)
+        overlay4_5_layout.addSpacing(-6)
+        overlay4_5_layout.addWidget(overlay4_5_start_from_label)
+        overlay4_5_layout.addSpacing(-10)
+        overlay4_5_layout.addWidget(self.overlay4_5_start_from_edit)
         overlay4_5_layout.addSpacing(-6)
         overlay4_5_layout.addWidget(overlay4_5_duration_label)
         overlay4_5_layout.addSpacing(-27)
@@ -2229,9 +2351,14 @@ class SuperCutUI(QWidget):
                 overlay4_5_label.setStyleSheet("color: grey;")
                 self.overlay4_5_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay4_5_effect_combo.setEnabled(False)
-                overlay4_5_start_label.setStyleSheet("color: grey;")
+                self.overlay4_5_start_at_checkbox.setStyleSheet("color: grey;")
+                overlay4_5_start_at_label.setStyleSheet("color: grey;")
+                self.overlay4_5_start_at_checkbox.setEnabled(False)
                 self.overlay4_5_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay4_5_start_edit.setEnabled(False)
+                overlay4_5_start_from_label.setStyleSheet("color: grey;")
+                self.overlay4_5_start_from_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay4_5_start_from_edit.setEnabled(False)
                 # Also grey out duration controls when overlay4_5 is disabled
                 overlay4_5_duration_label.setStyleSheet("color: grey;")
                 self.overlay4_5_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
@@ -2242,19 +2369,24 @@ class SuperCutUI(QWidget):
                 overlay4_5_label.setStyleSheet("")
                 self.overlay4_5_effect_combo.setStyleSheet("")
                 self.overlay4_5_effect_combo.setEnabled(True)
-                overlay4_5_start_label.setStyleSheet("")
-                self.overlay4_5_start_edit.setStyleSheet("")
-                self.overlay4_5_start_edit.setEnabled(True)
+                self.overlay4_5_start_at_checkbox.setStyleSheet("")
+                overlay4_5_start_at_label.setStyleSheet("")
+                self.overlay4_5_start_at_checkbox.setEnabled(True)
+                # Let the start at checkbox control the start at/from field styling
+                set_overlay4_5_start_at_enabled(self.overlay4_5_start_at_checkbox.checkState())
                 # Re-enable duration controls when overlay4_5 is enabled
                 self.overlay4_5_duration_full_checkbox.setEnabled(True)
                 self.overlay4_5_duration_full_checkbox.setStyleSheet("")
                 # Let the duration full checkbox control the duration field styling
                 set_overlay4_5_duration_enabled(self.overlay4_5_duration_full_checkbox.checkState())
         self.overlay4_5_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay4_5_duration_enabled(self.overlay4_5_duration_full_checkbox.checkState()))
+        self.overlay4_5_start_at_checkbox.stateChanged.connect(lambda _: set_overlay4_5_start_at_enabled(self.overlay4_5_start_at_checkbox.checkState()))
         self.overlay4_checkbox.stateChanged.connect(lambda _: update_overlay4_5_effect_label_style())
         self.overlay5_checkbox.stateChanged.connect(lambda _: update_overlay4_5_effect_label_style())
         update_overlay4_5_effect_label_style()
         set_overlay4_5_duration_enabled(self.overlay4_5_duration_full_checkbox.checkState())
+        # Initialize start at/from fields based on checkbox state
+        set_overlay4_5_start_at_enabled(self.overlay4_5_start_at_checkbox.checkState())
 
          # Overlay 6 controls (similar to Overlay 4)
         self.overlay6_checkbox = QtWidgets.QCheckBox("Overlay 6:")
@@ -2502,8 +2634,15 @@ class SuperCutUI(QWidget):
         self.overlay6_7_effect_combo.currentIndexChanged.connect(on_overlay6_7_effect_changed)
         on_overlay6_7_effect_changed(self.overlay6_7_effect_combo.currentIndex())
 
-        overlay6_7_start_label = QLabel("Start at:")
-        overlay6_7_start_label.setFixedWidth(80)
+        # Overlay 6_7 start at controls
+        self.overlay6_7_start_at_checkbox = QtWidgets.QCheckBox("")
+        self.overlay6_7_start_at_checkbox.setFixedWidth(80)
+        self.overlay6_7_start_at_checkbox.setChecked(True)
+        def update_overlay6_7_start_at_checkbox_style(state):
+            self.overlay6_7_start_at_checkbox.setStyleSheet("")  # Always default color
+        self.overlay6_7_start_at_checkbox.stateChanged.connect(update_overlay6_7_start_at_checkbox_style)
+        update_overlay6_7_start_at_checkbox_style(self.overlay6_7_start_at_checkbox.checkState())
+        
         self.overlay6_7_start_edit = QLineEdit("5")
         self.overlay6_7_start_edit.setFixedWidth(80)
         self.overlay6_7_start_edit.setValidator(QIntValidator(0, 999, self))
@@ -2516,6 +2655,46 @@ class SuperCutUI(QWidget):
                 self.overlay6_7_start_at = 5
         self.overlay6_7_start_edit.textChanged.connect(on_overlay6_7_start_changed)
         on_overlay6_7_start_changed()
+
+        # Overlay 6_7 start from input
+        overlay6_7_start_from_label = QLabel("Start from:")
+        overlay6_7_start_from_label.setFixedWidth(80)
+        self.overlay6_7_start_from_edit = QLineEdit("0")
+        self.overlay6_7_start_from_edit.setFixedWidth(40)
+        self.overlay6_7_start_from_edit.setValidator(QIntValidator(0, 999, self))
+        self.overlay6_7_start_from_edit.setPlaceholderText("0")
+        self.overlay6_7_start_from = 0
+        def on_overlay6_7_start_from_changed():
+            try:
+                self.overlay6_7_start_from = int(self.overlay6_7_start_from_edit.text())
+            except Exception:
+                self.overlay6_7_start_from = 0
+        self.overlay6_7_start_from_edit.textChanged.connect(on_overlay6_7_start_from_changed)
+        on_overlay6_7_start_from_changed()
+
+        # Function to control overlay6_7 start at/from fields based on start at checkbox
+        def set_overlay6_7_start_at_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # Only control the toggle behavior if overlay6_7 controls are already enabled
+            # (i.e., if either overlay6 or overlay7 is checked)
+            if self.overlay6_checkbox.isChecked() or self.overlay7_checkbox.isChecked():
+                # When start at checkbox is checked, enable start at field and disable start from field
+                # When start at checkbox is unchecked, enable start from field and disable start at field
+                self.overlay6_7_start_edit.setEnabled(enabled)
+                self.overlay6_7_start_from_edit.setEnabled(not enabled)
+                
+                if enabled:
+                    # Start at checkbox is checked - use start at logic
+                    self.overlay6_7_start_edit.setStyleSheet("")
+                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                    self.overlay6_7_start_from_edit.setStyleSheet(grey_btn_style)
+                    overlay6_7_start_from_label.setStyleSheet("color: grey;")
+                else:
+                    # Start at checkbox is unchecked - use start from logic
+                    self.overlay6_7_start_from_edit.setStyleSheet("")
+                    overlay6_7_start_from_label.setStyleSheet("")  # Start from label is active
+                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                    self.overlay6_7_start_edit.setStyleSheet(grey_btn_style)
 
         # Overlay 6_7 duration controls (similar to overlay8 duration)
         self.overlay6_7_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
@@ -2563,9 +2742,17 @@ class SuperCutUI(QWidget):
         overlay6_7_layout.addSpacing(-3)
         overlay6_7_layout.addWidget(self.overlay6_7_effect_combo)
         overlay6_7_layout.addSpacing(-1)
-        overlay6_7_layout.addWidget(overlay6_7_start_label)
-        overlay6_7_layout.addSpacing(-32)
+        overlay6_7_layout.addWidget(self.overlay6_7_start_at_checkbox)
+        overlay6_7_layout.addSpacing(0)
+        overlay6_7_start_at_label = QLabel("at:")
+        overlay6_7_start_at_label.setFixedWidth(25)
+        overlay6_7_layout.addWidget(overlay6_7_start_at_label)
+        overlay6_7_layout.addSpacing(-5)
         overlay6_7_layout.addWidget(self.overlay6_7_start_edit)
+        overlay6_7_layout.addSpacing(-6)
+        overlay6_7_layout.addWidget(overlay6_7_start_from_label)
+        overlay6_7_layout.addSpacing(-10)
+        overlay6_7_layout.addWidget(self.overlay6_7_start_from_edit)
         overlay6_7_layout.addSpacing(-6)
         overlay6_7_layout.addWidget(overlay6_7_duration_label)
         overlay6_7_layout.addSpacing(-27)
@@ -2581,9 +2768,13 @@ class SuperCutUI(QWidget):
                 overlay6_7_label.setStyleSheet("color: grey;")
                 self.overlay6_7_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay6_7_effect_combo.setEnabled(False)
-                overlay6_7_start_label.setStyleSheet("color: grey;")
+                self.overlay6_7_start_at_checkbox.setStyleSheet("color: grey;")
+                overlay6_7_start_at_label.setStyleSheet("color: grey;")
                 self.overlay6_7_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay6_7_start_edit.setEnabled(False)
+                overlay6_7_start_from_label.setStyleSheet("color: grey;")
+                self.overlay6_7_start_from_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay6_7_start_from_edit.setEnabled(False)
                 # Also grey out duration controls when overlay6_7 is disabled
                 overlay6_7_duration_label.setStyleSheet("color: grey;")
                 self.overlay6_7_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
@@ -2594,19 +2785,23 @@ class SuperCutUI(QWidget):
                 overlay6_7_label.setStyleSheet("")
                 self.overlay6_7_effect_combo.setStyleSheet("")
                 self.overlay6_7_effect_combo.setEnabled(True)
-                overlay6_7_start_label.setStyleSheet("")
-                self.overlay6_7_start_edit.setStyleSheet("")
-                self.overlay6_7_start_edit.setEnabled(True)
+                self.overlay6_7_start_at_checkbox.setStyleSheet("")
+                overlay6_7_start_at_label.setStyleSheet("")
+                # Let the start at checkbox control the start at/from field styling
+                set_overlay6_7_start_at_enabled(self.overlay6_7_start_at_checkbox.checkState())
                 # Re-enable duration controls when overlay6_7 is enabled
                 self.overlay6_7_duration_full_checkbox.setEnabled(True)
                 self.overlay6_7_duration_full_checkbox.setStyleSheet("")
                 # Let the duration full checkbox control the duration field styling
                 set_overlay6_7_duration_enabled(self.overlay6_7_duration_full_checkbox.checkState())
         self.overlay6_7_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay6_7_duration_enabled(self.overlay6_7_duration_full_checkbox.checkState()))
+        self.overlay6_7_start_at_checkbox.stateChanged.connect(lambda _: set_overlay6_7_start_at_enabled(self.overlay6_7_start_at_checkbox.checkState()))
         self.overlay6_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
         self.overlay7_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
         update_overlay6_7_effect_label_style()
         set_overlay6_7_duration_enabled(self.overlay6_7_duration_full_checkbox.checkState())
+        # Initialize start at/from fields based on checkbox state
+        set_overlay6_7_start_at_enabled(self.overlay6_7_start_at_checkbox.checkState())
 
         # Overlay 8 controls (similar to Overlay 7)
         self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
@@ -3808,6 +4003,7 @@ class SuperCutUI(QWidget):
         # Get ffmpeg bufsize from settings
         bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
         # Use overlay_start_at as the start time for both overlay 1 and overlay 2
+        # The actual start time calculation will be done in the video worker based on checkbox state
         overlay1_start_at = self.overlay_start_at
         overlay2_start_at = self.overlay_start_at
         self._worker = VideoWorker(
@@ -3820,7 +4016,7 @@ class SuperCutUI(QWidget):
             self.overlay5_checkbox.isChecked(), self.overlay5_path, self.overlay5_size_percent, self.overlay5_x_percent, self.overlay5_y_percent,
             
                         self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_x_percent, self.intro_y_percent,
-            self.selected_effect, self.overlay_start_at, self.overlay1_2_duration, self.overlay1_2_duration_full_checkbox.checkState() == Qt.CheckState.Checked,
+            self.selected_effect, self.overlay_start_at, self.overlay1_2_duration, self.overlay1_2_duration_full_checkbox.checkState() == Qt.CheckState.Checked, self.overlay1_2_start_from, self.overlay1_2_start_at_checkbox.isChecked(),
             self.intro_effect, self.intro_duration, self.intro_start_at, self.intro_start_from, self.intro_start_checkbox.isChecked(), self.intro_duration_full_checkbox.isChecked(),
             
             name_list=name_list,
@@ -3848,7 +4044,7 @@ class SuperCutUI(QWidget):
             overlay5_effect=self.selected_overlay4_5_effect,
             overlay5_effect_time=self.overlay4_5_start_at,
             overlay5_duration=self.overlay4_5_duration,
-            overlay5_duration_full_checkbox_checked=self.overlay4_5_duration_full_checkbox.checkState() == Qt.CheckState.Checked,
+            overlay5_duration_full_checkbox_checked=self.overlay4_5_duration_full_checkbox.checkState() == Qt.CheckState.Checked, overlay4_5_start_from=self.overlay4_5_start_from, overlay4_5_start_at_checkbox_checked=self.overlay4_5_start_at_checkbox.isChecked(),
             # --- Add overlay6, overlay7, overlay6_7 effect ---
             use_overlay6=self.overlay6_checkbox.isChecked(),
             overlay6_path=self.overlay6_path,
@@ -3861,7 +4057,7 @@ class SuperCutUI(QWidget):
             overlay6_effect=self.selected_overlay6_7_effect,
             overlay6_effect_time=self.overlay6_7_start_at,
             overlay6_duration=self.overlay6_7_duration,
-            overlay6_duration_full_checkbox_checked=self.overlay6_7_duration_full_checkbox.checkState() == Qt.CheckState.Checked,
+            overlay6_duration_full_checkbox_checked=self.overlay6_7_duration_full_checkbox.checkState() == Qt.CheckState.Checked, overlay6_7_start_from=self.overlay6_7_start_from, overlay6_7_start_at_checkbox_checked=self.overlay6_7_start_at_checkbox.isChecked(),
             overlay7_effect=self.selected_overlay6_7_effect,
             overlay7_effect_time=self.overlay6_7_start_at,
             overlay7_duration=self.overlay6_7_duration,
@@ -4441,8 +4637,13 @@ class SuperCutUI(QWidget):
         video_bitrate = self.settings.value('default_ffmpeg_video_bitrate', DEFAULT_VIDEO_BITRATE, type=str)
         maxrate = self.settings.value('default_ffmpeg_maxrate', DEFAULT_MAXRATE, type=str)
         bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
-        overlay1_start_at = self.overlay_start_at
-        overlay2_start_at = self.overlay_start_at
+        # Show overlay1_2 start time information for preview
+        if self.overlay1_2_start_at_checkbox.isChecked():
+            overlay1_start_at = f"{self.overlay_start_at}s from start"
+            overlay2_start_at = f"{self.overlay_start_at}s from start"
+        else:
+            overlay1_start_at = f"{self.overlay1_2_start_from}s from end"
+            overlay2_start_at = f"{self.overlay1_2_start_from}s from end"
         # Compose a string with all settings
         settings_str = f"""
 📄 FFmpeg Settings Preview:
@@ -4478,19 +4679,19 @@ Effect: {self.selected_effect} | Overlay2 Start at: {overlay2_start_at}
 
 Overlay 4: {self.overlay4_checkbox.isChecked()} | Path: {self.overlay4_path}
 Size: {self.overlay4_size_percent}% | X: {self.overlay4_x_percent}% | Y: {self.overlay4_y_percent}%
-Overlay4 Effect: {self.selected_overlay4_5_effect} | Start at: {self.overlay4_5_start_at}
+Overlay4 Effect: {self.selected_overlay4_5_effect} | Start at: {f"{self.overlay4_5_start_at}s from start" if self.overlay4_5_start_at_checkbox.isChecked() else f"{self.overlay4_5_start_from}s from end"}
 
 Overlay 5: {self.overlay5_checkbox.isChecked()} | Path: {self.overlay5_path}
 Size: {self.overlay5_size_percent}% | X: {self.overlay5_x_percent}% | Y: {self.overlay5_y_percent}%
-Overlay5 Effect: {self.selected_overlay4_5_effect} | Start at: {self.overlay4_5_start_at}
+Overlay5 Effect: {self.selected_overlay4_5_effect} | Start at: {f"{self.overlay4_5_start_at}s from start" if self.overlay4_5_start_at_checkbox.isChecked() else f"{self.overlay4_5_start_from}s from end"}
 
 Overlay 6: {self.overlay6_checkbox.isChecked()} | Path: {self.overlay6_path}
 Size: {self.overlay6_size_percent}% | X: {self.overlay6_x_percent}% | Y: {self.overlay6_y_percent}%
-Overlay6 Effect: {self.selected_overlay6_7_effect} | Start at: {self.overlay6_7_start_at}
+                Overlay6 Effect: {self.selected_overlay6_7_effect} | Start at: {self.overlay6_7_start_at if self.overlay6_7_start_at_checkbox.isChecked() else f"from {self.overlay6_7_start_from}"}
 
 Overlay 7: {self.overlay7_checkbox.isChecked()} | Path: {self.overlay7_path}
 Size: {self.overlay7_size_percent}% | X: {self.overlay7_x_percent}% | Y: {self.overlay7_y_percent}%
-Overlay7 Effect: {self.selected_overlay6_7_effect} | Start at: {self.overlay6_7_start_at}
+                Overlay7 Effect: {self.selected_overlay6_7_effect} | Start at: {self.overlay6_7_start_at if self.overlay6_7_start_at_checkbox.isChecked() else f"from {self.overlay6_7_start_from}"}
 
 Overlay 8: {self.overlay8_checkbox.isChecked()} | Path: {self.overlay8_path}
 Size: {self.overlay8_size_percent}% | X: {self.overlay8_x_percent}% | Y: {self.overlay8_y_percent}%
@@ -5115,7 +5316,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay5_effect=self.selected_overlay4_5_effect if hasattr(self, 'selected_overlay4_5_effect') else "fadein",
                 overlay5_effect_time=self.overlay4_5_start_at if hasattr(self, 'overlay4_5_start_at') else 5,
                 overlay6_effect=self.selected_overlay6_7_effect if hasattr(self, 'selected_overlay6_7_effect') else "fadein",
-                overlay6_effect_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5,
+                overlay6_effect_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5, overlay6_7_start_from=self.overlay6_7_start_from if hasattr(self, 'overlay6_7_start_from') else 0, overlay6_7_start_at_checkbox_checked=self.overlay6_7_start_at_checkbox.isChecked() if hasattr(self, 'overlay6_7_start_at_checkbox') else True,
                 overlay7_effect=self.selected_overlay6_7_effect if hasattr(self, 'selected_overlay6_7_effect') else "fadein",
                 overlay7_effect_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5,
                 use_overlay8=self.overlay8_checkbox.isChecked() if hasattr(self, 'overlay8_checkbox') else False,
@@ -5136,6 +5337,10 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 intro_start_from=self.intro_start_from,
                 intro_start_checkbox_checked=self.intro_start_checkbox.isChecked(),
                 intro_duration_full_checkbox_checked=self.intro_duration_full_checkbox.isChecked(),
+                overlay1_2_start_from=self.overlay1_2_start_from,
+                overlay1_2_start_at_checkbox_checked=self.overlay1_2_start_at_checkbox.isChecked(),
+                overlay4_5_start_from=self.overlay4_5_start_from,
+                overlay4_5_start_at_checkbox_checked=self.overlay4_5_start_at_checkbox.isChecked(),
                             effect=self.selected_effect,
             effect_time=self.overlay_start_at,
                 use_song_title_overlay=self.song_title_checkbox.isChecked(),
