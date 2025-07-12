@@ -3053,6 +3053,11 @@ class SuperCutUI(QWidget):
             self.overlay8_start_combo.setEnabled(enabled)
             self.overlay8_start_from_combo.setEnabled(enabled)
             
+            # Popup start at dropdown - enabled when popup is checked
+            self.overlay8_popup_start_at_combo.setEnabled(popup_checked)
+            # Popup interval dropdown - enabled when popup is checked
+            self.overlay8_popup_interval_combo.setEnabled(popup_checked)
+            
             # Update styling for start controls
             if enabled:
                 self.overlay8_start_at_checkbox.setStyleSheet("")
@@ -3066,6 +3071,22 @@ class SuperCutUI(QWidget):
                 overlay8_start_from_label.setStyleSheet("color: grey;")
                 self.overlay8_start_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay8_start_from_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            
+            # Update styling for popup start at
+            if popup_checked:
+                overlay8_popup_start_at_label.setStyleSheet("")
+                self.overlay8_popup_start_at_combo.setStyleSheet("")
+            else:
+                overlay8_popup_start_at_label.setStyleSheet("color: grey;")
+                self.overlay8_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            
+            # Update styling for popup interval
+            if popup_checked:
+                overlay8_popup_interval_label.setStyleSheet("")
+                self.overlay8_popup_interval_combo.setStyleSheet("")
+            else:
+                overlay8_popup_interval_label.setStyleSheet("color: grey;")
+                self.overlay8_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
         
         def update_overlay8_popup_checkbox_style(state):
             self.overlay8_popup_checkbox.setStyleSheet("")
@@ -3108,6 +3129,34 @@ class SuperCutUI(QWidget):
         self.overlay8_start_from_combo.currentIndexChanged.connect(on_overlay8_start_from_changed)
         on_overlay8_start_from_changed(self.overlay8_start_from_combo.currentIndex())
 
+        # Overlay8 Pop up Start at field
+        overlay8_popup_start_at_label = QLabel("Pop up Start at:")
+        overlay8_popup_start_at_label.setFixedWidth(100)
+        self.overlay8_popup_start_at_combo = QtWidgets.QComboBox()
+        self.overlay8_popup_start_at_combo.setFixedWidth(60)
+        for percent in range(1, 101, 1):
+            self.overlay8_popup_start_at_combo.addItem(f"{percent}%", percent)
+        self.overlay8_popup_start_at_combo.setCurrentIndex(4)  # Default 5%
+        self.overlay8_popup_start_at_percent = 5
+        def on_overlay8_popup_start_at_changed(idx):
+            self.overlay8_popup_start_at_percent = self.overlay8_popup_start_at_combo.itemData(idx)
+        self.overlay8_popup_start_at_combo.currentIndexChanged.connect(on_overlay8_popup_start_at_changed)
+        on_overlay8_popup_start_at_changed(self.overlay8_popup_start_at_combo.currentIndex())
+
+        # Overlay8 Pop up Interval field
+        overlay8_popup_interval_label = QLabel("Pop up Interval:")
+        overlay8_popup_interval_label.setFixedWidth(100)
+        self.overlay8_popup_interval_combo = QtWidgets.QComboBox()
+        self.overlay8_popup_interval_combo.setFixedWidth(60)
+        for value in range(1, 101, 1):
+            self.overlay8_popup_interval_combo.addItem(f"{value}", value)
+        self.overlay8_popup_interval_combo.setCurrentIndex(9)  # Default 10
+        self.overlay8_popup_interval_percent = 10
+        def on_overlay8_popup_interval_changed(idx):
+            self.overlay8_popup_interval_percent = self.overlay8_popup_interval_combo.itemData(idx)
+        self.overlay8_popup_interval_combo.currentIndexChanged.connect(on_overlay8_popup_interval_changed)
+        on_overlay8_popup_interval_changed(self.overlay8_popup_interval_combo.currentIndex())
+
         overlay8_layout = QHBoxLayout()
         overlay8_layout.setContentsMargins(0, 0, 0, 0)
         overlay8_layout.addSpacing(-20)
@@ -3138,6 +3187,14 @@ class SuperCutUI(QWidget):
         overlay8_popup_layout.setContentsMargins(0, 0, 0, 0)
         overlay8_popup_layout.addSpacing(20)  # Indent to align with overlay8 controls
         overlay8_popup_layout.addWidget(self.overlay8_popup_checkbox)
+        overlay8_popup_layout.addSpacing(10)
+        overlay8_popup_layout.addWidget(overlay8_popup_start_at_label)
+        overlay8_popup_layout.addSpacing(-32)
+        overlay8_popup_layout.addWidget(self.overlay8_popup_start_at_combo)
+        overlay8_popup_layout.addSpacing(10)
+        overlay8_popup_layout.addWidget(overlay8_popup_interval_label)
+        overlay8_popup_layout.addSpacing(-32)
+        overlay8_popup_layout.addWidget(self.overlay8_popup_interval_combo)
         overlay8_popup_layout.addStretch()
         layout.addLayout(overlay8_popup_layout)
 
@@ -3174,6 +3231,14 @@ class SuperCutUI(QWidget):
                 self.overlay8_duration_edit.setEnabled(False)
                 self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.overlay8_duration_full_checkbox.setEnabled(False)
+                # Also grey out popup start at controls when overlay8 is disabled
+                overlay8_popup_start_at_label.setStyleSheet("color: grey;")
+                self.overlay8_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_popup_start_at_combo.setEnabled(False)
+                # Also grey out popup interval controls when overlay8 is disabled
+                overlay8_popup_interval_label.setStyleSheet("color: grey;")
+                self.overlay8_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_popup_interval_combo.setEnabled(False)
             else:
                 overlay8_label.setStyleSheet("")
                 self.overlay8_effect_combo.setStyleSheet("")
@@ -4219,7 +4284,10 @@ class SuperCutUI(QWidget):
                             overlay8_start_from=self.overlay8_start_from_percent,
             overlay8_duration=self.overlay8_duration,
             overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked(),
-            overlay8_start_at_checkbox_checked=self.overlay8_start_at_checkbox.isChecked()
+            overlay8_start_at_checkbox_checked=self.overlay8_start_at_checkbox.isChecked(),
+            overlay8_popup_start_at=self.overlay8_popup_start_at_percent,
+            overlay8_popup_interval=self.overlay8_popup_interval_percent,
+            overlay8_popup_checkbox_checked=self.overlay8_popup_checkbox.isChecked()
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
@@ -4851,7 +4919,7 @@ Size: {self.overlay7_size_percent}% | X: {self.overlay7_x_percent}% | Y: {self.o
 
 Overlay 8: {self.overlay8_checkbox.isChecked()} | Path: {self.overlay8_path}
 Size: {self.overlay8_size_percent}% | X: {self.overlay8_x_percent}% | Y: {self.overlay8_y_percent}%
-                Overlay8 Effect: {self.selected_overlay8_effect} | Start at: {self.overlay8_start_percent}%
+                Overlay8 Effect: {self.selected_overlay8_effect} | Start at: {self.overlay8_start_percent}% | Pop up Start at: {self.overlay8_popup_start_at_percent}% | Pop up Interval: {self.overlay8_popup_interval_percent}%
 
 --- Song Title Overlay ---
 Soundwave Overlay: {self.overlay3_checkbox.isChecked()} | Path: {self.overlay3_path}
@@ -5522,8 +5590,13 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay8_y_percent=self.overlay8_y_percent if hasattr(self, 'overlay8_y_percent') else 0,
                 overlay8_effect=self.selected_overlay8_effect if hasattr(self, 'selected_overlay8_effect') else "fadein",
                 overlay8_start_time=self.overlay8_start_percent if hasattr(self, 'overlay8_start_percent') else 5,
+                overlay8_start_from=self.overlay8_start_from_percent if hasattr(self, 'overlay8_start_from_percent') else 0,
                 overlay8_duration=self.overlay8_duration if hasattr(self, 'overlay8_duration') else 6,
                 overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked() if hasattr(self, 'overlay8_duration_full_checkbox') else False,
+                overlay8_start_at_checkbox_checked=self.overlay8_start_at_checkbox.isChecked() if hasattr(self, 'overlay8_start_at_checkbox') else True,
+                overlay8_popup_start_at=self.overlay8_popup_start_at_percent if hasattr(self, 'overlay8_popup_start_at_percent') else 5,
+                overlay8_popup_interval=self.overlay8_popup_interval_percent if hasattr(self, 'overlay8_popup_interval_percent') else 10,
+                overlay8_popup_checkbox_checked=self.overlay8_popup_checkbox.isChecked() if hasattr(self, 'overlay8_popup_checkbox') else False,
                 use_intro=self.intro_checkbox.isChecked(),
                 intro_path=self.intro_path,
                 intro_size_percent=self.intro_size_percent,

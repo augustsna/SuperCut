@@ -52,7 +52,7 @@ class VideoWorker(QObject):
                  overlay7_effect: str = "fadein", overlay7_start_time: int = 5, overlay7_duration: int = 6, overlay7_duration_full_checkbox_checked: bool = False,
                  # --- Add overlay8, overlay8 effect ---
                  use_overlay8: bool = False, overlay8_path: str = "", overlay8_size_percent: int = 10, overlay8_x_percent: int = 75, overlay8_y_percent: int = 0,
-                 overlay8_effect: str = "fadein", overlay8_start_time: int = 5, overlay8_start_from: int = 0, overlay8_duration: int = 6, overlay8_duration_full_checkbox_checked: bool = False, overlay8_start_at_checkbox_checked: bool = True):
+                 overlay8_effect: str = "fadein", overlay8_start_time: int = 5, overlay8_start_from: int = 0, overlay8_duration: int = 6, overlay8_duration_full_checkbox_checked: bool = False, overlay8_start_at_checkbox_checked: bool = True, overlay8_popup_start_at: int = 5, overlay8_popup_interval: int = 10, overlay8_popup_checkbox_checked: bool = False):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -168,6 +168,9 @@ class VideoWorker(QObject):
         self.overlay8_duration = overlay8_duration
         self.overlay8_duration_full_checkbox_checked = overlay8_duration_full_checkbox_checked
         self.overlay8_start_at_checkbox_checked = overlay8_start_at_checkbox_checked
+        self.overlay8_popup_start_at = overlay8_popup_start_at
+        self.overlay8_popup_interval = overlay8_popup_interval
+        self.overlay8_popup_checkbox_checked = overlay8_popup_checkbox_checked
 
     def stop(self):
         """Stop the video processing"""
@@ -388,7 +391,12 @@ class VideoWorker(QObject):
                 actual_overlay7_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
             
             # Calculate actual overlay8 start time based on checkbox state
-            if not self.overlay8_start_at_checkbox_checked:
+            if self.overlay8_popup_checkbox_checked:
+                # Use popup start at logic: simple percentage of total duration
+                actual_overlay8_start_at = int((self.overlay8_popup_start_at / 100.0) * total_duration)
+                # Ensure the start time doesn't exceed the video duration
+                actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
+            elif not self.overlay8_start_at_checkbox_checked:
                 # Use start from logic
                 if self.overlay8_duration_full_checkbox_checked:
                     # Full duration: simple percentage of total duration
@@ -411,7 +419,7 @@ class VideoWorker(QObject):
             
             # Debug output for overlay8 timing
             print(f"Overlay8 Debug - Total duration: {total_duration}s, Start time: {actual_overlay8_start_at}s, Duration: {self.overlay8_duration}s")
-            print(f"Overlay8 Debug - Start from percent: {self.overlay8_start_from}, Start time percent: {self.overlay8_start_time}")
+            print(f"Overlay8 Debug - Start from percent: {self.overlay8_start_from}, Start time percent: {self.overlay8_start_time}, Popup start at percent: {self.overlay8_popup_start_at}, Popup interval percent: {self.overlay8_popup_interval}, Popup checked: {self.overlay8_popup_checkbox_checked}")
             
             # Additional validation for overlay8 parameters
             if actual_overlay8_start_at < 0:
