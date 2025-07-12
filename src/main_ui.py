@@ -3155,7 +3155,7 @@ class SuperCutUI(QWidget):
         button_layout.addWidget(self.create_btn)
 
         # Add preview button after create video button
-        button_layout.addSpacing(5)
+        button_layout.addSpacing(0)
         self.preview_btn = QPushButton()
         preview_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "preview.png")
         self.preview_btn.setIcon(QIcon(preview_icon_path))
@@ -3181,7 +3181,7 @@ class SuperCutUI(QWidget):
         button_layout.addWidget(self.placeholder_btn)
 
         # Add version text after placeholder button
-        button_layout.addSpacing(0)
+        button_layout.addSpacing(5)
         version_label = QLabel("v2025.1")
         version_label.setStyleSheet("color: #666; font-size: 12px; font-weight: normal;")
         version_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
