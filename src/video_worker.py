@@ -218,7 +218,7 @@ class VideoWorker(QObject):
         song_title_pngs = []
         if self.use_song_title_overlay:
             from src.utils import extract_mp3_title, create_song_title_png
-            for idx, mp3_path in enumerate(selected_mp3s, start=11):  # overlay11, overlay12, ...
+            for idx, mp3_path in enumerate(selected_mp3s, start=16):  # overlay16, overlay17, ...
                 title = extract_mp3_title(mp3_path)
                 # Create a temp PNG file for the overlay
                 temp_png_path = create_temp_file(suffix=f'_overlay{idx}.png', prefix='supercut_')
