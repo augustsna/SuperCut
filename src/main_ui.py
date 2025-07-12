@@ -1359,6 +1359,44 @@ class SuperCutUI(QWidget):
         self.intro_duration_edit.textChanged.connect(on_intro_duration_changed)
         on_intro_duration_changed()
 
+        # Intro start at/from checkbox and inputs
+        self.intro_start_checkbox = QtWidgets.QCheckBox("Start at:")
+        self.intro_start_checkbox.setFixedWidth(80)
+        self.intro_start_checkbox.setChecked(False)
+        def update_intro_start_checkbox_style(state):
+            self.intro_start_checkbox.setStyleSheet("")  # Always default color
+        self.intro_start_checkbox.stateChanged.connect(update_intro_start_checkbox_style)
+        update_intro_start_checkbox_style(self.intro_start_checkbox.checkState())
+        
+        self.intro_start_edit = QLineEdit("0")
+        self.intro_start_edit.setFixedWidth(80)
+        self.intro_start_edit.setValidator(QIntValidator(0, 999, self))
+        self.intro_start_edit.setPlaceholderText("0")
+        self.intro_start_at = 0
+        def on_intro_start_changed():
+            try:
+                self.intro_start_at = int(self.intro_start_edit.text())
+            except Exception:
+                self.intro_start_at = 0
+        self.intro_start_edit.textChanged.connect(on_intro_start_changed)
+        on_intro_start_changed()
+        
+        # Intro start from input
+        intro_start_from_label = QLabel("Start from:")
+        intro_start_from_label.setFixedWidth(80)
+        self.intro_start_from_edit = QLineEdit("0")
+        self.intro_start_from_edit.setFixedWidth(80)
+        self.intro_start_from_edit.setValidator(QIntValidator(0, 999, self))
+        self.intro_start_from_edit.setPlaceholderText("0")
+        self.intro_start_from = 0
+        def on_intro_start_from_changed():
+            try:
+                self.intro_start_from = int(self.intro_start_from_edit.text())
+            except Exception:
+                self.intro_start_from = 0
+        self.intro_start_from_edit.textChanged.connect(on_intro_start_from_changed)
+        on_intro_start_from_changed()
+
         # (2) Now define set_intro_enabled and connect
         def set_intro_enabled(state):
             enabled = state == Qt.CheckState.Checked
@@ -1370,6 +1408,8 @@ class SuperCutUI(QWidget):
             self.intro_effect_combo.setEnabled(enabled)
             intro_duration_label.setEnabled(enabled)
             self.intro_duration_edit.setEnabled(enabled)
+            self.intro_start_checkbox.setEnabled(enabled)
+            # Start at field is controlled by its own checkbox
             if enabled:
                 intro_btn.setStyleSheet("")
                 self.intro_edit.setStyleSheet("")
@@ -1396,8 +1436,29 @@ class SuperCutUI(QWidget):
                 intro_size_label.setStyleSheet("color: grey;")
                 intro_x_label.setStyleSheet("color: grey;")
                 intro_y_label.setStyleSheet("color: grey;")
+        
+        # Function to control intro start at/from fields based on its checkbox
+        def set_intro_start_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When checkbox is checked, enable start from field and disable start at field
+            self.intro_start_from_edit.setEnabled(enabled)
+            self.intro_start_edit.setEnabled(not enabled)  # Disable start at when checkbox is checked
+            
+            if enabled:
+                self.intro_start_from_edit.setStyleSheet("")
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.intro_start_edit.setStyleSheet(grey_btn_style)
+                intro_start_from_label.setStyleSheet("")
+            else:
+                self.intro_start_edit.setStyleSheet("")
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.intro_start_from_edit.setStyleSheet(grey_btn_style)
+                intro_start_from_label.setStyleSheet("color: grey;")
+        
         self.intro_checkbox.stateChanged.connect(lambda _: set_intro_enabled(self.intro_checkbox.checkState()))
+        self.intro_start_checkbox.stateChanged.connect(lambda _: set_intro_start_enabled(self.intro_start_checkbox.checkState()))
         set_intro_enabled(self.intro_checkbox.checkState())
+        set_intro_start_enabled(self.intro_start_checkbox.checkState())
 
         intro_layout = QHBoxLayout()
         intro_layout.setSpacing(4)
@@ -1420,7 +1481,7 @@ class SuperCutUI(QWidget):
 
         # Intro effect controls - moved directly below intro line
         intro_effect_layout = QHBoxLayout()        
-        intro_effect_layout.addSpacing(301)  # Align with intro checkbox
+        intro_effect_layout.addSpacing(20)  # Align with intro checkbox
         intro_effect_layout.addWidget(intro_effect_label)
         intro_effect_layout.addSpacing(-9)
         intro_effect_layout.addWidget(self.intro_effect_combo)
@@ -1428,6 +1489,14 @@ class SuperCutUI(QWidget):
         intro_effect_layout.addWidget(intro_duration_label)
         intro_effect_layout.addSpacing(-27)
         intro_effect_layout.addWidget(self.intro_duration_edit)
+        intro_effect_layout.addSpacing(-6)
+        intro_effect_layout.addWidget(self.intro_start_checkbox)
+        intro_effect_layout.addSpacing(-27)
+        intro_effect_layout.addWidget(self.intro_start_edit)
+        intro_effect_layout.addSpacing(-6)
+        intro_effect_layout.addWidget(intro_start_from_label)
+        intro_effect_layout.addSpacing(-27)
+        intro_effect_layout.addWidget(self.intro_start_from_edit)
         intro_effect_layout.addStretch()
         layout.addLayout(intro_effect_layout)
 
@@ -3265,7 +3334,7 @@ class SuperCutUI(QWidget):
             
             self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_x_percent, self.intro_y_percent,
             self.selected_effect, self.overlay_duration,
-            self.intro_effect, self.intro_duration,
+            self.intro_effect, self.intro_duration, self.intro_start_at, self.intro_start_from, self.intro_start_checkbox.isChecked(),
             
             name_list=name_list,
             preset=preset,
@@ -4380,6 +4449,9 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         intro_y_percent = self.params['intro_y_percent']
                         intro_effect = self.params['intro_effect']
                         intro_duration = self.params['intro_duration']
+                        intro_start_at = self.params['intro_start_at']
+                        intro_start_from = self.params['intro_start_from']
+                        intro_start_checkbox_checked = self.params['intro_start_checkbox_checked']
                         effect = self.params['effect']
                         effect_time = self.params['effect_time']
                         use_song_title_overlay = self.params['use_song_title_overlay']
@@ -4406,6 +4478,18 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                                 'x_percent': song_title_x_percent,
                                 'y_percent': song_title_y_percent
                             }]
+                        
+                        # Calculate actual intro start time based on checkbox state for dry run
+                        from src.ffmpeg_utils import get_audio_duration
+                        actual_intro_start_at = 0
+                        if intro_start_checkbox_checked:
+                            # Use start from logic: total_duration - start_from_value
+                            total_duration = get_audio_duration(dry_mp3)
+                            actual_intro_start_at = int(max(0, total_duration - intro_start_from))
+                        else:
+                            # Use start at value directly
+                            actual_intro_start_at = intro_start_at
+                        
                         success, err = create_video_with_ffmpeg(
                             dry_img, dry_mp3, dry_out, resolution, fps, codec,
                             use_overlay, overlay1_path, overlay1_size_percent, overlay1_x_percent, overlay1_y_percent,
@@ -4416,7 +4500,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             use_overlay6, overlay6_path, overlay6_size_percent, overlay6_x_percent, overlay6_y_percent,
                             use_overlay7, overlay7_path, overlay7_size_percent, overlay7_x_percent, overlay7_y_percent,
                             use_intro, intro_path, intro_size_percent, intro_x_percent, intro_y_percent,
-                            effect, effect_time, intro_effect, intro_duration, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
+                            effect, effect_time, intro_effect, intro_duration, actual_intro_start_at, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
                             extra_overlays=extra_overlays,
                             song_title_effect=song_title_effect,
                             song_title_font=song_title_font,
@@ -4508,6 +4592,9 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 intro_y_percent=self.intro_y_percent,
                 intro_effect=self.intro_effect,
                 intro_duration=self.intro_duration,
+                intro_start_at=self.intro_start_at,
+                intro_start_from=self.intro_start_from,
+                intro_start_checkbox_checked=self.intro_start_checkbox.isChecked(),
                 effect=self.selected_effect,
                 effect_time=self.overlay_duration,
                 use_song_title_overlay=self.song_title_checkbox.isChecked(),
