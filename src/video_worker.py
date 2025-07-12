@@ -23,7 +23,7 @@ class VideoWorker(QObject):
                  use_overlay4: bool = False, overlay4_path: str = "", overlay4_size_percent: int = 10, overlay4_x_percent: int = 75, overlay4_y_percent: int = 0,
                  use_overlay5: bool = False, overlay5_path: str = "", overlay5_size_percent: int = 10, overlay5_x_percent: int = 75, overlay5_y_percent: int = 0,
                  use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_x_percent: int = 50, intro_y_percent: int = 50,
-                 effect: str = "fadein", overlay1_2_start_time: int = 5, overlay1_2_duration: int = 6, overlay1_2_duration_full_checkbox_checked: bool = False, overlay1_2_start_from: int = 0, overlay1_2_start_at_checkbox_checked: bool = True,
+                 overlay1_2_effect: str = "fadein", overlay1_2_start_time: int = 5, overlay1_2_duration: int = 6, overlay1_2_duration_full_checkbox_checked: bool = False, overlay1_2_start_from: int = 0, overlay1_2_start_at_checkbox_checked: bool = True,
                  intro_effect: str = "fadeout", intro_duration: int = 6, intro_start_at: int = 0, intro_start_from: int = 0, intro_start_checkbox_checked: bool = False, intro_duration_full_checkbox_checked: bool = False,
                  name_list: Optional[List[str]] = None,
                  preset: str = "slow",
@@ -94,7 +94,7 @@ class VideoWorker(QObject):
         self.intro_size_percent = intro_size_percent
         self.intro_x_percent = intro_x_percent
         self.intro_y_percent = intro_y_percent
-        self.effect = effect
+        self.overlay1_2_effect = overlay1_2_effect
         self.overlay1_2_start_time = overlay1_2_start_time
         self.overlay1_2_duration = overlay1_2_duration
         self.overlay1_2_duration_full_checkbox_checked = overlay1_2_duration_full_checkbox_checked
@@ -446,7 +446,7 @@ class VideoWorker(QObject):
                 self.intro_size_percent,
                 self.intro_x_percent,
                 self.intro_y_percent,
-                self.effect,
+                self.overlay1_2_effect,
                 self.overlay1_2_start_time,
                 self.overlay1_2_duration,
                 self.overlay1_2_duration_full_checkbox_checked,

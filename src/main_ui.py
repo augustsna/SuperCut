@@ -1830,9 +1830,9 @@ class SuperCutUI(QWidget):
         for label, value in effect_options:
             self.effect_combo.addItem(label, value)
         self.effect_combo.setCurrentIndex(1)  # Default to 'Fade in' for Overlay 1_2 effect
-        self.selected_effect = "fadein"
+        self.selected_overlay1_2_effect = "fadein"
         def on_effect_changed(idx):
-            self.selected_effect = self.effect_combo.itemData(idx)
+            self.selected_overlay1_2_effect = self.effect_combo.itemData(idx)
         self.effect_combo.currentIndexChanged.connect(on_effect_changed)
         on_effect_changed(self.effect_combo.currentIndex())
 
@@ -4079,17 +4079,16 @@ class SuperCutUI(QWidget):
         overlay1_start_at = self.overlay_start_at
         overlay2_start_at = self.overlay_start_at
         self._worker = VideoWorker(
-            media_sources, export_name, number, folder, codec, resolution, fps,
-            self.overlay_checkbox.isChecked(), min_mp3_count, self.overlay1_path, self.overlay1_size_percent, self.overlay1_x_percent, self.overlay1_y_percent,
-            self.overlay2_checkbox.isChecked(), self.overlay2_path, self.overlay2_size_percent, self.overlay2_x_percent, self.overlay2_y_percent,
-            overlay1_start_at, overlay2_start_at,            
-            self.overlay3_checkbox.isChecked(), self.overlay3_path, self.overlay3_size_percent, self.overlay3_x_percent, self.overlay3_y_percent,
-                            self.overlay4_checkbox.isChecked(), self.overlay4_path, self.overlay4_size_percent, self.overlay4_x_percent, self.overlay4_y_percent,
-            self.overlay5_checkbox.isChecked(), self.overlay5_path, self.overlay5_size_percent, self.overlay5_x_percent, self.overlay5_y_percent,
-            
-                        self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_x_percent, self.intro_y_percent,
-            self.selected_effect, self.overlay_start_at, self.overlay1_2_duration, self.overlay1_2_duration_full_checkbox.checkState() == Qt.CheckState.Checked, self.overlay1_2_start_from, self.overlay1_2_start_at_checkbox.isChecked(),
-            self.intro_effect, self.intro_duration, self.intro_start_at, self.intro_start_from, self.intro_start_checkbox.isChecked(), self.intro_duration_full_checkbox.isChecked(),
+            media_sources=media_sources, export_name=export_name, number=number, folder=folder, codec=codec, resolution=resolution, fps=fps,
+            use_overlay=self.overlay_checkbox.isChecked(), min_mp3_count=min_mp3_count, overlay1_path=self.overlay1_path, overlay1_size_percent=self.overlay1_size_percent, overlay1_x_percent=self.overlay1_x_percent, overlay1_y_percent=self.overlay1_y_percent,
+            use_overlay2=self.overlay2_checkbox.isChecked(), overlay2_path=self.overlay2_path, overlay2_size_percent=self.overlay2_size_percent, overlay2_x_percent=self.overlay2_x_percent, overlay2_y_percent=self.overlay2_y_percent,
+            overlay1_start_at=overlay1_start_at, overlay2_start_at=overlay2_start_at,            
+            use_overlay3=self.overlay3_checkbox.isChecked(), overlay3_path=self.overlay3_path, overlay3_size_percent=self.overlay3_size_percent, overlay3_x_percent=self.overlay3_x_percent, overlay3_y_percent=self.overlay3_y_percent,
+            use_overlay4=self.overlay4_checkbox.isChecked(), overlay4_path=self.overlay4_path, overlay4_size_percent=self.overlay4_size_percent, overlay4_x_percent=self.overlay4_x_percent, overlay4_y_percent=self.overlay4_y_percent,
+            use_overlay5=self.overlay5_checkbox.isChecked(), overlay5_path=self.overlay5_path, overlay5_size_percent=self.overlay5_size_percent, overlay5_x_percent=self.overlay5_x_percent, overlay5_y_percent=self.overlay5_y_percent,
+            use_intro=self.intro_checkbox.isChecked(), intro_path=self.intro_path, intro_size_percent=self.intro_size_percent, intro_x_percent=self.intro_x_percent, intro_y_percent=self.intro_y_percent,
+            overlay1_2_effect=self.selected_overlay1_2_effect, overlay1_2_start_time=self.overlay_start_at, overlay1_2_duration=self.overlay1_2_duration, overlay1_2_duration_full_checkbox_checked=self.overlay1_2_duration_full_checkbox.checkState() == Qt.CheckState.Checked, overlay1_2_start_from=self.overlay1_2_start_from, overlay1_2_start_at_checkbox_checked=self.overlay1_2_start_at_checkbox.isChecked(),
+            intro_effect=self.intro_effect, intro_duration=self.intro_duration, intro_start_at=self.intro_start_at, intro_start_from=self.intro_start_from, intro_start_checkbox_checked=self.intro_start_checkbox.isChecked(), intro_duration_full_checkbox_checked=self.intro_duration_full_checkbox.isChecked(),
             
             name_list=name_list,
             preset=preset,
@@ -4745,11 +4744,11 @@ Effect: {self.intro_effect} | Duration: {self.intro_duration}
 --- Overlay & Intro ---
 Overlay 1: {self.overlay_checkbox.isChecked()} | Path: {self.overlay1_path}
 Size: {self.overlay1_size_percent}% | X: {self.overlay1_x_percent}% | Y: {self.overlay1_y_percent}%
-Effect: {self.selected_effect} | Overlay1 Start at: {overlay1_start_at} 
+            Effect: {self.selected_overlay1_2_effect} | Overlay1 Start at: {overlay1_start_at} 
 
 Overlay 2: {self.overlay2_checkbox.isChecked()} | Path: {self.overlay2_path}
 Size: {self.overlay2_size_percent}% | X: {self.overlay2_x_percent}% | Y: {self.overlay2_y_percent}%
-Effect: {self.selected_effect} | Overlay2 Start at: {overlay2_start_at}
+            Effect: {self.selected_overlay1_2_effect} | Overlay2 Start at: {overlay2_start_at}
 
 Overlay 4: {self.overlay4_checkbox.isChecked()} | Path: {self.overlay4_path}
 Size: {self.overlay4_size_percent}% | X: {self.overlay4_x_percent}% | Y: {self.overlay4_y_percent}%
@@ -5451,7 +5450,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay1_2_start_at_checkbox_checked=self.overlay1_2_start_at_checkbox.isChecked(),
                 overlay4_5_start_from=self.overlay4_5_start_from,
                 overlay4_5_start_at_checkbox_checked=self.overlay4_5_start_at_checkbox.isChecked(),
-                            effect=self.selected_effect,
+                            effect=self.selected_overlay1_2_effect,
             effect_time=self.overlay_start_at,
                 use_song_title_overlay=self.song_title_checkbox.isChecked(),
                 song_title_effect=self.song_title_effect,

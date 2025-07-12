@@ -119,7 +119,7 @@ def create_video_with_ffmpeg(
     intro_size_percent: int = 10,
     intro_x_percent: int = 50,
     intro_y_percent: int = 50,
-    effect: str = "fadein",
+    overlay1_2_effect: str = "fadein",
     overlay1_2_start_time: int = 5,
     overlay1_2_duration: int = 6,
     overlay1_2_duration_full_checkbox_checked: bool = False,
@@ -443,8 +443,8 @@ def create_video_with_ffmpeg(
             if not overlay1_2_duration_full_checkbox_checked:
                 overlay1_2_actual_duration = overlay1_2_duration
             
-            filter_overlay1 = overlay_effect_chain(overlay1_idx, f"{ow1}:{oh1}", "ol1", effect, overlay1_2_start_time, ext1, overlay1_2_actual_duration) if overlay1_idx is not None else ""
-            filter_overlay2 = overlay_effect_chain(overlay2_idx, f"{ow2}:{oh2}", "ol2", effect, overlay1_2_start_time, ext2, overlay1_2_actual_duration) if overlay2_idx is not None else ""
+            filter_overlay1 = overlay_effect_chain(overlay1_idx, f"{ow1}:{oh1}", "ol1", overlay1_2_effect, overlay1_2_start_time, ext1, overlay1_2_actual_duration) if overlay1_idx is not None else ""
+            filter_overlay2 = overlay_effect_chain(overlay2_idx, f"{ow2}:{oh2}", "ol2", overlay1_2_effect, overlay1_2_start_time, ext2, overlay1_2_actual_duration) if overlay2_idx is not None else ""
             filter_overlay3 = overlay_effect_chain(overlay3_idx, f"{ow3}:{oh3}", "ol3", overlay3_effect, overlay3_start_time, ext3) if overlay3_idx is not None else ""
             # Calculate duration for overlay4_5 based on full duration checkbox
             overlay4_actual_duration = None
