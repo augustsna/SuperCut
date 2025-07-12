@@ -1828,9 +1828,48 @@ class SuperCutUI(QWidget):
         self.overlay_start_at_edit.textChanged.connect(on_overlay_start_at_changed)
         on_overlay_start_at_changed()
 
+        # Overlay 1_2 duration controls (similar to overlay8 duration)
+        self.overlay1_2_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
+        self.overlay1_2_duration_full_checkbox.setFixedWidth(100)
+        self.overlay1_2_duration_full_checkbox.setChecked(True)
+        def update_overlay1_2_duration_full_checkbox_style(state):
+            self.overlay1_2_duration_full_checkbox.setStyleSheet("")  # Always default color
+        self.overlay1_2_duration_full_checkbox.stateChanged.connect(update_overlay1_2_duration_full_checkbox_style)
+        update_overlay1_2_duration_full_checkbox_style(self.overlay1_2_duration_full_checkbox.checkState())
+        
+        overlay1_2_duration_label = QLabel("Duration:")
+        overlay1_2_duration_label.setFixedWidth(80)
+        self.overlay1_2_duration_edit = QLineEdit("6")
+        self.overlay1_2_duration_edit.setFixedWidth(40)
+        self.overlay1_2_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.overlay1_2_duration_edit.setPlaceholderText("6")
+        self.overlay1_2_duration = 6
+        def on_overlay1_2_duration_changed():
+            try:
+                self.overlay1_2_duration = int(self.overlay1_2_duration_edit.text())
+            except Exception:
+                self.overlay1_2_duration = 6
+        self.overlay1_2_duration_edit.textChanged.connect(on_overlay1_2_duration_changed)
+        on_overlay1_2_duration_changed()
+
+        # Function to control overlay1_2 duration field based on duration full checkbox
+        def set_overlay1_2_duration_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When duration full checkbox is checked, disable duration input field
+            self.overlay1_2_duration_edit.setEnabled(not enabled)
+            overlay1_2_duration_label.setEnabled(not enabled)
+            
+            if enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay1_2_duration_edit.setStyleSheet(grey_btn_style)
+                overlay1_2_duration_label.setStyleSheet("color: grey;")
+            else:
+                self.overlay1_2_duration_edit.setStyleSheet("")
+                overlay1_2_duration_label.setStyleSheet("")
+
         effect_layout = QHBoxLayout()
         effect_layout.setContentsMargins(0, 0, 0, 0)
-        effect_layout.addSpacing(260)
+        effect_layout.addSpacing(20)
         effect_layout.addWidget(effect_label)
         effect_layout.addSpacing(-3)
         effect_layout.addWidget(self.effect_combo)
@@ -1838,6 +1877,12 @@ class SuperCutUI(QWidget):
         effect_layout.addWidget(overlay_start_at_label)
         effect_layout.addSpacing(-32)
         effect_layout.addWidget(self.overlay_start_at_edit)
+        effect_layout.addSpacing(-6)
+        effect_layout.addWidget(overlay1_2_duration_label)
+        effect_layout.addSpacing(-27)
+        effect_layout.addWidget(self.overlay1_2_duration_edit)
+        effect_layout.addSpacing(-6)
+        effect_layout.addWidget(self.overlay1_2_duration_full_checkbox)
         effect_layout.addStretch()
         layout.addLayout(effect_layout)
 
@@ -1850,6 +1895,12 @@ class SuperCutUI(QWidget):
                 overlay_start_at_label.setStyleSheet("color: grey;")
                 self.overlay_start_at_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay_start_at_edit.setEnabled(False)
+                # Also grey out duration controls when overlay1_2 is disabled
+                overlay1_2_duration_label.setStyleSheet("color: grey;")
+                self.overlay1_2_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay1_2_duration_edit.setEnabled(False)
+                self.overlay1_2_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.overlay1_2_duration_full_checkbox.setEnabled(False)
             else:
                 effect_label.setStyleSheet("")
                 self.effect_combo.setStyleSheet("")
@@ -1857,9 +1908,16 @@ class SuperCutUI(QWidget):
                 overlay_start_at_label.setStyleSheet("")
                 self.overlay_start_at_edit.setStyleSheet("")
                 self.overlay_start_at_edit.setEnabled(True)
+                # Re-enable duration controls when overlay1_2 is enabled
+                self.overlay1_2_duration_full_checkbox.setEnabled(True)
+                self.overlay1_2_duration_full_checkbox.setStyleSheet("")
+                # Let the duration full checkbox control the duration field styling
+                set_overlay1_2_duration_enabled(self.overlay1_2_duration_full_checkbox.checkState())
+        self.overlay1_2_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay1_2_duration_enabled(self.overlay1_2_duration_full_checkbox.checkState()))
         self.overlay_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         self.overlay2_checkbox.stateChanged.connect(update_overlay_effect_label_style)
         update_overlay_effect_label_style()
+        set_overlay1_2_duration_enabled(self.overlay1_2_duration_full_checkbox.checkState())
 
         # Overlay 4 controls (similar to Overlay 3)
         def update_overlay4_checkbox_style(state):
@@ -2108,9 +2166,49 @@ class SuperCutUI(QWidget):
                 self.overlay4_5_start_at = 5
         self.overlay4_5_start_edit.textChanged.connect(on_overlay4_5_start_changed)
         on_overlay4_5_start_changed()
+
+        # Overlay 4_5 duration controls (similar to overlay8 duration)
+        self.overlay4_5_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
+        self.overlay4_5_duration_full_checkbox.setFixedWidth(100)
+        self.overlay4_5_duration_full_checkbox.setChecked(True)
+        def update_overlay4_5_duration_full_checkbox_style(state):
+            self.overlay4_5_duration_full_checkbox.setStyleSheet("")  # Always default color
+        self.overlay4_5_duration_full_checkbox.stateChanged.connect(update_overlay4_5_duration_full_checkbox_style)
+        update_overlay4_5_duration_full_checkbox_style(self.overlay4_5_duration_full_checkbox.checkState())
+        
+        overlay4_5_duration_label = QLabel("Duration:")
+        overlay4_5_duration_label.setFixedWidth(80)
+        self.overlay4_5_duration_edit = QLineEdit("6")
+        self.overlay4_5_duration_edit.setFixedWidth(40)
+        self.overlay4_5_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.overlay4_5_duration_edit.setPlaceholderText("6")
+        self.overlay4_5_duration = 6
+        def on_overlay4_5_duration_changed():
+            try:
+                self.overlay4_5_duration = int(self.overlay4_5_duration_edit.text())
+            except Exception:
+                self.overlay4_5_duration = 6
+        self.overlay4_5_duration_edit.textChanged.connect(on_overlay4_5_duration_changed)
+        on_overlay4_5_duration_changed()
+
+        # Function to control overlay4_5 duration field based on duration full checkbox
+        def set_overlay4_5_duration_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When duration full checkbox is checked, disable duration input field
+            self.overlay4_5_duration_edit.setEnabled(not enabled)
+            overlay4_5_duration_label.setEnabled(not enabled)
+            
+            if enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay4_5_duration_edit.setStyleSheet(grey_btn_style)
+                overlay4_5_duration_label.setStyleSheet("color: grey;")
+            else:
+                self.overlay4_5_duration_edit.setStyleSheet("")
+                overlay4_5_duration_label.setStyleSheet("")
+
         overlay4_5_layout = QHBoxLayout()
         overlay4_5_layout.setContentsMargins(0, 0, 0, 0)
-        overlay4_5_layout.addSpacing(260)
+        overlay4_5_layout.addSpacing(20)
         overlay4_5_layout.addWidget(overlay4_5_label)
         overlay4_5_layout.addSpacing(-3)
         overlay4_5_layout.addWidget(self.overlay4_5_effect_combo)
@@ -2118,6 +2216,12 @@ class SuperCutUI(QWidget):
         overlay4_5_layout.addWidget(overlay4_5_start_label)
         overlay4_5_layout.addSpacing(-32)
         overlay4_5_layout.addWidget(self.overlay4_5_start_edit)
+        overlay4_5_layout.addSpacing(-6)
+        overlay4_5_layout.addWidget(overlay4_5_duration_label)
+        overlay4_5_layout.addSpacing(-27)
+        overlay4_5_layout.addWidget(self.overlay4_5_duration_edit)
+        overlay4_5_layout.addSpacing(-6)
+        overlay4_5_layout.addWidget(self.overlay4_5_duration_full_checkbox)
         overlay4_5_layout.addStretch()
         layout.addLayout(overlay4_5_layout)
         def update_overlay4_5_effect_label_style():
@@ -2128,6 +2232,12 @@ class SuperCutUI(QWidget):
                 overlay4_5_start_label.setStyleSheet("color: grey;")
                 self.overlay4_5_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay4_5_start_edit.setEnabled(False)
+                # Also grey out duration controls when overlay4_5 is disabled
+                overlay4_5_duration_label.setStyleSheet("color: grey;")
+                self.overlay4_5_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay4_5_duration_edit.setEnabled(False)
+                self.overlay4_5_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.overlay4_5_duration_full_checkbox.setEnabled(False)
             else:
                 overlay4_5_label.setStyleSheet("")
                 self.overlay4_5_effect_combo.setStyleSheet("")
@@ -2135,9 +2245,16 @@ class SuperCutUI(QWidget):
                 overlay4_5_start_label.setStyleSheet("")
                 self.overlay4_5_start_edit.setStyleSheet("")
                 self.overlay4_5_start_edit.setEnabled(True)
+                # Re-enable duration controls when overlay4_5 is enabled
+                self.overlay4_5_duration_full_checkbox.setEnabled(True)
+                self.overlay4_5_duration_full_checkbox.setStyleSheet("")
+                # Let the duration full checkbox control the duration field styling
+                set_overlay4_5_duration_enabled(self.overlay4_5_duration_full_checkbox.checkState())
+        self.overlay4_5_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay4_5_duration_enabled(self.overlay4_5_duration_full_checkbox.checkState()))
         self.overlay4_checkbox.stateChanged.connect(lambda _: update_overlay4_5_effect_label_style())
         self.overlay5_checkbox.stateChanged.connect(lambda _: update_overlay4_5_effect_label_style())
         update_overlay4_5_effect_label_style()
+        set_overlay4_5_duration_enabled(self.overlay4_5_duration_full_checkbox.checkState())
 
          # Overlay 6 controls (similar to Overlay 4)
         self.overlay6_checkbox = QtWidgets.QCheckBox("Overlay 6:")
@@ -2400,9 +2517,48 @@ class SuperCutUI(QWidget):
         self.overlay6_7_start_edit.textChanged.connect(on_overlay6_7_start_changed)
         on_overlay6_7_start_changed()
 
+        # Overlay 6_7 duration controls (similar to overlay8 duration)
+        self.overlay6_7_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
+        self.overlay6_7_duration_full_checkbox.setFixedWidth(100)
+        self.overlay6_7_duration_full_checkbox.setChecked(True)
+        def update_overlay6_7_duration_full_checkbox_style(state):
+            self.overlay6_7_duration_full_checkbox.setStyleSheet("")  # Always default color
+        self.overlay6_7_duration_full_checkbox.stateChanged.connect(update_overlay6_7_duration_full_checkbox_style)
+        update_overlay6_7_duration_full_checkbox_style(self.overlay6_7_duration_full_checkbox.checkState())
+        
+        overlay6_7_duration_label = QLabel("Duration:")
+        overlay6_7_duration_label.setFixedWidth(80)
+        self.overlay6_7_duration_edit = QLineEdit("6")
+        self.overlay6_7_duration_edit.setFixedWidth(40)
+        self.overlay6_7_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.overlay6_7_duration_edit.setPlaceholderText("6")
+        self.overlay6_7_duration = 6
+        def on_overlay6_7_duration_changed():
+            try:
+                self.overlay6_7_duration = int(self.overlay6_7_duration_edit.text())
+            except Exception:
+                self.overlay6_7_duration = 6
+        self.overlay6_7_duration_edit.textChanged.connect(on_overlay6_7_duration_changed)
+        on_overlay6_7_duration_changed()
+
+        # Function to control overlay6_7 duration field based on duration full checkbox
+        def set_overlay6_7_duration_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When duration full checkbox is checked, disable duration input field
+            self.overlay6_7_duration_edit.setEnabled(not enabled)
+            overlay6_7_duration_label.setEnabled(not enabled)
+            
+            if enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay6_7_duration_edit.setStyleSheet(grey_btn_style)
+                overlay6_7_duration_label.setStyleSheet("color: grey;")
+            else:
+                self.overlay6_7_duration_edit.setStyleSheet("")
+                overlay6_7_duration_label.setStyleSheet("")
+
         overlay6_7_layout = QHBoxLayout()
         overlay6_7_layout.setContentsMargins(0, 0, 0, 0)
-        overlay6_7_layout.addSpacing(260)
+        overlay6_7_layout.addSpacing(20)
         overlay6_7_layout.addWidget(overlay6_7_label)
         overlay6_7_layout.addSpacing(-3)
         overlay6_7_layout.addWidget(self.overlay6_7_effect_combo)
@@ -2410,6 +2566,12 @@ class SuperCutUI(QWidget):
         overlay6_7_layout.addWidget(overlay6_7_start_label)
         overlay6_7_layout.addSpacing(-32)
         overlay6_7_layout.addWidget(self.overlay6_7_start_edit)
+        overlay6_7_layout.addSpacing(-6)
+        overlay6_7_layout.addWidget(overlay6_7_duration_label)
+        overlay6_7_layout.addSpacing(-27)
+        overlay6_7_layout.addWidget(self.overlay6_7_duration_edit)
+        overlay6_7_layout.addSpacing(-6)
+        overlay6_7_layout.addWidget(self.overlay6_7_duration_full_checkbox)
         overlay6_7_layout.addStretch()
         layout.addLayout(overlay6_7_layout)
 
@@ -2422,6 +2584,12 @@ class SuperCutUI(QWidget):
                 overlay6_7_start_label.setStyleSheet("color: grey;")
                 self.overlay6_7_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay6_7_start_edit.setEnabled(False)
+                # Also grey out duration controls when overlay6_7 is disabled
+                overlay6_7_duration_label.setStyleSheet("color: grey;")
+                self.overlay6_7_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay6_7_duration_edit.setEnabled(False)
+                self.overlay6_7_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.overlay6_7_duration_full_checkbox.setEnabled(False)
             else:
                 overlay6_7_label.setStyleSheet("")
                 self.overlay6_7_effect_combo.setStyleSheet("")
@@ -2429,9 +2597,16 @@ class SuperCutUI(QWidget):
                 overlay6_7_start_label.setStyleSheet("")
                 self.overlay6_7_start_edit.setStyleSheet("")
                 self.overlay6_7_start_edit.setEnabled(True)
+                # Re-enable duration controls when overlay6_7 is enabled
+                self.overlay6_7_duration_full_checkbox.setEnabled(True)
+                self.overlay6_7_duration_full_checkbox.setStyleSheet("")
+                # Let the duration full checkbox control the duration field styling
+                set_overlay6_7_duration_enabled(self.overlay6_7_duration_full_checkbox.checkState())
+        self.overlay6_7_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay6_7_duration_enabled(self.overlay6_7_duration_full_checkbox.checkState()))
         self.overlay6_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
         self.overlay7_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
         update_overlay6_7_effect_label_style()
+        set_overlay6_7_duration_enabled(self.overlay6_7_duration_full_checkbox.checkState())
 
         # Overlay 8 controls (similar to Overlay 7)
         self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
@@ -2504,6 +2679,45 @@ class SuperCutUI(QWidget):
         self.overlay8_y_combo.currentIndexChanged.connect(on_overlay8_y_changed)
         on_overlay8_y_changed(self.overlay8_y_combo.currentIndex())
 
+        # Overlay8 duration controls (similar to intro duration)
+        self.overlay8_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
+        self.overlay8_duration_full_checkbox.setFixedWidth(100)
+        self.overlay8_duration_full_checkbox.setChecked(True)
+        def update_overlay8_duration_full_checkbox_style(state):
+            self.overlay8_duration_full_checkbox.setStyleSheet("")  # Always default color
+        self.overlay8_duration_full_checkbox.stateChanged.connect(update_overlay8_duration_full_checkbox_style)
+        update_overlay8_duration_full_checkbox_style(self.overlay8_duration_full_checkbox.checkState())
+        
+        overlay8_duration_label = QLabel("Duration:")
+        overlay8_duration_label.setFixedWidth(80)
+        self.overlay8_duration_edit = QLineEdit("6")
+        self.overlay8_duration_edit.setFixedWidth(40)
+        self.overlay8_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.overlay8_duration_edit.setPlaceholderText("6")
+        self.overlay8_duration = 6
+        def on_overlay8_duration_changed():
+            try:
+                self.overlay8_duration = int(self.overlay8_duration_edit.text())
+            except Exception:
+                self.overlay8_duration = 6
+        self.overlay8_duration_edit.textChanged.connect(on_overlay8_duration_changed)
+        on_overlay8_duration_changed()
+
+        # Function to control overlay8 duration field based on duration full checkbox
+        def set_overlay8_duration_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When duration full checkbox is checked, disable duration input field
+            self.overlay8_duration_edit.setEnabled(not enabled)
+            overlay8_duration_label.setEnabled(not enabled)
+            
+            if enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay8_duration_edit.setStyleSheet(grey_btn_style)
+                overlay8_duration_label.setStyleSheet("color: grey;")
+            else:
+                self.overlay8_duration_edit.setStyleSheet("")
+                overlay8_duration_label.setStyleSheet("")
+
         def set_overlay8_enabled(state):
             enabled = state == Qt.CheckState.Checked
             self.overlay8_edit.setEnabled(enabled)
@@ -2511,6 +2725,24 @@ class SuperCutUI(QWidget):
             self.overlay8_size_combo.setEnabled(enabled)
             self.overlay8_x_combo.setEnabled(enabled)
             self.overlay8_y_combo.setEnabled(enabled)
+            # Duration field is controlled by duration full checkbox, not overlay8 checkbox
+            if enabled:
+                # When overlay8 is enabled, let the duration full checkbox control the duration field
+                # Force the duration field to match the full checkbox state
+                full_checked = self.overlay8_duration_full_checkbox.isChecked()
+                self.overlay8_duration_edit.setEnabled(not full_checked)
+                overlay8_duration_label.setEnabled(not full_checked)
+                if full_checked:
+                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                    self.overlay8_duration_edit.setStyleSheet(grey_btn_style)
+                    overlay8_duration_label.setStyleSheet("color: grey;")
+                else:
+                    self.overlay8_duration_edit.setStyleSheet("")
+                    overlay8_duration_label.setStyleSheet("")
+            else:
+                # When overlay8 is disabled, disable duration field regardless of full checkbox
+                overlay8_duration_label.setEnabled(False)
+                self.overlay8_duration_edit.setEnabled(False)
             if enabled:
                 overlay8_btn.setStyleSheet("")
                 self.overlay8_edit.setStyleSheet("")
@@ -2520,6 +2752,9 @@ class SuperCutUI(QWidget):
                 overlay8_size_label.setStyleSheet("")
                 overlay8_x_label.setStyleSheet("")
                 overlay8_y_label.setStyleSheet("")
+                # When overlay8 is enabled, reset checkbox styling and let the duration full checkbox control its own styling
+                self.overlay8_duration_full_checkbox.setStyleSheet("")
+                set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 overlay8_btn.setStyleSheet(grey_btn_style)
@@ -2530,6 +2765,8 @@ class SuperCutUI(QWidget):
                 overlay8_size_label.setStyleSheet("color: grey;")
                 overlay8_x_label.setStyleSheet("color: grey;")
                 overlay8_y_label.setStyleSheet("color: grey;")
+                # Also grey out the duration checkbox when overlay8 is disabled
+                self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
         self.overlay8_checkbox.stateChanged.connect(lambda _: set_overlay8_enabled(self.overlay8_checkbox.checkState()))
         
         overlay8_layout.addWidget(self.overlay8_checkbox)
@@ -2546,7 +2783,10 @@ class SuperCutUI(QWidget):
         overlay8_layout.addSpacing(4)
         overlay8_layout.addWidget(overlay8_y_label)
         overlay8_layout.addWidget(self.overlay8_y_combo)
+        self.overlay8_checkbox.stateChanged.connect(lambda _: set_overlay8_enabled(self.overlay8_checkbox.checkState()))
+        self.overlay8_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState()))
         set_overlay8_enabled(self.overlay8_checkbox.checkState())
+        set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
         layout.addLayout(overlay8_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 8 (individual effect control) ---
@@ -2580,7 +2820,7 @@ class SuperCutUI(QWidget):
 
         overlay8_layout = QHBoxLayout()
         overlay8_layout.setContentsMargins(0, 0, 0, 0)
-        overlay8_layout.addSpacing(260)
+        overlay8_layout.addSpacing(20)
         overlay8_layout.addWidget(overlay8_label)
         overlay8_layout.addSpacing(-3)
         overlay8_layout.addWidget(self.overlay8_effect_combo)
@@ -2588,6 +2828,12 @@ class SuperCutUI(QWidget):
         overlay8_layout.addWidget(overlay8_start_label)
         overlay8_layout.addSpacing(-32)
         overlay8_layout.addWidget(self.overlay8_start_edit)
+        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addWidget(overlay8_duration_label)
+        overlay8_layout.addSpacing(-27)
+        overlay8_layout.addWidget(self.overlay8_duration_edit)
+        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addWidget(self.overlay8_duration_full_checkbox)
         overlay8_layout.addStretch()
         layout.addLayout(overlay8_layout)
 
@@ -2600,6 +2846,12 @@ class SuperCutUI(QWidget):
                 overlay8_start_label.setStyleSheet("color: grey;")
                 self.overlay8_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay8_start_edit.setEnabled(False)
+                # Also grey out duration controls when overlay8 is disabled
+                overlay8_duration_label.setStyleSheet("color: grey;")
+                self.overlay8_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_duration_edit.setEnabled(False)
+                self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.overlay8_duration_full_checkbox.setEnabled(False)
             else:
                 overlay8_label.setStyleSheet("")
                 self.overlay8_effect_combo.setStyleSheet("")
@@ -2607,6 +2859,11 @@ class SuperCutUI(QWidget):
                 overlay8_start_label.setStyleSheet("")
                 self.overlay8_start_edit.setStyleSheet("")
                 self.overlay8_start_edit.setEnabled(True)
+                # Re-enable duration controls when overlay8 is enabled
+                self.overlay8_duration_full_checkbox.setEnabled(True)
+                self.overlay8_duration_full_checkbox.setStyleSheet("")
+                # Let the duration full checkbox control the duration field styling
+                set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
         self.overlay8_checkbox.stateChanged.connect(lambda _: update_overlay8_effect_label_style())
         update_overlay8_effect_label_style()
 
@@ -3562,8 +3819,8 @@ class SuperCutUI(QWidget):
                             self.overlay4_checkbox.isChecked(), self.overlay4_path, self.overlay4_size_percent, self.overlay4_x_percent, self.overlay4_y_percent,
             self.overlay5_checkbox.isChecked(), self.overlay5_path, self.overlay5_size_percent, self.overlay5_x_percent, self.overlay5_y_percent,
             
-            self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_x_percent, self.intro_y_percent,
-            self.selected_effect, self.overlay_start_at,
+                        self.intro_checkbox.isChecked(), self.intro_path, self.intro_size_percent, self.intro_x_percent, self.intro_y_percent,
+            self.selected_effect, self.overlay_start_at, self.overlay1_2_duration, self.overlay1_2_duration_full_checkbox.checkState() == Qt.CheckState.Checked,
             self.intro_effect, self.intro_duration, self.intro_start_at, self.intro_start_from, self.intro_start_checkbox.isChecked(), self.intro_duration_full_checkbox.isChecked(),
             
             name_list=name_list,
@@ -3586,8 +3843,12 @@ class SuperCutUI(QWidget):
             song_title_scale_percent=self.song_title_scale_percent,
             overlay4_effect=self.selected_overlay4_5_effect,
             overlay4_effect_time=self.overlay4_5_start_at,
+            overlay4_duration=self.overlay4_5_duration,
+            overlay4_duration_full_checkbox_checked=self.overlay4_5_duration_full_checkbox.checkState() == Qt.CheckState.Checked,
             overlay5_effect=self.selected_overlay4_5_effect,
             overlay5_effect_time=self.overlay4_5_start_at,
+            overlay5_duration=self.overlay4_5_duration,
+            overlay5_duration_full_checkbox_checked=self.overlay4_5_duration_full_checkbox.checkState() == Qt.CheckState.Checked,
             # --- Add overlay6, overlay7, overlay6_7 effect ---
             use_overlay6=self.overlay6_checkbox.isChecked(),
             overlay6_path=self.overlay6_path,
@@ -3599,15 +3860,21 @@ class SuperCutUI(QWidget):
             overlay7_x_percent=self.overlay7_x_percent, overlay7_y_percent=self.overlay7_y_percent,
             overlay6_effect=self.selected_overlay6_7_effect,
             overlay6_effect_time=self.overlay6_7_start_at,
+            overlay6_duration=self.overlay6_7_duration,
+            overlay6_duration_full_checkbox_checked=self.overlay6_7_duration_full_checkbox.checkState() == Qt.CheckState.Checked,
             overlay7_effect=self.selected_overlay6_7_effect,
             overlay7_effect_time=self.overlay6_7_start_at,
+            overlay7_duration=self.overlay6_7_duration,
+            overlay7_duration_full_checkbox_checked=self.overlay6_7_duration_full_checkbox.checkState() == Qt.CheckState.Checked,
             # --- Add overlay8, overlay8 effect ---
             use_overlay8=self.overlay8_checkbox.isChecked(),
             overlay8_path=self.overlay8_path,
             overlay8_size_percent=self.overlay8_size_percent,
             overlay8_x_percent=self.overlay8_x_percent, overlay8_y_percent=self.overlay8_y_percent,
             overlay8_effect=self.selected_overlay8_effect,
-            overlay8_effect_time=self.overlay8_start_at
+            overlay8_effect_time=self.overlay8_start_at,
+            overlay8_duration=self.overlay8_duration,
+            overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked()
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
@@ -4756,7 +5023,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             use_overlay7, overlay7_path, overlay7_size_percent, overlay7_x_percent, overlay7_y_percent,
                             use_overlay8, overlay8_path, overlay8_size_percent, overlay8_x_percent, overlay8_y_percent,
                             use_intro, intro_path, intro_size_percent, intro_x_percent, intro_y_percent,
-                            effect, effect_time, intro_effect, actual_intro_duration, actual_intro_start_at, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
+                            effect, effect_time, 6, False, intro_effect, actual_intro_duration, actual_intro_start_at, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
                             extra_overlays=extra_overlays,
                             song_title_effect=song_title_effect,
                             song_title_font=song_title_font,
@@ -4770,12 +5037,20 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             overlay3_effect_time=song_title_start_at if (use_song_title_overlay and song_title_start_at is not None) else 5,
                             overlay4_effect=overlay4_effect,
                             overlay4_effect_time=overlay4_effect_time,
+                            overlay4_duration=6,
+                            overlay4_duration_full_checkbox_checked=False,
                             overlay5_effect=overlay5_effect,
                             overlay5_effect_time=overlay5_effect_time,
+                            overlay5_duration=6,
+                            overlay5_duration_full_checkbox_checked=False,
                             overlay6_effect=overlay6_effect,
                             overlay6_effect_time=overlay6_effect_time,
+                            overlay6_duration=6,
+                            overlay6_duration_full_checkbox_checked=False,
                             overlay7_effect=overlay7_effect,
                             overlay7_effect_time=overlay7_effect_time,
+                            overlay7_duration=6,
+                            overlay7_duration_full_checkbox_checked=False,
                             overlay8_effect=overlay8_effect,
                             overlay8_effect_time=overlay8_effect_time,
                             overlay1_start_at=overlay1_start_at,
@@ -4861,8 +5136,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 intro_start_from=self.intro_start_from,
                 intro_start_checkbox_checked=self.intro_start_checkbox.isChecked(),
                 intro_duration_full_checkbox_checked=self.intro_duration_full_checkbox.isChecked(),
-                effect=self.selected_effect,
-                effect_time=self.overlay_start_at,
+                            effect=self.selected_effect,
+            effect_time=self.overlay_start_at,
                 use_song_title_overlay=self.song_title_checkbox.isChecked(),
                 song_title_effect=self.song_title_effect,
                 song_title_font=self.song_title_font,

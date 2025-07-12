@@ -121,6 +121,8 @@ def create_video_with_ffmpeg(
     intro_y_percent: int = 50,
     effect: str = "fadein",
     effect_time: int = 5,
+    overlay1_2_duration: int = 6,
+    overlay1_2_duration_full_checkbox_checked: bool = False,
     intro_effect: str = "fadeout",
     intro_duration: int = 6,
     intro_start_at: int = 0,
@@ -142,14 +144,24 @@ def create_video_with_ffmpeg(
     overlay3_effect_time: int = 5,
     overlay4_effect: str = "fadein",
     overlay4_effect_time: int = 5,
+    overlay4_duration: int = 6,
+    overlay4_duration_full_checkbox_checked: bool = False,
     overlay5_effect: str = "fadein",
     overlay5_effect_time: int = 5,
+    overlay5_duration: int = 6,
+    overlay5_duration_full_checkbox_checked: bool = False,
     overlay6_effect: str = "fadein",
     overlay6_effect_time: int = 5,
+    overlay6_duration: int = 6,
+    overlay6_duration_full_checkbox_checked: bool = False,
     overlay7_effect: str = "fadein",
     overlay7_effect_time: int = 5,
+    overlay7_duration: int = 6,
+    overlay7_duration_full_checkbox_checked: bool = False,
     overlay8_effect: str = "fadein",
     overlay8_effect_time: int = 5,
+    overlay8_duration: int = 6,
+    overlay8_duration_full_checkbox_checked: bool = False,
     overlay1_start_at: int = 0,
     overlay2_start_at: int = 0
 ) -> Tuple[bool, Optional[str]]:
@@ -454,12 +466,24 @@ def create_video_with_ffmpeg(
             # Overlay 1
             if filter_overlay1:
                 filter_graph += f";{filter_overlay1}"
-                filter_graph += f";[bg][ol1]overlay={ox1}:{oy1}:enable='gte(t,{overlay1_start_at})'[tmp1]"
+                # Use duration control like overlay8 if duration full checkbox is not checked
+                if overlay1_2_duration_full_checkbox_checked:
+                    # Full duration - show for entire video
+                    filter_graph += f";[bg][ol1]overlay={ox1}:{oy1}:enable='gte(t,{overlay1_start_at})'[tmp1]"
+                else:
+                    # Limited duration - show for specified duration
+                    filter_graph += f";[bg][ol1]overlay={ox1}:{oy1}:enable='between(t,{overlay1_start_at},{overlay1_start_at+overlay1_2_duration})'[tmp1]"
                 last_label = "[tmp1]"
             # Overlay 2
             if filter_overlay2:
                 filter_graph += f";{filter_overlay2}"
-                filter_graph += f";{last_label}[ol2]overlay={ox2}:{oy2}:enable='gte(t,{overlay2_start_at})'[tmp2]"
+                # Use duration control like overlay8 if duration full checkbox is not checked
+                if overlay1_2_duration_full_checkbox_checked:
+                    # Full duration - show for entire video
+                    filter_graph += f";{last_label}[ol2]overlay={ox2}:{oy2}:enable='gte(t,{overlay2_start_at})'[tmp2]"
+                else:
+                    # Limited duration - show for specified duration
+                    filter_graph += f";{last_label}[ol2]overlay={ox2}:{oy2}:enable='between(t,{overlay2_start_at},{overlay2_start_at+overlay1_2_duration})'[tmp2]"
                 last_label = "[tmp2]"
             # Overlay 3
             if filter_overlay3:
@@ -469,27 +493,57 @@ def create_video_with_ffmpeg(
             # Overlay 4
             if filter_overlay4:
                 filter_graph += f";{filter_overlay4}"
-                filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}[tmp4]"
+                # Use duration control like overlay8 if duration full checkbox is not checked
+                if overlay4_duration_full_checkbox_checked:
+                    # Full duration - show for entire video
+                    filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}:enable='gte(t,{overlay4_effect_time})'[tmp4]"
+                else:
+                    # Limited duration - show for specified duration
+                    filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}:enable='between(t,{overlay4_effect_time},{overlay4_effect_time+overlay4_duration})'[tmp4]"
                 last_label = "[tmp4]"
             # Overlay 5
             if filter_overlay5:
                 filter_graph += f";{filter_overlay5}"
-                filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}[tmp5]"
+                # Use duration control like overlay8 if duration full checkbox is not checked
+                if overlay5_duration_full_checkbox_checked:
+                    # Full duration - show for entire video
+                    filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}:enable='gte(t,{overlay5_effect_time})'[tmp5]"
+                else:
+                    # Limited duration - show for specified duration
+                    filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}:enable='between(t,{overlay5_effect_time},{overlay5_effect_time+overlay5_duration})'[tmp5]"
                 last_label = "[tmp5]"
             # Overlay 6
             if filter_overlay6:
                 filter_graph += f";{filter_overlay6}"
-                filter_graph += f";{last_label}[ol6]overlay={ox6}:{oy6}[tmp6]"
+                # Use duration control like overlay8 if duration full checkbox is not checked
+                if overlay6_duration_full_checkbox_checked:
+                    # Full duration - show for entire video
+                    filter_graph += f";{last_label}[ol6]overlay={ox6}:{oy6}:enable='gte(t,{overlay6_effect_time})'[tmp6]"
+                else:
+                    # Limited duration - show for specified duration
+                    filter_graph += f";{last_label}[ol6]overlay={ox6}:{oy6}:enable='between(t,{overlay6_effect_time},{overlay6_effect_time+overlay6_duration})'[tmp6]"
                 last_label = "[tmp6]"
             # Overlay 7
             if filter_overlay7:
                 filter_graph += f";{filter_overlay7}"
-                filter_graph += f";{last_label}[ol7]overlay={ox7}:{oy7}[tmp7]"
+                # Use duration control like overlay8 if duration full checkbox is not checked
+                if overlay7_duration_full_checkbox_checked:
+                    # Full duration - show for entire video
+                    filter_graph += f";{last_label}[ol7]overlay={ox7}:{oy7}:enable='gte(t,{overlay7_effect_time})'[tmp7]"
+                else:
+                    # Limited duration - show for specified duration
+                    filter_graph += f";{last_label}[ol7]overlay={ox7}:{oy7}:enable='between(t,{overlay7_effect_time},{overlay7_effect_time+overlay7_duration})'[tmp7]"
                 last_label = "[tmp7]"
             # Overlay 8
             if filter_overlay8:
                 filter_graph += f";{filter_overlay8}"
-                filter_graph += f";{last_label}[ol8]overlay={ox8}:{oy8}[tmp8]"
+                # Use duration control like intro if duration full checkbox is not checked
+                if overlay8_duration_full_checkbox_checked:
+                    # Full duration - show for entire video
+                    filter_graph += f";{last_label}[ol8]overlay={ox8}:{oy8}:enable='gte(t,{overlay8_effect_time})'[tmp8]"
+                else:
+                    # Limited duration - show for specified duration
+                    filter_graph += f";{last_label}[ol8]overlay={ox8}:{oy8}:enable='between(t,{overlay8_effect_time},{overlay8_effect_time+overlay8_duration})'[tmp8]"
                 last_label = "[tmp8]"
             # Intro
             if filter_intro:
