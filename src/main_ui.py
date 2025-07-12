@@ -3023,7 +3023,7 @@ class SuperCutUI(QWidget):
         on_overlay8_effect_changed(self.overlay8_effect_combo.currentIndex())
 
         # Overlay8 Start at checkbox
-        self.overlay8_start_at_checkbox = QtWidgets.QCheckBox("Start at")
+        self.overlay8_start_at_checkbox = QtWidgets.QCheckBox("")
         self.overlay8_start_at_checkbox.setChecked(True)
         def update_overlay8_start_at_checkbox_style(state):
             self.overlay8_start_at_checkbox.setStyleSheet("")
@@ -4587,7 +4587,7 @@ class SuperCutUI(QWidget):
         default_overlay2_size = self.settings.value('default_overlay2_size', 50, type=int)
         default_overlay2_enabled = self.settings.value('default_overlay2_enabled', True, type=bool)
         if default_overlay2_enabled:
-            if self.overlay2_checkbox.isChecked():
+            if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
                 if not self.overlay2_edit.text().strip():
                     self.overlay2_edit.setText(default_overlay2_path)
                 idx = default_overlay2_x if 0 <= default_overlay2_x <= 100 else 75
@@ -4601,7 +4601,7 @@ class SuperCutUI(QWidget):
         default_overlay3_size = self.settings.value('default_overlay3_size', 50, type=int)
         default_overlay3_enabled = self.settings.value('default_overlay3_enabled', False, type=bool)
         if default_overlay3_enabled:
-            if self.overlay3_checkbox.isChecked():
+            if hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked():
                 if not self.overlay3_edit.text().strip():
                     self.overlay3_edit.setText(default_overlay3_path)
                 idx = next((i for i in range(self.overlay3_size_combo.count()) if self.overlay3_size_combo.itemData(i) == default_overlay3_size), 9)
@@ -4613,7 +4613,7 @@ class SuperCutUI(QWidget):
         default_overlay4_size = self.settings.value('default_overlay4_size', 50, type=int)
         default_overlay4_enabled = self.settings.value('default_overlay4_enabled', False, type=bool)
         if default_overlay4_enabled:
-            if self.overlay4_checkbox.isChecked():
+            if hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked():
                 if not self.overlay4_edit.text().strip():
                     self.overlay4_edit.setText(default_overlay4_path)
                 idx = default_overlay4_x if 0 <= default_overlay4_x <= 100 else 75
@@ -4622,17 +4622,23 @@ class SuperCutUI(QWidget):
                 self.overlay4_y_combo.setCurrentIndex(idx)
                 idx = next((i for i in range(self.overlay4_size_combo.count()) if self.overlay4_size_combo.itemData(i) == default_overlay4_size), 9)
                 self.overlay4_size_combo.setCurrentIndex(idx)
-        self.overlay4_checkbox.setChecked(default_overlay4_enabled)
+        if hasattr(self, 'overlay4_checkbox'):
+            self.overlay4_checkbox.setChecked(default_overlay4_enabled)
         # Set intro checkbox state from settings
-        self.intro_checkbox.setChecked(default_intro_enabled)
+        if hasattr(self, 'intro_checkbox'):
+            self.intro_checkbox.setChecked(default_intro_enabled)
         # Set overlay1 checkbox state from settings
-        self.overlay_checkbox.setChecked(default_overlay1_enabled)
+        if hasattr(self, 'overlay_checkbox'):
+            self.overlay_checkbox.setChecked(default_overlay1_enabled)
         # Set overlay2 checkbox state from settings
-        self.overlay2_checkbox.setChecked(default_overlay2_enabled)
+        if hasattr(self, 'overlay2_checkbox'):
+            self.overlay2_checkbox.setChecked(default_overlay2_enabled)
         # Set overlay3 checkbox state from settings
-        self.overlay3_checkbox.setChecked(default_overlay3_enabled)
+        if hasattr(self, 'overlay3_checkbox'):
+            self.overlay3_checkbox.setChecked(default_overlay3_enabled)
         # Set overlay4 checkbox state from settings
-        self.overlay4_checkbox.setChecked(default_overlay4_enabled)
+        if hasattr(self, 'overlay4_checkbox'):
+            self.overlay4_checkbox.setChecked(default_overlay4_enabled)
         # Set overlay5 checkbox state from settings
         default_overlay5_path = self.settings.value('default_overlay5_path', '', type=str)
         default_overlay5_x = self.settings.value('default_overlay5_x_percent', 0, type=int)
@@ -4640,7 +4646,7 @@ class SuperCutUI(QWidget):
         default_overlay5_size = self.settings.value('default_overlay5_size', 50, type=int)
         default_overlay5_enabled = self.settings.value('default_overlay5_enabled', False, type=bool)
         if default_overlay5_enabled:
-            if self.overlay5_checkbox.isChecked():
+            if hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked():
                 if not self.overlay5_edit.text().strip():
                     self.overlay5_edit.setText(default_overlay5_path)
                 idx = default_overlay5_x if 0 <= default_overlay5_x <= 100 else 75
@@ -4649,7 +4655,8 @@ class SuperCutUI(QWidget):
                 self.overlay5_y_combo.setCurrentIndex(idx)
                 idx = next((i for i in range(self.overlay5_size_combo.count()) if self.overlay5_size_combo.itemData(i) == default_overlay5_size), 9)
                 self.overlay5_size_combo.setCurrentIndex(idx)
-        self.overlay5_checkbox.setChecked(default_overlay5_enabled)
+        if hasattr(self, 'overlay5_checkbox'):
+            self.overlay5_checkbox.setChecked(default_overlay5_enabled)
         # Set list name checkbox state from settings
         default_list_name_enabled = self.settings.value('default_list_name_enabled', False, type=bool)
         if hasattr(self, 'name_list_checkbox'):
@@ -5141,25 +5148,25 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                     QMessageBox.warning(self, "⚠️ Overlay Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 1.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 2 validation
-            if self.overlay2_checkbox.isChecked():
+            if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
                 overlay2_path = self.overlay2_edit.text().strip()
                 if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png']:
                     QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 2.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 3 validation
-            if self.overlay3_checkbox.isChecked():
+            if hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked():
                 overlay3_path = self.overlay3_edit.text().strip()
                 if not overlay3_path or not os.path.isfile(overlay3_path) or os.path.splitext(overlay3_path)[1].lower() not in ['.gif', '.png']:
                     QMessageBox.warning(self, "⚠️ Overlay 3 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 3.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 4 validation
-            if self.overlay4_checkbox.isChecked():
+            if hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked():
                 overlay4_path = self.overlay4_edit.text().strip()
                 if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png']:
                     QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 4.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 5 validation
-            if self.overlay5_checkbox.isChecked():
+            if hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked():
                 overlay5_path = self.overlay5_edit.text().strip()
                 if not overlay5_path or not os.path.isfile(overlay5_path) or os.path.splitext(overlay5_path)[1].lower() not in ['.gif', '.png']:
                     QMessageBox.warning(self, "⚠️ Overlay 5 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 5.", QMessageBox.StandardButton.Ok)
