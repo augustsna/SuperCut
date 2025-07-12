@@ -51,7 +51,10 @@ class VideoWorker(QObject):
                  use_overlay6: bool = False, overlay6_path: str = "", overlay6_size_percent: int = 10, overlay6_x_percent: int = 75, overlay6_y_percent: int = 0,
                  use_overlay7: bool = False, overlay7_path: str = "", overlay7_size_percent: int = 10, overlay7_x_percent: int = 75, overlay7_y_percent: int = 0,
                  overlay6_effect: str = "fadein", overlay6_effect_time: int = 5,
-                 overlay7_effect: str = "fadein", overlay7_effect_time: int = 5):
+                 overlay7_effect: str = "fadein", overlay7_effect_time: int = 5,
+                 # --- Add overlay8, overlay8 effect ---
+                 use_overlay8: bool = False, overlay8_path: str = "", overlay8_size_percent: int = 10, overlay8_x_percent: int = 75, overlay8_y_percent: int = 0,
+                 overlay8_effect: str = "fadein", overlay8_effect_time: int = 5):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -139,6 +142,14 @@ class VideoWorker(QObject):
         self.overlay6_effect_time = overlay6_effect_time
         self.overlay7_effect = overlay7_effect
         self.overlay7_effect_time = overlay7_effect_time
+        # --- Add overlay8 attributes ---
+        self.use_overlay8 = use_overlay8
+        self.overlay8_path = overlay8_path
+        self.overlay8_size_percent = overlay8_size_percent
+        self.overlay8_x_percent = overlay8_x_percent
+        self.overlay8_y_percent = overlay8_y_percent
+        self.overlay8_effect = overlay8_effect
+        self.overlay8_effect_time = overlay8_effect_time
 
     def stop(self):
         """Stop the video processing"""
@@ -377,6 +388,11 @@ class VideoWorker(QObject):
                 self.overlay7_size_percent,
                 self.overlay7_x_percent,
                 self.overlay7_y_percent,
+                self.use_overlay8,
+                self.overlay8_path,
+                self.overlay8_size_percent,
+                self.overlay8_x_percent,
+                self.overlay8_y_percent,
                 self.use_intro,
                 self.intro_path,
                 self.intro_size_percent,
@@ -411,6 +427,8 @@ class VideoWorker(QObject):
                 overlay6_effect_time=self.overlay6_effect_time,
                 overlay7_effect=self.overlay7_effect,
                 overlay7_effect_time=self.overlay7_effect_time,
+                overlay8_effect=self.overlay8_effect,
+                overlay8_effect_time=self.overlay8_effect_time,
                 overlay1_start_at=self.overlay1_start_at,
                 overlay2_start_at=self.overlay2_start_at
             )

@@ -2433,6 +2433,183 @@ class SuperCutUI(QWidget):
         self.overlay7_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
         update_overlay6_7_effect_label_style()
 
+        # Overlay 8 controls (similar to Overlay 7)
+        self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
+        self.overlay8_checkbox.setFixedWidth(82)
+        self.overlay8_checkbox.setChecked(False)
+        def update_overlay8_checkbox_style(state):
+            self.overlay8_checkbox.setStyleSheet("")  # Always default color
+        self.overlay8_checkbox.stateChanged.connect(update_overlay8_checkbox_style)
+        update_overlay8_checkbox_style(self.overlay8_checkbox.checkState())
+
+        overlay8_layout = QHBoxLayout()
+        overlay8_layout.setSpacing(4)
+        self.overlay8_edit = ImageDropLineEdit()
+        self.overlay8_edit.setPlaceholderText("Overlay 8 image path (*.gif, *.png)")
+        self.overlay8_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay8_edit.setFixedWidth(125)
+        self.overlay8_path = ""
+        def on_overlay8_changed():
+            current_text = self.overlay8_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay8_edit.setText(cleaned_text)
+            self.overlay8_path = self.overlay8_edit.text().strip()
+        self.overlay8_edit.textChanged.connect(on_overlay8_changed)
+        overlay8_btn = QPushButton("Select")
+        overlay8_btn.setFixedWidth(60)
+        def select_overlay8_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 8 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.overlay8_edit.setText(file_path)
+        overlay8_btn.clicked.connect(select_overlay8_image)
+        overlay8_size_label = QLabel("S:")
+        overlay8_size_label.setFixedWidth(18)
+        self.overlay8_size_combo = QtWidgets.QComboBox()
+        self.overlay8_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.overlay8_size_combo.addItem(f"{percent}%", percent)
+        self.overlay8_size_combo.setCurrentIndex(9)  # Default 50%
+        self.overlay8_size_percent = 50
+        def on_overlay8_size_changed(idx):
+            self.overlay8_size_percent = self.overlay8_size_combo.itemData(idx)
+        self.overlay8_size_combo.setEditable(False)
+        self.overlay8_size_combo.currentIndexChanged.connect(on_overlay8_size_changed)
+        on_overlay8_size_changed(self.overlay8_size_combo.currentIndex())
+        # Overlay8 X coordinate
+        overlay8_x_label = QLabel("X:")
+        overlay8_x_label.setFixedWidth(18)
+        self.overlay8_x_combo = QtWidgets.QComboBox()
+        self.overlay8_x_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay8_x_combo.addItem(f"{percent}%", percent)
+        self.overlay8_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay8_x_percent = 0
+        def on_overlay8_x_changed(idx):
+            self.overlay8_x_percent = self.overlay8_x_combo.itemData(idx)
+        self.overlay8_x_combo.currentIndexChanged.connect(on_overlay8_x_changed)
+        on_overlay8_x_changed(self.overlay8_x_combo.currentIndex())
+
+        # Overlay8 Y coordinate
+        overlay8_y_label = QLabel("Y:")
+        overlay8_y_label.setFixedWidth(18)
+        self.overlay8_y_combo = QtWidgets.QComboBox()
+        self.overlay8_y_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay8_y_combo.addItem(f"{percent}%", percent)
+        self.overlay8_y_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay8_y_percent = 0
+        def on_overlay8_y_changed(idx):
+            self.overlay8_y_percent = self.overlay8_y_combo.itemData(idx)
+        self.overlay8_y_combo.currentIndexChanged.connect(on_overlay8_y_changed)
+        on_overlay8_y_changed(self.overlay8_y_combo.currentIndex())
+
+        def set_overlay8_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay8_edit.setEnabled(enabled)
+            overlay8_btn.setEnabled(enabled)
+            self.overlay8_size_combo.setEnabled(enabled)
+            self.overlay8_x_combo.setEnabled(enabled)
+            self.overlay8_y_combo.setEnabled(enabled)
+            if enabled:
+                overlay8_btn.setStyleSheet("")
+                self.overlay8_edit.setStyleSheet("")
+                self.overlay8_size_combo.setStyleSheet("")
+                self.overlay8_x_combo.setStyleSheet("")
+                self.overlay8_y_combo.setStyleSheet("")
+                overlay8_size_label.setStyleSheet("")
+                overlay8_x_label.setStyleSheet("")
+                overlay8_y_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                overlay8_btn.setStyleSheet(grey_btn_style)
+                self.overlay8_edit.setStyleSheet(grey_btn_style)
+                self.overlay8_size_combo.setStyleSheet(grey_btn_style)
+                self.overlay8_x_combo.setStyleSheet(grey_btn_style)
+                self.overlay8_y_combo.setStyleSheet(grey_btn_style)
+                overlay8_size_label.setStyleSheet("color: grey;")
+                overlay8_x_label.setStyleSheet("color: grey;")
+                overlay8_y_label.setStyleSheet("color: grey;")
+        self.overlay8_checkbox.stateChanged.connect(lambda _: set_overlay8_enabled(self.overlay8_checkbox.checkState()))
+        
+        overlay8_layout.addWidget(self.overlay8_checkbox)
+        overlay8_layout.addSpacing(3)
+        overlay8_layout.addWidget(self.overlay8_edit)
+        overlay8_layout.addSpacing(3)  # Space before select button
+        overlay8_layout.addWidget(overlay8_btn)
+        overlay8_layout.addSpacing(4)  # Space before position label
+        overlay8_layout.addWidget(overlay8_size_label)
+        overlay8_layout.addWidget(self.overlay8_size_combo)
+        overlay8_layout.addSpacing(4)
+        overlay8_layout.addWidget(overlay8_x_label)
+        overlay8_layout.addWidget(self.overlay8_x_combo)
+        overlay8_layout.addSpacing(4)
+        overlay8_layout.addWidget(overlay8_y_label)
+        overlay8_layout.addWidget(self.overlay8_y_combo)
+        set_overlay8_enabled(self.overlay8_checkbox.checkState())
+        layout.addLayout(overlay8_layout)
+
+        # --- EFFECT CONTROL FOR OVERLAY 8 (individual effect control) ---
+        overlay8_label = QLabel("Overlay 8:")
+        overlay8_label.setFixedWidth(80)
+        self.overlay8_effect_combo = QtWidgets.QComboBox()
+        self.overlay8_effect_combo.setFixedWidth(combo_width)
+        for label, value in effect_options:
+            self.overlay8_effect_combo.addItem(label, value)
+        self.overlay8_effect_combo.setCurrentIndex(1)
+        self.selected_overlay8_effect = "fadein"
+        def on_overlay8_effect_changed(idx):
+            self.selected_overlay8_effect = self.overlay8_effect_combo.itemData(idx)
+        self.overlay8_effect_combo.currentIndexChanged.connect(on_overlay8_effect_changed)
+        on_overlay8_effect_changed(self.overlay8_effect_combo.currentIndex())
+
+        overlay8_start_label = QLabel("Start at:")
+        overlay8_start_label.setFixedWidth(80)
+        self.overlay8_start_edit = QLineEdit("5")
+        self.overlay8_start_edit.setFixedWidth(80)
+        self.overlay8_start_edit.setValidator(QIntValidator(0, 999, self))
+        self.overlay8_start_edit.setPlaceholderText("5")
+        self.overlay8_start_at = 5
+        def on_overlay8_start_changed():
+            try:
+                self.overlay8_start_at = int(self.overlay8_start_edit.text())
+            except Exception:
+                self.overlay8_start_at = 5
+        self.overlay8_start_edit.textChanged.connect(on_overlay8_start_changed)
+        on_overlay8_start_changed()
+
+        overlay8_layout = QHBoxLayout()
+        overlay8_layout.setContentsMargins(0, 0, 0, 0)
+        overlay8_layout.addSpacing(260)
+        overlay8_layout.addWidget(overlay8_label)
+        overlay8_layout.addSpacing(-3)
+        overlay8_layout.addWidget(self.overlay8_effect_combo)
+        overlay8_layout.addSpacing(-1)
+        overlay8_layout.addWidget(overlay8_start_label)
+        overlay8_layout.addSpacing(-32)
+        overlay8_layout.addWidget(self.overlay8_start_edit)
+        overlay8_layout.addStretch()
+        layout.addLayout(overlay8_layout)
+
+        # --- Overlay 8 effect greying logic ---
+        def update_overlay8_effect_label_style():
+            if not self.overlay8_checkbox.isChecked():
+                overlay8_label.setStyleSheet("color: grey;")
+                self.overlay8_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_effect_combo.setEnabled(False)
+                overlay8_start_label.setStyleSheet("color: grey;")
+                self.overlay8_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_start_edit.setEnabled(False)
+            else:
+                overlay8_label.setStyleSheet("")
+                self.overlay8_effect_combo.setStyleSheet("")
+                self.overlay8_effect_combo.setEnabled(True)
+                overlay8_start_label.setStyleSheet("")
+                self.overlay8_start_edit.setStyleSheet("")
+                self.overlay8_start_edit.setEnabled(True)
+        self.overlay8_checkbox.stateChanged.connect(lambda _: update_overlay8_effect_label_style())
+        update_overlay8_effect_label_style()
+
         # Overlay 3 controls (similar to Overlay 2)
         self.overlay3_checkbox = QtWidgets.QCheckBox("Overlay 3:")
         self.overlay3_checkbox.setFixedWidth(82)
@@ -3423,7 +3600,14 @@ class SuperCutUI(QWidget):
             overlay6_effect=self.selected_overlay6_7_effect,
             overlay6_effect_time=self.overlay6_7_start_at,
             overlay7_effect=self.selected_overlay6_7_effect,
-            overlay7_effect_time=self.overlay6_7_start_at
+            overlay7_effect_time=self.overlay6_7_start_at,
+            # --- Add overlay8, overlay8 effect ---
+            use_overlay8=self.overlay8_checkbox.isChecked(),
+            overlay8_path=self.overlay8_path,
+            overlay8_size_percent=self.overlay8_size_percent,
+            overlay8_x_percent=self.overlay8_x_percent, overlay8_y_percent=self.overlay8_y_percent,
+            overlay8_effect=self.selected_overlay8_effect,
+            overlay8_effect_time=self.overlay8_start_at
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
@@ -4041,6 +4225,10 @@ Overlay 7: {self.overlay7_checkbox.isChecked()} | Path: {self.overlay7_path}
 Size: {self.overlay7_size_percent}% | X: {self.overlay7_x_percent}% | Y: {self.overlay7_y_percent}%
 Overlay7 Effect: {self.selected_overlay6_7_effect} | Start at: {self.overlay6_7_start_at}
 
+Overlay 8: {self.overlay8_checkbox.isChecked()} | Path: {self.overlay8_path}
+Size: {self.overlay8_size_percent}% | X: {self.overlay8_x_percent}% | Y: {self.overlay8_y_percent}%
+Overlay8 Effect: {self.selected_overlay8_effect} | Start at: {self.overlay8_start_at}
+
 --- Song Title Overlay ---
 Soundwave Overlay: {self.overlay3_checkbox.isChecked()} | Path: {self.overlay3_path}
 Size: {self.overlay3_size_percent}% | X: {self.overlay3_x_percent}% | Y: {self.overlay3_y_percent}%
@@ -4495,6 +4683,13 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         overlay6_effect_time = self.params['overlay6_effect_time']
                         overlay7_effect = self.params['overlay7_effect']
                         overlay7_effect_time = self.params['overlay7_effect_time']
+                        use_overlay8 = self.params['use_overlay8']
+                        overlay8_path = self.params['overlay8_path']
+                        overlay8_size_percent = self.params['overlay8_size_percent']
+                        overlay8_x_percent = self.params['overlay8_x_percent']
+                        overlay8_y_percent = self.params['overlay8_y_percent']
+                        overlay8_effect = self.params['overlay8_effect']
+                        overlay8_effect_time = self.params['overlay8_effect_time']
                         use_intro = self.params['use_intro']
                         intro_path = self.params['intro_path']
                         intro_size_percent = self.params['intro_size_percent']
@@ -4559,6 +4754,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             use_overlay5, overlay5_path, overlay5_size_percent, overlay5_x_percent, overlay5_y_percent,
                             use_overlay6, overlay6_path, overlay6_size_percent, overlay6_x_percent, overlay6_y_percent,
                             use_overlay7, overlay7_path, overlay7_size_percent, overlay7_x_percent, overlay7_y_percent,
+                            use_overlay8, overlay8_path, overlay8_size_percent, overlay8_x_percent, overlay8_y_percent,
                             use_intro, intro_path, intro_size_percent, intro_x_percent, intro_y_percent,
                             effect, effect_time, intro_effect, actual_intro_duration, actual_intro_start_at, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
                             extra_overlays=extra_overlays,
@@ -4580,6 +4776,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             overlay6_effect_time=overlay6_effect_time,
                             overlay7_effect=overlay7_effect,
                             overlay7_effect_time=overlay7_effect_time,
+                            overlay8_effect=overlay8_effect,
+                            overlay8_effect_time=overlay8_effect_time,
                             overlay1_start_at=overlay1_start_at,
                             overlay2_start_at=overlay2_start_at
                         )
@@ -4645,6 +4843,13 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay6_effect_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5,
                 overlay7_effect=self.selected_overlay6_7_effect if hasattr(self, 'selected_overlay6_7_effect') else "fadein",
                 overlay7_effect_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5,
+                use_overlay8=self.overlay8_checkbox.isChecked() if hasattr(self, 'overlay8_checkbox') else False,
+                overlay8_path=self.overlay8_path if hasattr(self, 'overlay8_path') else "",
+                overlay8_size_percent=self.overlay8_size_percent if hasattr(self, 'overlay8_size_percent') else 10,
+                overlay8_x_percent=self.overlay8_x_percent if hasattr(self, 'overlay8_x_percent') else 75,
+                overlay8_y_percent=self.overlay8_y_percent if hasattr(self, 'overlay8_y_percent') else 0,
+                overlay8_effect=self.selected_overlay8_effect if hasattr(self, 'selected_overlay8_effect') else "fadein",
+                overlay8_effect_time=self.overlay8_start_at if hasattr(self, 'overlay8_start_at') else 5,
                 use_intro=self.intro_checkbox.isChecked(),
                 intro_path=self.intro_path,
                 intro_size_percent=self.intro_size_percent,
