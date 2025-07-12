@@ -445,6 +445,7 @@ class VideoWorker(QObject):
                 self.intro_effect,
                 actual_intro_duration,
                 actual_intro_start_at,
+                self.intro_duration_full_checkbox_checked,
                 self.preset,
                 self.audio_bitrate,
                 self.video_bitrate,

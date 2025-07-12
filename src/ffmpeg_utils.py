@@ -126,6 +126,7 @@ def create_video_with_ffmpeg(
     intro_effect: str = "fadeout",
     intro_duration: int = 6,
     intro_start_at: int = 0,
+    intro_duration_full_checkbox_checked: bool = False,
     preset: str = "slow",
     audio_bitrate: str = "384k",
     video_bitrate: str = "12M",
@@ -374,7 +375,7 @@ def create_video_with_ffmpeg(
             filter_bg = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height}[bg]"
 
             # Effect logic for overlays
-            def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext):
+            def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext, duration=None):
                 if idx is None:
                     return ""
                 chain = f"[{idx}:v]"
@@ -383,9 +384,13 @@ def create_video_with_ffmpeg(
                 chain += "format=rgba,"
                 fade_alpha = ":alpha=1" if ext == ".png" else ""
                 if effect == "fadeinout":
-                    hold_duration = 5
                     fadein_duration = 1.5
                     fadeout_duration = 1.5
+                    # Calculate hold duration based on total duration
+                    if duration is not None:
+                        hold_duration = max(0, duration - fadein_duration - fadeout_duration)
+                    else:
+                        hold_duration = 5  # Fallback to 5 seconds if no duration provided
                     fadein_end = effect_time + fadein_duration
                     fadeout_start = fadein_end + hold_duration
                     chain += f"fade=t=in:st={effect_time}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
@@ -409,23 +414,64 @@ def create_video_with_ffmpeg(
                 if effect == "fadein":
                     chain += f"fade=t=in:st={start_at}:d=1{fade_alpha},"
                 elif effect == "fadeout":
-                    chain += f"fade=t=out:st={start_at+duration-1.5}:d=1.5{fade_alpha},"
+                    # Use duration if provided, otherwise use default calculation
+                    if duration is not None:
+                        fadeout_start = start_at + duration - 1.5
+                    else:
+                        fadeout_start = start_at + 6 - 1.5  # Default 6 seconds
+                    chain += f"fade=t=out:st={fadeout_start}:d=1.5{fade_alpha},"
                 elif effect == "fadeinout":
-                    chain += f"fade=t=in:st={start_at}:d=1.5{fade_alpha},fade=t=out:st={start_at+duration-1.5}:d=1.5{fade_alpha},"
+                    # Use duration if provided, otherwise use default calculation
+                    if duration is not None:
+                        fadeout_start = start_at + duration - 1.5
+                    else:
+                        fadeout_start = start_at + 6 - 1.5  # Default 6 seconds
+                    chain += f"fade=t=in:st={start_at}:d=1.5{fade_alpha},fade=t=out:st={fadeout_start}:d=1.5{fade_alpha},"
                 elif effect == "zoompan":
                     chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
                 chain += f"scale={scale_expr}[{label}]"
                 return chain
 
-            filter_intro = intro_effect_chain(intro_idx, f"{owi}:{ohi}", "oi", intro_effect, intro_duration, intro_start_at, ext_intro) if intro_idx is not None else ""
-            filter_overlay1 = overlay_effect_chain(overlay1_idx, f"{ow1}:{oh1}", "ol1", effect, effect_time, ext1) if overlay1_idx is not None else ""
-            filter_overlay2 = overlay_effect_chain(overlay2_idx, f"{ow2}:{oh2}", "ol2", effect, effect_time, ext2) if overlay2_idx is not None else ""
+            # Calculate duration for intro based on full duration checkbox
+            intro_actual_duration = None
+            if not intro_duration_full_checkbox_checked:
+                intro_actual_duration = intro_duration
+            
+            filter_intro = intro_effect_chain(intro_idx, f"{owi}:{ohi}", "oi", intro_effect, intro_actual_duration, intro_start_at, ext_intro) if intro_idx is not None else ""
+            # Calculate duration for overlay1_2 based on full duration checkbox
+            overlay1_2_actual_duration = None
+            if not overlay1_2_duration_full_checkbox_checked:
+                overlay1_2_actual_duration = overlay1_2_duration
+            
+            filter_overlay1 = overlay_effect_chain(overlay1_idx, f"{ow1}:{oh1}", "ol1", effect, effect_time, ext1, overlay1_2_actual_duration) if overlay1_idx is not None else ""
+            filter_overlay2 = overlay_effect_chain(overlay2_idx, f"{ow2}:{oh2}", "ol2", effect, effect_time, ext2, overlay1_2_actual_duration) if overlay2_idx is not None else ""
             filter_overlay3 = overlay_effect_chain(overlay3_idx, f"{ow3}:{oh3}", "ol3", overlay3_effect, overlay3_effect_time, ext3) if overlay3_idx is not None else ""
-            filter_overlay4 = overlay_effect_chain(overlay4_idx, f"{ow4}:{oh4}", "ol4", overlay4_effect, overlay4_effect_time, ext4) if overlay4_idx is not None else ""
-            filter_overlay5 = overlay_effect_chain(overlay5_idx, f"{ow5}:{oh5}", "ol5", overlay5_effect, overlay5_effect_time, ext5) if overlay5_idx is not None else ""
-            filter_overlay6 = overlay_effect_chain(overlay6_idx, f"{ow6}:{oh6}", "ol6", overlay6_effect, overlay6_effect_time, ext6) if overlay6_idx is not None else ""
-            filter_overlay7 = overlay_effect_chain(overlay7_idx, f"{ow7}:{oh7}", "ol7", overlay7_effect, overlay7_effect_time, ext7) if overlay7_idx is not None else ""
-            filter_overlay8 = overlay_effect_chain(overlay8_idx, f"{ow8}:{oh8}", "ol8", overlay8_effect, overlay8_effect_time, ext8) if overlay8_idx is not None else ""
+            # Calculate duration for overlay4_5 based on full duration checkbox
+            overlay4_actual_duration = None
+            overlay5_actual_duration = None
+            if not overlay4_duration_full_checkbox_checked:
+                overlay4_actual_duration = overlay4_duration
+            if not overlay5_duration_full_checkbox_checked:
+                overlay5_actual_duration = overlay5_duration
+            
+            filter_overlay4 = overlay_effect_chain(overlay4_idx, f"{ow4}:{oh4}", "ol4", overlay4_effect, overlay4_effect_time, ext4, overlay4_actual_duration) if overlay4_idx is not None else ""
+            filter_overlay5 = overlay_effect_chain(overlay5_idx, f"{ow5}:{oh5}", "ol5", overlay5_effect, overlay5_effect_time, ext5, overlay5_actual_duration) if overlay5_idx is not None else ""
+            # Calculate duration for overlay6_7 based on full duration checkbox
+            overlay6_actual_duration = None
+            overlay7_actual_duration = None
+            if not overlay6_duration_full_checkbox_checked:
+                overlay6_actual_duration = overlay6_duration
+            if not overlay7_duration_full_checkbox_checked:
+                overlay7_actual_duration = overlay7_duration
+            
+            filter_overlay6 = overlay_effect_chain(overlay6_idx, f"{ow6}:{oh6}", "ol6", overlay6_effect, overlay6_effect_time, ext6, overlay6_actual_duration) if overlay6_idx is not None else ""
+            filter_overlay7 = overlay_effect_chain(overlay7_idx, f"{ow7}:{oh7}", "ol7", overlay7_effect, overlay7_effect_time, ext7, overlay7_actual_duration) if overlay7_idx is not None else ""
+            # Calculate duration for overlay8 based on full duration checkbox
+            overlay8_actual_duration = None
+            if not overlay8_duration_full_checkbox_checked:
+                overlay8_actual_duration = overlay8_duration
+            
+            filter_overlay8 = overlay_effect_chain(overlay8_idx, f"{ow8}:{oh8}", "ol8", overlay8_effect, overlay8_effect_time, ext8, overlay8_actual_duration) if overlay8_idx is not None else ""
             # --- Song Title Overlay Filter Graph ---
             filter_chains = []
             overlay_labels = []
@@ -548,7 +594,13 @@ def create_video_with_ffmpeg(
             # Intro
             if filter_intro:
                 filter_graph += f";{filter_intro}"
-                filter_graph += f";{last_label}[oi]overlay={ox_intro}:{oy_intro}:enable='between(t,{intro_start_at},{intro_start_at+intro_duration})'[v1]"
+                # Use duration control like overlays if duration full checkbox is not checked
+                if intro_duration_full_checkbox_checked:
+                    # Full duration - show for entire video
+                    filter_graph += f";{last_label}[oi]overlay={ox_intro}:{oy_intro}:enable='gte(t,{intro_start_at})'[v1]"
+                else:
+                    # Limited duration - show for specified duration
+                    filter_graph += f";{last_label}[oi]overlay={ox_intro}:{oy_intro}:enable='between(t,{intro_start_at},{intro_start_at+intro_duration})'[v1]"
                 last_label = "[v1]"
             # Extra overlays
             if filter_chains:

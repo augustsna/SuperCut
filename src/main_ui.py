@@ -5145,12 +5145,20 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         overlay7_y_percent = self.params['overlay7_y_percent']
                         overlay4_effect = self.params['overlay4_effect']
                         overlay4_effect_time = self.params['overlay4_effect_time']
+                        overlay4_duration = self.params['overlay4_duration']
+                        overlay4_duration_full_checkbox_checked = self.params['overlay4_duration_full_checkbox_checked']
                         overlay5_effect = self.params['overlay5_effect']
                         overlay5_effect_time = self.params['overlay5_effect_time']
+                        overlay5_duration = self.params['overlay5_duration']
+                        overlay5_duration_full_checkbox_checked = self.params['overlay5_duration_full_checkbox_checked']
                         overlay6_effect = self.params['overlay6_effect']
                         overlay6_effect_time = self.params['overlay6_effect_time']
+                        overlay6_duration = self.params['overlay6_duration']
+                        overlay6_duration_full_checkbox_checked = self.params['overlay6_duration_full_checkbox_checked']
                         overlay7_effect = self.params['overlay7_effect']
                         overlay7_effect_time = self.params['overlay7_effect_time']
+                        overlay7_duration = self.params['overlay7_duration']
+                        overlay7_duration_full_checkbox_checked = self.params['overlay7_duration_full_checkbox_checked']
                         use_overlay8 = self.params['use_overlay8']
                         overlay8_path = self.params['overlay8_path']
                         overlay8_size_percent = self.params['overlay8_size_percent']
@@ -5158,6 +5166,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         overlay8_y_percent = self.params['overlay8_y_percent']
                         overlay8_effect = self.params['overlay8_effect']
                         overlay8_effect_time = self.params['overlay8_effect_time']
+                        overlay8_duration = self.params['overlay8_duration']
+                        overlay8_duration_full_checkbox_checked = self.params['overlay8_duration_full_checkbox_checked']
                         use_intro = self.params['use_intro']
                         intro_path = self.params['intro_path']
                         intro_size_percent = self.params['intro_size_percent']
@@ -5191,7 +5201,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             extra_overlays = [{
                                 'path': temp_png,
                                 'start': song_title_start_at,
-                                'duration': 10,  # Show for 10s for dry run
+                                'duration': 10,  # Will be updated after total_duration calculation
                                 'x_percent': song_title_x_percent,
                                 'y_percent': song_title_y_percent
                             }]
@@ -5213,6 +5223,20 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             # Use full remaining duration: total_duration - start_at
                             actual_intro_duration = int(max(1, total_duration - actual_intro_start_at))
                         
+                        # Update song title duration to match normal run logic
+                        if extra_overlays:
+                            # Match normal run first song logic: duration = song_duration - (start_at - song_start)
+                            # For dry run, we use the total duration as the "song duration"
+                            song_duration = total_duration
+                            song_start = 0  # Dry run song starts at 0
+                            start_at = song_title_start_at
+                            
+                            # Calculate duration like normal run
+                            overlay_duration = song_duration - (start_at - song_start)
+                            overlay_duration = max(overlay_duration, 1.0)  # Minimum 1 second
+                            
+                            extra_overlays[0]['duration'] = overlay_duration
+                        
                         success, err = create_video_with_ffmpeg(
                             dry_img, dry_mp3, dry_out, resolution, fps, codec,
                             use_overlay, overlay1_path, overlay1_size_percent, overlay1_x_percent, overlay1_y_percent,
@@ -5224,7 +5248,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             use_overlay7, overlay7_path, overlay7_size_percent, overlay7_x_percent, overlay7_y_percent,
                             use_overlay8, overlay8_path, overlay8_size_percent, overlay8_x_percent, overlay8_y_percent,
                             use_intro, intro_path, intro_size_percent, intro_x_percent, intro_y_percent,
-                            effect, effect_time, 6, False, intro_effect, actual_intro_duration, actual_intro_start_at, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
+                            effect, effect_time, 6, False, intro_effect, actual_intro_duration, actual_intro_start_at, intro_duration_full_checkbox_checked, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
                             extra_overlays=extra_overlays,
                             song_title_effect=song_title_effect,
                             song_title_font=song_title_font,
@@ -5238,22 +5262,24 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             overlay3_effect_time=song_title_start_at if (use_song_title_overlay and song_title_start_at is not None) else 5,
                             overlay4_effect=overlay4_effect,
                             overlay4_effect_time=overlay4_effect_time,
-                            overlay4_duration=6,
-                            overlay4_duration_full_checkbox_checked=False,
+                            overlay4_duration=overlay4_duration,
+                            overlay4_duration_full_checkbox_checked=overlay4_duration_full_checkbox_checked,
                             overlay5_effect=overlay5_effect,
                             overlay5_effect_time=overlay5_effect_time,
-                            overlay5_duration=6,
-                            overlay5_duration_full_checkbox_checked=False,
+                            overlay5_duration=overlay5_duration,
+                            overlay5_duration_full_checkbox_checked=overlay5_duration_full_checkbox_checked,
                             overlay6_effect=overlay6_effect,
                             overlay6_effect_time=overlay6_effect_time,
-                            overlay6_duration=6,
-                            overlay6_duration_full_checkbox_checked=False,
+                            overlay6_duration=overlay6_duration,
+                            overlay6_duration_full_checkbox_checked=overlay6_duration_full_checkbox_checked,
                             overlay7_effect=overlay7_effect,
                             overlay7_effect_time=overlay7_effect_time,
-                            overlay7_duration=6,
-                            overlay7_duration_full_checkbox_checked=False,
+                            overlay7_duration=overlay7_duration,
+                            overlay7_duration_full_checkbox_checked=overlay7_duration_full_checkbox_checked,
                             overlay8_effect=overlay8_effect,
                             overlay8_effect_time=overlay8_effect_time,
+                            overlay8_duration=overlay8_duration,
+                            overlay8_duration_full_checkbox_checked=overlay8_duration_full_checkbox_checked,
                             overlay1_start_at=overlay1_start_at,
                             overlay2_start_at=overlay2_start_at
                         )
@@ -5313,12 +5339,20 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay7_y_percent=self.overlay7_y_percent if hasattr(self, 'overlay7_y_percent') else 0,
                 overlay4_effect=self.selected_overlay4_5_effect if hasattr(self, 'selected_overlay4_5_effect') else "fadein",
                 overlay4_effect_time=self.overlay4_5_start_at if hasattr(self, 'overlay4_5_start_at') else 5,
+                overlay4_duration=self.overlay4_5_duration if hasattr(self, 'overlay4_5_duration') else 6,
+                overlay4_duration_full_checkbox_checked=self.overlay4_5_duration_full_checkbox.isChecked() if hasattr(self, 'overlay4_5_duration_full_checkbox') else False,
                 overlay5_effect=self.selected_overlay4_5_effect if hasattr(self, 'selected_overlay4_5_effect') else "fadein",
                 overlay5_effect_time=self.overlay4_5_start_at if hasattr(self, 'overlay4_5_start_at') else 5,
+                overlay5_duration=self.overlay4_5_duration if hasattr(self, 'overlay4_5_duration') else 6,
+                overlay5_duration_full_checkbox_checked=self.overlay4_5_duration_full_checkbox.isChecked() if hasattr(self, 'overlay4_5_duration_full_checkbox') else False,
                 overlay6_effect=self.selected_overlay6_7_effect if hasattr(self, 'selected_overlay6_7_effect') else "fadein",
                 overlay6_effect_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5, overlay6_7_start_from=self.overlay6_7_start_from if hasattr(self, 'overlay6_7_start_from') else 0, overlay6_7_start_at_checkbox_checked=self.overlay6_7_start_at_checkbox.isChecked() if hasattr(self, 'overlay6_7_start_at_checkbox') else True,
+                overlay6_duration=self.overlay6_7_duration if hasattr(self, 'overlay6_7_duration') else 6,
+                overlay6_duration_full_checkbox_checked=self.overlay6_7_duration_full_checkbox.isChecked() if hasattr(self, 'overlay6_7_duration_full_checkbox') else False,
                 overlay7_effect=self.selected_overlay6_7_effect if hasattr(self, 'selected_overlay6_7_effect') else "fadein",
                 overlay7_effect_time=self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5,
+                overlay7_duration=self.overlay6_7_duration if hasattr(self, 'overlay6_7_duration') else 6,
+                overlay7_duration_full_checkbox_checked=self.overlay6_7_duration_full_checkbox.isChecked() if hasattr(self, 'overlay6_7_duration_full_checkbox') else False,
                 use_overlay8=self.overlay8_checkbox.isChecked() if hasattr(self, 'overlay8_checkbox') else False,
                 overlay8_path=self.overlay8_path if hasattr(self, 'overlay8_path') else "",
                 overlay8_size_percent=self.overlay8_size_percent if hasattr(self, 'overlay8_size_percent') else 10,
@@ -5326,6 +5360,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay8_y_percent=self.overlay8_y_percent if hasattr(self, 'overlay8_y_percent') else 0,
                 overlay8_effect=self.selected_overlay8_effect if hasattr(self, 'selected_overlay8_effect') else "fadein",
                 overlay8_effect_time=self.overlay8_start_at if hasattr(self, 'overlay8_start_at') else 5,
+                overlay8_duration=self.overlay8_duration if hasattr(self, 'overlay8_duration') else 6,
+                overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked() if hasattr(self, 'overlay8_duration_full_checkbox') else False,
                 use_intro=self.intro_checkbox.isChecked(),
                 intro_path=self.intro_path,
                 intro_size_percent=self.intro_size_percent,
