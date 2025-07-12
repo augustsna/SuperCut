@@ -2958,6 +2958,8 @@ class SuperCutUI(QWidget):
                 else:
                     self.overlay8_duration_edit.setStyleSheet("")
                     overlay8_duration_label.setStyleSheet("")
+                # Ensure timing controls are set according to popup checkbox when overlay8 is enabled
+                set_overlay8_timing_controls_enabled(self.overlay8_popup_checkbox.checkState())
             else:
                 # When overlay8 is disabled, disable duration field regardless of full checkbox
                 overlay8_duration_label.setEnabled(False)
@@ -3022,6 +3024,55 @@ class SuperCutUI(QWidget):
         self.overlay8_effect_combo.currentIndexChanged.connect(on_overlay8_effect_changed)
         on_overlay8_effect_changed(self.overlay8_effect_combo.currentIndex())
 
+        # Overlay8 Pop up checkbox
+        self.overlay8_popup_checkbox = QtWidgets.QCheckBox("Pop up")
+        self.overlay8_popup_checkbox.setChecked(False)
+        
+        def set_overlay8_timing_controls_enabled(state):
+            # Only manage timing controls if overlay8 is enabled
+            if not self.overlay8_checkbox.isChecked():
+                return
+                
+            # Convert state to boolean: 0 = unchecked, 2 = checked
+            popup_checked = (state == Qt.CheckState.Checked or state == 2)
+            enabled = not popup_checked  # Enable when popup is unchecked, disable when checked
+            
+            # Full duration checkbox and duration field logic
+            if popup_checked:
+                self.overlay8_duration_full_checkbox.setEnabled(False)
+                self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.overlay8_duration_edit.setEnabled(True)
+                self.overlay8_duration_edit.setStyleSheet("")  # normal style
+            else:
+                self.overlay8_duration_full_checkbox.setEnabled(True)
+                self.overlay8_duration_full_checkbox.setStyleSheet("")
+                # Let the duration full checkbox control the duration field
+                set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
+
+            self.overlay8_start_at_checkbox.setEnabled(enabled)
+            self.overlay8_start_combo.setEnabled(enabled)
+            self.overlay8_start_from_combo.setEnabled(enabled)
+            
+            # Update styling for start controls
+            if enabled:
+                self.overlay8_start_at_checkbox.setStyleSheet("")
+                overlay8_start_label.setStyleSheet("")
+                overlay8_start_from_label.setStyleSheet("")
+                self.overlay8_start_combo.setStyleSheet("")
+                self.overlay8_start_from_combo.setStyleSheet("")
+            else:
+                self.overlay8_start_at_checkbox.setStyleSheet("color: grey;")
+                overlay8_start_label.setStyleSheet("color: grey;")
+                overlay8_start_from_label.setStyleSheet("color: grey;")
+                self.overlay8_start_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_start_from_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        def update_overlay8_popup_checkbox_style(state):
+            self.overlay8_popup_checkbox.setStyleSheet("")
+        self.overlay8_popup_checkbox.stateChanged.connect(update_overlay8_popup_checkbox_style)
+        self.overlay8_popup_checkbox.stateChanged.connect(lambda state: set_overlay8_timing_controls_enabled(state))
+        update_overlay8_popup_checkbox_style(self.overlay8_popup_checkbox.checkState())
+
         # Overlay8 Start at checkbox
         self.overlay8_start_at_checkbox = QtWidgets.QCheckBox("")
         self.overlay8_start_at_checkbox.setChecked(True)
@@ -3081,6 +3132,14 @@ class SuperCutUI(QWidget):
         overlay8_layout.addWidget(self.overlay8_start_from_combo)
         overlay8_layout.addStretch()
         layout.addLayout(overlay8_layout)
+        
+        # Overlay8 Pop up checkbox in separate row
+        overlay8_popup_layout = QHBoxLayout()
+        overlay8_popup_layout.setContentsMargins(0, 0, 0, 0)
+        overlay8_popup_layout.addSpacing(20)  # Indent to align with overlay8 controls
+        overlay8_popup_layout.addWidget(self.overlay8_popup_checkbox)
+        overlay8_popup_layout.addStretch()
+        layout.addLayout(overlay8_popup_layout)
 
         # --- Overlay 8 effect greying logic ---
         def set_overlay8_start_enabled(state):
@@ -3099,6 +3158,8 @@ class SuperCutUI(QWidget):
                 overlay8_label.setStyleSheet("color: grey;")
                 self.overlay8_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay8_effect_combo.setEnabled(False)
+                self.overlay8_popup_checkbox.setStyleSheet("color: grey;")
+                self.overlay8_popup_checkbox.setEnabled(False)
                 self.overlay8_start_at_checkbox.setStyleSheet("color: grey;")
                 self.overlay8_start_at_checkbox.setEnabled(False)
                 overlay8_start_label.setStyleSheet("color: grey;")
@@ -3117,15 +3178,10 @@ class SuperCutUI(QWidget):
                 overlay8_label.setStyleSheet("")
                 self.overlay8_effect_combo.setStyleSheet("")
                 self.overlay8_effect_combo.setEnabled(True)
-                self.overlay8_start_at_checkbox.setStyleSheet("")
-                self.overlay8_start_at_checkbox.setEnabled(True)
-                # Let the start at checkbox control the start field styling
-                set_overlay8_start_enabled(self.overlay8_start_at_checkbox.checkState())
-                # Re-enable duration controls when overlay8 is enabled
-                self.overlay8_duration_full_checkbox.setEnabled(True)
-                self.overlay8_duration_full_checkbox.setStyleSheet("")
-                # Let the duration full checkbox control the duration field styling
-                set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
+                self.overlay8_popup_checkbox.setStyleSheet("")
+                self.overlay8_popup_checkbox.setEnabled(True)
+                # Let the popup checkbox control the timing controls
+                set_overlay8_timing_controls_enabled(self.overlay8_popup_checkbox.checkState())
         self.overlay8_checkbox.stateChanged.connect(lambda _: update_overlay8_effect_label_style())
         self.overlay8_start_at_checkbox.stateChanged.connect(lambda _: set_overlay8_start_enabled(self.overlay8_start_at_checkbox.checkState()))
         update_overlay8_effect_label_style()
