@@ -14,7 +14,7 @@ from src.config import check_ffmpeg_installation, ICON_PATH
 from src.main_ui import SuperCutUI
 from src.utils import cleanup_temp_files
 
-# Clear the log file at startup
+# Clear the log file at startup prgram
 with open('supercut.log', 'w'):
     pass
 
