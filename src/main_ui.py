@@ -1511,6 +1511,27 @@ class SuperCutUI(QWidget):
         set_intro_start_enabled(self.intro_start_checkbox.checkState())
         set_intro_duration_enabled(self.intro_duration_full_checkbox.checkState())
 
+        # Create intro group box to visually group intro and intro effect controls
+        intro_group_box = QtWidgets.QGroupBox("Intro Settings")
+        intro_group_box.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        intro_group_layout = QVBoxLayout(intro_group_box)
+        intro_group_layout.setSpacing(8)
+        intro_group_layout.setContentsMargins(10, 5, 10, 10)
+
         intro_layout = QHBoxLayout()
         intro_layout.setSpacing(4)
         intro_layout.addWidget(self.intro_checkbox)
@@ -1528,7 +1549,7 @@ class SuperCutUI(QWidget):
         intro_layout.addWidget(intro_y_label)
         intro_layout.addWidget(self.intro_y_combo)
         
-        layout.addLayout(intro_layout)
+        intro_group_layout.addLayout(intro_layout)
 
         # Intro effect controls - moved directly below intro line
         intro_effect_layout = QHBoxLayout()        
@@ -1551,7 +1572,9 @@ class SuperCutUI(QWidget):
         intro_effect_layout.addSpacing(-10)
         intro_effect_layout.addWidget(self.intro_start_from_edit)
         intro_effect_layout.addStretch()
-        layout.addLayout(intro_effect_layout)
+        intro_group_layout.addLayout(intro_effect_layout)
+        
+        layout.addWidget(intro_group_box)
 
         # Move PNG overlay checkbox below video settings
         self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1:")
@@ -1815,7 +1838,7 @@ class SuperCutUI(QWidget):
 
         # Overlay 1_2 start at controls
         self.overlay1_2_start_at_checkbox = QtWidgets.QCheckBox("")
-        self.overlay1_2_start_at_checkbox.setFixedWidth(80)
+        self.overlay1_2_start_at_checkbox.setFixedWidth(20)
         self.overlay1_2_start_at_checkbox.setChecked(True)
         def update_overlay1_2_start_at_checkbox_style(state):
             self.overlay1_2_start_at_checkbox.setStyleSheet("")  # Always default color
@@ -1920,7 +1943,7 @@ class SuperCutUI(QWidget):
         effect_layout.addSpacing(-1)
         effect_layout.addWidget(self.overlay1_2_start_at_checkbox)
         effect_layout.addSpacing(0)
-        overlay1_2_start_at_label = QLabel("at:")
+        overlay1_2_start_at_label = QLabel("start at:")
         overlay1_2_start_at_label.setFixedWidth(25)
         effect_layout.addWidget(overlay1_2_start_at_label)
         effect_layout.addSpacing(-5)
@@ -2079,6 +2102,7 @@ class SuperCutUI(QWidget):
                 overlay4_x_label.setStyleSheet("color: grey;")
                 overlay4_y_label.setStyleSheet("color: grey;")
         self.overlay4_checkbox.stateChanged.connect(lambda _: set_overlay4_enabled(self.overlay4_checkbox.checkState()))
+       
         overlay4_layout.addWidget(self.overlay4_checkbox)
         overlay4_layout.addSpacing(3)
         overlay4_layout.addWidget(self.overlay4_edit)
@@ -2221,7 +2245,7 @@ class SuperCutUI(QWidget):
         on_overlay4_5_effect_changed(self.overlay4_5_effect_combo.currentIndex())
         # Overlay 4_5 start at controls
         self.overlay4_5_start_at_checkbox = QtWidgets.QCheckBox("")
-        self.overlay4_5_start_at_checkbox.setFixedWidth(80)
+        self.overlay4_5_start_at_checkbox.setFixedWidth(20)
         self.overlay4_5_start_at_checkbox.setChecked(True)
         def update_overlay4_5_start_at_checkbox_style(state):
             self.overlay4_5_start_at_checkbox.setStyleSheet("")  # Always default color
@@ -2229,7 +2253,7 @@ class SuperCutUI(QWidget):
         update_overlay4_5_start_at_checkbox_style(self.overlay4_5_start_at_checkbox.checkState())
         
         self.overlay4_5_start_edit = QLineEdit("5")
-        self.overlay4_5_start_edit.setFixedWidth(80)
+        self.overlay4_5_start_edit.setFixedWidth(40)
         self.overlay4_5_start_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay4_5_start_edit.setPlaceholderText("5")
         self.overlay4_5_start_at = 5
@@ -2322,7 +2346,7 @@ class SuperCutUI(QWidget):
 
         overlay4_5_layout = QHBoxLayout()
         overlay4_5_layout.setContentsMargins(0, 0, 0, 0)
-        overlay4_5_layout.addSpacing(20)
+        overlay4_5_layout.addSpacing(-20)
         overlay4_5_layout.addWidget(overlay4_5_label)
         overlay4_5_layout.addSpacing(-3)
         overlay4_5_layout.addWidget(self.overlay4_5_effect_combo)
@@ -2636,7 +2660,7 @@ class SuperCutUI(QWidget):
 
         # Overlay 6_7 start at controls
         self.overlay6_7_start_at_checkbox = QtWidgets.QCheckBox("")
-        self.overlay6_7_start_at_checkbox.setFixedWidth(80)
+        self.overlay6_7_start_at_checkbox.setFixedWidth(20)
         self.overlay6_7_start_at_checkbox.setChecked(True)
         def update_overlay6_7_start_at_checkbox_style(state):
             self.overlay6_7_start_at_checkbox.setStyleSheet("")  # Always default color
@@ -2644,7 +2668,7 @@ class SuperCutUI(QWidget):
         update_overlay6_7_start_at_checkbox_style(self.overlay6_7_start_at_checkbox.checkState())
         
         self.overlay6_7_start_edit = QLineEdit("5")
-        self.overlay6_7_start_edit.setFixedWidth(80)
+        self.overlay6_7_start_edit.setFixedWidth(40)
         self.overlay6_7_start_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay6_7_start_edit.setPlaceholderText("5")
         self.overlay6_7_start_at = 5
@@ -2737,7 +2761,7 @@ class SuperCutUI(QWidget):
 
         overlay6_7_layout = QHBoxLayout()
         overlay6_7_layout.setContentsMargins(0, 0, 0, 0)
-        overlay6_7_layout.addSpacing(20)
+        overlay6_7_layout.addSpacing(-20)
         overlay6_7_layout.addWidget(overlay6_7_label)
         overlay6_7_layout.addSpacing(-3)
         overlay6_7_layout.addWidget(self.overlay6_7_effect_combo)
