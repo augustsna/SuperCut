@@ -158,6 +158,7 @@ class SettingsDialog(QDialog):
         window_size_layout.addWidget(self.default_window_height_edit)
         window_size_layout.addStretch()
         
+
         # --- Default MP3 # Enabled Checkbox ---
         self.default_mp3_count_enabled_checkbox = QtWidgets.QCheckBox("Enable MP3 #")
         self.default_mp3_count_enabled_checkbox.setChecked(
@@ -3710,9 +3711,430 @@ class SuperCutUI(QWidget):
         self.overlay8_checkbox.stateChanged.connect(lambda _: update_overlay8_effect_label_style())
         self.overlay8_start_at_checkbox.stateChanged.connect(lambda _: set_overlay8_start_enabled(self.overlay8_start_at_checkbox.checkState()))
         update_overlay8_effect_label_style()
- 
 
-       
+        # --- OVERLAY 9 (exact copy of overlay8) ---
+        self.overlay9_checkbox = QtWidgets.QCheckBox("Overlay 9:")
+        self.overlay9_checkbox.setFixedWidth(82)
+        self.overlay9_checkbox.setChecked(False)
+        def update_overlay9_checkbox_style(state):
+            self.overlay9_checkbox.setStyleSheet("")  # Always default color
+        self.overlay9_checkbox.stateChanged.connect(update_overlay9_checkbox_style)
+        update_overlay9_checkbox_style(self.overlay9_checkbox.checkState())
+
+        overlay9_layout = QHBoxLayout()
+        overlay9_layout.setSpacing(4)
+        self.overlay9_edit = ImageDropLineEdit()
+        self.overlay9_edit.setPlaceholderText("Overlay 9 image path (*.gif, *.png)")
+        self.overlay9_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay9_edit.setFixedWidth(125)
+        self.overlay9_path = ""
+        def on_overlay9_changed():
+            current_text = self.overlay9_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay9_edit.setText(cleaned_text)
+            self.overlay9_path = self.overlay9_edit.text().strip()
+        self.overlay9_edit.textChanged.connect(on_overlay9_changed)
+        overlay9_btn = QPushButton("Select")
+        overlay9_btn.setFixedWidth(60)
+        def select_overlay9_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 9 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.overlay9_edit.setText(file_path)
+        overlay9_btn.clicked.connect(select_overlay9_image)
+        overlay9_size_label = QLabel("S:")
+        overlay9_size_label.setFixedWidth(18)
+        self.overlay9_size_combo = QtWidgets.QComboBox()
+        self.overlay9_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.overlay9_size_combo.addItem(f"{percent}%", percent)
+        self.overlay9_size_combo.setCurrentIndex(9)  # Default 50%
+        self.overlay9_size_percent = 50
+        def on_overlay9_size_changed(idx):
+            self.overlay9_size_percent = self.overlay9_size_combo.itemData(idx)
+        self.overlay9_size_combo.setEditable(False)
+        self.overlay9_size_combo.currentIndexChanged.connect(on_overlay9_size_changed)
+        on_overlay9_size_changed(self.overlay9_size_combo.currentIndex())
+        # Overlay9 X coordinate
+        overlay9_x_label = QLabel("X:")
+        overlay9_x_label.setFixedWidth(18)
+        self.overlay9_x_combo = QtWidgets.QComboBox()
+        self.overlay9_x_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay9_x_combo.addItem(f"{percent}%", percent)
+        self.overlay9_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay9_x_percent = 0
+        def on_overlay9_x_changed(idx):
+            self.overlay9_x_percent = self.overlay9_x_combo.itemData(idx)
+        self.overlay9_x_combo.currentIndexChanged.connect(on_overlay9_x_changed)
+        on_overlay9_x_changed(self.overlay9_x_combo.currentIndex())
+
+        # Overlay9 Y coordinate
+        overlay9_y_label = QLabel("Y:")
+        overlay9_y_label.setFixedWidth(18)
+        self.overlay9_y_combo = QtWidgets.QComboBox()
+        self.overlay9_y_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay9_y_combo.addItem(f"{percent}%", percent)
+        self.overlay9_y_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay9_y_percent = 0
+        def on_overlay9_y_changed(idx):
+            self.overlay9_y_percent = self.overlay9_y_combo.itemData(idx)
+        self.overlay9_y_combo.currentIndexChanged.connect(on_overlay9_y_changed)
+        on_overlay9_y_changed(self.overlay9_y_combo.currentIndex())
+
+        # Overlay9 duration controls (similar to intro duration)
+        self.overlay9_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
+        self.overlay9_duration_full_checkbox.setFixedWidth(100)
+        self.overlay9_duration_full_checkbox.setChecked(True)
+        def update_overlay9_duration_full_checkbox_style(state):
+            self.overlay9_duration_full_checkbox.setStyleSheet("")  # Always default color
+        self.overlay9_duration_full_checkbox.stateChanged.connect(update_overlay9_duration_full_checkbox_style)
+        update_overlay9_duration_full_checkbox_style(self.overlay9_duration_full_checkbox.checkState())
+        
+        overlay9_duration_label = QLabel("Duration:")
+        overlay9_duration_label.setFixedWidth(80)
+        self.overlay9_duration_edit = QLineEdit("6")
+        self.overlay9_duration_edit.setFixedWidth(40)
+        self.overlay9_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.overlay9_duration_edit.setPlaceholderText("6")
+        self.overlay9_duration = 6
+        def on_overlay9_duration_changed():
+            try:
+                self.overlay9_duration = int(self.overlay9_duration_edit.text())
+            except Exception:
+                self.overlay9_duration = 6
+        self.overlay9_duration_edit.textChanged.connect(on_overlay9_duration_changed)
+        on_overlay9_duration_changed()
+
+        # Function to control overlay9 duration field based on duration full checkbox
+        def set_overlay9_duration_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When duration full checkbox is checked, disable duration input field
+            self.overlay9_duration_edit.setEnabled(not enabled)
+            overlay9_duration_label.setEnabled(not enabled)
+            
+            if enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay9_duration_edit.setStyleSheet(grey_btn_style)
+                overlay9_duration_label.setStyleSheet("color: grey;")
+            else:
+                self.overlay9_duration_edit.setStyleSheet("")
+                overlay9_duration_label.setStyleSheet("")
+
+        def set_overlay9_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay9_edit.setEnabled(enabled)
+            overlay9_btn.setEnabled(enabled)
+            self.overlay9_size_combo.setEnabled(enabled)
+            self.overlay9_x_combo.setEnabled(enabled)
+            self.overlay9_y_combo.setEnabled(enabled)
+            # Duration field is controlled by duration full checkbox, not overlay9 checkbox
+            if enabled:
+                # When overlay9 is enabled, let the duration full checkbox control the duration field
+                # Force the duration field to match the full checkbox state
+                full_checked = self.overlay9_duration_full_checkbox.isChecked()
+                self.overlay9_duration_edit.setEnabled(not full_checked)
+                overlay9_duration_label.setEnabled(not full_checked)
+                if full_checked:
+                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                    self.overlay9_duration_edit.setStyleSheet(grey_btn_style)
+                    overlay9_duration_label.setStyleSheet("color: grey;")
+                else:
+                    self.overlay9_duration_edit.setStyleSheet("")
+                    overlay9_duration_label.setStyleSheet("")
+                # Ensure timing controls are set according to popup checkbox when overlay9 is enabled
+                set_overlay9_timing_controls_enabled(self.overlay9_popup_checkbox.checkState())
+            else:
+                # When overlay9 is disabled, disable duration field regardless of full checkbox
+                overlay9_duration_label.setEnabled(False)
+                self.overlay9_duration_edit.setEnabled(False)
+            if enabled:
+                overlay9_btn.setStyleSheet("")
+                self.overlay9_edit.setStyleSheet("")
+                self.overlay9_size_combo.setStyleSheet("")
+                self.overlay9_x_combo.setStyleSheet("")
+                self.overlay9_y_combo.setStyleSheet("")
+                overlay9_size_label.setStyleSheet("")
+                overlay9_x_label.setStyleSheet("")
+                overlay9_y_label.setStyleSheet("")
+                # When overlay9 is enabled, reset checkbox styling and let the duration full checkbox control its own styling
+                self.overlay9_duration_full_checkbox.setStyleSheet("")
+                set_overlay9_duration_enabled(self.overlay9_duration_full_checkbox.checkState())
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                overlay9_btn.setStyleSheet(grey_btn_style)
+                self.overlay9_edit.setStyleSheet(grey_btn_style)
+                self.overlay9_size_combo.setStyleSheet(grey_btn_style)
+                self.overlay9_x_combo.setStyleSheet(grey_btn_style)
+                self.overlay9_y_combo.setStyleSheet(grey_btn_style)
+                overlay9_size_label.setStyleSheet("color: grey;")
+                overlay9_x_label.setStyleSheet("color: grey;")
+                overlay9_y_label.setStyleSheet("color: grey;")
+                # Also grey out the duration checkbox when overlay9 is disabled
+                self.overlay9_duration_full_checkbox.setStyleSheet("color: grey;")
+        self.overlay9_checkbox.stateChanged.connect(lambda _: set_overlay9_enabled(self.overlay9_checkbox.checkState()))
+        
+        overlay9_layout.addWidget(self.overlay9_checkbox)
+        overlay9_layout.addSpacing(3)
+        overlay9_layout.addWidget(self.overlay9_edit)
+        overlay9_layout.addSpacing(3)  # Space before select button
+        overlay9_layout.addWidget(overlay9_btn)
+        overlay9_layout.addSpacing(4)  # Space before position label
+        overlay9_layout.addWidget(overlay9_size_label)
+        overlay9_layout.addWidget(self.overlay9_size_combo)
+        overlay9_layout.addSpacing(4)
+        overlay9_layout.addWidget(overlay9_x_label)
+        overlay9_layout.addWidget(self.overlay9_x_combo)
+        overlay9_layout.addSpacing(4)
+        overlay9_layout.addWidget(overlay9_y_label)
+        overlay9_layout.addWidget(self.overlay9_y_combo)
+        self.overlay9_checkbox.stateChanged.connect(lambda _: set_overlay9_enabled(self.overlay9_checkbox.checkState()))
+        self.overlay9_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay9_duration_enabled(self.overlay9_duration_full_checkbox.checkState()))
+        set_overlay9_enabled(self.overlay9_checkbox.checkState())
+        set_overlay9_duration_enabled(self.overlay9_duration_full_checkbox.checkState())
+        layout.addLayout(overlay9_layout)
+
+        # --- EFFECT CONTROL FOR OVERLAY 9 (individual effect control) ---
+        overlay9_label = QLabel("Overlay 9:")
+        overlay9_label.setFixedWidth(80)
+        self.overlay9_effect_combo = QtWidgets.QComboBox()
+        self.overlay9_effect_combo.setFixedWidth(combo_width)
+        for label, value in effect_options:
+            self.overlay9_effect_combo.addItem(label, value)
+        self.overlay9_effect_combo.setCurrentIndex(1)
+        self.selected_overlay9_effect = "fadein"
+        def on_overlay9_effect_changed(idx):
+            self.selected_overlay9_effect = self.overlay9_effect_combo.itemData(idx)
+        self.overlay9_effect_combo.currentIndexChanged.connect(on_overlay9_effect_changed)
+        on_overlay9_effect_changed(self.overlay9_effect_combo.currentIndex())
+
+        # Overlay9 Pop up checkbox
+        self.overlay9_popup_checkbox = QtWidgets.QCheckBox("Pop up")
+        self.overlay9_popup_checkbox.setChecked(False)
+        
+        def set_overlay9_timing_controls_enabled(state):
+            # Only manage timing controls if overlay9 is enabled
+            if not self.overlay9_checkbox.isChecked():
+                return
+                
+            # Convert state to boolean: 0 = unchecked, 2 = checked
+            popup_checked = (state == Qt.CheckState.Checked or state == 2)
+            enabled = not popup_checked  # Enable when popup is unchecked, disable when checked
+            
+            # Full duration checkbox and duration field logic
+            if popup_checked:
+                self.overlay9_duration_full_checkbox.setEnabled(False)
+                self.overlay9_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.overlay9_duration_edit.setEnabled(True)
+                self.overlay9_duration_edit.setStyleSheet("")  # normal style
+            else:
+                self.overlay9_duration_full_checkbox.setEnabled(True)
+                self.overlay9_duration_full_checkbox.setStyleSheet("")
+                # Let the duration full checkbox control the duration field
+                set_overlay9_duration_enabled(self.overlay9_duration_full_checkbox.checkState())
+
+            self.overlay9_start_at_checkbox.setEnabled(enabled)
+            self.overlay9_start_combo.setEnabled(enabled)
+            self.overlay9_start_from_combo.setEnabled(enabled)
+            
+            # Popup start at dropdown - enabled when popup is checked
+            self.overlay9_popup_start_at_combo.setEnabled(popup_checked)
+            # Popup interval dropdown - enabled when popup is checked
+            self.overlay9_popup_interval_combo.setEnabled(popup_checked)
+            
+            # Update styling for start controls
+            if enabled:
+                self.overlay9_start_at_checkbox.setStyleSheet("")
+                overlay9_start_label.setStyleSheet("")
+                overlay9_start_from_label.setStyleSheet("")
+                self.overlay9_start_combo.setStyleSheet("")
+                self.overlay9_start_from_combo.setStyleSheet("")
+            else:
+                self.overlay9_start_at_checkbox.setStyleSheet("color: grey;")
+                overlay9_start_label.setStyleSheet("color: grey;")
+                overlay9_start_from_label.setStyleSheet("color: grey;")
+                self.overlay9_start_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay9_start_from_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            
+            # Update styling for popup start at
+            if popup_checked:
+                overlay9_popup_start_at_label.setStyleSheet("")
+                self.overlay9_popup_start_at_combo.setStyleSheet("")
+            else:
+                overlay9_popup_start_at_label.setStyleSheet("color: grey;")
+                self.overlay9_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            
+            # Update styling for popup interval
+            if popup_checked:
+                overlay9_popup_interval_label.setStyleSheet("")
+                self.overlay9_popup_interval_combo.setStyleSheet("")
+            else:
+                overlay9_popup_interval_label.setStyleSheet("color: grey;")
+                self.overlay9_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        def update_overlay9_popup_checkbox_style(state):
+            self.overlay9_popup_checkbox.setStyleSheet("")
+        self.overlay9_popup_checkbox.stateChanged.connect(update_overlay9_popup_checkbox_style)
+        self.overlay9_popup_checkbox.stateChanged.connect(lambda state: set_overlay9_timing_controls_enabled(state))
+        update_overlay9_popup_checkbox_style(self.overlay9_popup_checkbox.checkState())
+
+        # Overlay9 Start at checkbox
+        self.overlay9_start_at_checkbox = QtWidgets.QCheckBox("")
+        self.overlay9_start_at_checkbox.setChecked(True)
+        def update_overlay9_start_at_checkbox_style(state):
+            self.overlay9_start_at_checkbox.setStyleSheet("")
+        self.overlay9_start_at_checkbox.stateChanged.connect(update_overlay9_start_at_checkbox_style)
+        update_overlay9_start_at_checkbox_style(self.overlay9_start_at_checkbox.checkState())
+
+        overlay9_start_label = QLabel("Start at:")
+        overlay9_start_label.setFixedWidth(80)
+        self.overlay9_start_combo = QtWidgets.QComboBox()
+        self.overlay9_start_combo.setFixedWidth(60)
+        for percent in range(1, 101, 1):
+            self.overlay9_start_combo.addItem(f"{percent}%", percent)
+        self.overlay9_start_combo.setCurrentIndex(4)  # Default 5%
+        self.overlay9_start_percent = 5
+        def on_overlay9_start_changed(idx):
+            self.overlay9_start_percent = self.overlay9_start_combo.itemData(idx)
+        self.overlay9_start_combo.currentIndexChanged.connect(on_overlay9_start_changed)
+        on_overlay9_start_changed(self.overlay9_start_combo.currentIndex())
+
+        # Overlay9 Start from field
+        overlay9_start_from_label = QLabel("Start from:")
+        overlay9_start_from_label.setFixedWidth(80)
+        self.overlay9_start_from_combo = QtWidgets.QComboBox()
+        self.overlay9_start_from_combo.setFixedWidth(60)
+        for percent in range(1, 101, 1):
+            self.overlay9_start_from_combo.addItem(f"{percent}%", percent)
+        self.overlay9_start_from_combo.setCurrentIndex(0)  # Default 1%
+        self.overlay9_start_from_percent = 1
+        def on_overlay9_start_from_changed(idx):
+            self.overlay9_start_from_percent = self.overlay9_start_from_combo.itemData(idx)
+        self.overlay9_start_from_combo.currentIndexChanged.connect(on_overlay9_start_from_changed)
+        on_overlay9_start_from_changed(self.overlay9_start_from_combo.currentIndex())
+
+        # Overlay9 Pop up Start at field
+        overlay9_popup_start_at_label = QLabel("Pop up Start at:")
+        overlay9_popup_start_at_label.setFixedWidth(100)
+        self.overlay9_popup_start_at_combo = QtWidgets.QComboBox()
+        self.overlay9_popup_start_at_combo.setFixedWidth(60)
+        for percent in range(1, 101, 1):
+            self.overlay9_popup_start_at_combo.addItem(f"{percent}%", percent)
+        self.overlay9_popup_start_at_combo.setCurrentIndex(4)  # Default 5%
+        self.overlay9_popup_start_at_percent = 5
+        def on_overlay9_popup_start_at_changed(idx):
+            self.overlay9_popup_start_at_percent = self.overlay9_popup_start_at_combo.itemData(idx)
+        self.overlay9_popup_start_at_combo.currentIndexChanged.connect(on_overlay9_popup_start_at_changed)
+        on_overlay9_popup_start_at_changed(self.overlay9_popup_start_at_combo.currentIndex())
+
+        # Overlay9 Pop up Interval field
+        overlay9_popup_interval_label = QLabel("Pop up Interval:")
+        overlay9_popup_interval_label.setFixedWidth(100)
+        self.overlay9_popup_interval_combo = QtWidgets.QComboBox()
+        self.overlay9_popup_interval_combo.setFixedWidth(60)
+        for value in range(1, 101, 1):
+            self.overlay9_popup_interval_combo.addItem(f"{value}", value)
+        self.overlay9_popup_interval_combo.setCurrentIndex(0)  # Default 1
+        self.overlay9_popup_interval_percent = 1
+        def on_overlay9_popup_interval_changed(idx):
+            self.overlay9_popup_interval_percent = self.overlay9_popup_interval_combo.itemData(idx)
+        self.overlay9_popup_interval_combo.currentIndexChanged.connect(on_overlay9_popup_interval_changed)
+        on_overlay9_popup_interval_changed(self.overlay9_popup_interval_combo.currentIndex())
+
+        overlay9_layout = QHBoxLayout()
+        overlay9_layout.setContentsMargins(0, 0, 0, 0)
+        overlay9_layout.addSpacing(-80)
+        overlay9_layout.addWidget(overlay9_label)
+        overlay9_layout.addSpacing(-3)
+        overlay9_layout.addWidget(self.overlay9_effect_combo)
+        overlay9_layout.addSpacing(-6)
+        overlay9_layout.addWidget(overlay9_duration_label)
+        overlay9_layout.addSpacing(-27)
+        overlay9_layout.addWidget(self.overlay9_duration_edit)
+        overlay9_layout.addSpacing(-6)
+        overlay9_layout.addWidget(self.overlay9_duration_full_checkbox)
+        overlay9_layout.addSpacing(-6)
+        overlay9_layout.addWidget(self.overlay9_start_at_checkbox)
+        overlay9_layout.addSpacing(-6)
+        overlay9_layout.addWidget(overlay9_start_label)
+        overlay9_layout.addSpacing(-32)
+        overlay9_layout.addWidget(self.overlay9_start_combo)
+        overlay9_layout.addSpacing(-6)
+        overlay9_layout.addWidget(overlay9_start_from_label)
+        overlay9_layout.addSpacing(-32)
+        overlay9_layout.addWidget(self.overlay9_start_from_combo)
+        overlay9_layout.addStretch()
+        layout.addLayout(overlay9_layout)
+        
+        # Overlay9 Pop up checkbox in separate row
+        overlay9_popup_layout = QHBoxLayout()
+        overlay9_popup_layout.setContentsMargins(0, 0, 0, 0)
+        overlay9_popup_layout.addSpacing(20)  # Indent to align with overlay9 controls
+        overlay9_popup_layout.addWidget(self.overlay9_popup_checkbox)
+        overlay9_popup_layout.addSpacing(10)
+        overlay9_popup_layout.addWidget(overlay9_popup_start_at_label)
+        overlay9_popup_layout.addSpacing(-32)
+        overlay9_popup_layout.addWidget(self.overlay9_popup_start_at_combo)
+        overlay9_popup_layout.addSpacing(10)
+        overlay9_popup_layout.addWidget(overlay9_popup_interval_label)
+        overlay9_popup_layout.addSpacing(-32)
+        overlay9_popup_layout.addWidget(self.overlay9_popup_interval_combo)
+        overlay9_popup_layout.addStretch()
+        layout.addLayout(overlay9_popup_layout)
+
+        # --- Overlay 9 effect greying logic ---
+        def set_overlay9_start_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay9_start_combo.setEnabled(enabled)
+            overlay9_start_label.setStyleSheet("" if enabled else "color: grey;")
+            self.overlay9_start_combo.setStyleSheet("" if enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            
+            # Enable/disable start from field based on opposite state
+            self.overlay9_start_from_combo.setEnabled(not enabled)
+            overlay9_start_from_label.setStyleSheet("" if not enabled else "color: grey;")
+            self.overlay9_start_from_combo.setStyleSheet("" if not enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+
+        def update_overlay9_effect_label_style():
+            if not self.overlay9_checkbox.isChecked():
+                overlay9_label.setStyleSheet("color: grey;")
+                self.overlay9_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay9_effect_combo.setEnabled(False)
+                self.overlay9_popup_checkbox.setStyleSheet("color: grey;")
+                self.overlay9_popup_checkbox.setEnabled(False)
+                self.overlay9_start_at_checkbox.setStyleSheet("color: grey;")
+                self.overlay9_start_at_checkbox.setEnabled(False)
+                overlay9_start_label.setStyleSheet("color: grey;")
+                self.overlay9_start_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay9_start_combo.setEnabled(False)
+                overlay9_start_from_label.setStyleSheet("color: grey;")
+                self.overlay9_start_from_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay9_start_from_combo.setEnabled(False)
+                # Also grey out duration controls when overlay9 is disabled
+                overlay9_duration_label.setStyleSheet("color: grey;")
+                self.overlay9_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay9_duration_edit.setEnabled(False)
+                self.overlay9_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.overlay9_duration_full_checkbox.setEnabled(False)
+                # Also grey out popup start at controls when overlay9 is disabled
+                overlay9_popup_start_at_label.setStyleSheet("color: grey;")
+                self.overlay9_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay9_popup_start_at_combo.setEnabled(False)
+                # Also grey out popup interval controls when overlay9 is disabled
+                overlay9_popup_interval_label.setStyleSheet("color: grey;")
+                self.overlay9_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay9_popup_interval_combo.setEnabled(False)
+            else:
+                overlay9_label.setStyleSheet("")
+                self.overlay9_effect_combo.setStyleSheet("")
+                self.overlay9_effect_combo.setEnabled(True)
+                self.overlay9_popup_checkbox.setStyleSheet("")
+                self.overlay9_popup_checkbox.setEnabled(True)
+                # Let the popup checkbox control the timing controls
+                set_overlay9_timing_controls_enabled(self.overlay9_popup_checkbox.checkState())
+        self.overlay9_checkbox.stateChanged.connect(lambda _: update_overlay9_effect_label_style())
+        self.overlay9_start_at_checkbox.stateChanged.connect(lambda _: set_overlay9_start_enabled(self.overlay9_start_at_checkbox.checkState()))
+        update_overlay9_effect_label_style()
 
         # Placeholder checkbox (placeholder - does nothing for now)
         self.lyric_checkbox = QtWidgets.QCheckBox("Placeholder:")
@@ -4086,6 +4508,12 @@ class SuperCutUI(QWidget):
             if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png']:
                 QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 8.", QMessageBox.StandardButton.Ok)
                 return
+        # Overlay 9 validation
+        if hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked():
+            overlay9_path = self.overlay9_edit.text().strip()
+            if not overlay9_path or not os.path.isfile(overlay9_path) or os.path.splitext(overlay9_path)[1].lower() not in ['.gif', '.png']:
+                QMessageBox.warning(self, "⚠️ Overlay 9 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 9.", QMessageBox.StandardButton.Ok)
+                return
         # --- Name list validation ---
         use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
         if use_name_list:
@@ -4286,7 +4714,21 @@ class SuperCutUI(QWidget):
             overlay8_start_at_checkbox_checked=self.overlay8_start_at_checkbox.isChecked(),
             overlay8_popup_start_at=self.overlay8_popup_start_at_percent,
             overlay8_popup_interval=self.overlay8_popup_interval_percent,
-            overlay8_popup_checkbox_checked=self.overlay8_popup_checkbox.isChecked()
+            overlay8_popup_checkbox_checked=self.overlay8_popup_checkbox.isChecked(),
+            # --- Add overlay9, overlay9 effect ---
+            use_overlay9=self.overlay9_checkbox.isChecked(),
+            overlay9_path=self.overlay9_path,
+            overlay9_size_percent=self.overlay9_size_percent,
+            overlay9_x_percent=self.overlay9_x_percent, overlay9_y_percent=self.overlay9_y_percent,
+            overlay9_effect=self.selected_overlay9_effect,
+                            overlay9_start_time=self.overlay9_start_percent,
+                            overlay9_start_from=self.overlay9_start_from_percent,
+            overlay9_duration=self.overlay9_duration,
+            overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox.isChecked(),
+            overlay9_start_at_checkbox_checked=self.overlay9_start_at_checkbox.isChecked(),
+            overlay9_popup_start_at=self.overlay9_popup_start_at_percent,
+            overlay9_popup_interval=self.overlay9_popup_interval_percent,
+            overlay9_popup_checkbox_checked=self.overlay9_popup_checkbox.isChecked()
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
@@ -5308,6 +5750,12 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png']:
                     QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 8.", QMessageBox.StandardButton.Ok)
                     return
+            # Overlay 9 validation
+            if hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked():
+                overlay9_path = self.overlay9_edit.text().strip()
+                if not overlay9_path or not os.path.isfile(overlay9_path) or os.path.splitext(overlay9_path)[1].lower() not in ['.gif', '.png']:
+                    QMessageBox.warning(self, "⚠️ Overlay 9 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 9.", QMessageBox.StandardButton.Ok)
+                    return
             
             # Disable preview button during dry run
             self.preview_btn.setEnabled(False)
@@ -5397,6 +5845,15 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         overlay8_start_time = self.params['overlay8_start_time']
                         overlay8_duration = self.params['overlay8_duration']
                         overlay8_duration_full_checkbox_checked = self.params['overlay8_duration_full_checkbox_checked']
+                        use_overlay9 = self.params['use_overlay9']
+                        overlay9_path = self.params['overlay9_path']
+                        overlay9_size_percent = self.params['overlay9_size_percent']
+                        overlay9_x_percent = self.params['overlay9_x_percent']
+                        overlay9_y_percent = self.params['overlay9_y_percent']
+                        overlay9_effect = self.params['overlay9_effect']
+                        overlay9_start_time = self.params['overlay9_start_time']
+                        overlay9_duration = self.params['overlay9_duration']
+                        overlay9_duration_full_checkbox_checked = self.params['overlay9_duration_full_checkbox_checked']
                         use_intro = self.params['use_intro']
                         intro_path = self.params['intro_path']
                         intro_size_percent = self.params['intro_size_percent']
@@ -5476,6 +5933,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             use_overlay6, overlay6_path, overlay6_size_percent, overlay6_x_percent, overlay6_y_percent,
                             use_overlay7, overlay7_path, overlay7_size_percent, overlay7_x_percent, overlay7_y_percent,
                             use_overlay8, overlay8_path, overlay8_size_percent, overlay8_x_percent, overlay8_y_percent,
+                            use_overlay9, overlay9_path, overlay9_size_percent, overlay9_x_percent, overlay9_y_percent,
                             use_intro, intro_path, intro_size_percent, intro_x_percent, intro_y_percent,
                             effect, effect_time, 6, False, intro_effect, actual_intro_duration, actual_intro_start_at, intro_duration_full_checkbox_checked, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
                             extra_overlays=extra_overlays,
@@ -5509,6 +5967,10 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             overlay8_start_time=overlay8_start_time,
                             overlay8_duration=overlay8_duration,
                             overlay8_duration_full_checkbox_checked=overlay8_duration_full_checkbox_checked,
+                            overlay9_effect=overlay9_effect,
+                            overlay9_start_time=overlay9_start_time,
+                            overlay9_duration=overlay9_duration,
+                            overlay9_duration_full_checkbox_checked=overlay9_duration_full_checkbox_checked,
                             overlay1_start_at=overlay1_start_at,
                             overlay2_start_at=overlay2_start_at
                         )
@@ -5596,6 +6058,19 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay8_popup_start_at=self.overlay8_popup_start_at_percent if hasattr(self, 'overlay8_popup_start_at_percent') else 5,
                 overlay8_popup_interval=self.overlay8_popup_interval_percent if hasattr(self, 'overlay8_popup_interval_percent') else 10,
                 overlay8_popup_checkbox_checked=self.overlay8_popup_checkbox.isChecked() if hasattr(self, 'overlay8_popup_checkbox') else False,
+                use_overlay9=self.overlay9_checkbox.isChecked(),
+                overlay9_path=self.overlay9_path,
+                overlay9_size_percent=self.overlay9_size_percent,
+                overlay9_x_percent=self.overlay9_x_percent, overlay9_y_percent=self.overlay9_y_percent,
+                overlay9_effect=self.selected_overlay9_effect,
+                overlay9_start_time=self.overlay9_start_percent,
+                overlay9_start_from=self.overlay9_start_from_percent,
+                overlay9_duration=self.overlay9_duration,
+                overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox.isChecked(),
+                overlay9_start_at_checkbox_checked=self.overlay9_start_at_checkbox.isChecked(),
+                overlay9_popup_start_at=self.overlay9_popup_start_at_percent,
+                overlay9_popup_interval=self.overlay9_popup_interval_percent,
+                overlay9_popup_checkbox_checked=self.overlay9_popup_checkbox.isChecked(),
                 use_intro=self.intro_checkbox.isChecked(),
                 intro_path=self.intro_path,
                 intro_size_percent=self.intro_size_percent,
