@@ -856,6 +856,7 @@ class SuperCutUI(QWidget):
         self._intended_total_batches = 0
         self._completed_batches = 0  # Track completed batches
         self.is_dry_run_mode = False  # Track dry run state
+        self._preview_dialog = None  # Track preview dialog for toggle functionality
         
         self.init_ui()
         self.restore_window_position()
@@ -4668,13 +4669,83 @@ class SuperCutUI(QWidget):
             self.static_icon.setVisible(not processing)
         if hasattr(self, 'title_placeholder_btn'):
             self.title_placeholder_btn.setVisible(not processing)
+        # Comprehensive list of all controls that should be disabled during processing
         controls = [
-            self.codec_combo, self.resolution_combo, self.fps_combo,
+            # Basic video settings
+            self.codec_combo, self.resolution_combo, self.fps_combo, self.preset_combo,
+            
+            # Folder and file inputs
             self.media_sources_edit, self.folder_edit, self.part1_edit, self.part2_edit,
-            self.media_sources_select_btn, self.output_folder_select_btn, self.overlay_checkbox
+            self.media_sources_select_btn, self.output_folder_select_btn,
+            
+            # Export settings
+            self.name_list_checkbox, self.mp3_count_checkbox, self.mp3_count_edit,
+            
+            # Overlay checkboxes
+            self.overlay_checkbox, self.overlay2_checkbox, self.overlay3_checkbox,
+            self.overlay4_checkbox, self.overlay5_checkbox, self.overlay6_checkbox,
+            self.overlay7_checkbox, self.overlay8_checkbox, self.overlay9_checkbox,
+            
+            # Overlay edit fields
+            self.overlay1_edit, self.overlay2_edit, self.overlay3_edit,
+            self.overlay4_edit, self.overlay5_edit, self.overlay6_edit,
+            self.overlay7_edit, self.overlay8_edit, self.overlay9_edit,
+            
+            # Overlay size/position combo boxes
+            self.overlay1_size_combo, self.overlay1_x_combo, self.overlay1_y_combo,
+            self.overlay2_size_combo, self.overlay2_x_combo, self.overlay2_y_combo,
+            self.overlay3_size_combo, self.overlay3_x_combo, self.overlay3_y_combo,
+            self.overlay4_size_combo, self.overlay4_x_combo, self.overlay4_y_combo,
+            self.overlay5_size_combo, self.overlay5_x_combo, self.overlay5_y_combo,
+            self.overlay6_size_combo, self.overlay6_x_combo, self.overlay6_y_combo,
+            self.overlay7_size_combo, self.overlay7_x_combo, self.overlay7_y_combo,
+            self.overlay8_size_combo, self.overlay8_x_combo, self.overlay8_y_combo,
+            self.overlay9_size_combo, self.overlay9_x_combo, self.overlay9_y_combo,
+            
+            # Intro controls
+            self.intro_checkbox, self.intro_edit, self.intro_duration_edit,
+            self.intro_start_edit, self.intro_start_from_edit,
+            self.intro_duration_full_checkbox, self.intro_start_checkbox,
+            self.intro_size_combo, self.intro_x_combo, self.intro_y_combo,
+            
+            # Song title controls
+            self.song_title_checkbox,
+            
+            # Lyric controls
+            self.lyric_checkbox,
+            
+            # Overlay timing controls (checkboxes and edits)
+            self.overlay1_2_start_at_checkbox, self.overlay1_2_duration_full_checkbox,
+            self.overlay4_5_start_at_checkbox, self.overlay4_5_duration_full_checkbox,
+            self.overlay6_7_start_at_checkbox, self.overlay6_7_duration_full_checkbox,
+            self.overlay8_start_at_checkbox, self.overlay8_duration_full_checkbox,
+            self.overlay8_popup_checkbox, self.overlay9_start_at_checkbox,
+            self.overlay9_duration_full_checkbox, self.overlay9_popup_checkbox,
+            
+            # Additional buttons and controls
+            self.name_list_enter_btn, self.settings_btn,
+            self.song_title_color_btn, self.song_title_bg_color_btn
         ]
+        
+        # Filter out None values and disable all controls
         for ctrl in controls:
-            ctrl.setEnabled(not processing)
+            if ctrl is not None:
+                ctrl.setEnabled(not processing)
+        
+        # Additional fallback: Disable all child widgets in the scroll area to catch any missed controls
+        if hasattr(self, 'scroll_area') and self.scroll_area is not None:
+            scroll_content = self.scroll_area.widget()
+            if scroll_content:
+                def disable_all_children(widget):
+                    """Recursively disable all child widgets"""
+                    for child in widget.findChildren(QtWidgets.QWidget):
+                        if hasattr(child, 'setEnabled'):
+                            # Skip progress bar and stop button as they should remain enabled during processing
+                            if child != self.progress_bar and child != self.stop_btn:
+                                child.setEnabled(not processing)
+                        disable_all_children(child)
+                
+                disable_all_children(scroll_content)
         
         # Handle Create Video button separately with greyout styling
         # Disable Create Video button during normal processing OR dry run mode
@@ -4712,7 +4783,7 @@ class SuperCutUI(QWidget):
                     border: 1px solid #1976d2;
                     border-radius: 4px;
                     color: white;
-                    font-weight: bold;
+                    font-weight: normal;
                     padding: 8px 16px;
                 }
                 QPushButton:hover {
@@ -4728,134 +4799,6 @@ class SuperCutUI(QWidget):
         # Handle Preview button (which contains Dry Run) - disable during normal processing
         if hasattr(self, 'preview_btn'):
             self.preview_btn.setEnabled(not processing)
-
-        # --- NEW: Event filter approach that allows scrolling ---
-        if hasattr(self, 'scroll_area'):
-            if processing:
-                # Install event filter to block interactions but allow scrolling
-                if not hasattr(self, '_processing_event_filter'):
-                    self._processing_event_filter = ScrollableProcessingFilter()
-                self.scroll_area.installEventFilter(self._processing_event_filter)
-                
-                # Also install event filter on the scroll area's content widget to block ALL child controls
-                scroll_content = self.scroll_area.widget()
-                if scroll_content:
-                    scroll_content.installEventFilter(self._processing_event_filter)
-                
-                # Add visual overlay to indicate scroll area is protected during processing
-                self.scroll_area.setStyleSheet("""
-                    QScrollArea {
-                        border: none;
-                        background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                            stop:0 rgba(240, 240, 240, 0.8),
-                            stop:1 rgba(235, 235, 235, 0.8));
-                        margin-right: 0px;
-                        padding-right: 0px;
-                    }
-                    QScrollBar:vertical {
-                        background: rgba(240, 240, 240, 0.20);
-                        width: 12px;
-                        border-radius: 6px;
-                        margin: 0px;
-                        position: absolute;
-                        right: 0px;
-                    }
-                    QScrollBar::handle:vertical {
-                        background: rgba(192, 192, 192, 0.20);
-                        border-radius: 6px;
-                        min-height: 20px;
-                        margin: 0px;
-                    }
-                    QScrollBar::handle:vertical:hover {
-                        background: rgba(160, 160, 160, 0.35);
-                    }
-                    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-                        height: 0px;
-                    }
-                    QScrollBar:horizontal {
-                        background: rgba(240, 240, 240, 0.35);
-                        height: 12px;
-                        border-radius: 6px;
-                        margin: 0px;
-                        position: absolute;
-                        bottom: 0px;
-                    }
-                    QScrollBar::handle:horizontal {
-                        background: rgba(192, 192, 192, 0.35);
-                        border-radius: 6px;
-                        min-width: 20px;
-                        margin: 0px;
-                    }
-                    QScrollBar::handle:horizontal:hover {
-                        background: rgba(160, 160, 160, 0.35);
-                    }
-                    QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-                        width: 0px;
-                    }
-                    QScrollBar::sub-control:corner {
-                        background: transparent;
-                    }
-                """)
-            else:
-                # Remove event filter from both scroll area and its content widget
-                if hasattr(self, '_processing_event_filter'):
-                    self.scroll_area.removeEventFilter(self._processing_event_filter)
-                    scroll_content = self.scroll_area.widget()
-                    if scroll_content:
-                        scroll_content.removeEventFilter(self._processing_event_filter)
-                
-                # Restore original scroll area styling (same as init_ui)
-                self.scroll_area.setStyleSheet("""
-                    QScrollArea {
-                        border: none;
-                        background: transparent;
-                        margin-right: 0px;
-                        padding-right: 0px;
-                    }
-                    QScrollBar:vertical {
-                        background: rgba(240, 240, 240, 0.20);
-                        width: 12px;
-                        border-radius: 6px;
-                        margin: 0px;
-                        position: absolute;
-                        right: 0px;
-                    }
-                    QScrollBar::handle:vertical {
-                        background: rgba(192, 192, 192, 0.20);
-                        border-radius: 6px;
-                        min-height: 20px;
-                        margin: 0px;
-                    }
-                    QScrollBar::handle:vertical:hover {
-                        background: rgba(160, 160, 160, 0.35);
-                    }
-                    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-                        height: 0px;
-                    }
-                    QScrollBar:horizontal {
-                        background: rgba(240, 240, 240, 0.35);
-                        height: 12px;
-                        border-radius: 6px;
-                        margin: 0px;
-                        position: absolute;
-                        bottom: 0px;
-                    }
-                    QScrollBar::handle:horizontal {
-                        background: rgba(192, 192, 192, 0.35);
-                        border-radius: 6px;
-                        min-width: 20px;
-                        margin: 0px;
-                    }
-                    QScrollBar::handle:horizontal:hover {
-                        background: rgba(160, 160, 160, 0.35);
-                    }
-                    QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-                        width: 0px;
-                    }
-                    QScrollBar::sub-control:corner {
-                        background: transparent;
-                    }
-                """)
     
     def _set_dry_run_state(self, is_dry_run):
         """Set dry run state and update UI accordingly."""
@@ -4897,7 +4840,7 @@ class SuperCutUI(QWidget):
                         border: 1px solid #1976d2;
                         border-radius: 4px;
                         color: white;
-                        font-weight: bold;
+                        font-weight: normal;
                         padding: 8px 16px;
                     }
                     QPushButton:hover {
@@ -5041,29 +4984,10 @@ class SuperCutUI(QWidget):
         """Handle worker errors"""
         if not self.isVisible():
             return
-        self.progress_bar.setVisible(False)
-        self.stop_btn.setEnabled(False)
-        self.stop_btn.setVisible(False)
-        if hasattr(self, 'spinner_label'):
-            self.spinner_label.setVisible(False)
-        if hasattr(self, 'loading_label'):
-            self.loading_label.setVisible(False)
-            movie = self.loading_label.movie()
-            if movie is not None:
-                movie.stop()
-        if hasattr(self, 'static_icon'):
-            self.static_icon.setVisible(True)
-        self.create_btn.setEnabled(True)
-        self.codec_combo.setEnabled(True)
-        self.resolution_combo.setEnabled(True)
-        self.fps_combo.setEnabled(True)
-        self.media_sources_edit.setEnabled(True)
-        self.folder_edit.setEnabled(True)
-        self.part1_edit.setEnabled(True)
-        self.part2_edit.setEnabled(True)
-        self.media_sources_select_btn.setEnabled(True)
-        self.output_folder_select_btn.setEnabled(True)
-        self.overlay_checkbox.setEnabled(True)
+        
+        # Use centralized UI state management to re-enable all controls
+        self._set_ui_processing_state(False)
+        
         dlg = ScrollableErrorDialog(self, title="❌ Error", message=message)
         dlg.exec()
         self.cleanup_worker_and_thread()
@@ -5089,25 +5013,13 @@ class SuperCutUI(QWidget):
                 except RuntimeError:
                     pass  # Worker already deleted
                     
-        self.stop_btn.setEnabled(False)
-        self.stop_btn.setVisible(False)
-        
         # Show waiting dialog
         self._stopping_msgbox = PleaseWaitDialog(self)
         self._stopping_msgbox.show()
         
-        self.progress_bar.setVisible(False)
-        self.create_btn.setEnabled(True)
-        self.codec_combo.setEnabled(True)
-        self.resolution_combo.setEnabled(True)
-        self.fps_combo.setEnabled(True)
-        self.media_sources_edit.setEnabled(True)
-        self.folder_edit.setEnabled(True)
-        self.part1_edit.setEnabled(True)
-        self.part2_edit.setEnabled(True)
-        self.media_sources_select_btn.setEnabled(True)
-        self.output_folder_select_btn.setEnabled(True)
-        self.overlay_checkbox.setEnabled(True)
+        # Use centralized UI state management to re-enable all controls
+        self._set_ui_processing_state(False)
+        
         self._auto_close_on_stop = False
         self._stopped_by_user = True
 
@@ -5570,10 +5482,15 @@ class SuperCutUI(QWidget):
                 pass
 
     def show_preview_dialog(self):
+        # Check if preview dialog is already open - if so, close it
+        if hasattr(self, '_preview_dialog') and self._preview_dialog is not None:
+            self._preview_dialog.close()
+            self._preview_dialog = None
+            return
+        
         # Gather all FFmpeg settings as would be passed to video creation
         inputs = self._gather_and_validate_inputs()
         if not inputs:
-    
             return  # Don't show dialog when there are warnings/errors
         (
             media_sources, export_name, number, folder, codec, resolution, fps, mp3_files, image_files, min_mp3_count
@@ -5669,7 +5586,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 super().__init__(parent)
                 self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
                 self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-                self.setModal(True)  # Make dialog modal - blocks main UI
+                self.setModal(False)  # Make dialog non-modal - allows interaction with main UI
                 
             def paintEvent(self, event):
                 from PyQt6.QtGui import QPainter, QBrush, QColor
@@ -5685,6 +5602,14 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         dlg.setWindowTitle("⚡ SuperCut Preview")
         dlg.setMinimumSize(500, 520)
         dlg.resize(500, 520)  # Set fixed size
+        
+        # Store dialog reference for toggle functionality
+        self._preview_dialog = dlg
+        
+        # Handle dialog close event to clear the reference
+        def on_dialog_closed():
+            self._preview_dialog = None
+        dlg.finished.connect(on_dialog_closed)
         dlg.setStyleSheet("""
             QWidget {
                 background-color: transparent;
@@ -6473,28 +6398,10 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         dlg.show()
         dlg.raise_()
         dlg.activateWindow()
-        dlg.exec()
 
     def open_iconsna_website(self):
         import webbrowser
         webbrowser.open("https://iconsna.xyz/")
 
 
-# Add this class at the end of the file
-class ScrollableProcessingFilter(QObject):
-    def eventFilter(self, obj, event):
-        # Allow scroll wheel events
-        if event.type() == QEvent.Type.Wheel:
-            return False  # Let the event pass through
-        
-        # Block mouse clicks and keyboard events
-        if event.type() in [
-            QEvent.Type.MouseButtonPress,
-            QEvent.Type.MouseButtonRelease,
-            QEvent.Type.MouseButtonDblClick,
-            QEvent.Type.KeyPress,
-            QEvent.Type.KeyRelease
-        ]:
-            return True  # Block the event
-        
-        return False  # Allow other events
+
