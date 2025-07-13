@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QFileDialog, QMessageBox, QDialog, QComboBox, QDialogButtonBox, QFormLayout,
     QColorDialog
 )
-from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize, QTimer
+from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize, QTimer, QObject, QEvent
 from PyQt6.QtGui import QIntValidator, QIcon, QPixmap, QMovie, QImage, QShortcut, QKeySequence, QColor
 from src.logger import logger
 
@@ -4620,12 +4620,27 @@ class SuperCutUI(QWidget):
                 self.setFixedSize(self._original_size)
                 self._expanded_for_progress = False
 
-        # Disable/enable all widgets in the scroll area during processing
+        # --- NEW: Event filter approach that allows scrolling ---
         if hasattr(self, 'scroll_area'):
-            scroll_content = self.scroll_area.widget()
-            if scroll_content:
-                for child in scroll_content.findChildren(QtWidgets.QWidget):
-                    child.setEnabled(not processing)
+            if processing:
+                # Install event filter to block interactions but allow scrolling
+                if not hasattr(self, '_processing_event_filter'):
+                    self._processing_event_filter = ScrollableProcessingFilter()
+                self.scroll_area.installEventFilter(self._processing_event_filter)
+                
+                # Add visual feedback
+                self.scroll_area.setStyleSheet("""
+                    QScrollArea {
+                        background-color: #f8f8f8;
+                    }
+                """)
+            else:
+                # Remove event filter
+                if hasattr(self, '_processing_event_filter'):
+                    self.scroll_area.removeEventFilter(self._processing_event_filter)
+                
+                # Restore normal styling
+                self.scroll_area.setStyleSheet("")
 
     def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count):
         """Set up the VideoWorker and QThread, connect signals, and start processing."""
@@ -6193,3 +6208,23 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
     def open_iconsna_website(self):
         import webbrowser
         webbrowser.open("https://iconsna.xyz/")
+
+
+# Add this class at the end of the file
+class ScrollableProcessingFilter(QObject):
+    def eventFilter(self, obj, event):
+        # Allow scroll wheel events
+        if event.type() == QEvent.Type.Wheel:
+            return False  # Let the event pass through
+        
+        # Block mouse clicks and keyboard events
+        if event.type() in [
+            QEvent.Type.MouseButtonPress,
+            QEvent.Type.MouseButtonRelease,
+            QEvent.Type.MouseButtonDblClick,
+            QEvent.Type.KeyPress,
+            QEvent.Type.KeyRelease
+        ]:
+            return True  # Block the event
+        
+        return False  # Allow other events
