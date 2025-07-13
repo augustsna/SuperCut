@@ -4620,12 +4620,211 @@ class SuperCutUI(QWidget):
                 self.setFixedSize(self._original_size)
                 self._expanded_for_progress = False
 
-        # Disable/enable all widgets in the scroll area during processing
+        # Handle scroll area widgets based on processing state
+        if hasattr(self, 'scroll_area'):
+            scroll_content = self.scroll_area.widget()
+            if scroll_content:
+                if processing:
+                    # During processing: disable all widgets in scroll area
+                    for child in scroll_content.findChildren(QtWidgets.QWidget):
+                        child.setEnabled(False)
+                else:
+                    # After processing: restore proper state based on checkbox states
+                    # Use a timer to restore the UI state after the current event loop iteration
+                    # This ensures all widgets are properly re-enabled first
+                    QTimer.singleShot(0, self._restore_ui_state_after_processing)
+
+    def _restore_ui_state_after_processing(self):
+        """Restore the UI state based on checkbox states after video processing ends."""
+        # Re-enable all widgets in the scroll area
         if hasattr(self, 'scroll_area'):
             scroll_content = self.scroll_area.widget()
             if scroll_content:
                 for child in scroll_content.findChildren(QtWidgets.QWidget):
-                    child.setEnabled(not processing)
+                    child.setEnabled(True)
+        
+        # Now manually apply the correct disabled state for unchecked checkboxes
+        # This ensures that controls are properly disabled when their checkboxes are unchecked
+        
+        # Intro checkbox
+        if hasattr(self, 'intro_checkbox') and not self.intro_checkbox.isChecked():
+            if hasattr(self, 'intro_edit'):
+                self.intro_edit.setEnabled(False)
+                self.intro_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'intro_size_combo'):
+                self.intro_size_combo.setEnabled(False)
+                self.intro_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'intro_x_combo'):
+                self.intro_x_combo.setEnabled(False)
+                self.intro_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'intro_y_combo'):
+                self.intro_y_combo.setEnabled(False)
+                self.intro_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'intro_effect_combo'):
+                self.intro_effect_combo.setEnabled(False)
+                self.intro_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        # Overlay1 checkbox
+        if hasattr(self, 'overlay_checkbox') and not self.overlay_checkbox.isChecked():
+            if hasattr(self, 'overlay1_edit'):
+                self.overlay1_edit.setEnabled(False)
+                self.overlay1_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay1_size_combo'):
+                self.overlay1_size_combo.setEnabled(False)
+                self.overlay1_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay1_x_combo'):
+                self.overlay1_x_combo.setEnabled(False)
+                self.overlay1_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay1_y_combo'):
+                self.overlay1_y_combo.setEnabled(False)
+                self.overlay1_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        # Overlay2 checkbox
+        if hasattr(self, 'overlay2_checkbox') and not self.overlay2_checkbox.isChecked():
+            if hasattr(self, 'overlay2_edit'):
+                self.overlay2_edit.setEnabled(False)
+                self.overlay2_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay2_size_combo'):
+                self.overlay2_size_combo.setEnabled(False)
+                self.overlay2_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay2_x_combo'):
+                self.overlay2_x_combo.setEnabled(False)
+                self.overlay2_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay2_y_combo'):
+                self.overlay2_y_combo.setEnabled(False)
+                self.overlay2_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        # Overlay3 checkbox
+        if hasattr(self, 'overlay3_checkbox') and not self.overlay3_checkbox.isChecked():
+            if hasattr(self, 'overlay3_edit'):
+                self.overlay3_edit.setEnabled(False)
+                self.overlay3_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay3_size_combo'):
+                self.overlay3_size_combo.setEnabled(False)
+                self.overlay3_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay3_x_combo'):
+                self.overlay3_x_combo.setEnabled(False)
+                self.overlay3_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay3_y_combo'):
+                self.overlay3_y_combo.setEnabled(False)
+                self.overlay3_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        # Overlay4 checkbox
+        if hasattr(self, 'overlay4_checkbox') and not self.overlay4_checkbox.isChecked():
+            if hasattr(self, 'overlay4_edit'):
+                self.overlay4_edit.setEnabled(False)
+                self.overlay4_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay4_size_combo'):
+                self.overlay4_size_combo.setEnabled(False)
+                self.overlay4_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay4_x_combo'):
+                self.overlay4_x_combo.setEnabled(False)
+                self.overlay4_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay4_y_combo'):
+                self.overlay4_y_combo.setEnabled(False)
+                self.overlay4_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        # Overlay5 checkbox
+        if hasattr(self, 'overlay5_checkbox') and not self.overlay5_checkbox.isChecked():
+            if hasattr(self, 'overlay5_edit'):
+                self.overlay5_edit.setEnabled(False)
+                self.overlay5_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay5_size_combo'):
+                self.overlay5_size_combo.setEnabled(False)
+                self.overlay5_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay5_x_combo'):
+                self.overlay5_x_combo.setEnabled(False)
+                self.overlay5_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay5_y_combo'):
+                self.overlay5_y_combo.setEnabled(False)
+                self.overlay5_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        # Overlay6 checkbox
+        if hasattr(self, 'overlay6_checkbox') and not self.overlay6_checkbox.isChecked():
+            if hasattr(self, 'overlay6_edit'):
+                self.overlay6_edit.setEnabled(False)
+                self.overlay6_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay6_size_combo'):
+                self.overlay6_size_combo.setEnabled(False)
+                self.overlay6_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay6_x_combo'):
+                self.overlay6_x_combo.setEnabled(False)
+                self.overlay6_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay6_y_combo'):
+                self.overlay6_y_combo.setEnabled(False)
+                self.overlay6_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        # Overlay7 checkbox
+        if hasattr(self, 'overlay7_checkbox') and not self.overlay7_checkbox.isChecked():
+            if hasattr(self, 'overlay7_edit'):
+                self.overlay7_edit.setEnabled(False)
+                self.overlay7_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay7_size_combo'):
+                self.overlay7_size_combo.setEnabled(False)
+                self.overlay7_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay7_x_combo'):
+                self.overlay7_x_combo.setEnabled(False)
+                self.overlay7_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay7_y_combo'):
+                self.overlay7_y_combo.setEnabled(False)
+                self.overlay7_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        # Overlay8 checkbox
+        if hasattr(self, 'overlay8_checkbox') and not self.overlay8_checkbox.isChecked():
+            if hasattr(self, 'overlay8_edit'):
+                self.overlay8_edit.setEnabled(False)
+                self.overlay8_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay8_size_combo'):
+                self.overlay8_size_combo.setEnabled(False)
+                self.overlay8_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay8_x_combo'):
+                self.overlay8_x_combo.setEnabled(False)
+                self.overlay8_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay8_y_combo'):
+                self.overlay8_y_combo.setEnabled(False)
+                self.overlay8_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        # Overlay9 checkbox
+        if hasattr(self, 'overlay9_checkbox') and not self.overlay9_checkbox.isChecked():
+            if hasattr(self, 'overlay9_edit'):
+                self.overlay9_edit.setEnabled(False)
+                self.overlay9_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay9_size_combo'):
+                self.overlay9_size_combo.setEnabled(False)
+                self.overlay9_size_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay9_x_combo'):
+                self.overlay9_x_combo.setEnabled(False)
+                self.overlay9_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'overlay9_y_combo'):
+                self.overlay9_y_combo.setEnabled(False)
+                self.overlay9_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        # Song title checkbox
+        if hasattr(self, 'song_title_checkbox') and not self.song_title_checkbox.isChecked():
+            if hasattr(self, 'song_title_font_combo'):
+                self.song_title_font_combo.setEnabled(False)
+                self.song_title_font_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'song_title_scale_combo'):
+                self.song_title_scale_combo.setEnabled(False)
+                self.song_title_scale_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'song_title_bg_combo'):
+                self.song_title_bg_combo.setEnabled(False)
+                self.song_title_bg_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'song_title_opacity_combo'):
+                self.song_title_opacity_combo.setEnabled(False)
+                self.song_title_opacity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'song_title_effect_combo'):
+                self.song_title_effect_combo.setEnabled(False)
+                self.song_title_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'song_title_x_combo'):
+                self.song_title_x_combo.setEnabled(False)
+                self.song_title_x_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'song_title_y_combo'):
+                self.song_title_y_combo.setEnabled(False)
+                self.song_title_y_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            if hasattr(self, 'song_title_start_edit'):
+                self.song_title_start_edit.setEnabled(False)
+                self.song_title_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
 
     def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count):
         """Set up the VideoWorker and QThread, connect signals, and start processing."""
