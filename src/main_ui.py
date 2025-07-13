@@ -114,15 +114,7 @@ class SettingsDialog(QDialog):
         main_layout.addWidget(settings_label)
         # Add Default button below Settings label  
         main_layout.addSpacing(-15)      
-        self.reset_btn = QPushButton("Reset")
-        self.reset_btn.setFixedSize(100, 28)
-        self.reset_btn.setStyleSheet("QPushButton { background: white; border: 1px solid #ccc; color: #333; } QPushButton:hover { background: #f5f5f5; }")
-        self.reset_btn.clicked.connect(self.reset_to_defaults)
-        reset_btn_layout = QHBoxLayout()
-        reset_btn_layout.addStretch()
-        reset_btn_layout.addWidget(self.reset_btn)
-        reset_btn_layout.addStretch()
-        main_layout.addLayout(reset_btn_layout)
+        # Reset button will be moved to button row
         main_layout.addSpacing(15)
 
         # --- Two-column layout ---
@@ -481,21 +473,34 @@ class SettingsDialog(QDialog):
         main_layout.addLayout(columns_layout)
 
         # Add more space before the button row
-        main_layout.addSpacing(15)
+        main_layout.addSpacing(10)
         button_layout = QHBoxLayout()
+        # Reset button on the very left with smaller width
+        button_layout.addSpacing(20)
+        self.reset_btn = QPushButton("Reset")
+        self.reset_btn.setFixedSize(70, 32)
+        self.reset_btn.setStyleSheet("QPushButton { background: white; border: 1px solid #ccc; color: #333; } QPushButton:hover { background: #f5f5f5; }")
+        self.reset_btn.clicked.connect(self.reset_to_defaults)
+        button_layout.addWidget(self.reset_btn)
+        button_layout.addSpacing(0)
         button_layout.addStretch()
         self.save_btn = QPushButton("Save")
         self.cancel_btn = QPushButton("Cancel")
         self.save_btn.setFixedSize(100, 32)
         self.cancel_btn.setFixedSize(100, 32)
         button_layout.addWidget(self.save_btn)
-        button_layout.addSpacing(20)
+        button_layout.addSpacing(5)
         button_layout.addWidget(self.cancel_btn)
+        button_layout.addSpacing(100)
         button_layout.addStretch()
         main_layout.addLayout(button_layout)
-        main_layout.addSpacing(12)
+        main_layout.addSpacing(5)
         self.save_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
+        
+        # Make Enter key trigger save button
+        self.save_btn.setDefault(True)
+        self.save_btn.setAutoDefault(True)
         self.setFixedSize(640, 640)
 
         # --- Add to SettingsDialog: Show Placeholder Controls Checkbox ---
