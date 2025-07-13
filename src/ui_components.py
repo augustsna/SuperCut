@@ -6,10 +6,12 @@ from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import (
     QDialog, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, 
     QSpacerItem, QSizePolicy, QLineEdit, QProgressBar, QWidget,
-    QScrollArea, QFrame, QTextEdit, QTableWidget, QTableWidgetItem, QHeaderView
+    QScrollArea, QFrame, QTextEdit, QTableWidget, QTableWidgetItem, QHeaderView,
+    QComboBox
 )
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QMovie, QIcon, QFont, QShortcut, QKeySequence
+from PyQt6.QtGui import QMovie, QIcon, QFont, QShortcut, QKeySequence, QWheelEvent
+
 from src.utils import clean_file_path
 
 class FolderDropLineEdit(QLineEdit):
@@ -99,6 +101,19 @@ class ImageDropLineEdit(QLineEdit):
             self.insert(cleaned_text)
         else:
             super().paste()
+
+class NoWheelComboBox(QComboBox):
+    """Custom QComboBox that prevents mouse wheel scrolling when dropdown is closed"""
+    
+    def wheelEvent(self, event: QWheelEvent):
+        """Override wheel event to prevent scrolling through items when dropdown is closed"""
+        view = self.view()
+        if view is None or not view.isVisible():
+            # When dropdown is closed, ignore wheel events to allow parent UI scrolling
+            event.ignore()
+        else:
+            # When dropdown is open, allow normal scrolling through items
+            super().wheelEvent(event)
 
 class PleaseWaitDialog(QDialog):
     """Dialog shown when stopping video creation"""
