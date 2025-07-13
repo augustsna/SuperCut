@@ -602,8 +602,8 @@ class SettingsDialog(QDialog):
         self.default_list_name_enabled_checkbox.setChecked(False)
         # MP3 #
         self.default_mp3_count_enabled_checkbox.setChecked(False)
-        # Window Size (reset uses 660 as default, matching main default)
-        self.default_window_width_edit.setText("666")
+        # Window Size (reset uses 690 as default, matching main default)
+        self.default_window_width_edit.setText("690")
         self.default_window_height_edit.setText("660")
 
 class NameListDialog(QDialog):

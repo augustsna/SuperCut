@@ -16,7 +16,7 @@ os.environ["FFMPEG_BINARY"] = FFMPEG_BINARY
 os.environ["FFPLAY_BINARY"] = FFPLAY_BINARY
 
 # UI Configuration
-WINDOW_SIZE = (666, 660)
+WINDOW_SIZE = (690, 660)
 WINDOW_TITLE = "SuperCut Magic Maker"
 ICON_PATH = os.path.join(PROJECT_ROOT, "src", "sources", "icon.png")
 STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.path.exists(os.path.join(PROJECT_ROOT, "src", "sources", "style.qss")) else """
