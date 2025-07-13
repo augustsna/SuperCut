@@ -149,16 +149,10 @@ VIDEO_SETTINGS = {
 }
 
 # FFmpeg Preset Options
-DEFAULT_FFMPEG_PRESETS = [
-    ("Ultrafast", "ultrafast"),
-    ("Superfast", "superfast"),
-    ("Veryfast", "veryfast"),
-    ("Faster", "faster"),
+DEFAULT_FFMPEG_PRESETS = [    
     ("Fast", "fast"),
     ("Medium", "medium"),
-    ("Slow", "slow"),
-    ("Slower", "slower"),
-    ("Veryslow", "veryslow")
+    ("Slow", "slow")    
 ]
 DEFAULT_FFMPEG_PRESET = "slow"
 
