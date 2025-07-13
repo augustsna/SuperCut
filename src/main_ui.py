@@ -4796,6 +4796,20 @@ class SuperCutUI(QWidget):
                 }
             """)
         
+        # After re-enabling controls, restore proper logical state for overlay dependencies
+        if not processing:
+            # Restore overlay8 popup checkbox state based on overlay8 checkbox
+            if hasattr(self, 'overlay8_checkbox') and hasattr(self, 'overlay8_popup_checkbox'):
+                if not self.overlay8_checkbox.isChecked():
+                    self.overlay8_popup_checkbox.setEnabled(False)
+                    self.overlay8_popup_checkbox.setStyleSheet("color: grey;")
+            
+            # Restore overlay9 popup checkbox state based on overlay9 checkbox
+            if hasattr(self, 'overlay9_checkbox') and hasattr(self, 'overlay9_popup_checkbox'):
+                if not self.overlay9_checkbox.isChecked():
+                    self.overlay9_popup_checkbox.setEnabled(False)
+                    self.overlay9_popup_checkbox.setStyleSheet("color: grey;")
+        
         # Handle Preview button (which contains Dry Run) - disable during normal processing
         if hasattr(self, 'preview_btn'):
             self.preview_btn.setEnabled(not processing)
