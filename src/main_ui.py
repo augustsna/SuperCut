@@ -4271,7 +4271,7 @@ class SuperCutUI(QWidget):
         button_layout.addWidget(self.placeholder_btn)
 
         # Add version text after placeholder button
-        button_layout.addSpacing(5)
+        button_layout.addSpacing(25)
         version_label = QLabel("v2025.1")
         version_label.setStyleSheet("color: #666; font-size: 12px; font-weight: normal;")
         version_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
@@ -4288,11 +4288,11 @@ class SuperCutUI(QWidget):
         self.stop_btn.setFixedHeight(24)
         self.stop_btn.setFixedWidth(24)
         self.stop_btn.setEnabled(False)
-        self.stop_btn.setVisible(False)
+        # Keep visible but subtle when not processing
         stop_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "stopbutton.png")
         self.stop_btn.setIcon(QIcon(stop_icon_path))
         self.stop_btn.setIconSize(QSize(22, 22))
-        self.stop_btn.setStyleSheet("QPushButton { background: transparent; border: none; } QPushButton:pressed { background: transparent; }")
+        self.stop_btn.setStyleSheet("QPushButton { background: transparent; border: none; opacity: 0.6; } QPushButton:pressed { background: transparent; }")
         self.stop_btn.clicked.connect(self.stop_video_creation)
         progress_row.addWidget(self.stop_btn)    
         progress_row.addSpacing(0)  # Add 16px space between stop button and progress bar
@@ -4303,7 +4303,7 @@ class SuperCutUI(QWidget):
         self.progress_bar.setValue(0)
         self.progress_bar.setTextVisible(True) 
         self.progress_bar.setFormat("Batch: 0/0")
-        self.progress_bar.setVisible(False)
+        # Keep visible but subtle when not processing
         self.progress_bar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
         # Reduce left padding and margin for progress bar text
         self.progress_bar.setStyleSheet("""
@@ -4311,9 +4311,12 @@ class SuperCutUI(QWidget):
                 padding-right: 0px;
                 margin-right: 25px;
                 text-align: right;
+                opacity: 0.6;
+                color: #666;
             }
             QProgressBar::chunk {
                 margin: 0px;
+                background: transparent;  /* Hide the blue fill */
             }
         """)
         progress_row.addWidget(self.progress_bar)
@@ -4606,15 +4609,53 @@ class SuperCutUI(QWidget):
 
     def _set_ui_processing_state(self, processing, total_batches=0):
         """Enable/disable UI controls for processing state."""
+        # --- No window resize - use opacity instead to prevent black flash ---
+        # Progress controls are always present but transparent when not processing
+
+        # --- Update progress controls with opacity instead of visibility ---
         self.progress_bar.setMaximum(total_batches)
         self.progress_bar.setValue(0)        
         self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
-        self.progress_bar.setVisible(processing)
-        self.stop_btn.setEnabled(processing)
-        self.stop_btn.setVisible(processing)
+        
+        # Use opacity instead of visibility to prevent black flash
+        if processing:
+            self.progress_bar.setStyleSheet("""
+                QProgressBar {                
+                    padding-right: 0px;
+                    margin-right: 25px;
+                    text-align: right;
+                    opacity: 1.0;
+                }
+                QProgressBar::chunk {
+                    margin: 0px;
+                }
+            """)
+            self.stop_btn.setStyleSheet("QPushButton { background: transparent; border: none; opacity: 1.0; } QPushButton:pressed { background: transparent; }")
+            self.stop_btn.setEnabled(True)
+        else:
+            # Show completion status when finished
+            self.progress_bar.setValue(0)
+            self.progress_bar.setMaximum(1)  # Reset maximum to prevent blue animation
+            self.progress_bar.setFormat("Batch: 0/0")
+            self.progress_bar.setStyleSheet("""
+                QProgressBar {                
+                    padding-right: 0px;
+                    margin-right: 25px;
+                    text-align: right;
+                    opacity: 0.6;
+                    color: #666;
+                }
+                QProgressBar::chunk {
+                    margin: 0px;
+                    background: transparent;  /* Hide the blue fill */
+                }
+            """)
+            self.stop_btn.setStyleSheet("QPushButton { background: transparent; border: none; opacity: 0.0; } QPushButton:pressed { background: transparent; }")
+            self.stop_btn.setEnabled(False)
         if hasattr(self, 'spinner_label'):
             self.spinner_label.setVisible(processing)
         if hasattr(self, 'loading_label'):
+            # Always show loading animation during processing
             self.loading_label.setVisible(processing)
             movie = self.loading_label.movie()
             if movie is not None:
@@ -4634,20 +4675,6 @@ class SuperCutUI(QWidget):
         for ctrl in controls:
             ctrl.setEnabled(not processing)
 
-        # --- Window resize logic ---
-        if processing:
-            if not self._expanded_for_progress:
-                self._original_size = self.size()
-                # Calculate new height: add enough for progress bar + stop button (e.g., 34px)
-                extra_height = 34
-                new_height = self.height() + extra_height
-                self.setFixedSize(self.width(), new_height)
-                self._expanded_for_progress = True
-        else:
-            if self._expanded_for_progress and self._original_size is not None:
-                self.setFixedSize(self._original_size)
-                self._expanded_for_progress = False
-
         # --- NEW: Event filter approach that allows scrolling ---
         if hasattr(self, 'scroll_area'):
             if processing:
@@ -4656,10 +4683,58 @@ class SuperCutUI(QWidget):
                     self._processing_event_filter = ScrollableProcessingFilter()
                 self.scroll_area.installEventFilter(self._processing_event_filter)
                 
-                # Add visual feedback
+                # Add visual feedback while maintaining original scrollbar styling
                 self.scroll_area.setStyleSheet("""
                     QScrollArea {
-                        background-color: #f8f8f8;
+                        border: none;
+                        background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                            stop:0 rgba(248, 248, 248, 0.1),
+                            stop:1 rgba(248, 248, 248, 0.05));
+                        margin-right: 0px;
+                        padding-right: 0px;
+                    }
+                    QScrollBar:vertical {
+                        background: rgba(240, 240, 240, 0.20);
+                        width: 12px;
+                        border-radius: 6px;
+                        margin: 0px;
+                        position: absolute;
+                        right: 0px;
+                    }
+                    QScrollBar::handle:vertical {
+                        background: rgba(192, 192, 192, 0.20);
+                        border-radius: 6px;
+                        min-height: 20px;
+                        margin: 0px;
+                    }
+                    QScrollBar::handle:vertical:hover {
+                        background: rgba(160, 160, 160, 0.35);
+                    }
+                    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                        height: 0px;
+                    }
+                    QScrollBar:horizontal {
+                        background: rgba(240, 240, 240, 0.35);
+                        height: 12px;
+                        border-radius: 6px;
+                        margin: 0px;
+                        position: absolute;
+                        bottom: 0px;
+                    }
+                    QScrollBar::handle:horizontal {
+                        background: rgba(192, 192, 192, 0.35);
+                        border-radius: 6px;
+                        min-width: 20px;
+                        margin: 0px;
+                    }
+                    QScrollBar::handle:horizontal:hover {
+                        background: rgba(160, 160, 160, 0.35);
+                    }
+                    QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+                        width: 0px;
+                    }
+                    QScrollBar::sub-control:corner {
+                        background: transparent;
                     }
                 """)
             else:
@@ -4667,8 +4742,58 @@ class SuperCutUI(QWidget):
                 if hasattr(self, '_processing_event_filter'):
                     self.scroll_area.removeEventFilter(self._processing_event_filter)
                 
-                # Restore normal styling
-                self.scroll_area.setStyleSheet("")
+                # Restore original scroll area styling (same as init_ui)
+                self.scroll_area.setStyleSheet("""
+                    QScrollArea {
+                        border: none;
+                        background: transparent;
+                        margin-right: 0px;
+                        padding-right: 0px;
+                    }
+                    QScrollBar:vertical {
+                        background: rgba(240, 240, 240, 0.20);
+                        width: 12px;
+                        border-radius: 6px;
+                        margin: 0px;
+                        position: absolute;
+                        right: 0px;
+                    }
+                    QScrollBar::handle:vertical {
+                        background: rgba(192, 192, 192, 0.20);
+                        border-radius: 6px;
+                        min-height: 20px;
+                        margin: 0px;
+                    }
+                    QScrollBar::handle:vertical:hover {
+                        background: rgba(160, 160, 160, 0.35);
+                    }
+                    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                        height: 0px;
+                    }
+                    QScrollBar:horizontal {
+                        background: rgba(240, 240, 240, 0.35);
+                        height: 12px;
+                        border-radius: 6px;
+                        margin: 0px;
+                        position: absolute;
+                        bottom: 0px;
+                    }
+                    QScrollBar::handle:horizontal {
+                        background: rgba(192, 192, 192, 0.35);
+                        border-radius: 6px;
+                        min-width: 20px;
+                        margin: 0px;
+                    }
+                    QScrollBar::handle:horizontal:hover {
+                        background: rgba(160, 160, 160, 0.35);
+                    }
+                    QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+                        width: 0px;
+                    }
+                    QScrollBar::sub-control:corner {
+                        background: transparent;
+                    }
+                """)
 
     def _setup_worker_and_thread(self, media_sources, export_name, number, folder, codec, resolution, fps, original_mp3_files, original_image_files, min_mp3_count):
         """Set up the VideoWorker and QThread, connect signals, and start processing."""
