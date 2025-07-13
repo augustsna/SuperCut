@@ -2826,431 +2826,7 @@ class SuperCutUI(QWidget):
         set_overlay6_7_duration_enabled(self.overlay6_7_duration_full_checkbox.checkState())
         # Initialize start at/from fields based on checkbox state
         set_overlay6_7_start_at_enabled(self.overlay6_7_start_at_checkbox.checkState())
-
-        # Overlay 8 controls (similar to Overlay 7)
-        self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
-        self.overlay8_checkbox.setFixedWidth(82)
-        self.overlay8_checkbox.setChecked(False)
-        def update_overlay8_checkbox_style(state):
-            self.overlay8_checkbox.setStyleSheet("")  # Always default color
-        self.overlay8_checkbox.stateChanged.connect(update_overlay8_checkbox_style)
-        update_overlay8_checkbox_style(self.overlay8_checkbox.checkState())
-
-        overlay8_layout = QHBoxLayout()
-        overlay8_layout.setSpacing(4)
-        self.overlay8_edit = ImageDropLineEdit()
-        self.overlay8_edit.setPlaceholderText("Overlay 8 image path (*.gif, *.png)")
-        self.overlay8_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
-        self.overlay8_edit.setFixedWidth(125)
-        self.overlay8_path = ""
-        def on_overlay8_changed():
-            current_text = self.overlay8_edit.text()
-            cleaned_text = clean_file_path(current_text)
-            if cleaned_text != current_text:
-                self.overlay8_edit.setText(cleaned_text)
-            self.overlay8_path = self.overlay8_edit.text().strip()
-        self.overlay8_edit.textChanged.connect(on_overlay8_changed)
-        overlay8_btn = QPushButton("Select")
-        overlay8_btn.setFixedWidth(60)
-        def select_overlay8_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 8 Image", "", "Image Files (*.gif *.png)")
-            if file_path:
-                self.overlay8_edit.setText(file_path)
-        overlay8_btn.clicked.connect(select_overlay8_image)
-        overlay8_size_label = QLabel("S:")
-        overlay8_size_label.setFixedWidth(18)
-        self.overlay8_size_combo = QtWidgets.QComboBox()
-        self.overlay8_size_combo.setFixedWidth(90)
-        for percent in range(5, 101, 5):
-            self.overlay8_size_combo.addItem(f"{percent}%", percent)
-        self.overlay8_size_combo.setCurrentIndex(9)  # Default 50%
-        self.overlay8_size_percent = 50
-        def on_overlay8_size_changed(idx):
-            self.overlay8_size_percent = self.overlay8_size_combo.itemData(idx)
-        self.overlay8_size_combo.setEditable(False)
-        self.overlay8_size_combo.currentIndexChanged.connect(on_overlay8_size_changed)
-        on_overlay8_size_changed(self.overlay8_size_combo.currentIndex())
-        # Overlay8 X coordinate
-        overlay8_x_label = QLabel("X:")
-        overlay8_x_label.setFixedWidth(18)
-        self.overlay8_x_combo = QtWidgets.QComboBox()
-        self.overlay8_x_combo.setFixedWidth(80)
-        for percent in range(0, 101, 1):
-            self.overlay8_x_combo.addItem(f"{percent}%", percent)
-        self.overlay8_x_combo.setCurrentIndex(0)  # Default 0%
-        self.overlay8_x_percent = 0
-        def on_overlay8_x_changed(idx):
-            self.overlay8_x_percent = self.overlay8_x_combo.itemData(idx)
-        self.overlay8_x_combo.currentIndexChanged.connect(on_overlay8_x_changed)
-        on_overlay8_x_changed(self.overlay8_x_combo.currentIndex())
-
-        # Overlay8 Y coordinate
-        overlay8_y_label = QLabel("Y:")
-        overlay8_y_label.setFixedWidth(18)
-        self.overlay8_y_combo = QtWidgets.QComboBox()
-        self.overlay8_y_combo.setFixedWidth(80)
-        for percent in range(0, 101, 1):
-            self.overlay8_y_combo.addItem(f"{percent}%", percent)
-        self.overlay8_y_combo.setCurrentIndex(0)  # Default 0%
-        self.overlay8_y_percent = 0
-        def on_overlay8_y_changed(idx):
-            self.overlay8_y_percent = self.overlay8_y_combo.itemData(idx)
-        self.overlay8_y_combo.currentIndexChanged.connect(on_overlay8_y_changed)
-        on_overlay8_y_changed(self.overlay8_y_combo.currentIndex())
-
-        # Overlay8 duration controls (similar to intro duration)
-        self.overlay8_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
-        self.overlay8_duration_full_checkbox.setFixedWidth(100)
-        self.overlay8_duration_full_checkbox.setChecked(True)
-        def update_overlay8_duration_full_checkbox_style(state):
-            self.overlay8_duration_full_checkbox.setStyleSheet("")  # Always default color
-        self.overlay8_duration_full_checkbox.stateChanged.connect(update_overlay8_duration_full_checkbox_style)
-        update_overlay8_duration_full_checkbox_style(self.overlay8_duration_full_checkbox.checkState())
         
-        overlay8_duration_label = QLabel("Duration:")
-        overlay8_duration_label.setFixedWidth(80)
-        self.overlay8_duration_edit = QLineEdit("6")
-        self.overlay8_duration_edit.setFixedWidth(40)
-        self.overlay8_duration_edit.setValidator(QIntValidator(1, 999, self))
-        self.overlay8_duration_edit.setPlaceholderText("6")
-        self.overlay8_duration = 6
-        def on_overlay8_duration_changed():
-            try:
-                self.overlay8_duration = int(self.overlay8_duration_edit.text())
-            except Exception:
-                self.overlay8_duration = 6
-        self.overlay8_duration_edit.textChanged.connect(on_overlay8_duration_changed)
-        on_overlay8_duration_changed()
-
-        # Function to control overlay8 duration field based on duration full checkbox
-        def set_overlay8_duration_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            # When duration full checkbox is checked, disable duration input field
-            self.overlay8_duration_edit.setEnabled(not enabled)
-            overlay8_duration_label.setEnabled(not enabled)
-            
-            if enabled:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.overlay8_duration_edit.setStyleSheet(grey_btn_style)
-                overlay8_duration_label.setStyleSheet("color: grey;")
-            else:
-                self.overlay8_duration_edit.setStyleSheet("")
-                overlay8_duration_label.setStyleSheet("")
-
-        def set_overlay8_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            self.overlay8_edit.setEnabled(enabled)
-            overlay8_btn.setEnabled(enabled)
-            self.overlay8_size_combo.setEnabled(enabled)
-            self.overlay8_x_combo.setEnabled(enabled)
-            self.overlay8_y_combo.setEnabled(enabled)
-            # Duration field is controlled by duration full checkbox, not overlay8 checkbox
-            if enabled:
-                # When overlay8 is enabled, let the duration full checkbox control the duration field
-                # Force the duration field to match the full checkbox state
-                full_checked = self.overlay8_duration_full_checkbox.isChecked()
-                self.overlay8_duration_edit.setEnabled(not full_checked)
-                overlay8_duration_label.setEnabled(not full_checked)
-                if full_checked:
-                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                    self.overlay8_duration_edit.setStyleSheet(grey_btn_style)
-                    overlay8_duration_label.setStyleSheet("color: grey;")
-                else:
-                    self.overlay8_duration_edit.setStyleSheet("")
-                    overlay8_duration_label.setStyleSheet("")
-                # Ensure timing controls are set according to popup checkbox when overlay8 is enabled
-                set_overlay8_timing_controls_enabled(self.overlay8_popup_checkbox.checkState())
-            else:
-                # When overlay8 is disabled, disable duration field regardless of full checkbox
-                overlay8_duration_label.setEnabled(False)
-                self.overlay8_duration_edit.setEnabled(False)
-            if enabled:
-                overlay8_btn.setStyleSheet("")
-                self.overlay8_edit.setStyleSheet("")
-                self.overlay8_size_combo.setStyleSheet("")
-                self.overlay8_x_combo.setStyleSheet("")
-                self.overlay8_y_combo.setStyleSheet("")
-                overlay8_size_label.setStyleSheet("")
-                overlay8_x_label.setStyleSheet("")
-                overlay8_y_label.setStyleSheet("")
-                # When overlay8 is enabled, reset checkbox styling and let the duration full checkbox control its own styling
-                self.overlay8_duration_full_checkbox.setStyleSheet("")
-                set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
-            else:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                overlay8_btn.setStyleSheet(grey_btn_style)
-                self.overlay8_edit.setStyleSheet(grey_btn_style)
-                self.overlay8_size_combo.setStyleSheet(grey_btn_style)
-                self.overlay8_x_combo.setStyleSheet(grey_btn_style)
-                self.overlay8_y_combo.setStyleSheet(grey_btn_style)
-                overlay8_size_label.setStyleSheet("color: grey;")
-                overlay8_x_label.setStyleSheet("color: grey;")
-                overlay8_y_label.setStyleSheet("color: grey;")
-                # Also grey out the duration checkbox when overlay8 is disabled
-                self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
-        self.overlay8_checkbox.stateChanged.connect(lambda _: set_overlay8_enabled(self.overlay8_checkbox.checkState()))
-        
-        overlay8_layout.addWidget(self.overlay8_checkbox)
-        overlay8_layout.addSpacing(3)
-        overlay8_layout.addWidget(self.overlay8_edit)
-        overlay8_layout.addSpacing(3)  # Space before select button
-        overlay8_layout.addWidget(overlay8_btn)
-        overlay8_layout.addSpacing(4)  # Space before position label
-        overlay8_layout.addWidget(overlay8_size_label)
-        overlay8_layout.addWidget(self.overlay8_size_combo)
-        overlay8_layout.addSpacing(4)
-        overlay8_layout.addWidget(overlay8_x_label)
-        overlay8_layout.addWidget(self.overlay8_x_combo)
-        overlay8_layout.addSpacing(4)
-        overlay8_layout.addWidget(overlay8_y_label)
-        overlay8_layout.addWidget(self.overlay8_y_combo)
-        self.overlay8_checkbox.stateChanged.connect(lambda _: set_overlay8_enabled(self.overlay8_checkbox.checkState()))
-        self.overlay8_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState()))
-        set_overlay8_enabled(self.overlay8_checkbox.checkState())
-        set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
-        layout.addLayout(overlay8_layout)
-
-        # --- EFFECT CONTROL FOR OVERLAY 8 (individual effect control) ---
-        overlay8_label = QLabel("Overlay 8:")
-        overlay8_label.setFixedWidth(80)
-        self.overlay8_effect_combo = QtWidgets.QComboBox()
-        self.overlay8_effect_combo.setFixedWidth(combo_width)
-        for label, value in effect_options:
-            self.overlay8_effect_combo.addItem(label, value)
-        self.overlay8_effect_combo.setCurrentIndex(1)
-        self.selected_overlay8_effect = "fadein"
-        def on_overlay8_effect_changed(idx):
-            self.selected_overlay8_effect = self.overlay8_effect_combo.itemData(idx)
-        self.overlay8_effect_combo.currentIndexChanged.connect(on_overlay8_effect_changed)
-        on_overlay8_effect_changed(self.overlay8_effect_combo.currentIndex())
-
-        # Overlay8 Pop up checkbox
-        self.overlay8_popup_checkbox = QtWidgets.QCheckBox("Pop up")
-        self.overlay8_popup_checkbox.setChecked(False)
-        
-        def set_overlay8_timing_controls_enabled(state):
-            # Only manage timing controls if overlay8 is enabled
-            if not self.overlay8_checkbox.isChecked():
-                return
-                
-            # Convert state to boolean: 0 = unchecked, 2 = checked
-            popup_checked = (state == Qt.CheckState.Checked or state == 2)
-            enabled = not popup_checked  # Enable when popup is unchecked, disable when checked
-            
-            # Full duration checkbox and duration field logic
-            if popup_checked:
-                self.overlay8_duration_full_checkbox.setEnabled(False)
-                self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
-                self.overlay8_duration_edit.setEnabled(True)
-                self.overlay8_duration_edit.setStyleSheet("")  # normal style
-            else:
-                self.overlay8_duration_full_checkbox.setEnabled(True)
-                self.overlay8_duration_full_checkbox.setStyleSheet("")
-                # Let the duration full checkbox control the duration field
-                set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
-
-            self.overlay8_start_at_checkbox.setEnabled(enabled)
-            self.overlay8_start_combo.setEnabled(enabled)
-            self.overlay8_start_from_combo.setEnabled(enabled)
-            
-            # Popup start at dropdown - enabled when popup is checked
-            self.overlay8_popup_start_at_combo.setEnabled(popup_checked)
-            # Popup interval dropdown - enabled when popup is checked
-            self.overlay8_popup_interval_combo.setEnabled(popup_checked)
-            
-            # Update styling for start controls
-            if enabled:
-                self.overlay8_start_at_checkbox.setStyleSheet("")
-                overlay8_start_label.setStyleSheet("")
-                overlay8_start_from_label.setStyleSheet("")
-                self.overlay8_start_combo.setStyleSheet("")
-                self.overlay8_start_from_combo.setStyleSheet("")
-            else:
-                self.overlay8_start_at_checkbox.setStyleSheet("color: grey;")
-                overlay8_start_label.setStyleSheet("color: grey;")
-                overlay8_start_from_label.setStyleSheet("color: grey;")
-                self.overlay8_start_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay8_start_from_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-            
-            # Update styling for popup start at
-            if popup_checked:
-                overlay8_popup_start_at_label.setStyleSheet("")
-                self.overlay8_popup_start_at_combo.setStyleSheet("")
-            else:
-                overlay8_popup_start_at_label.setStyleSheet("color: grey;")
-                self.overlay8_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-            
-            # Update styling for popup interval
-            if popup_checked:
-                overlay8_popup_interval_label.setStyleSheet("")
-                self.overlay8_popup_interval_combo.setStyleSheet("")
-            else:
-                overlay8_popup_interval_label.setStyleSheet("color: grey;")
-                self.overlay8_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-        
-        def update_overlay8_popup_checkbox_style(state):
-            self.overlay8_popup_checkbox.setStyleSheet("")
-        self.overlay8_popup_checkbox.stateChanged.connect(update_overlay8_popup_checkbox_style)
-        self.overlay8_popup_checkbox.stateChanged.connect(lambda state: set_overlay8_timing_controls_enabled(state))
-        update_overlay8_popup_checkbox_style(self.overlay8_popup_checkbox.checkState())
-
-        # Overlay8 Start at checkbox
-        self.overlay8_start_at_checkbox = QtWidgets.QCheckBox("")
-        self.overlay8_start_at_checkbox.setChecked(True)
-        def update_overlay8_start_at_checkbox_style(state):
-            self.overlay8_start_at_checkbox.setStyleSheet("")
-        self.overlay8_start_at_checkbox.stateChanged.connect(update_overlay8_start_at_checkbox_style)
-        update_overlay8_start_at_checkbox_style(self.overlay8_start_at_checkbox.checkState())
-
-        overlay8_start_label = QLabel("Start at:")
-        overlay8_start_label.setFixedWidth(80)
-        self.overlay8_start_combo = QtWidgets.QComboBox()
-        self.overlay8_start_combo.setFixedWidth(60)
-        for percent in range(1, 101, 1):
-            self.overlay8_start_combo.addItem(f"{percent}%", percent)
-        self.overlay8_start_combo.setCurrentIndex(4)  # Default 5%
-        self.overlay8_start_percent = 5
-        def on_overlay8_start_changed(idx):
-            self.overlay8_start_percent = self.overlay8_start_combo.itemData(idx)
-        self.overlay8_start_combo.currentIndexChanged.connect(on_overlay8_start_changed)
-        on_overlay8_start_changed(self.overlay8_start_combo.currentIndex())
-
-        # Overlay8 Start from field
-        overlay8_start_from_label = QLabel("Start from:")
-        overlay8_start_from_label.setFixedWidth(80)
-        self.overlay8_start_from_combo = QtWidgets.QComboBox()
-        self.overlay8_start_from_combo.setFixedWidth(60)
-        for percent in range(1, 101, 1):
-            self.overlay8_start_from_combo.addItem(f"{percent}%", percent)
-        self.overlay8_start_from_combo.setCurrentIndex(0)  # Default 1%
-        self.overlay8_start_from_percent = 1
-        def on_overlay8_start_from_changed(idx):
-            self.overlay8_start_from_percent = self.overlay8_start_from_combo.itemData(idx)
-        self.overlay8_start_from_combo.currentIndexChanged.connect(on_overlay8_start_from_changed)
-        on_overlay8_start_from_changed(self.overlay8_start_from_combo.currentIndex())
-
-        # Overlay8 Pop up Start at field
-        overlay8_popup_start_at_label = QLabel("Pop up Start at:")
-        overlay8_popup_start_at_label.setFixedWidth(100)
-        self.overlay8_popup_start_at_combo = QtWidgets.QComboBox()
-        self.overlay8_popup_start_at_combo.setFixedWidth(60)
-        for percent in range(1, 101, 1):
-            self.overlay8_popup_start_at_combo.addItem(f"{percent}%", percent)
-        self.overlay8_popup_start_at_combo.setCurrentIndex(4)  # Default 5%
-        self.overlay8_popup_start_at_percent = 5
-        def on_overlay8_popup_start_at_changed(idx):
-            self.overlay8_popup_start_at_percent = self.overlay8_popup_start_at_combo.itemData(idx)
-        self.overlay8_popup_start_at_combo.currentIndexChanged.connect(on_overlay8_popup_start_at_changed)
-        on_overlay8_popup_start_at_changed(self.overlay8_popup_start_at_combo.currentIndex())
-
-        # Overlay8 Pop up Interval field
-        overlay8_popup_interval_label = QLabel("Pop up Interval:")
-        overlay8_popup_interval_label.setFixedWidth(100)
-        self.overlay8_popup_interval_combo = QtWidgets.QComboBox()
-        self.overlay8_popup_interval_combo.setFixedWidth(60)
-        for value in range(1, 101, 1):
-            self.overlay8_popup_interval_combo.addItem(f"{value}", value)
-        self.overlay8_popup_interval_combo.setCurrentIndex(0)  # Default 1
-        self.overlay8_popup_interval_percent = 1
-        def on_overlay8_popup_interval_changed(idx):
-            self.overlay8_popup_interval_percent = self.overlay8_popup_interval_combo.itemData(idx)
-        self.overlay8_popup_interval_combo.currentIndexChanged.connect(on_overlay8_popup_interval_changed)
-        on_overlay8_popup_interval_changed(self.overlay8_popup_interval_combo.currentIndex())
-
-        overlay8_layout = QHBoxLayout()
-        overlay8_layout.setContentsMargins(0, 0, 0, 0)
-        overlay8_layout.addSpacing(-20)
-        overlay8_layout.addWidget(overlay8_label)
-        overlay8_layout.addSpacing(-3)
-        overlay8_layout.addWidget(self.overlay8_effect_combo)
-        overlay8_layout.addSpacing(-6)
-        overlay8_layout.addWidget(overlay8_duration_label)
-        overlay8_layout.addSpacing(-27)
-        overlay8_layout.addWidget(self.overlay8_duration_edit)
-        overlay8_layout.addSpacing(-6)
-        overlay8_layout.addWidget(self.overlay8_duration_full_checkbox)
-        overlay8_layout.addSpacing(-6)
-        overlay8_layout.addWidget(self.overlay8_start_at_checkbox)
-        overlay8_layout.addSpacing(-6)
-        overlay8_layout.addWidget(overlay8_start_label)
-        overlay8_layout.addSpacing(-32)
-        overlay8_layout.addWidget(self.overlay8_start_combo)
-        overlay8_layout.addSpacing(-6)
-        overlay8_layout.addWidget(overlay8_start_from_label)
-        overlay8_layout.addSpacing(-32)
-        overlay8_layout.addWidget(self.overlay8_start_from_combo)
-        overlay8_layout.addStretch()
-        layout.addLayout(overlay8_layout)
-        
-        # Overlay8 Pop up checkbox in separate row
-        overlay8_popup_layout = QHBoxLayout()
-        overlay8_popup_layout.setContentsMargins(0, 0, 0, 0)
-        overlay8_popup_layout.addSpacing(20)  # Indent to align with overlay8 controls
-        overlay8_popup_layout.addWidget(self.overlay8_popup_checkbox)
-        overlay8_popup_layout.addSpacing(10)
-        overlay8_popup_layout.addWidget(overlay8_popup_start_at_label)
-        overlay8_popup_layout.addSpacing(-32)
-        overlay8_popup_layout.addWidget(self.overlay8_popup_start_at_combo)
-        overlay8_popup_layout.addSpacing(10)
-        overlay8_popup_layout.addWidget(overlay8_popup_interval_label)
-        overlay8_popup_layout.addSpacing(-32)
-        overlay8_popup_layout.addWidget(self.overlay8_popup_interval_combo)
-        overlay8_popup_layout.addStretch()
-        layout.addLayout(overlay8_popup_layout)
-
-        # --- Overlay 8 effect greying logic ---
-        def set_overlay8_start_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            self.overlay8_start_combo.setEnabled(enabled)
-            overlay8_start_label.setStyleSheet("" if enabled else "color: grey;")
-            self.overlay8_start_combo.setStyleSheet("" if enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-            
-            # Enable/disable start from field based on opposite state
-            self.overlay8_start_from_combo.setEnabled(not enabled)
-            overlay8_start_from_label.setStyleSheet("" if not enabled else "color: grey;")
-            self.overlay8_start_from_combo.setStyleSheet("" if not enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-
-        def update_overlay8_effect_label_style():
-            if not self.overlay8_checkbox.isChecked():
-                overlay8_label.setStyleSheet("color: grey;")
-                self.overlay8_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay8_effect_combo.setEnabled(False)
-                self.overlay8_popup_checkbox.setStyleSheet("color: grey;")
-                self.overlay8_popup_checkbox.setEnabled(False)
-                self.overlay8_start_at_checkbox.setStyleSheet("color: grey;")
-                self.overlay8_start_at_checkbox.setEnabled(False)
-                overlay8_start_label.setStyleSheet("color: grey;")
-                self.overlay8_start_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay8_start_combo.setEnabled(False)
-                overlay8_start_from_label.setStyleSheet("color: grey;")
-                self.overlay8_start_from_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay8_start_from_combo.setEnabled(False)
-                # Also grey out duration controls when overlay8 is disabled
-                overlay8_duration_label.setStyleSheet("color: grey;")
-                self.overlay8_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay8_duration_edit.setEnabled(False)
-                self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
-                self.overlay8_duration_full_checkbox.setEnabled(False)
-                # Also grey out popup start at controls when overlay8 is disabled
-                overlay8_popup_start_at_label.setStyleSheet("color: grey;")
-                self.overlay8_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay8_popup_start_at_combo.setEnabled(False)
-                # Also grey out popup interval controls when overlay8 is disabled
-                overlay8_popup_interval_label.setStyleSheet("color: grey;")
-                self.overlay8_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay8_popup_interval_combo.setEnabled(False)
-            else:
-                overlay8_label.setStyleSheet("")
-                self.overlay8_effect_combo.setStyleSheet("")
-                self.overlay8_effect_combo.setEnabled(True)
-                self.overlay8_popup_checkbox.setStyleSheet("")
-                self.overlay8_popup_checkbox.setEnabled(True)
-                # Let the popup checkbox control the timing controls
-                set_overlay8_timing_controls_enabled(self.overlay8_popup_checkbox.checkState())
-        self.overlay8_checkbox.stateChanged.connect(lambda _: update_overlay8_effect_label_style())
-        self.overlay8_start_at_checkbox.stateChanged.connect(lambda _: set_overlay8_start_enabled(self.overlay8_start_at_checkbox.checkState()))
-        update_overlay8_effect_label_style()
-
         # Overlay 3 controls (similar to Overlay 2)
         self.overlay3_checkbox = QtWidgets.QCheckBox("Overlay 3:")
         self.overlay3_checkbox.setFixedWidth(82)
@@ -3711,7 +3287,430 @@ class SuperCutUI(QWidget):
         song_title_controls_layout.addStretch()
         layout.addLayout(song_title_controls_layout)
 
-         
+        # Overlay 8 controls (similar to Overlay 7)
+        self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
+        self.overlay8_checkbox.setFixedWidth(82)
+        self.overlay8_checkbox.setChecked(False)
+        def update_overlay8_checkbox_style(state):
+            self.overlay8_checkbox.setStyleSheet("")  # Always default color
+        self.overlay8_checkbox.stateChanged.connect(update_overlay8_checkbox_style)
+        update_overlay8_checkbox_style(self.overlay8_checkbox.checkState())
+
+        overlay8_layout = QHBoxLayout()
+        overlay8_layout.setSpacing(4)
+        self.overlay8_edit = ImageDropLineEdit()
+        self.overlay8_edit.setPlaceholderText("Overlay 8 image path (*.gif, *.png)")
+        self.overlay8_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay8_edit.setFixedWidth(125)
+        self.overlay8_path = ""
+        def on_overlay8_changed():
+            current_text = self.overlay8_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay8_edit.setText(cleaned_text)
+            self.overlay8_path = self.overlay8_edit.text().strip()
+        self.overlay8_edit.textChanged.connect(on_overlay8_changed)
+        overlay8_btn = QPushButton("Select")
+        overlay8_btn.setFixedWidth(60)
+        def select_overlay8_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 8 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.overlay8_edit.setText(file_path)
+        overlay8_btn.clicked.connect(select_overlay8_image)
+        overlay8_size_label = QLabel("S:")
+        overlay8_size_label.setFixedWidth(18)
+        self.overlay8_size_combo = QtWidgets.QComboBox()
+        self.overlay8_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.overlay8_size_combo.addItem(f"{percent}%", percent)
+        self.overlay8_size_combo.setCurrentIndex(9)  # Default 50%
+        self.overlay8_size_percent = 50
+        def on_overlay8_size_changed(idx):
+            self.overlay8_size_percent = self.overlay8_size_combo.itemData(idx)
+        self.overlay8_size_combo.setEditable(False)
+        self.overlay8_size_combo.currentIndexChanged.connect(on_overlay8_size_changed)
+        on_overlay8_size_changed(self.overlay8_size_combo.currentIndex())
+        # Overlay8 X coordinate
+        overlay8_x_label = QLabel("X:")
+        overlay8_x_label.setFixedWidth(18)
+        self.overlay8_x_combo = QtWidgets.QComboBox()
+        self.overlay8_x_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay8_x_combo.addItem(f"{percent}%", percent)
+        self.overlay8_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay8_x_percent = 0
+        def on_overlay8_x_changed(idx):
+            self.overlay8_x_percent = self.overlay8_x_combo.itemData(idx)
+        self.overlay8_x_combo.currentIndexChanged.connect(on_overlay8_x_changed)
+        on_overlay8_x_changed(self.overlay8_x_combo.currentIndex())
+
+        # Overlay8 Y coordinate
+        overlay8_y_label = QLabel("Y:")
+        overlay8_y_label.setFixedWidth(18)
+        self.overlay8_y_combo = QtWidgets.QComboBox()
+        self.overlay8_y_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay8_y_combo.addItem(f"{percent}%", percent)
+        self.overlay8_y_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay8_y_percent = 0
+        def on_overlay8_y_changed(idx):
+            self.overlay8_y_percent = self.overlay8_y_combo.itemData(idx)
+        self.overlay8_y_combo.currentIndexChanged.connect(on_overlay8_y_changed)
+        on_overlay8_y_changed(self.overlay8_y_combo.currentIndex())
+
+        # Overlay8 duration controls (similar to intro duration)
+        self.overlay8_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
+        self.overlay8_duration_full_checkbox.setFixedWidth(100)
+        self.overlay8_duration_full_checkbox.setChecked(True)
+        def update_overlay8_duration_full_checkbox_style(state):
+            self.overlay8_duration_full_checkbox.setStyleSheet("")  # Always default color
+        self.overlay8_duration_full_checkbox.stateChanged.connect(update_overlay8_duration_full_checkbox_style)
+        update_overlay8_duration_full_checkbox_style(self.overlay8_duration_full_checkbox.checkState())
+        
+        overlay8_duration_label = QLabel("Duration:")
+        overlay8_duration_label.setFixedWidth(80)
+        self.overlay8_duration_edit = QLineEdit("6")
+        self.overlay8_duration_edit.setFixedWidth(40)
+        self.overlay8_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.overlay8_duration_edit.setPlaceholderText("6")
+        self.overlay8_duration = 6
+        def on_overlay8_duration_changed():
+            try:
+                self.overlay8_duration = int(self.overlay8_duration_edit.text())
+            except Exception:
+                self.overlay8_duration = 6
+        self.overlay8_duration_edit.textChanged.connect(on_overlay8_duration_changed)
+        on_overlay8_duration_changed()
+
+        # Function to control overlay8 duration field based on duration full checkbox
+        def set_overlay8_duration_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When duration full checkbox is checked, disable duration input field
+            self.overlay8_duration_edit.setEnabled(not enabled)
+            overlay8_duration_label.setEnabled(not enabled)
+            
+            if enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay8_duration_edit.setStyleSheet(grey_btn_style)
+                overlay8_duration_label.setStyleSheet("color: grey;")
+            else:
+                self.overlay8_duration_edit.setStyleSheet("")
+                overlay8_duration_label.setStyleSheet("")
+
+        def set_overlay8_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay8_edit.setEnabled(enabled)
+            overlay8_btn.setEnabled(enabled)
+            self.overlay8_size_combo.setEnabled(enabled)
+            self.overlay8_x_combo.setEnabled(enabled)
+            self.overlay8_y_combo.setEnabled(enabled)
+            # Duration field is controlled by duration full checkbox, not overlay8 checkbox
+            if enabled:
+                # When overlay8 is enabled, let the duration full checkbox control the duration field
+                # Force the duration field to match the full checkbox state
+                full_checked = self.overlay8_duration_full_checkbox.isChecked()
+                self.overlay8_duration_edit.setEnabled(not full_checked)
+                overlay8_duration_label.setEnabled(not full_checked)
+                if full_checked:
+                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                    self.overlay8_duration_edit.setStyleSheet(grey_btn_style)
+                    overlay8_duration_label.setStyleSheet("color: grey;")
+                else:
+                    self.overlay8_duration_edit.setStyleSheet("")
+                    overlay8_duration_label.setStyleSheet("")
+                # Ensure timing controls are set according to popup checkbox when overlay8 is enabled
+                set_overlay8_timing_controls_enabled(self.overlay8_popup_checkbox.checkState())
+            else:
+                # When overlay8 is disabled, disable duration field regardless of full checkbox
+                overlay8_duration_label.setEnabled(False)
+                self.overlay8_duration_edit.setEnabled(False)
+            if enabled:
+                overlay8_btn.setStyleSheet("")
+                self.overlay8_edit.setStyleSheet("")
+                self.overlay8_size_combo.setStyleSheet("")
+                self.overlay8_x_combo.setStyleSheet("")
+                self.overlay8_y_combo.setStyleSheet("")
+                overlay8_size_label.setStyleSheet("")
+                overlay8_x_label.setStyleSheet("")
+                overlay8_y_label.setStyleSheet("")
+                # When overlay8 is enabled, reset checkbox styling and let the duration full checkbox control its own styling
+                self.overlay8_duration_full_checkbox.setStyleSheet("")
+                set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                overlay8_btn.setStyleSheet(grey_btn_style)
+                self.overlay8_edit.setStyleSheet(grey_btn_style)
+                self.overlay8_size_combo.setStyleSheet(grey_btn_style)
+                self.overlay8_x_combo.setStyleSheet(grey_btn_style)
+                self.overlay8_y_combo.setStyleSheet(grey_btn_style)
+                overlay8_size_label.setStyleSheet("color: grey;")
+                overlay8_x_label.setStyleSheet("color: grey;")
+                overlay8_y_label.setStyleSheet("color: grey;")
+                # Also grey out the duration checkbox when overlay8 is disabled
+                self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
+        self.overlay8_checkbox.stateChanged.connect(lambda _: set_overlay8_enabled(self.overlay8_checkbox.checkState()))
+        
+        overlay8_layout.addWidget(self.overlay8_checkbox)
+        overlay8_layout.addSpacing(3)
+        overlay8_layout.addWidget(self.overlay8_edit)
+        overlay8_layout.addSpacing(3)  # Space before select button
+        overlay8_layout.addWidget(overlay8_btn)
+        overlay8_layout.addSpacing(4)  # Space before position label
+        overlay8_layout.addWidget(overlay8_size_label)
+        overlay8_layout.addWidget(self.overlay8_size_combo)
+        overlay8_layout.addSpacing(4)
+        overlay8_layout.addWidget(overlay8_x_label)
+        overlay8_layout.addWidget(self.overlay8_x_combo)
+        overlay8_layout.addSpacing(4)
+        overlay8_layout.addWidget(overlay8_y_label)
+        overlay8_layout.addWidget(self.overlay8_y_combo)
+        self.overlay8_checkbox.stateChanged.connect(lambda _: set_overlay8_enabled(self.overlay8_checkbox.checkState()))
+        self.overlay8_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState()))
+        set_overlay8_enabled(self.overlay8_checkbox.checkState())
+        set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
+        layout.addLayout(overlay8_layout)
+
+        # --- EFFECT CONTROL FOR OVERLAY 8 (individual effect control) ---
+        overlay8_label = QLabel("Overlay 8:")
+        overlay8_label.setFixedWidth(80)
+        self.overlay8_effect_combo = QtWidgets.QComboBox()
+        self.overlay8_effect_combo.setFixedWidth(combo_width)
+        for label, value in effect_options:
+            self.overlay8_effect_combo.addItem(label, value)
+        self.overlay8_effect_combo.setCurrentIndex(1)
+        self.selected_overlay8_effect = "fadein"
+        def on_overlay8_effect_changed(idx):
+            self.selected_overlay8_effect = self.overlay8_effect_combo.itemData(idx)
+        self.overlay8_effect_combo.currentIndexChanged.connect(on_overlay8_effect_changed)
+        on_overlay8_effect_changed(self.overlay8_effect_combo.currentIndex())
+
+        # Overlay8 Pop up checkbox
+        self.overlay8_popup_checkbox = QtWidgets.QCheckBox("Pop up")
+        self.overlay8_popup_checkbox.setChecked(False)
+        
+        def set_overlay8_timing_controls_enabled(state):
+            # Only manage timing controls if overlay8 is enabled
+            if not self.overlay8_checkbox.isChecked():
+                return
+                
+            # Convert state to boolean: 0 = unchecked, 2 = checked
+            popup_checked = (state == Qt.CheckState.Checked or state == 2)
+            enabled = not popup_checked  # Enable when popup is unchecked, disable when checked
+            
+            # Full duration checkbox and duration field logic
+            if popup_checked:
+                self.overlay8_duration_full_checkbox.setEnabled(False)
+                self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.overlay8_duration_edit.setEnabled(True)
+                self.overlay8_duration_edit.setStyleSheet("")  # normal style
+            else:
+                self.overlay8_duration_full_checkbox.setEnabled(True)
+                self.overlay8_duration_full_checkbox.setStyleSheet("")
+                # Let the duration full checkbox control the duration field
+                set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
+
+            self.overlay8_start_at_checkbox.setEnabled(enabled)
+            self.overlay8_start_combo.setEnabled(enabled)
+            self.overlay8_start_from_combo.setEnabled(enabled)
+            
+            # Popup start at dropdown - enabled when popup is checked
+            self.overlay8_popup_start_at_combo.setEnabled(popup_checked)
+            # Popup interval dropdown - enabled when popup is checked
+            self.overlay8_popup_interval_combo.setEnabled(popup_checked)
+            
+            # Update styling for start controls
+            if enabled:
+                self.overlay8_start_at_checkbox.setStyleSheet("")
+                overlay8_start_label.setStyleSheet("")
+                overlay8_start_from_label.setStyleSheet("")
+                self.overlay8_start_combo.setStyleSheet("")
+                self.overlay8_start_from_combo.setStyleSheet("")
+            else:
+                self.overlay8_start_at_checkbox.setStyleSheet("color: grey;")
+                overlay8_start_label.setStyleSheet("color: grey;")
+                overlay8_start_from_label.setStyleSheet("color: grey;")
+                self.overlay8_start_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_start_from_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            
+            # Update styling for popup start at
+            if popup_checked:
+                overlay8_popup_start_at_label.setStyleSheet("")
+                self.overlay8_popup_start_at_combo.setStyleSheet("")
+            else:
+                overlay8_popup_start_at_label.setStyleSheet("color: grey;")
+                self.overlay8_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            
+            # Update styling for popup interval
+            if popup_checked:
+                overlay8_popup_interval_label.setStyleSheet("")
+                self.overlay8_popup_interval_combo.setStyleSheet("")
+            else:
+                overlay8_popup_interval_label.setStyleSheet("color: grey;")
+                self.overlay8_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+        
+        def update_overlay8_popup_checkbox_style(state):
+            self.overlay8_popup_checkbox.setStyleSheet("")
+        self.overlay8_popup_checkbox.stateChanged.connect(update_overlay8_popup_checkbox_style)
+        self.overlay8_popup_checkbox.stateChanged.connect(lambda state: set_overlay8_timing_controls_enabled(state))
+        update_overlay8_popup_checkbox_style(self.overlay8_popup_checkbox.checkState())
+
+        # Overlay8 Start at checkbox
+        self.overlay8_start_at_checkbox = QtWidgets.QCheckBox("")
+        self.overlay8_start_at_checkbox.setChecked(True)
+        def update_overlay8_start_at_checkbox_style(state):
+            self.overlay8_start_at_checkbox.setStyleSheet("")
+        self.overlay8_start_at_checkbox.stateChanged.connect(update_overlay8_start_at_checkbox_style)
+        update_overlay8_start_at_checkbox_style(self.overlay8_start_at_checkbox.checkState())
+
+        overlay8_start_label = QLabel("Start at:")
+        overlay8_start_label.setFixedWidth(80)
+        self.overlay8_start_combo = QtWidgets.QComboBox()
+        self.overlay8_start_combo.setFixedWidth(60)
+        for percent in range(1, 101, 1):
+            self.overlay8_start_combo.addItem(f"{percent}%", percent)
+        self.overlay8_start_combo.setCurrentIndex(4)  # Default 5%
+        self.overlay8_start_percent = 5
+        def on_overlay8_start_changed(idx):
+            self.overlay8_start_percent = self.overlay8_start_combo.itemData(idx)
+        self.overlay8_start_combo.currentIndexChanged.connect(on_overlay8_start_changed)
+        on_overlay8_start_changed(self.overlay8_start_combo.currentIndex())
+
+        # Overlay8 Start from field
+        overlay8_start_from_label = QLabel("Start from:")
+        overlay8_start_from_label.setFixedWidth(80)
+        self.overlay8_start_from_combo = QtWidgets.QComboBox()
+        self.overlay8_start_from_combo.setFixedWidth(60)
+        for percent in range(1, 101, 1):
+            self.overlay8_start_from_combo.addItem(f"{percent}%", percent)
+        self.overlay8_start_from_combo.setCurrentIndex(0)  # Default 1%
+        self.overlay8_start_from_percent = 1
+        def on_overlay8_start_from_changed(idx):
+            self.overlay8_start_from_percent = self.overlay8_start_from_combo.itemData(idx)
+        self.overlay8_start_from_combo.currentIndexChanged.connect(on_overlay8_start_from_changed)
+        on_overlay8_start_from_changed(self.overlay8_start_from_combo.currentIndex())
+
+        # Overlay8 Pop up Start at field
+        overlay8_popup_start_at_label = QLabel("Pop up Start at:")
+        overlay8_popup_start_at_label.setFixedWidth(100)
+        self.overlay8_popup_start_at_combo = QtWidgets.QComboBox()
+        self.overlay8_popup_start_at_combo.setFixedWidth(60)
+        for percent in range(1, 101, 1):
+            self.overlay8_popup_start_at_combo.addItem(f"{percent}%", percent)
+        self.overlay8_popup_start_at_combo.setCurrentIndex(4)  # Default 5%
+        self.overlay8_popup_start_at_percent = 5
+        def on_overlay8_popup_start_at_changed(idx):
+            self.overlay8_popup_start_at_percent = self.overlay8_popup_start_at_combo.itemData(idx)
+        self.overlay8_popup_start_at_combo.currentIndexChanged.connect(on_overlay8_popup_start_at_changed)
+        on_overlay8_popup_start_at_changed(self.overlay8_popup_start_at_combo.currentIndex())
+
+        # Overlay8 Pop up Interval field
+        overlay8_popup_interval_label = QLabel("Pop up Interval:")
+        overlay8_popup_interval_label.setFixedWidth(100)
+        self.overlay8_popup_interval_combo = QtWidgets.QComboBox()
+        self.overlay8_popup_interval_combo.setFixedWidth(60)
+        for value in range(1, 101, 1):
+            self.overlay8_popup_interval_combo.addItem(f"{value}", value)
+        self.overlay8_popup_interval_combo.setCurrentIndex(0)  # Default 1
+        self.overlay8_popup_interval_percent = 1
+        def on_overlay8_popup_interval_changed(idx):
+            self.overlay8_popup_interval_percent = self.overlay8_popup_interval_combo.itemData(idx)
+        self.overlay8_popup_interval_combo.currentIndexChanged.connect(on_overlay8_popup_interval_changed)
+        on_overlay8_popup_interval_changed(self.overlay8_popup_interval_combo.currentIndex())
+
+        overlay8_layout = QHBoxLayout()
+        overlay8_layout.setContentsMargins(0, 0, 0, 0)
+        overlay8_layout.addSpacing(-80)
+        overlay8_layout.addWidget(overlay8_label)
+        overlay8_layout.addSpacing(-3)
+        overlay8_layout.addWidget(self.overlay8_effect_combo)
+        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addWidget(overlay8_duration_label)
+        overlay8_layout.addSpacing(-27)
+        overlay8_layout.addWidget(self.overlay8_duration_edit)
+        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addWidget(self.overlay8_duration_full_checkbox)
+        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addWidget(self.overlay8_start_at_checkbox)
+        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addWidget(overlay8_start_label)
+        overlay8_layout.addSpacing(-32)
+        overlay8_layout.addWidget(self.overlay8_start_combo)
+        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addWidget(overlay8_start_from_label)
+        overlay8_layout.addSpacing(-32)
+        overlay8_layout.addWidget(self.overlay8_start_from_combo)
+        overlay8_layout.addStretch()
+        layout.addLayout(overlay8_layout)
+        
+        # Overlay8 Pop up checkbox in separate row
+        overlay8_popup_layout = QHBoxLayout()
+        overlay8_popup_layout.setContentsMargins(0, 0, 0, 0)
+        overlay8_popup_layout.addSpacing(20)  # Indent to align with overlay8 controls
+        overlay8_popup_layout.addWidget(self.overlay8_popup_checkbox)
+        overlay8_popup_layout.addSpacing(10)
+        overlay8_popup_layout.addWidget(overlay8_popup_start_at_label)
+        overlay8_popup_layout.addSpacing(-32)
+        overlay8_popup_layout.addWidget(self.overlay8_popup_start_at_combo)
+        overlay8_popup_layout.addSpacing(10)
+        overlay8_popup_layout.addWidget(overlay8_popup_interval_label)
+        overlay8_popup_layout.addSpacing(-32)
+        overlay8_popup_layout.addWidget(self.overlay8_popup_interval_combo)
+        overlay8_popup_layout.addStretch()
+        layout.addLayout(overlay8_popup_layout)
+
+        # --- Overlay 8 effect greying logic ---
+        def set_overlay8_start_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay8_start_combo.setEnabled(enabled)
+            overlay8_start_label.setStyleSheet("" if enabled else "color: grey;")
+            self.overlay8_start_combo.setStyleSheet("" if enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            
+            # Enable/disable start from field based on opposite state
+            self.overlay8_start_from_combo.setEnabled(not enabled)
+            overlay8_start_from_label.setStyleSheet("" if not enabled else "color: grey;")
+            self.overlay8_start_from_combo.setStyleSheet("" if not enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+
+        def update_overlay8_effect_label_style():
+            if not self.overlay8_checkbox.isChecked():
+                overlay8_label.setStyleSheet("color: grey;")
+                self.overlay8_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_effect_combo.setEnabled(False)
+                self.overlay8_popup_checkbox.setStyleSheet("color: grey;")
+                self.overlay8_popup_checkbox.setEnabled(False)
+                self.overlay8_start_at_checkbox.setStyleSheet("color: grey;")
+                self.overlay8_start_at_checkbox.setEnabled(False)
+                overlay8_start_label.setStyleSheet("color: grey;")
+                self.overlay8_start_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_start_combo.setEnabled(False)
+                overlay8_start_from_label.setStyleSheet("color: grey;")
+                self.overlay8_start_from_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_start_from_combo.setEnabled(False)
+                # Also grey out duration controls when overlay8 is disabled
+                overlay8_duration_label.setStyleSheet("color: grey;")
+                self.overlay8_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_duration_edit.setEnabled(False)
+                self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.overlay8_duration_full_checkbox.setEnabled(False)
+                # Also grey out popup start at controls when overlay8 is disabled
+                overlay8_popup_start_at_label.setStyleSheet("color: grey;")
+                self.overlay8_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_popup_start_at_combo.setEnabled(False)
+                # Also grey out popup interval controls when overlay8 is disabled
+                overlay8_popup_interval_label.setStyleSheet("color: grey;")
+                self.overlay8_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_popup_interval_combo.setEnabled(False)
+            else:
+                overlay8_label.setStyleSheet("")
+                self.overlay8_effect_combo.setStyleSheet("")
+                self.overlay8_effect_combo.setEnabled(True)
+                self.overlay8_popup_checkbox.setStyleSheet("")
+                self.overlay8_popup_checkbox.setEnabled(True)
+                # Let the popup checkbox control the timing controls
+                set_overlay8_timing_controls_enabled(self.overlay8_popup_checkbox.checkState())
+        self.overlay8_checkbox.stateChanged.connect(lambda _: update_overlay8_effect_label_style())
+        self.overlay8_start_at_checkbox.stateChanged.connect(lambda _: set_overlay8_start_enabled(self.overlay8_start_at_checkbox.checkState()))
+        update_overlay8_effect_label_style()
+ 
 
        
 
