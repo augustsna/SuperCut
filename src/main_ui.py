@@ -1467,10 +1467,21 @@ class SuperCutUI(QWidget):
                 # Also grey out the checkboxes and start at input when intro is disabled
                 self.intro_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.intro_start_checkbox.setStyleSheet("color: grey;")
-                self.intro_start_edit.setStyleSheet(grey_btn_style)
+                # Force disable start at/from fields when intro is disabled
+                set_intro_start_enabled(self.intro_start_checkbox.checkState())
         
         # Function to control intro start at/from fields based on its checkbox
         def set_intro_start_enabled(state):
+            # Only enable controls if intro checkbox is checked
+            if not self.intro_checkbox.isChecked():
+                self.intro_start_edit.setEnabled(False)
+                self.intro_start_from_edit.setEnabled(False)
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.intro_start_edit.setStyleSheet(grey_btn_style)
+                self.intro_start_from_edit.setStyleSheet(grey_btn_style)
+                intro_start_from_label.setStyleSheet("color: grey;")
+                return
+                
             enabled = state == Qt.CheckState.Checked
             # When checkbox is checked, enable start at field and disable start from field
             # When checkbox is unchecked, enable start from field and disable start at field
@@ -2699,27 +2710,36 @@ class SuperCutUI(QWidget):
 
         # Function to control overlay6_7 start at/from fields based on start at checkbox
         def set_overlay6_7_start_at_enabled(state):
-            enabled = state == Qt.CheckState.Checked
             # Only control the toggle behavior if overlay6_7 controls are already enabled
             # (i.e., if either overlay6 or overlay7 is checked)
-            if self.overlay6_checkbox.isChecked() or self.overlay7_checkbox.isChecked():
-                # When start at checkbox is checked, enable start at field and disable start from field
-                # When start at checkbox is unchecked, enable start from field and disable start at field
-                self.overlay6_7_start_edit.setEnabled(enabled)
-                self.overlay6_7_start_from_edit.setEnabled(not enabled)
+            if not (self.overlay6_checkbox.isChecked() or self.overlay7_checkbox.isChecked()):
+                # Disable all controls when neither overlay6 nor overlay7 is checked
+                self.overlay6_7_start_edit.setEnabled(False)
+                self.overlay6_7_start_from_edit.setEnabled(False)
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay6_7_start_edit.setStyleSheet(grey_btn_style)
+                self.overlay6_7_start_from_edit.setStyleSheet(grey_btn_style)
+                overlay6_7_start_from_label.setStyleSheet("color: grey;")
+                return
                 
-                if enabled:
-                    # Start at checkbox is checked - use start at logic
-                    self.overlay6_7_start_edit.setStyleSheet("")
-                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                    self.overlay6_7_start_from_edit.setStyleSheet(grey_btn_style)
-                    overlay6_7_start_from_label.setStyleSheet("color: grey;")
-                else:
-                    # Start at checkbox is unchecked - use start from logic
-                    self.overlay6_7_start_from_edit.setStyleSheet("")
-                    overlay6_7_start_from_label.setStyleSheet("")  # Start from label is active
-                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                    self.overlay6_7_start_edit.setStyleSheet(grey_btn_style)
+            enabled = state == Qt.CheckState.Checked
+            # When start at checkbox is checked, enable start at field and disable start from field
+            # When start at checkbox is unchecked, enable start from field and disable start at field
+            self.overlay6_7_start_edit.setEnabled(enabled)
+            self.overlay6_7_start_from_edit.setEnabled(not enabled)
+            
+            if enabled:
+                # Start at checkbox is checked - use start at logic
+                self.overlay6_7_start_edit.setStyleSheet("")
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay6_7_start_from_edit.setStyleSheet(grey_btn_style)
+                overlay6_7_start_from_label.setStyleSheet("color: grey;")
+            else:
+                # Start at checkbox is unchecked - use start from logic
+                self.overlay6_7_start_from_edit.setStyleSheet("")
+                overlay6_7_start_from_label.setStyleSheet("")  # Start from label is active
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay6_7_start_edit.setStyleSheet(grey_btn_style)
 
         # Overlay 6_7 duration controls (similar to overlay8 duration)
         self.overlay6_7_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
@@ -2794,6 +2814,7 @@ class SuperCutUI(QWidget):
                 self.overlay6_7_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay6_7_effect_combo.setEnabled(False)
                 self.overlay6_7_start_at_checkbox.setStyleSheet("color: grey;")
+                self.overlay6_7_start_at_checkbox.setEnabled(False)
                 overlay6_7_start_at_label.setStyleSheet("color: grey;")
                 self.overlay6_7_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay6_7_start_edit.setEnabled(False)
@@ -2811,6 +2832,7 @@ class SuperCutUI(QWidget):
                 self.overlay6_7_effect_combo.setStyleSheet("")
                 self.overlay6_7_effect_combo.setEnabled(True)
                 self.overlay6_7_start_at_checkbox.setStyleSheet("")
+                self.overlay6_7_start_at_checkbox.setEnabled(True)
                 overlay6_7_start_at_label.setStyleSheet("")
                 # Let the start at checkbox control the start at/from field styling
                 set_overlay6_7_start_at_enabled(self.overlay6_7_start_at_checkbox.checkState())
