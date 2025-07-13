@@ -248,7 +248,7 @@ class SuccessDialog(QDialog):
         self.setWindowTitle("Task Completed")
         
         # Always use fixed size 370x200
-        self.setFixedSize(300, 200)
+        self.setFixedSize(370, 200)
         
         self.setStyleSheet("""
             QDialog {
