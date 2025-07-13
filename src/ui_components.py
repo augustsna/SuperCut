@@ -357,7 +357,7 @@ class SuccessDialog(QDialog):
         btn_row.addSpacerItem(QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
 
         self.folder_btn = QPushButton("Result Folder")
-        self.folder_btn.setMinimumWidth(120)
+        self.folder_btn.setMinimumWidth(80)
         self.folder_btn.clicked.connect(self.on_folder)
         btn_row.addWidget(self.folder_btn)
 
@@ -492,7 +492,7 @@ class SuccessWithLeftoverDialog(QDialog):
         btn_row.addSpacerItem(QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
 
         self.folder_btn = QPushButton("Result Folder")
-        self.folder_btn.setMinimumWidth(120)
+        self.folder_btn.setMinimumWidth(80)
         self.folder_btn.clicked.connect(self.on_folder)
         btn_row.addWidget(self.folder_btn)
 
