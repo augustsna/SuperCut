@@ -3197,6 +3197,7 @@ class SuperCutUI(QWidget):
             self.song_title_color_btn.setEnabled(enabled)
             self.song_title_bg_combo.setEnabled(enabled)
             self.song_title_opacity_combo.setEnabled(enabled)
+            self.song_title_scale_combo.setEnabled(enabled)
             self.song_title_x_combo.setEnabled(enabled)
             self.song_title_y_combo.setEnabled(enabled)
             self.song_title_start_edit.setEnabled(song_title_start_enabled)
