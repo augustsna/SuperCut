@@ -869,11 +869,11 @@ class SuperCutUI(QWidget):
         
         # Use saved values directly, but ensure they're reasonable
         width = max(saved_width, 400)  # Minimum reasonable width
-        width = min(width, 686)  # Maximum width constraint
+        width = min(width, 720)  # Maximum width constraint
         height = max(saved_height, 400)  # Minimum reasonable height
         
         self.setMinimumSize(400, 400)  # Set a reasonable minimum size
-        self.setMaximumWidth(686)  # Set maximum width to 686px
+        self.setMaximumWidth(720)  # Set maximum width to 686px
         self.resize(width, height)  # Set initial size from settings
         self.setStyleSheet(STYLE_SHEET)
         
@@ -5136,7 +5136,7 @@ class SuperCutUI(QWidget):
             
             # Use saved values directly, but ensure they're reasonable
             width = max(saved_width, 400)  # Minimum reasonable width
-            width = min(width, 686)  # Maximum width constraint
+            width = min(width, 720)  # Maximum width constraint
             height = max(saved_height, 400)  # Minimum reasonable height
             
             # Resize the window to the new size
