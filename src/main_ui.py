@@ -350,7 +350,7 @@ class SettingsDialog(QDialog):
         self.default_overlay1_path_edit.setFixedWidth(120)
         if self.settings is not None:
             self.default_overlay1_path_edit.setText(self.settings.value('default_overlay1_path', '', type=str))
-        
+
         # Add text change handler to clean file paths
         def clean_default_overlay1_path():
             current_text = self.default_overlay1_path_edit.text()
@@ -855,6 +855,7 @@ class SuperCutUI(QWidget):
         self.quit_dialog = None
         self._intended_total_batches = 0
         self._completed_batches = 0  # Track completed batches
+        self.is_dry_run_mode = False  # Track dry run state
         
         self.init_ui()
         self.restore_window_position()
@@ -1378,7 +1379,7 @@ class SuperCutUI(QWidget):
         self.intro_start_checkbox = QtWidgets.QCheckBox("Start at")
         self.intro_start_checkbox.setFixedWidth(80)
         self.intro_start_checkbox.setChecked(True)
-        
+
         # Intro start at input
         self.intro_start_edit = QLineEdit("0")
         self.intro_start_edit.setFixedWidth(40)
@@ -4282,8 +4283,8 @@ class SuperCutUI(QWidget):
     def create_progress_controls(self, layout):
         """Create progress bar and stop button on the same line, with stop button before progress bar. Progress bar should stretch to fill space."""
         progress_row = QtWidgets.QHBoxLayout()
-        progress_row.setContentsMargins(0, -10, 18, 10)  # Add 10px bottom margin for spacing from window edge
-        progress_row.addSpacing(-4)
+        progress_row.setContentsMargins(0, 0, 0, 10)  # Add 10px bottom margin for spacing from window edge
+        progress_row.addSpacing(15)
         self.stop_btn = QPushButton()
         self.stop_btn.setFixedHeight(24)
         self.stop_btn.setFixedWidth(24)
@@ -4297,7 +4298,7 @@ class SuperCutUI(QWidget):
         progress_row.addWidget(self.stop_btn)    
         progress_row.addSpacing(0)  # Add 16px space between stop button and progress bar
         self.progress_bar = QtWidgets.QProgressBar()
-        self.progress_bar.setFixedWidth(545)
+        self.progress_bar.setFixedWidth(545)   
         self.progress_bar.setMinimum(0)
         self.progress_bar.setMaximum(1)
         self.progress_bar.setValue(0)
@@ -4668,12 +4669,65 @@ class SuperCutUI(QWidget):
         if hasattr(self, 'title_placeholder_btn'):
             self.title_placeholder_btn.setVisible(not processing)
         controls = [
-            self.create_btn, self.codec_combo, self.resolution_combo, self.fps_combo,
+            self.codec_combo, self.resolution_combo, self.fps_combo,
             self.media_sources_edit, self.folder_edit, self.part1_edit, self.part2_edit,
             self.media_sources_select_btn, self.output_folder_select_btn, self.overlay_checkbox
         ]
         for ctrl in controls:
             ctrl.setEnabled(not processing)
+        
+        # Handle Create Video button separately with greyout styling
+        # Disable Create Video button during normal processing OR dry run mode
+        should_disable_create = processing or self.is_dry_run_mode
+        self.create_btn.setEnabled(not should_disable_create)
+        if should_disable_create:
+            # Change button text to "In Progress..." and apply greyout styling
+            self.create_btn.setText("In Progress...")
+            self.create_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #f0f0f0;
+                    border: 1px solid #d0d0d0;
+                    border-radius: 4px;
+                    color: #999999;
+                    font-weight: normal;
+                    padding: 8px 16px;
+                }
+                QPushButton:hover {
+                    background-color: #f0f0f0;
+                    border: 1px solid #d0d0d0;
+                    color: #999999;
+                }
+                QPushButton:pressed {
+                    background-color: #f0f0f0;
+                    border: 1px solid #d0d0d0;
+                    color: #999999;
+                }
+            """)
+        else:
+            # Restore button text to "Create Video" and normal styling when enabled
+            self.create_btn.setText("Create Video")
+            self.create_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #1976d2;
+                    border: 1px solid #1976d2;
+                    border-radius: 4px;
+                    color: white;
+                    font-weight: bold;
+                    padding: 8px 16px;
+                }
+                QPushButton:hover {
+                    background-color: #1565c0;
+                    border: 1px solid #1565c0;
+                }
+                QPushButton:pressed {
+                    background-color: #0d47a1;
+                    border: 1px solid #0d47a1;
+                }
+            """)
+        
+        # Handle Preview button (which contains Dry Run) - disable during normal processing
+        if hasattr(self, 'preview_btn'):
+            self.preview_btn.setEnabled(not processing)
 
         # --- NEW: Event filter approach that allows scrolling ---
         if hasattr(self, 'scroll_area'):
@@ -4683,13 +4737,18 @@ class SuperCutUI(QWidget):
                     self._processing_event_filter = ScrollableProcessingFilter()
                 self.scroll_area.installEventFilter(self._processing_event_filter)
                 
-                # Add visual feedback while maintaining original scrollbar styling
+                # Also install event filter on the scroll area's content widget to block ALL child controls
+                scroll_content = self.scroll_area.widget()
+                if scroll_content:
+                    scroll_content.installEventFilter(self._processing_event_filter)
+                
+                # Add visual overlay to indicate scroll area is protected during processing
                 self.scroll_area.setStyleSheet("""
                     QScrollArea {
                         border: none;
                         background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                            stop:0 rgba(248, 248, 248, 0.1),
-                            stop:1 rgba(248, 248, 248, 0.05));
+                            stop:0 rgba(240, 240, 240, 0.8),
+                            stop:1 rgba(235, 235, 235, 0.8));
                         margin-right: 0px;
                         padding-right: 0px;
                     }
@@ -4738,9 +4797,12 @@ class SuperCutUI(QWidget):
                     }
                 """)
             else:
-                # Remove event filter
+                # Remove event filter from both scroll area and its content widget
                 if hasattr(self, '_processing_event_filter'):
                     self.scroll_area.removeEventFilter(self._processing_event_filter)
+                    scroll_content = self.scroll_area.widget()
+                    if scroll_content:
+                        scroll_content.removeEventFilter(self._processing_event_filter)
                 
                 # Restore original scroll area styling (same as init_ui)
                 self.scroll_area.setStyleSheet("""
@@ -4792,6 +4854,59 @@ class SuperCutUI(QWidget):
                     }
                     QScrollBar::sub-control:corner {
                         background: transparent;
+                    }
+                """)
+    
+    def _set_dry_run_state(self, is_dry_run):
+        """Set dry run state and update UI accordingly."""
+        self.is_dry_run_mode = is_dry_run
+        
+        # Update Create Video button state based on dry run mode
+        if is_dry_run:
+            # Disable and greyout Create Video button during dry run
+            self.create_btn.setEnabled(False)
+            self.create_btn.setText("In Progress...")
+            self.create_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #f0f0f0;
+                    border: 1px solid #d0d0d0;
+                    border-radius: 4px;
+                    color: #999999;
+                    font-weight: normal;
+                    padding: 8px 16px;
+                }
+                QPushButton:hover {
+                    background-color: #f0f0f0;
+                    border: 1px solid #d0d0d0;
+                    color: #999999;
+                }
+                QPushButton:pressed {
+                    background-color: #f0f0f0;
+                    border: 1px solid #d0d0d0;
+                    color: #999999;
+                }
+            """)
+        else:
+            # Re-enable Create Video button if not in normal processing mode
+            if not hasattr(self, '_worker') or self._worker is None:
+                self.create_btn.setEnabled(True)
+                self.create_btn.setText("Create Video")
+                self.create_btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: #1976d2;
+                        border: 1px solid #1976d2;
+                        border-radius: 4px;
+                        color: white;
+                        font-weight: bold;
+                        padding: 8px 16px;
+                    }
+                    QPushButton:hover {
+                        background-color: #1565c0;
+                        border: 1px solid #1565c0;
+                    }
+                    QPushButton:pressed {
+                        background-color: #0d47a1;
+                        border: 1px solid #0d47a1;
                     }
                 """)
 
@@ -6275,11 +6390,13 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
             # Store thread reference for quit handling
             self._dry_run_thread = thread
             
-            # Disable UI controls during dry run (same as video creation)
+            # Set dry run state and disable UI controls during dry run
+            self._set_dry_run_state(True)
             self._set_ui_processing_state(True, total_batches=1)
             
             def on_finished(success, msg):
-                # Re-enable UI controls
+                # Re-enable UI controls and clear dry run state
+                self._set_dry_run_state(False)
                 self._set_ui_processing_state(False)
                 # Re-enable preview button after dry run
                 self.preview_btn.setEnabled(True)
