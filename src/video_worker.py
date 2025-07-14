@@ -55,7 +55,10 @@ class VideoWorker(QObject):
                  overlay8_effect: str = "fadein", overlay8_start_time: int = 5, overlay8_start_from: int = 0, overlay8_duration: int = 6, overlay8_duration_full_checkbox_checked: bool = False, overlay8_start_at_checkbox_checked: bool = True, overlay8_popup_start_at: int = 5, overlay8_popup_interval: int = 10, overlay8_popup_checkbox_checked: bool = False,
                  # --- Add overlay9, overlay9 effect ---
                  use_overlay9: bool = False, overlay9_path: str = "", overlay9_size_percent: int = 10, overlay9_x_percent: int = 75, overlay9_y_percent: int = 0,
-                 overlay9_effect: str = "fadein", overlay9_start_time: int = 5, overlay9_start_from: int = 0, overlay9_duration: int = 6, overlay9_duration_full_checkbox_checked: bool = False, overlay9_start_at_checkbox_checked: bool = True, overlay9_popup_start_at: int = 5, overlay9_popup_interval: int = 10, overlay9_popup_checkbox_checked: bool = False):
+                 overlay9_effect: str = "fadein", overlay9_start_time: int = 5, overlay9_start_from: int = 0, overlay9_duration: int = 6, overlay9_duration_full_checkbox_checked: bool = False, overlay9_start_at_checkbox_checked: bool = True, overlay9_popup_start_at: int = 5, overlay9_popup_interval: int = 10, overlay9_popup_checkbox_checked: bool = False,
+                 # --- Add overlay10, overlay10 effect ---
+                 use_overlay10: bool = False, overlay10_path: str = "", overlay10_size_percent: int = 10, overlay10_x_percent: int = 75, overlay10_y_percent: int = 0,
+                 overlay10_effect: str = "fadein", overlay10_start_time: int = 5, overlay10_start_from: int = 0, overlay10_duration: int = 6, overlay10_start_at_checkbox_checked: bool = True):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -189,6 +192,17 @@ class VideoWorker(QObject):
         self.overlay9_popup_start_at = overlay9_popup_start_at
         self.overlay9_popup_interval = overlay9_popup_interval
         self.overlay9_popup_checkbox_checked = overlay9_popup_checkbox_checked
+        # --- Add overlay10 attributes ---
+        self.use_overlay10 = use_overlay10
+        self.overlay10_path = overlay10_path
+        self.overlay10_size_percent = overlay10_size_percent
+        self.overlay10_x_percent = overlay10_x_percent
+        self.overlay10_y_percent = overlay10_y_percent
+        self.overlay10_effect = overlay10_effect
+        self.overlay10_start_time = overlay10_start_time
+        self.overlay10_start_from = overlay10_start_from
+        self.overlay10_duration = overlay10_duration
+        self.overlay10_start_at_checkbox_checked = overlay10_start_at_checkbox_checked
 
     def stop(self):
         """Stop the video processing"""
@@ -580,6 +594,35 @@ class VideoWorker(QObject):
                 print(f"Warning: Overlay9 duration is negative: {self.overlay9_duration}, setting to 1")
                 self.overlay9_duration = 1
             
+            # Calculate actual overlay10 start time based on checkbox state
+            if not self.overlay10_start_at_checkbox_checked:
+                # Use start from logic: (total_duration * percentage) - effect_duration
+                effect_duration = self.overlay10_duration
+                percentage_time = (self.overlay10_start_from / 100.0) * total_duration
+                actual_overlay10_start_at = int(max(0, percentage_time - effect_duration))
+                # Ensure the start time doesn't exceed the video duration
+                actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+            else:
+                # Use start at logic: simple percentage of total duration (NO duration subtraction)
+                actual_overlay10_start_at = int((self.overlay10_start_time / 100.0) * total_duration)
+                # Ensure the start time doesn't exceed the video duration
+                actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+            
+            # Final validation to ensure start time is valid
+            actual_overlay10_start_at = max(0, actual_overlay10_start_at)
+            
+            # Debug output for overlay10 timing
+            print(f"Overlay10 Debug - Total duration: {total_duration}s, Start time: {actual_overlay10_start_at}s, Duration: {self.overlay10_duration}s")
+            print(f"Overlay10 Debug - Start from percent: {self.overlay10_start_from}, Start time percent: {self.overlay10_start_time}")
+            
+            # Additional validation for overlay10 parameters
+            if actual_overlay10_start_at < 0:
+                print(f"Warning: Overlay10 start time is negative: {actual_overlay10_start_at}, setting to 0")
+                actual_overlay10_start_at = 0
+            if self.overlay10_duration < 0:
+                print(f"Warning: Overlay10 duration is negative: {self.overlay10_duration}, setting to 1")
+                self.overlay10_duration = 1
+            
             # Create video (Overlay 1: GIF/PNG, with size)
             success, error_msg = create_video_with_ffmpeg(
                 selected_image, 
@@ -635,6 +678,12 @@ class VideoWorker(QObject):
                 self.overlay9_size_percent,
                 self.overlay9_x_percent,
                 self.overlay9_y_percent,
+                # Overlay10 (no popup mode, always enabled if checkbox is checked)
+                self.use_overlay10,
+                self.overlay10_path,
+                self.overlay10_size_percent,
+                self.overlay10_x_percent,
+                self.overlay10_y_percent,
                 self.use_intro,
                 self.intro_path,
                 self.intro_size_percent,
@@ -687,6 +736,9 @@ class VideoWorker(QObject):
                 overlay9_effect=self.overlay9_effect,
                 overlay9_start_time=actual_overlay9_start_at if actual_overlay9_start_at != -1 else 0,
                 overlay9_duration=self.overlay9_duration,
+                overlay10_effect=self.overlay10_effect,
+                overlay10_start_time=actual_overlay10_start_at,
+                overlay10_duration=self.overlay10_duration,
                 overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox_checked,
                 overlay1_start_at=actual_overlay1_start_at,
                 overlay2_start_at=actual_overlay2_start_at

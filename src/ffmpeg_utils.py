@@ -119,6 +119,11 @@ def create_video_with_ffmpeg(
     overlay9_size_percent: int = 10,
     overlay9_x_percent: int = 75,
     overlay9_y_percent: int = 0,
+    use_overlay10: bool = False,
+    overlay10_path: str = "",
+    overlay10_size_percent: int = 10,
+    overlay10_x_percent: int = 75,
+    overlay10_y_percent: int = 0,
     use_intro: bool = False,
     intro_path: str = "",
     intro_size_percent: int = 10,
@@ -172,6 +177,9 @@ def create_video_with_ffmpeg(
     overlay9_start_time: int = 5,
     overlay9_duration: int = 6,
     overlay9_duration_full_checkbox_checked: bool = False,
+    overlay10_effect: str = "fadein",
+    overlay10_start_time: int = 5,
+    overlay10_duration: int = 6,
     overlay1_start_at: int = 0,
     overlay2_start_at: int = 0
 ) -> Tuple[bool, Optional[str]]:
@@ -226,6 +234,7 @@ def create_video_with_ffmpeg(
         ext7 = os.path.splitext(overlay7_path)[1].lower() if overlay7_path else ''
         ext8 = os.path.splitext(overlay8_path)[1].lower() if overlay8_path else ''
         ext9 = os.path.splitext(overlay9_path)[1].lower() if overlay9_path else ''
+        ext10 = os.path.splitext(overlay10_path)[1].lower() if overlay10_path else ''
         ext_intro = os.path.splitext(intro_path)[1].lower() if intro_path else ''
         intro_idx = None
         overlay1_idx = None
@@ -328,6 +337,15 @@ def create_video_with_ffmpeg(
                 cmd.extend(["-i", overlay9_path])
             overlay9_idx = input_idx
             input_idx += 1
+        if use_overlay10 and overlay10_path and ext10 in ['.gif', '.png']:
+            if ext10 == '.gif':
+                cmd.extend(["-stream_loop", "-1", "-i", overlay10_path])
+            elif ext10 == '.png':
+                cmd.extend(["-loop", "1", "-i", overlay10_path])
+            else:
+                cmd.extend(["-i", overlay10_path])
+            overlay10_idx = input_idx
+            input_idx += 1
         # --- Add extra overlays (song titles) as inputs ---
         extra_overlay_indices = []
         if extra_overlays:
@@ -337,7 +355,7 @@ def create_video_with_ffmpeg(
                 input_idx += 1
         # --- End Song Title Overlay Filter Graph ---
         # Build filter graph with correct indices
-        overlays_present = use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5 or use_overlay6 or use_overlay7 or use_overlay8 or use_overlay9 or bool(extra_overlays)
+        overlays_present = use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5 or use_overlay6 or use_overlay7 or use_overlay8 or use_overlay9 or use_overlay10 or bool(extra_overlays)
         if overlays_present:
             scale_factor_intro = intro_size_percent / 100.0
             owi = f"iw*{scale_factor_intro:.3f}"
@@ -369,6 +387,9 @@ def create_video_with_ffmpeg(
             scale_factor9 = overlay9_size_percent / 100.0
             ow9 = f"iw*{scale_factor9:.3f}"
             oh9 = f"ih*{scale_factor9:.3f}"
+            scale_factor10 = overlay10_size_percent / 100.0
+            ow10 = f"iw*{scale_factor10:.3f}"
+            oh10 = f"ih*{scale_factor10:.3f}"
             position_map = {
                 "top_left": ("0", "0"),
                 "top_right": (f"W-w", "0"),
@@ -397,6 +418,8 @@ def create_video_with_ffmpeg(
             oy8 = f"(H-h)*(1-({overlay8_y_percent}/100))" if overlay8_y_percent != 100 else "0"
             ox9 = f"(W-w)*{overlay9_x_percent}/100" if overlay9_x_percent != 0 else "0"
             oy9 = f"(H-h)*(1-({overlay9_y_percent}/100))" if overlay9_y_percent != 100 else "0"
+            ox10 = f"(W-w)*{overlay10_x_percent}/100" if overlay10_x_percent != 0 else "0"
+            oy10 = f"(H-h)*(1-({overlay10_y_percent}/100))" if overlay10_y_percent != 100 else "0"
             filter_bg = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height}[bg]"
 
             # Effect logic for overlays
@@ -514,6 +537,7 @@ def create_video_with_ffmpeg(
             print(f"FFmpeg Debug - Overlay9: start_time={overlay9_start_time}, duration={overlay9_duration}, effect={overlay9_effect}")
             
             filter_overlay9 = overlay_effect_chain(overlay9_idx, f"{ow9}:{oh9}", "ol9", overlay9_effect, overlay9_start_time, ext9, overlay9_actual_duration) if overlay9_idx is not None else ""
+            filter_overlay10 = overlay_effect_chain(overlay10_idx, f"{ow10}:{oh10}", "ol10", overlay10_effect, overlay10_start_time, ext10, overlay10_duration) if overlay10_idx is not None else ""
             # --- Song Title Overlay Filter Graph ---
             filter_chains = []
             overlay_labels = []
@@ -690,6 +714,12 @@ def create_video_with_ffmpeg(
                     # Limited duration - show for specified duration
                     filter_graph += f";{last_label}[ol9]overlay={ox9}:{oy9}:enable='between(t,{overlay9_start_time},{overlay9_start_time+overlay9_duration})'[tmp9]"
                 last_label = "[tmp9]"
+            # Overlay 10
+            if filter_overlay10:
+                filter_graph += f";{filter_overlay10}"
+                # Limited duration - show for specified duration (no full duration option for overlay10)
+                filter_graph += f";{last_label}[ol10]overlay={ox10}:{oy10}:enable='between(t,{overlay10_start_time},{overlay10_start_time+overlay10_duration})'[tmp10]"
+                last_label = "[tmp10]"
             # Intro
             if filter_intro:
                 filter_graph += f";{filter_intro}"

@@ -4208,6 +4208,256 @@ class SuperCutUI(QWidget):
         lyric_layout.addStretch()
         layout.addLayout(lyric_layout)
 
+        # --- OVERLAY 10 (simplified version of overlay9 without popup and full duration) ---
+        self.overlay10_checkbox = QtWidgets.QCheckBox("Overlay 10:")
+        self.overlay10_checkbox.setFixedWidth(82)
+        self.overlay10_checkbox.setChecked(False)
+        def update_overlay10_checkbox_style(state):
+            self.overlay10_checkbox.setStyleSheet("")  # Always default color
+        self.overlay10_checkbox.stateChanged.connect(update_overlay10_checkbox_style)
+        update_overlay10_checkbox_style(self.overlay10_checkbox.checkState())
+
+        overlay10_layout = QHBoxLayout()
+        overlay10_layout.setSpacing(4)
+        self.overlay10_edit = ImageDropLineEdit()
+        self.overlay10_edit.setPlaceholderText("Overlay 10 image path (*.gif, *.png)")
+        self.overlay10_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay10_edit.setFixedWidth(125)
+        self.overlay10_path = ""
+        def on_overlay10_changed():
+            current_text = self.overlay10_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay10_edit.setText(cleaned_text)
+            self.overlay10_path = self.overlay10_edit.text().strip()
+        self.overlay10_edit.textChanged.connect(on_overlay10_changed)
+        overlay10_btn = QPushButton("Select")
+        overlay10_btn.setFixedWidth(60)
+        def select_overlay10_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 10 Image", "", "Image Files (*.gif *.png)")
+            if file_path:
+                self.overlay10_edit.setText(file_path)
+        overlay10_btn.clicked.connect(select_overlay10_image)
+        overlay10_size_label = QLabel("S:")
+        overlay10_size_label.setFixedWidth(18)
+        self.overlay10_size_combo = NoWheelComboBox()
+        self.overlay10_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.overlay10_size_combo.addItem(f"{percent}%", percent)
+        self.overlay10_size_combo.setCurrentIndex(9)  # Default 50%
+        self.overlay10_size_percent = 50
+        def on_overlay10_size_changed(idx):
+            self.overlay10_size_percent = self.overlay10_size_combo.itemData(idx)
+        self.overlay10_size_combo.setEditable(False)
+        self.overlay10_size_combo.currentIndexChanged.connect(on_overlay10_size_changed)
+        on_overlay10_size_changed(self.overlay10_size_combo.currentIndex())
+        # Overlay10 X coordinate
+        overlay10_x_label = QLabel("X:")
+        overlay10_x_label.setFixedWidth(18)
+        self.overlay10_x_combo = NoWheelComboBox()
+        self.overlay10_x_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay10_x_combo.addItem(f"{percent}%", percent)
+        self.overlay10_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay10_x_percent = 0
+        def on_overlay10_x_changed(idx):
+            self.overlay10_x_percent = self.overlay10_x_combo.itemData(idx)
+        self.overlay10_x_combo.currentIndexChanged.connect(on_overlay10_x_changed)
+        on_overlay10_x_changed(self.overlay10_x_combo.currentIndex())
+
+        # Overlay10 Y coordinate
+        overlay10_y_label = QLabel("Y:")
+        overlay10_y_label.setFixedWidth(18)
+        self.overlay10_y_combo = NoWheelComboBox()
+        self.overlay10_y_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.overlay10_y_combo.addItem(f"{percent}%", percent)
+        self.overlay10_y_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay10_y_percent = 0
+        def on_overlay10_y_changed(idx):
+            self.overlay10_y_percent = self.overlay10_y_combo.itemData(idx)
+        self.overlay10_y_combo.currentIndexChanged.connect(on_overlay10_y_changed)
+        on_overlay10_y_changed(self.overlay10_y_combo.currentIndex())
+
+
+
+        def set_overlay10_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay10_edit.setEnabled(enabled)
+            overlay10_btn.setEnabled(enabled)
+            self.overlay10_size_combo.setEnabled(enabled)
+            self.overlay10_x_combo.setEnabled(enabled)
+            self.overlay10_y_combo.setEnabled(enabled)
+            self.overlay10_duration_edit.setEnabled(enabled)
+            overlay10_duration_label.setEnabled(enabled)
+            if enabled:
+                overlay10_btn.setStyleSheet("")
+                self.overlay10_edit.setStyleSheet("")
+                self.overlay10_size_combo.setStyleSheet("")
+                self.overlay10_x_combo.setStyleSheet("")
+                self.overlay10_y_combo.setStyleSheet("")
+                self.overlay10_duration_edit.setStyleSheet("")
+                overlay10_size_label.setStyleSheet("")
+                overlay10_x_label.setStyleSheet("")
+                overlay10_y_label.setStyleSheet("")
+                overlay10_duration_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                overlay10_btn.setStyleSheet(grey_btn_style)
+                self.overlay10_edit.setStyleSheet(grey_btn_style)
+                self.overlay10_size_combo.setStyleSheet(grey_btn_style)
+                self.overlay10_x_combo.setStyleSheet(grey_btn_style)
+                self.overlay10_y_combo.setStyleSheet(grey_btn_style)
+                self.overlay10_duration_edit.setStyleSheet(grey_btn_style)
+                overlay10_size_label.setStyleSheet("color: grey;")
+                overlay10_x_label.setStyleSheet("color: grey;")
+                overlay10_y_label.setStyleSheet("color: grey;")
+                overlay10_duration_label.setStyleSheet("color: grey;")
+        self.overlay10_checkbox.stateChanged.connect(lambda _: set_overlay10_enabled(self.overlay10_checkbox.checkState()))
+        
+        overlay10_layout.addWidget(self.overlay10_checkbox)
+        overlay10_layout.addSpacing(3)
+        overlay10_layout.addWidget(self.overlay10_edit)
+        overlay10_layout.addSpacing(3)  # Space before select button
+        overlay10_layout.addWidget(overlay10_btn)
+        overlay10_layout.addSpacing(4)  # Space before position label
+        overlay10_layout.addWidget(overlay10_size_label)
+        overlay10_layout.addWidget(self.overlay10_size_combo)
+        overlay10_layout.addSpacing(4)
+        overlay10_layout.addWidget(overlay10_x_label)
+        overlay10_layout.addWidget(self.overlay10_x_combo)
+        overlay10_layout.addSpacing(4)
+        overlay10_layout.addWidget(overlay10_y_label)
+        overlay10_layout.addWidget(self.overlay10_y_combo)
+        layout.addLayout(overlay10_layout)
+
+        # --- EFFECT CONTROL FOR OVERLAY 10 (individual effect control) ---
+        overlay10_label = QLabel("Overlay 10:")
+        overlay10_label.setFixedWidth(80)
+        self.overlay10_effect_combo = NoWheelComboBox()
+        self.overlay10_effect_combo.setFixedWidth(combo_width)
+        for label, value in effect_options:
+            self.overlay10_effect_combo.addItem(label, value)
+        self.overlay10_effect_combo.setCurrentIndex(1)
+        self.selected_overlay10_effect = "fadein"
+        def on_overlay10_effect_changed(idx):
+            self.selected_overlay10_effect = self.overlay10_effect_combo.itemData(idx)
+        self.overlay10_effect_combo.currentIndexChanged.connect(on_overlay10_effect_changed)
+        on_overlay10_effect_changed(self.overlay10_effect_combo.currentIndex())
+
+        # Overlay10 duration controls
+        overlay10_duration_label = QLabel("Duration:")
+        overlay10_duration_label.setFixedWidth(80)
+        self.overlay10_duration_edit = QLineEdit("6")
+        self.overlay10_duration_edit.setFixedWidth(40)
+        self.overlay10_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.overlay10_duration_edit.setPlaceholderText("6")
+        self.overlay10_duration = 6
+        def on_overlay10_duration_changed():
+            try:
+                self.overlay10_duration = int(self.overlay10_duration_edit.text())
+            except Exception:
+                self.overlay10_duration = 6
+        self.overlay10_duration_edit.textChanged.connect(on_overlay10_duration_changed)
+        on_overlay10_duration_changed()
+
+        # Overlay10 Start at checkbox
+        self.overlay10_start_at_checkbox = QtWidgets.QCheckBox("")
+        self.overlay10_start_at_checkbox.setChecked(True)
+        def update_overlay10_start_at_checkbox_style(state):
+            self.overlay10_start_at_checkbox.setStyleSheet("")
+        self.overlay10_start_at_checkbox.stateChanged.connect(update_overlay10_start_at_checkbox_style)
+        update_overlay10_start_at_checkbox_style(self.overlay10_start_at_checkbox.checkState())
+
+        overlay10_start_label = QLabel("Start at:")
+        overlay10_start_label.setFixedWidth(80)
+        self.overlay10_start_combo = NoWheelComboBox()
+        self.overlay10_start_combo.setFixedWidth(60)
+        for percent in range(1, 101, 1):
+            self.overlay10_start_combo.addItem(f"{percent}%", percent)
+        self.overlay10_start_combo.setCurrentIndex(4)  # Default 5%
+        self.overlay10_start_percent = 5
+        def on_overlay10_start_changed(idx):
+            self.overlay10_start_percent = self.overlay10_start_combo.itemData(idx)
+        self.overlay10_start_combo.currentIndexChanged.connect(on_overlay10_start_changed)
+        on_overlay10_start_changed(self.overlay10_start_combo.currentIndex())
+
+        # Overlay10 Start from field
+        overlay10_start_from_label = QLabel("Start from:")
+        overlay10_start_from_label.setFixedWidth(80)
+        self.overlay10_start_from_combo = NoWheelComboBox()
+        self.overlay10_start_from_combo.setFixedWidth(60)
+        for percent in range(1, 101, 1):
+            self.overlay10_start_from_combo.addItem(f"{percent}%", percent)
+        self.overlay10_start_from_combo.setCurrentIndex(0)  # Default 1%
+        self.overlay10_start_from_percent = 1
+        def on_overlay10_start_from_changed(idx):
+            self.overlay10_start_from_percent = self.overlay10_start_from_combo.itemData(idx)
+        self.overlay10_start_from_combo.currentIndexChanged.connect(on_overlay10_start_from_changed)
+        on_overlay10_start_from_changed(self.overlay10_start_from_combo.currentIndex())
+
+        overlay10_layout = QHBoxLayout()
+        overlay10_layout.setContentsMargins(0, 0, 0, 0)
+        overlay10_layout.addSpacing(-80)
+        overlay10_layout.addWidget(overlay10_label)
+        overlay10_layout.addSpacing(-3)
+        overlay10_layout.addWidget(self.overlay10_effect_combo)
+        overlay10_layout.addSpacing(-6)
+        overlay10_layout.addWidget(overlay10_duration_label)
+        overlay10_layout.addWidget(self.overlay10_duration_edit)
+        overlay10_layout.addSpacing(-6)
+        overlay10_layout.addWidget(self.overlay10_start_at_checkbox)
+        overlay10_layout.addSpacing(-6)
+        overlay10_layout.addWidget(overlay10_start_label)
+        overlay10_layout.addSpacing(-32)
+        overlay10_layout.addWidget(self.overlay10_start_combo)
+        overlay10_layout.addSpacing(-6)
+        overlay10_layout.addWidget(overlay10_start_from_label)
+        overlay10_layout.addSpacing(-32)
+        overlay10_layout.addWidget(self.overlay10_start_from_combo)
+        overlay10_layout.addStretch()
+        layout.addLayout(overlay10_layout)
+
+        # Initialize overlay10 enabled state after all controls are created
+        set_overlay10_enabled(self.overlay10_checkbox.checkState())
+
+        # --- Overlay 10 effect greying logic ---
+        def set_overlay10_start_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay10_start_combo.setEnabled(enabled)
+            overlay10_start_label.setStyleSheet("" if enabled else "color: grey;")
+            self.overlay10_start_combo.setStyleSheet("" if enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            
+            # Enable/disable start from field based on opposite state
+            self.overlay10_start_from_combo.setEnabled(not enabled)
+            overlay10_start_from_label.setStyleSheet("" if not enabled else "color: grey;")
+            self.overlay10_start_from_combo.setStyleSheet("" if not enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+
+        def update_overlay10_effect_label_style():
+            if not self.overlay10_checkbox.isChecked():
+                overlay10_label.setStyleSheet("color: grey;")
+                self.overlay10_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay10_effect_combo.setEnabled(False)
+                self.overlay10_start_at_checkbox.setStyleSheet("color: grey;")
+                self.overlay10_start_at_checkbox.setEnabled(False)
+                overlay10_start_label.setStyleSheet("color: grey;")
+                self.overlay10_start_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay10_start_combo.setEnabled(False)
+                overlay10_start_from_label.setStyleSheet("color: grey;")
+                self.overlay10_start_from_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay10_start_from_combo.setEnabled(False)
+            else:
+                overlay10_label.setStyleSheet("")
+                self.overlay10_effect_combo.setStyleSheet("")
+                self.overlay10_effect_combo.setEnabled(True)
+                self.overlay10_start_at_checkbox.setStyleSheet("")
+                self.overlay10_start_at_checkbox.setEnabled(True)
+                # Let the start at checkbox control the start at/from field styling
+                set_overlay10_start_enabled(self.overlay10_start_at_checkbox.checkState())
+        self.overlay10_checkbox.stateChanged.connect(lambda _: update_overlay10_effect_label_style())
+        self.overlay10_start_at_checkbox.stateChanged.connect(lambda _: set_overlay10_start_enabled(self.overlay10_start_at_checkbox.checkState()))
+        update_overlay10_effect_label_style()
+
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
@@ -4959,16 +5209,25 @@ class SuperCutUI(QWidget):
             use_overlay9=self.overlay9_checkbox.isChecked(),
             overlay9_path=self.overlay9_path,
             overlay9_size_percent=self.overlay9_size_percent,
-            overlay9_x_percent=self.overlay9_x_percent, overlay9_y_percent=self.overlay9_y_percent,
-            overlay9_effect=self.selected_overlay9_effect,
-                            overlay9_start_time=self.overlay9_start_percent,
-                            overlay9_start_from=self.overlay9_start_from_percent,
-            overlay9_duration=self.overlay9_duration,
+                            overlay9_x_percent=self.overlay9_x_percent, overlay9_y_percent=self.overlay9_y_percent,
+                overlay10_path=self.overlay10_path,
+                overlay10_size_percent=self.overlay10_size_percent,
+                overlay10_x_percent=self.overlay10_x_percent, overlay10_y_percent=self.overlay10_y_percent,
+                            overlay9_effect=self.selected_overlay9_effect,
+                overlay10_effect=self.selected_overlay10_effect,
+                                            overlay9_start_time=self.overlay9_start_percent,
+                overlay9_start_from=self.overlay9_start_from_percent,
+                overlay10_start_time=self.overlay10_start_percent,
+                overlay10_start_from=self.overlay10_start_from_percent,
+                            overlay9_duration=self.overlay9_duration,
+                overlay10_duration=self.overlay10_duration,
             overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox.isChecked(),
-            overlay9_start_at_checkbox_checked=self.overlay9_start_at_checkbox.isChecked(),
+                overlay9_start_at_checkbox_checked=self.overlay9_start_at_checkbox.isChecked(),
+                overlay10_start_at_checkbox_checked=self.overlay10_start_at_checkbox.isChecked(),
             overlay9_popup_start_at=self.overlay9_popup_start_at_percent,
             overlay9_popup_interval=self.overlay9_popup_interval_percent,
-            overlay9_popup_checkbox_checked=self.overlay9_popup_checkbox.isChecked()
+            overlay9_popup_checkbox_checked=self.overlay9_popup_checkbox.isChecked(),
+
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
@@ -6073,6 +6332,12 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         overlay9_x_percent = self.params['overlay9_x_percent']
                         overlay9_y_percent = self.params['overlay9_y_percent']
                         overlay9_effect = self.params['overlay9_effect']
+                        use_overlay10 = self.params['use_overlay10']
+                        overlay10_path = self.params['overlay10_path']
+                        overlay10_size_percent = self.params['overlay10_size_percent']
+                        overlay10_x_percent = self.params['overlay10_x_percent']
+                        overlay10_y_percent = self.params['overlay10_y_percent']
+                        overlay10_effect = self.params['overlay10_effect']
                         overlay9_start_time = self.params['overlay9_start_time']
                         overlay9_duration = self.params['overlay9_duration']
                         overlay9_duration_full_checkbox_checked = self.params['overlay9_duration_full_checkbox_checked']
@@ -6156,6 +6421,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             use_overlay7, overlay7_path, overlay7_size_percent, overlay7_x_percent, overlay7_y_percent,
                             use_overlay8, overlay8_path, overlay8_size_percent, overlay8_x_percent, overlay8_y_percent,
                             use_overlay9, overlay9_path, overlay9_size_percent, overlay9_x_percent, overlay9_y_percent,
+                            use_overlay10, overlay10_path, overlay10_size_percent, overlay10_x_percent, overlay10_y_percent,
                             use_intro, intro_path, intro_size_percent, intro_x_percent, intro_y_percent,
                             effect, effect_time, 6, False, intro_effect, actual_intro_duration, actual_intro_start_at, intro_duration_full_checkbox_checked, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
                             extra_overlays=extra_overlays,
@@ -6190,6 +6456,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             overlay8_duration=overlay8_duration,
                             overlay8_duration_full_checkbox_checked=overlay8_duration_full_checkbox_checked,
                             overlay9_effect=overlay9_effect,
+                            overlay10_effect=overlay10_effect,
                             overlay9_start_time=overlay9_start_time,
                             overlay9_duration=overlay9_duration,
                             overlay9_duration_full_checkbox_checked=overlay9_duration_full_checkbox_checked,
