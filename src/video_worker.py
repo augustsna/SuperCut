@@ -58,7 +58,8 @@ class VideoWorker(QObject):
                  overlay9_effect: str = "fadein", overlay9_start_time: int = 5, overlay9_start_from: int = 0, overlay9_duration: int = 6, overlay9_duration_full_checkbox_checked: bool = False, overlay9_start_at_checkbox_checked: bool = True, overlay9_popup_start_at: int = 5, overlay9_popup_interval: int = 10, overlay9_popup_checkbox_checked: bool = False,
                  # --- Add overlay10, overlay10 effect ---
                  use_overlay10: bool = False, overlay10_path: str = "", overlay10_size_percent: int = 10, overlay10_x_percent: int = 75, overlay10_y_percent: int = 0,
-                 overlay10_effect: str = "fadein", overlay10_start_time: int = 5, overlay10_start_from: int = 0, overlay10_duration: int = 6, overlay10_start_at_checkbox_checked: bool = True):
+                 overlay10_effect: str = "fadein", overlay10_start_time: int = 5, overlay10_start_from: int = 0, overlay10_duration: int = 6, overlay10_start_at_checkbox_checked: bool = True,
+                 overlay10_song_start_end_checked: bool = False, overlay10_start_end_value: str = "start"):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -203,6 +204,8 @@ class VideoWorker(QObject):
         self.overlay10_start_from = overlay10_start_from
         self.overlay10_duration = overlay10_duration
         self.overlay10_start_at_checkbox_checked = overlay10_start_at_checkbox_checked
+        self.overlay10_song_start_end_checked = overlay10_song_start_end_checked
+        self.overlay10_start_end_value = overlay10_start_end_value
 
     def stop(self):
         """Stop the video processing"""
@@ -594,6 +597,46 @@ class VideoWorker(QObject):
                 print(f"Warning: Overlay9 duration is negative: {self.overlay9_duration}, setting to 1")
                 self.overlay9_duration = 1
             
+            # --- Overlay 10: When Song Start/End Logic ---
+            overlay10_multi_song = (
+                self.use_overlay10 and self.overlay10_song_start_end_checked and 
+                (self.overlay10_start_end_value == "start" or self.overlay10_start_end_value == "end")
+            )
+            if overlay10_multi_song:
+                # Get individual song durations and cumulative times
+                from src.ffmpeg_utils import get_audio_duration
+                song_durations = []
+                cumulative_time = 0.0
+                for mp3_path in selected_mp3s:
+                    duration = get_audio_duration(mp3_path)
+                    song_durations.append((cumulative_time, duration))
+                    cumulative_time += duration
+                for i, (song_start, song_duration) in enumerate(song_durations):
+                    if self.overlay10_start_end_value == "start":
+                        # Start logic: first song uses user start time, others start at song beginning
+                        if i == 0:
+                            overlay_start = self.overlay10_start_time
+                        else:
+                            overlay_start = song_start
+                    else:  # "end" logic
+                        # End logic: overlay appears before the end of each song
+                        overlay_start = song_start + song_duration - self.overlay10_duration
+                        # Ensure overlay doesn't start before song begins
+                        overlay_start = max(song_start, overlay_start)
+                    
+                    overlay_duration = self.overlay10_duration
+                    extra_overlays.append({
+                        'path': self.overlay10_path,
+                        'start': overlay_start,
+                        'duration': overlay_duration,
+                        'x_percent': self.overlay10_x_percent,
+                        'y_percent': self.overlay10_y_percent,
+                        'effect': self.overlay10_effect,
+                        'size_percent': self.overlay10_size_percent
+                    })
+
+            # --- End Overlay 10: When Song Start/End Logic ---
+
             # Calculate actual overlay10 start time based on checkbox state
             if not self.overlay10_start_at_checkbox_checked:
                 # Use start from logic: (total_duration * percentage) - effect_duration
@@ -624,84 +667,78 @@ class VideoWorker(QObject):
                 self.overlay10_duration = 1
             
             # Create video (Overlay 1: GIF/PNG, with size)
-            success, error_msg = create_video_with_ffmpeg(
-                selected_image, 
-                merged_audio_path, 
-                output_path, 
-                self.resolution, 
-                self.fps, 
-                self.codec,
-                self.use_overlay,
-                self.overlay1_path,
-                self.overlay1_size_percent,
-                self.overlay1_x_percent,
-                self.overlay1_y_percent,
-                self.use_overlay2,
-                self.overlay2_path,
-                self.overlay2_size_percent,
-                self.overlay2_x_percent,
-                self.overlay2_y_percent,
-                            self.use_overlay3,
-            self.overlay3_path,
-            self.overlay3_size_percent,
-            self.overlay3_x_percent,
-            self.overlay3_y_percent,
-                self.use_overlay4,
-                self.overlay4_path,
-                self.overlay4_size_percent,
-                self.overlay4_x_percent,
-                self.overlay4_y_percent,
-                self.use_overlay5,
-                self.overlay5_path,
-                self.overlay5_size_percent,
-                self.overlay5_x_percent,
-                self.overlay5_y_percent,
-                self.use_overlay6,
-                self.overlay6_path,
-                self.overlay6_size_percent,
-                self.overlay6_x_percent,
-                self.overlay6_y_percent,
-                self.use_overlay7,
-                self.overlay7_path,
-                self.overlay7_size_percent,
-                self.overlay7_x_percent,
-                self.overlay7_y_percent,
-                # Disable overlay8 if using popup mode (actual_overlay8_start_at == -1)
-                self.use_overlay8 and actual_overlay8_start_at != -1,
-                self.overlay8_path,
-                self.overlay8_size_percent,
-                self.overlay8_x_percent,
-                self.overlay8_y_percent,
-                # Disable overlay9 if using popup mode (actual_overlay9_start_at == -1)
-                self.use_overlay9 and actual_overlay9_start_at != -1,
-                self.overlay9_path,
-                self.overlay9_size_percent,
-                self.overlay9_x_percent,
-                self.overlay9_y_percent,
-                # Overlay10 (no popup mode, always enabled if checkbox is checked)
-                self.use_overlay10,
-                self.overlay10_path,
-                self.overlay10_size_percent,
-                self.overlay10_x_percent,
-                self.overlay10_y_percent,
-                self.use_intro,
-                self.intro_path,
-                self.intro_size_percent,
-                self.intro_x_percent,
-                self.intro_y_percent,
-                self.overlay1_2_effect,
-                self.overlay1_2_start_time,
-                self.overlay1_2_duration,
-                self.overlay1_2_duration_full_checkbox_checked,
-                self.intro_effect,
-                actual_intro_duration,
-                actual_intro_start_at,
-                self.intro_duration_full_checkbox_checked,
-                self.preset,
-                self.audio_bitrate,
-                self.video_bitrate,
-                self.maxrate,
-                self.bufsize,
+            # Call create_video_with_ffmpeg, but if overlay10_multi_song, set use_overlay10=False so it is not added as a static overlay
+            ffmpeg_use_overlay10 = self.use_overlay10 and not overlay10_multi_song
+            success, err = create_video_with_ffmpeg(
+                selected_image, merged_audio_path, output_path, self.resolution, self.fps, self.codec,
+                use_overlay=self.use_overlay,
+                overlay1_path=self.overlay1_path,
+                overlay1_size_percent=self.overlay1_size_percent,
+                overlay1_x_percent=self.overlay1_x_percent,
+                overlay1_y_percent=self.overlay1_y_percent,
+                use_overlay2=self.use_overlay2,
+                overlay2_path=self.overlay2_path,
+                overlay2_size_percent=self.overlay2_size_percent,
+                overlay2_x_percent=self.overlay2_x_percent,
+                overlay2_y_percent=self.overlay2_y_percent,
+                use_overlay3=self.use_overlay3,
+                overlay3_path=self.overlay3_path,
+                overlay3_size_percent=self.overlay3_size_percent,
+                overlay3_x_percent=self.overlay3_x_percent,
+                overlay3_y_percent=self.overlay3_y_percent,
+                use_overlay4=self.use_overlay4,
+                overlay4_path=self.overlay4_path,
+                overlay4_size_percent=self.overlay4_size_percent,
+                overlay4_x_percent=self.overlay4_x_percent,
+                overlay4_y_percent=self.overlay4_y_percent,
+                use_overlay5=self.use_overlay5,
+                overlay5_path=self.overlay5_path,
+                overlay5_size_percent=self.overlay5_size_percent,
+                overlay5_x_percent=self.overlay5_x_percent,
+                overlay5_y_percent=self.overlay5_y_percent,
+                use_overlay6=self.use_overlay6,
+                overlay6_path=self.overlay6_path,
+                overlay6_size_percent=self.overlay6_size_percent,
+                overlay6_x_percent=self.overlay6_x_percent,
+                overlay6_y_percent=self.overlay6_y_percent,
+                use_overlay7=self.use_overlay7,
+                overlay7_path=self.overlay7_path,
+                overlay7_size_percent=self.overlay7_size_percent,
+                overlay7_x_percent=self.overlay7_x_percent,
+                overlay7_y_percent=self.overlay7_y_percent,
+                use_overlay8=self.use_overlay8,
+                overlay8_path=self.overlay8_path,
+                overlay8_size_percent=self.overlay8_size_percent,
+                overlay8_x_percent=self.overlay8_x_percent,
+                overlay8_y_percent=self.overlay8_y_percent,
+                use_overlay9=self.use_overlay9,
+                overlay9_path=self.overlay9_path,
+                overlay9_size_percent=self.overlay9_size_percent,
+                overlay9_x_percent=self.overlay9_x_percent,
+                overlay9_y_percent=self.overlay9_y_percent,
+                use_overlay10=ffmpeg_use_overlay10,
+                overlay10_path=self.overlay10_path,
+                overlay10_size_percent=self.overlay10_size_percent,
+                overlay10_x_percent=self.overlay10_x_percent,
+                overlay10_y_percent=self.overlay10_y_percent,
+                use_intro=self.use_intro,
+                intro_path=self.intro_path,
+                intro_size_percent=self.intro_size_percent,
+                intro_x_percent=self.intro_x_percent,
+                intro_y_percent=self.intro_y_percent,
+                overlay1_2_effect=self.overlay1_2_effect,
+                overlay1_2_start_time=actual_overlay1_start_at,
+                overlay1_2_duration=self.overlay1_2_duration,
+                overlay1_2_duration_full_checkbox_checked=self.overlay1_2_duration_full_checkbox_checked,
+                intro_effect=self.intro_effect,
+                intro_duration=actual_intro_duration,
+                intro_start_at=actual_intro_start_at,
+                intro_duration_full_checkbox_checked=self.intro_duration_full_checkbox_checked,
+                preset=self.preset,
+                audio_bitrate=self.audio_bitrate,
+                video_bitrate=self.video_bitrate,
+                maxrate=self.maxrate,
+                bufsize=self.bufsize,
                 extra_overlays=extra_overlays,
                 song_title_effect=self.song_title_effect,
                 song_title_font=self.song_title_font,
@@ -744,7 +781,7 @@ class VideoWorker(QObject):
                 overlay2_start_at=actual_overlay2_start_at
             )
             if not success:
-                self.error.emit(error_msg or f"Failed to create video: {output_filename}")
+                self.error.emit(err or f"Failed to create video: {output_filename}")
                 return False, []
         except (OSError, ValueError) as e:
             self.error.emit(f"Exception creating video: {e}")

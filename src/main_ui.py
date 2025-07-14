@@ -4290,6 +4290,13 @@ class SuperCutUI(QWidget):
             self.overlay10_y_combo.setEnabled(enabled)
             self.overlay10_duration_edit.setEnabled(enabled)
             overlay10_duration_label.setEnabled(enabled)
+            self.overlay10_start_edit.setEnabled(enabled)
+            overlay10_start_label.setEnabled(enabled)
+            self.overlay10_song_start_end.setEnabled(enabled)
+            # Start/end controls are only enabled if both overlay10 is enabled AND the checkbox is checked
+            start_end_enabled = enabled and self.overlay10_song_start_end.isChecked()
+            overlay10_start_end_label.setEnabled(start_end_enabled)
+            self.overlay10_start_end_combo.setEnabled(start_end_enabled)
             if enabled:
                 overlay10_btn.setStyleSheet("")
                 self.overlay10_edit.setStyleSheet("")
@@ -4297,10 +4304,17 @@ class SuperCutUI(QWidget):
                 self.overlay10_x_combo.setStyleSheet("")
                 self.overlay10_y_combo.setStyleSheet("")
                 self.overlay10_duration_edit.setStyleSheet("")
+                self.overlay10_start_edit.setStyleSheet("")
+                self.overlay10_song_start_end.setStyleSheet("")
+                # Start/end controls styling depends on checkbox state
+                start_end_enabled = self.overlay10_song_start_end.isChecked()
+                self.overlay10_start_end_combo.setStyleSheet("" if start_end_enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 overlay10_size_label.setStyleSheet("")
                 overlay10_x_label.setStyleSheet("")
                 overlay10_y_label.setStyleSheet("")
                 overlay10_duration_label.setStyleSheet("")
+                overlay10_start_label.setStyleSheet("")
+                overlay10_start_end_label.setStyleSheet("" if start_end_enabled else "color: grey;")
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 overlay10_btn.setStyleSheet(grey_btn_style)
@@ -4309,10 +4323,15 @@ class SuperCutUI(QWidget):
                 self.overlay10_x_combo.setStyleSheet(grey_btn_style)
                 self.overlay10_y_combo.setStyleSheet(grey_btn_style)
                 self.overlay10_duration_edit.setStyleSheet(grey_btn_style)
+                self.overlay10_start_edit.setStyleSheet(grey_btn_style)
+                self.overlay10_song_start_end.setStyleSheet("color: grey;")
+                self.overlay10_start_end_combo.setStyleSheet(grey_btn_style)
                 overlay10_size_label.setStyleSheet("color: grey;")
                 overlay10_x_label.setStyleSheet("color: grey;")
                 overlay10_y_label.setStyleSheet("color: grey;")
                 overlay10_duration_label.setStyleSheet("color: grey;")
+                overlay10_start_label.setStyleSheet("color: grey;")
+                overlay10_start_end_label.setStyleSheet("color: grey;")
         self.overlay10_checkbox.stateChanged.connect(lambda _: set_overlay10_enabled(self.overlay10_checkbox.checkState()))
         
         overlay10_layout.addWidget(self.overlay10_checkbox)
@@ -4361,40 +4380,76 @@ class SuperCutUI(QWidget):
         self.overlay10_duration_edit.textChanged.connect(on_overlay10_duration_changed)
         on_overlay10_duration_changed()
 
-        # Overlay10 Start at checkbox
-        self.overlay10_start_at_checkbox = QtWidgets.QCheckBox("")
-        self.overlay10_start_at_checkbox.setChecked(True)
-        def update_overlay10_start_at_checkbox_style(state):
-            self.overlay10_start_at_checkbox.setStyleSheet("")
-        self.overlay10_start_at_checkbox.stateChanged.connect(update_overlay10_start_at_checkbox_style)
-        update_overlay10_start_at_checkbox_style(self.overlay10_start_at_checkbox.checkState())
-
         overlay10_start_label = QLabel("Start at:")
         overlay10_start_label.setFixedWidth(80)
-        self.overlay10_start_combo = NoWheelComboBox()
-        self.overlay10_start_combo.setFixedWidth(60)
-        for percent in range(1, 101, 1):
-            self.overlay10_start_combo.addItem(f"{percent}%", percent)
-        self.overlay10_start_combo.setCurrentIndex(4)  # Default 5%
+        self.overlay10_start_edit = QLineEdit("5")
+        self.overlay10_start_edit.setFixedWidth(60)
+        self.overlay10_start_edit.setValidator(QIntValidator(1, 999, self))
+        self.overlay10_start_edit.setPlaceholderText("5")
         self.overlay10_start_percent = 5
-        def on_overlay10_start_changed(idx):
-            self.overlay10_start_percent = self.overlay10_start_combo.itemData(idx)
-        self.overlay10_start_combo.currentIndexChanged.connect(on_overlay10_start_changed)
-        on_overlay10_start_changed(self.overlay10_start_combo.currentIndex())
+        def on_overlay10_start_changed():
+            try:
+                self.overlay10_start_percent = int(self.overlay10_start_edit.text())
+            except Exception:
+                self.overlay10_start_percent = 5
+        self.overlay10_start_edit.textChanged.connect(on_overlay10_start_changed)
+        on_overlay10_start_changed()
 
-        # Overlay10 Start from field
-        overlay10_start_from_label = QLabel("Start from:")
-        overlay10_start_from_label.setFixedWidth(80)
-        self.overlay10_start_from_combo = NoWheelComboBox()
-        self.overlay10_start_from_combo.setFixedWidth(60)
-        for percent in range(1, 101, 1):
-            self.overlay10_start_from_combo.addItem(f"{percent}%", percent)
-        self.overlay10_start_from_combo.setCurrentIndex(0)  # Default 1%
-        self.overlay10_start_from_percent = 1
-        def on_overlay10_start_from_changed(idx):
-            self.overlay10_start_from_percent = self.overlay10_start_from_combo.itemData(idx)
-        self.overlay10_start_from_combo.currentIndexChanged.connect(on_overlay10_start_from_changed)
-        on_overlay10_start_from_changed(self.overlay10_start_from_combo.currentIndex())
+        # Overlay10 song start/end checkbox and dropdown
+        self.overlay10_song_start_end = QtWidgets.QCheckBox("")
+        self.overlay10_song_start_end.setChecked(False)
+        def update_overlay10_song_start_end_checkbox_style(state):
+            self.overlay10_song_start_end.setStyleSheet("")
+        self.overlay10_song_start_end.stateChanged.connect(update_overlay10_song_start_end_checkbox_style)
+        update_overlay10_song_start_end_checkbox_style(self.overlay10_song_start_end.checkState())
+
+        overlay10_start_end_label = QLabel("when song:")
+        overlay10_start_end_label.setFixedWidth(80)
+        self.overlay10_start_end_combo = NoWheelComboBox()
+        self.overlay10_start_end_combo.setFixedWidth(60)
+        self.overlay10_start_end_combo.addItem("start", "start")
+        self.overlay10_start_end_combo.addItem("end", "end")
+        self.overlay10_start_end_combo.setCurrentIndex(0)  # Default to "start"
+        self.overlay10_start_end_value = "start"
+        # Function to control start at input state based on song timing selection
+        def update_overlay10_start_at_state():
+            if self.overlay10_song_start_end.isChecked():
+                # If "end" is selected, disable start at input
+                if self.overlay10_start_end_value == "end":
+                    self.overlay10_start_edit.setEnabled(False)
+                    overlay10_start_label.setStyleSheet("color: grey;")
+                    self.overlay10_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                else:
+                    # If "start" is selected, enable start at input
+                    self.overlay10_start_edit.setEnabled(True)
+                    overlay10_start_label.setStyleSheet("")
+                    self.overlay10_start_edit.setStyleSheet("")
+            else:
+                # If song timing checkbox is unchecked, enable start at input
+                self.overlay10_start_edit.setEnabled(True)
+                overlay10_start_label.setStyleSheet("")
+                self.overlay10_start_edit.setStyleSheet("")
+
+        # Function to control start/end dropdown state based on checkbox
+        def set_overlay10_start_end_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay10_start_end_combo.setEnabled(enabled)
+            overlay10_start_end_label.setStyleSheet("" if enabled else "color: grey;")
+            self.overlay10_start_end_combo.setStyleSheet("" if enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            
+            # If song timing is enabled, check if "end" is selected to disable start at input
+            if enabled:
+                update_overlay10_start_at_state()
+
+        def on_overlay10_start_end_changed(idx):
+            self.overlay10_start_end_value = self.overlay10_start_end_combo.itemData(idx)
+            # Update the start at input state based on the new selection
+            update_overlay10_start_at_state()
+        self.overlay10_start_end_combo.currentIndexChanged.connect(on_overlay10_start_end_changed)
+        on_overlay10_start_end_changed(self.overlay10_start_end_combo.currentIndex())
+        
+        self.overlay10_song_start_end.stateChanged.connect(lambda _: set_overlay10_start_end_enabled(self.overlay10_song_start_end.checkState()))
+        set_overlay10_start_end_enabled(self.overlay10_song_start_end.checkState())
 
         overlay10_layout = QHBoxLayout()
         overlay10_layout.setContentsMargins(0, 0, 0, 0)
@@ -4406,15 +4461,13 @@ class SuperCutUI(QWidget):
         overlay10_layout.addWidget(overlay10_duration_label)
         overlay10_layout.addWidget(self.overlay10_duration_edit)
         overlay10_layout.addSpacing(-6)
-        overlay10_layout.addWidget(self.overlay10_start_at_checkbox)
-        overlay10_layout.addSpacing(-6)
         overlay10_layout.addWidget(overlay10_start_label)
-        overlay10_layout.addSpacing(-32)
-        overlay10_layout.addWidget(self.overlay10_start_combo)
+        overlay10_layout.addWidget(self.overlay10_start_edit)
         overlay10_layout.addSpacing(-6)
-        overlay10_layout.addWidget(overlay10_start_from_label)
-        overlay10_layout.addSpacing(-32)
-        overlay10_layout.addWidget(self.overlay10_start_from_combo)
+        overlay10_layout.addWidget(self.overlay10_song_start_end)
+        overlay10_layout.addSpacing(-6)
+        overlay10_layout.addWidget(overlay10_start_end_label)
+        overlay10_layout.addWidget(self.overlay10_start_end_combo)
         overlay10_layout.addStretch()
         layout.addLayout(overlay10_layout)
 
@@ -4422,40 +4475,44 @@ class SuperCutUI(QWidget):
         set_overlay10_enabled(self.overlay10_checkbox.checkState())
 
         # --- Overlay 10 effect greying logic ---
-        def set_overlay10_start_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            self.overlay10_start_combo.setEnabled(enabled)
-            overlay10_start_label.setStyleSheet("" if enabled else "color: grey;")
-            self.overlay10_start_combo.setStyleSheet("" if enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-            
-            # Enable/disable start from field based on opposite state
-            self.overlay10_start_from_combo.setEnabled(not enabled)
-            overlay10_start_from_label.setStyleSheet("" if not enabled else "color: grey;")
-            self.overlay10_start_from_combo.setStyleSheet("" if not enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-
         def update_overlay10_effect_label_style():
             if not self.overlay10_checkbox.isChecked():
                 overlay10_label.setStyleSheet("color: grey;")
                 self.overlay10_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay10_effect_combo.setEnabled(False)
-                self.overlay10_start_at_checkbox.setStyleSheet("color: grey;")
-                self.overlay10_start_at_checkbox.setEnabled(False)
                 overlay10_start_label.setStyleSheet("color: grey;")
-                self.overlay10_start_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay10_start_combo.setEnabled(False)
-                overlay10_start_from_label.setStyleSheet("color: grey;")
-                self.overlay10_start_from_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay10_start_from_combo.setEnabled(False)
+                self.overlay10_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay10_start_edit.setEnabled(False)
+                self.overlay10_song_start_end.setStyleSheet("color: grey;")
+                self.overlay10_song_start_end.setEnabled(False)
+                overlay10_start_end_label.setStyleSheet("color: grey;")
+                self.overlay10_start_end_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay10_start_end_combo.setEnabled(False)
             else:
                 overlay10_label.setStyleSheet("")
                 self.overlay10_effect_combo.setStyleSheet("")
                 self.overlay10_effect_combo.setEnabled(True)
-                self.overlay10_start_at_checkbox.setStyleSheet("")
-                self.overlay10_start_at_checkbox.setEnabled(True)
-                # Let the start at checkbox control the start at/from field styling
-                set_overlay10_start_enabled(self.overlay10_start_at_checkbox.checkState())
+                self.overlay10_song_start_end.setStyleSheet("")
+                self.overlay10_song_start_end.setEnabled(True)
+                # Start/end controls depend on checkbox state
+                start_end_enabled = self.overlay10_song_start_end.isChecked()
+                overlay10_start_end_label.setStyleSheet("" if start_end_enabled else "color: grey;")
+                self.overlay10_start_end_combo.setStyleSheet("" if start_end_enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay10_start_end_combo.setEnabled(start_end_enabled)
+                
+                # Start at input state depends on song timing selection
+                if start_end_enabled and self.overlay10_start_end_value == "end":
+                    overlay10_start_label.setStyleSheet("color: grey;")
+                    self.overlay10_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    self.overlay10_start_edit.setEnabled(False)
+                else:
+                    overlay10_start_label.setStyleSheet("")
+                    self.overlay10_start_edit.setStyleSheet("")
+                    self.overlay10_start_edit.setEnabled(True)
         self.overlay10_checkbox.stateChanged.connect(lambda _: update_overlay10_effect_label_style())
-        self.overlay10_start_at_checkbox.stateChanged.connect(lambda _: set_overlay10_start_enabled(self.overlay10_start_at_checkbox.checkState()))
+        # Connect start/end controls to effect label style updates
+        self.overlay10_song_start_end.stateChanged.connect(lambda _: update_overlay10_effect_label_style())
+        self.overlay10_start_end_combo.currentIndexChanged.connect(lambda _: update_overlay10_effect_label_style())
         update_overlay10_effect_label_style()
 
     def create_action_buttons(self, layout):
@@ -5217,13 +5274,13 @@ class SuperCutUI(QWidget):
                 overlay10_effect=self.selected_overlay10_effect,
                                             overlay9_start_time=self.overlay9_start_percent,
                 overlay9_start_from=self.overlay9_start_from_percent,
-                overlay10_start_time=self.overlay10_start_percent,
-                overlay10_start_from=self.overlay10_start_from_percent,
-                            overlay9_duration=self.overlay9_duration,
-                overlay10_duration=self.overlay10_duration,
+                                                                overlay10_start_time=self.overlay10_start_percent,
+                                overlay9_duration=self.overlay9_duration,
+                                overlay10_duration=self.overlay10_duration,
+                                overlay10_song_start_end_checked=self.overlay10_song_start_end.isChecked(),
+                                overlay10_start_end_value=self.overlay10_start_end_value,
             overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox.isChecked(),
                 overlay9_start_at_checkbox_checked=self.overlay9_start_at_checkbox.isChecked(),
-                overlay10_start_at_checkbox_checked=self.overlay10_start_at_checkbox.isChecked(),
             overlay9_popup_start_at=self.overlay9_popup_start_at_percent,
             overlay9_popup_interval=self.overlay9_popup_interval_percent,
             overlay9_popup_checkbox_checked=self.overlay9_popup_checkbox.isChecked(),
