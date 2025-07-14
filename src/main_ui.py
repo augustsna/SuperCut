@@ -4854,6 +4854,13 @@ class SuperCutUI(QWidget):
             if not overlay9_path or not os.path.isfile(overlay9_path) or os.path.splitext(overlay9_path)[1].lower() not in ['.gif', '.png']:
                 QMessageBox.warning(self, "⚠️ Overlay 9 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 9.", QMessageBox.StandardButton.Ok)
                 return
+        # Overlay 10 validation
+        if hasattr(self, 'overlay10_checkbox') and self.overlay10_checkbox.isChecked():
+            overlay10_path = self.overlay10_edit.text().strip()
+            if not overlay10_path or not os.path.isfile(overlay10_path) or os.path.splitext(overlay10_path)[1].lower() not in ['.gif', '.png']:
+                QMessageBox.warning(self, "⚠️ Overlay 10 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 10.", QMessageBox.StandardButton.Ok)
+                return
+            
         # --- Name list validation ---
         use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
         if use_name_list:
