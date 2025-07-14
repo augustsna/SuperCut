@@ -4776,9 +4776,12 @@ class SuperCutUI(QWidget):
         frame_box_color_layout.setContentsMargins(0, 0, 0, 0)
         frame_box_color_label = QLabel("Frame Color:")
         frame_box_color_label.setFixedWidth(80)
-        self.frame_box_color_btn = QPushButton()
+        self.frame_box_color_btn = QPushButton()        
         self.frame_box_color_btn.setFixedWidth(27)
         self.frame_box_color = (255, 255, 255)  # Default white
+        self.frame_box_color_btn.setStyleSheet(
+            f"background-color: rgb(255,255,255);")
+        
         def on_frame_box_color_clicked():
             color = QColorDialog.getColor()
             if color.isValid():
@@ -4788,8 +4791,8 @@ class SuperCutUI(QWidget):
         self.frame_box_color_btn.setStyleSheet("background-color: rgb(255,255,255);")
         frame_box_color_layout.addWidget(frame_box_color_label)
         frame_box_color_layout.addWidget(self.frame_box_color_btn)
-
         frame_box_color_layout.addSpacing(16)
+
         frame_box_opacity_label = QLabel("Frame Opacity:")
         frame_box_opacity_label.setFixedWidth(80)
         self.frame_box_opacity_combo = NoWheelComboBox()
@@ -4883,7 +4886,7 @@ class SuperCutUI(QWidget):
                 frame_box_duration_label.setStyleSheet("")
                 frame_box_start_label.setStyleSheet("")
                 self.frame_box_caption_checkbox.setStyleSheet("")
-                self.frame_box_color_btn.setStyleSheet("")
+                self.frame_box_color_btn.setStyleSheet("background-color: rgb(255,255,255);")
                 self.frame_box_opacity_combo.setStyleSheet("")
                 self.frame_box_pad_left_combo.setStyleSheet("")
                 self.frame_box_pad_right_combo.setStyleSheet("")

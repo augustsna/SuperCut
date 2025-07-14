@@ -41,6 +41,7 @@ STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.pa
         border-radius: 6px;
         padding: 6px 12px;
     }
+    
     QPushButton:hover {
         background-color: #357ABD;
     }
@@ -136,8 +137,9 @@ STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.pa
         width: 0px;
     }
     QScrollBar::sub-control:corner {
-        background: transparent;
+        background: transparent;        
     }
+    
 """
 
 # Video Configuration
