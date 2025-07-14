@@ -582,7 +582,7 @@ class SettingsDialog(QDialog):
         self.default_intro_x_combo.setCurrentIndex(50)  # 50% X
         self.default_intro_y_combo.setCurrentIndex(50)  # 50% Y
         idx_intro_size = 9  # 50% size
-        self.default_intro_size_combo.setCurrentIndex(idx_intro_size)
+        self.default_intro_size_combo.setCurrentIndex(9)  # Default 50%
         # Note: Default intro duration is now 6 seconds (set in main UI)
         # Overlay 1
         self.default_overlay1_path_edit.setText("")
@@ -857,6 +857,7 @@ class SuperCutUI(QWidget):
         self._completed_batches = 0  # Track completed batches
         self.is_dry_run_mode = False  # Track dry run state
         self._preview_dialog = None  # Track preview dialog for toggle functionality
+        self.frame_box_caption_png_path = None
         
         self.init_ui()
         self.restore_window_position()
@@ -4776,6 +4777,35 @@ class SuperCutUI(QWidget):
         # Place directly below frame box effect UI
         layout.addWidget(self.frame_box_caption_checkbox)
 
+        # --- Create PNG when frame box caption is checked ---
+        def on_frame_box_caption_checked(state):
+            if state == Qt.CheckState.Checked:
+                from src.utils import create_temp_file, create_song_title_png
+                import os
+                temp_png_path = create_temp_file(suffix="_framebox_caption.png", prefix="supercut_")
+                # You can customize the caption text, size, font, etc. as needed
+                caption_text = "Frame Box Caption"
+                create_song_title_png(
+                    caption_text,
+                    temp_png_path,
+                    width=400,
+                    height=40,
+                    font_size=24,
+                    font_name="default",
+                    color=(255, 255, 255),
+                    bg="black",
+                    bg_color=(0, 0, 0),
+                    opacity=1.0,
+                    text_effect="none"
+                )
+                print(f"Frame box caption PNG created at: {temp_png_path}")
+                # Optionally, store the path for later use
+                self.frame_box_caption_png_path = temp_png_path
+            else:
+                # Optionally, clear the stored path
+                self.frame_box_caption_png_path = None
+        self.frame_box_caption_checkbox.stateChanged.connect(on_frame_box_caption_checked)
+
         # Initialize frame box enabled state after all controls are created
         set_frame_box_enabled(self.frame_box_checkbox.checkState())
 
@@ -5783,6 +5813,40 @@ class SuperCutUI(QWidget):
         # The actual start time calculation will be done in the video worker based on checkbox state
         overlay1_start_at = self.overlay_start_at
         overlay2_start_at = self.overlay_start_at
+        # --- Add frame box parameters ---
+        use_frame_box = self.frame_box_checkbox.isChecked()
+        frame_box_path = None
+        if use_frame_box:
+            if hasattr(self, 'frame_box_caption_checkbox') and self.frame_box_caption_checkbox.isChecked():
+                # If caption is checked, use the caption PNG (existing logic)
+                frame_box_path = self.frame_box_caption_png_path
+            else:
+                # If caption is unchecked, crop main image to square and add 12px padding
+                from src.utils import create_temp_file
+                from PIL import Image
+                import os
+                # Use the first image from original_image_files as the main image
+                if original_image_files:
+                    main_img_path = list(original_image_files)[0]
+                    with Image.open(main_img_path) as img:
+                        w, h = img.size
+                        # Crop to square using height, center horizontally
+                        left = (w - h) // 2 if w > h else 0
+                        upper = 0
+                        right = left + h if w > h else w
+                        lower = h
+                        square = img.crop((left, upper, right, lower))
+                        # Add 12px padding
+                        pad = 12
+                        new_size = (square.width + 2 * pad, square.height + 2 * pad)
+                        padded = Image.new('RGBA', new_size, (0, 0, 0, 0))
+                        padded.paste(square, (pad, pad))
+                        temp_png_path = create_temp_file(suffix="_framebox_square.png", prefix="supercut_")
+                        padded.save(temp_png_path, 'PNG')
+                        frame_box_path = temp_png_path
+        # Fallback if not set
+        if not frame_box_path:
+            frame_box_path = "src/sources/icon.png"
         self._worker = VideoWorker(
             media_sources=media_sources, export_name=export_name, number=number, folder=folder, codec=codec, resolution=resolution, fps=fps,
             use_overlay=self.overlay_checkbox.isChecked(), min_mp3_count=min_mp3_count, overlay1_path=self.overlay1_path, overlay1_size_percent=self.overlay1_size_percent, overlay1_x_percent=self.overlay1_x_percent, overlay1_y_percent=self.overlay1_y_percent,
@@ -5879,8 +5943,8 @@ class SuperCutUI(QWidget):
             overlay9_popup_interval=self.overlay9_popup_interval_percent,
             overlay9_popup_checkbox_checked=self.overlay9_popup_checkbox.isChecked(),
             # --- Add frame box parameters ---
-            use_frame_box=self.frame_box_checkbox.isChecked(),
-            frame_box_path="src/sources/icon.png",  # Hardcoded path for now
+            use_frame_box=use_frame_box,
+            frame_box_path=frame_box_path,
             frame_box_size_percent=self.frame_box_size_percent,
             frame_box_x_percent=self.frame_box_x_percent,
             frame_box_y_percent=self.frame_box_y_percent,
