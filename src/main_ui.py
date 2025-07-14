@@ -4806,6 +4806,8 @@ class SuperCutUI(QWidget):
             self.frame_box_opacity = self.frame_box_opacity_combo.itemData(idx)
         self.frame_box_opacity_combo.currentIndexChanged.connect(on_frame_box_opacity_changed)
         on_frame_box_opacity_changed(self.frame_box_opacity_combo.currentIndex())
+        frame_box_color_layout.addWidget(frame_box_opacity_label)
+        frame_box_color_layout.addWidget(self.frame_box_opacity_combo)
 
         # Add custom padding controls (left, right, top, bottom) after opacity
         pad_label = QLabel("Pad:")
@@ -4851,11 +4853,7 @@ class SuperCutUI(QWidget):
         frame_box_color_layout.addWidget(self.frame_box_pad_left_combo)
         frame_box_color_layout.addWidget(self.frame_box_pad_right_combo)
         frame_box_color_layout.addWidget(self.frame_box_pad_top_combo)
-        frame_box_color_layout.addWidget(self.frame_box_pad_bottom_combo)
-
-        frame_box_color_layout.addWidget(frame_box_opacity_label)
-        frame_box_color_layout.addWidget(self.frame_box_opacity_combo)
-
+        frame_box_color_layout.addWidget(self.frame_box_pad_bottom_combo)        
         frame_box_color_layout.addStretch()
         layout.addLayout(frame_box_color_layout)
 
