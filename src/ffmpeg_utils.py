@@ -246,6 +246,7 @@ def create_video_with_ffmpeg(
         overlay7_idx = None
         overlay8_idx = None
         overlay9_idx = None
+        overlay10_idx = None
         input_idx = 2
         if use_intro and intro_path and ext_intro in ['.gif', '.png']:
             if ext_intro == '.gif':
