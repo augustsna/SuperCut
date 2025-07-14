@@ -135,6 +135,20 @@ def is_video_file(filename: str) -> bool:
     from src.config import VIDEO_EXTENSIONS
     return get_file_extension(filename) in VIDEO_EXTENSIONS
 
+def is_overlay_file(filename: str) -> bool:
+    """Check if a file is a valid overlay file (image or video)"""
+    return is_image_file(filename) or is_video_file(filename)
+
+def is_video_valid(path):
+    """Check if a video file is valid using ffprobe"""
+    try:
+        import subprocess
+        result = subprocess.run(['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', path], 
+                              capture_output=True, text=True, timeout=10)
+        return result.returncode == 0
+    except Exception:
+        return False
+
 def get_files_by_type(folder_path: str, file_type: str) -> list:
     """Get all files of a specific type from a folder. Always return full file paths."""
     if not os.path.exists(folder_path):

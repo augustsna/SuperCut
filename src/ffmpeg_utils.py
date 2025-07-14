@@ -257,11 +257,14 @@ def create_video_with_ffmpeg(
                 cmd.extend(["-i", intro_path])
             intro_idx = input_idx
             input_idx += 1
-        if use_overlay and overlay1_path and ext1 in ['.gif', '.png']:
+        if use_overlay and overlay1_path and ext1 in ['.gif', '.png', '.mp4']:
             if ext1 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay1_path])
             elif ext1 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay1_path])
+            elif ext1 == '.mp4':
+                # For video overlays, loop infinitely like GIFs
+                cmd.extend(["-stream_loop", "-1", "-i", overlay1_path])
             else:
                 cmd.extend(["-i", overlay1_path])
             overlay1_idx = input_idx
@@ -435,6 +438,11 @@ def create_video_with_ffmpeg(
                 chain = f"[{idx}:v]"
                 if ext == ".gif":
                     chain += "fps=30,"
+                elif ext == ".mp4":
+                    # For video overlays, we need to handle them differently
+                    # Videos already have their own fps, so we don't force fps=30
+                    # MP4 files are now looped infinitely like GIFs
+                    pass
                 chain += "format=rgba,"
                 fade_alpha = ":alpha=1" if ext == ".png" else ""
                 if effect == "fadeinout":

@@ -10,7 +10,7 @@ import time
 from src.logger import logger
 
 class VideoWorker(QObject):
-    """Worker class for processing video creation in background thread. Supports GIF overlay for Overlay 1. Optionally supports a name list for output naming."""
+    """Worker class for processing video creation in background thread. Supports GIF, PNG, and MP4 overlay for Overlay 1. Optionally supports a name list for output naming."""
     progress = pyqtSignal(int, int)  # batch_count, total_batches
     error = pyqtSignal(str)
     finished = pyqtSignal(list, list, list)  # leftover_mp3s, used_images, failed_moves
@@ -70,7 +70,7 @@ class VideoWorker(QObject):
         self.fps = fps
         self.use_overlay = use_overlay
         self.min_mp3_count = min_mp3_count
-        self.overlay1_path = overlay1_path  # Should be a GIF or PNG file if used
+        self.overlay1_path = overlay1_path  # Should be a GIF, PNG, or MP4 file if used (MP4 will loop infinitely)
         self.overlay1_size_percent = overlay1_size_percent
         self.overlay1_x_percent = overlay1_x_percent
         self.overlay1_y_percent = overlay1_y_percent

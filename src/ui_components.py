@@ -59,7 +59,7 @@ class FolderDropLineEdit(QLineEdit):
             super().paste()
 
 class ImageDropLineEdit(QLineEdit):
-    """Custom QLineEdit that accepts GIF or PNG file drag and drop (*.gif, *.png)"""
+    """Custom QLineEdit that accepts GIF, PNG, or MP4 file drag and drop (*.gif, *.png, *.mp4)"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setAcceptDrops(True)
@@ -69,7 +69,7 @@ class ImageDropLineEdit(QLineEdit):
             urls = event.mimeData().urls()
             if urls and urls[0].isLocalFile():
                 path = urls[0].toLocalFile()
-                if os.path.isfile(path) and os.path.splitext(path)[1].lower() in ['.gif', '.png']:
+                if os.path.isfile(path) and os.path.splitext(path)[1].lower() in ['.gif', '.png', '.mp4']:
                     event.acceptProposedAction()
                     return
         event.ignore()
@@ -78,7 +78,7 @@ class ImageDropLineEdit(QLineEdit):
         urls = event.mimeData().urls()
         if urls and urls[0].isLocalFile():
             path = urls[0].toLocalFile()
-            if os.path.isfile(path) and os.path.splitext(path)[1].lower() in ['.gif', '.png']:
+            if os.path.isfile(path) and os.path.splitext(path)[1].lower() in ['.gif', '.png', '.mp4']:
                 self.setText(path)
                 self.editingFinished.emit()
 

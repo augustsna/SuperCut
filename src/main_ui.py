@@ -361,7 +361,7 @@ class SettingsDialog(QDialog):
         self.default_overlay1_path_btn = QPushButton('...')
         self.default_overlay1_path_btn.setFixedWidth(32)
         def pick_overlay1_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 1 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 1 File", "", "Video Files (*.mp4 *.avi *.mov *.mkv) or Image Files (*.gif *.png)")
             if file_path:
                 self.default_overlay1_path_edit.setText(file_path)
         self.default_overlay1_path_btn.clicked.connect(pick_overlay1_path)
@@ -1609,8 +1609,8 @@ class SuperCutUI(QWidget):
         overlay1_layout = QHBoxLayout()
         overlay1_layout.setSpacing(4)  # Reduce spacing between widgets
         self.overlay1_edit = ImageDropLineEdit()
-        self.overlay1_edit.setPlaceholderText("Overlay 1 image path (*.gif, *.png)")
-        self.overlay1_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay1_edit.setPlaceholderText("Overlay 1 file path (*.mp4, *.gif, *.png)")
+        self.overlay1_edit.setToolTip("Drag and drop a video or image file here or click 'Select File'")
         self.overlay1_edit.setFixedWidth(125)  # Make the text box shorter
         self.overlay1_path = ""
         def on_overlay1_changed():
@@ -1623,7 +1623,7 @@ class SuperCutUI(QWidget):
         overlay1_btn = QPushButton("Select")
         overlay1_btn.setFixedWidth(60)
         def select_overlay1_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 1 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 1 File", "", "Video Files (*.mp4 *.avi *.mov *.mkv) or Image Files (*.gif *.png)")
             if file_path:
                 self.overlay1_edit.setText(file_path)
         overlay1_btn.clicked.connect(select_overlay1_image)
@@ -5243,8 +5243,8 @@ class SuperCutUI(QWidget):
         # Overlay 1 validation
         if self.overlay_checkbox.isChecked():
             overlay_path = self.overlay1_edit.text().strip()
-            if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 1.", QMessageBox.StandardButton.Ok)
+            if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png', '.mp4']:
+                QMessageBox.warning(self, "⚠️ Overlay File Required", "Please provide a valid GIF, PNG, or MP4 file (*.gif, *.png, *.mp4) for Overlay 1.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 2 validation
         if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
@@ -6723,8 +6723,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
             # Overlay 1 validation
             if self.overlay_checkbox.isChecked():
                 overlay_path = self.overlay1_edit.text().strip()
-                if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 1.", QMessageBox.StandardButton.Ok)
+                if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png', '.mp4']:
+                    QMessageBox.warning(self, "⚠️ Overlay File Required", "Please provide a valid GIF, PNG, or MP4 file (*.gif, *.png, *.mp4) for Overlay 1.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 2 validation
             if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
