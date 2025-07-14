@@ -327,7 +327,7 @@ class VideoWorker(QObject):
                 title = extract_mp3_title(mp3_path)
                 # Create a temp PNG file for the overlay
                 temp_png_path = create_temp_file(suffix=f'_overlay{idx}.png', prefix='supercut_')
-                create_song_title_png(title, temp_png_path, width=1920, height=240, font_size=self.song_title_font_size, font_name=self.song_title_font, color=self.song_title_color, bg=self.song_title_bg, bg_color=self.song_title_bg_color, opacity=self.song_title_opacity, text_effect=self.song_title_text_effect, text_effect_color=self.song_title_text_effect_color, text_effect_intensity=self.song_title_text_effect_intensity)
+                create_song_title_png(title, temp_png_path, width=1920, height=240, font_size=self.song_title_font_size, font_name=self.song_title_font, color=self.song_title_color, bg=self.song_title_bg, bg_color=self.song_title_bg_color, opacity=self.song_title_opacity, text_effect=self.song_title_text_effect, text_effect_color=self.song_title_text_effect_color, text_effect_intensity=self.song_title_text_effect_intensity, bottom_padding=0)
                 # Add x/y percent and start_at to overlay dict for ffmpeg_utils
                 song_title_pngs.append({'path': temp_png_path, 'title': title, 'x_percent': self.song_title_x_percent, 'y_percent': self.song_title_y_percent, 'start_at': self.song_title_start_at})
         # --- End Song Title Overlays ---
