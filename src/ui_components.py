@@ -103,7 +103,44 @@ class ImageDropLineEdit(QLineEdit):
             super().paste()
 
 class NoWheelComboBox(QComboBox):
-    """Custom QComboBox that prevents mouse wheel scrolling when dropdown is closed"""
+    """Custom QComboBox that prevents mouse wheel scrolling when dropdown is closed and has custom styling"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setStyleSheet("""
+            QComboBox {
+                background-color: #ffffff;
+                border: 1px solid #d0d0d0;
+                border-radius: 6px;
+                padding: 4px 8px;
+                font-size: 13px;
+                color: #333333;
+                min-height: 20px;
+            }
+            QComboBox:hover {
+                border: 1px solid #a0a0a0;
+                background-color: #f8f8f8;
+            }
+            QComboBox:focus {
+                border: 1px solid #4a90e2;
+                background-color: #ffffff;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 0px;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                border: none;
+                width: 0px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #ffffff;
+                selection-background-color: #3f92e3;
+                border: 1px solid #ccc;
+                outline: none;
+            }
+        """)
     
     def wheelEvent(self, event: QWheelEvent):
         """Override wheel event to prevent scrolling through items when dropdown is closed"""

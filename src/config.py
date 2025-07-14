@@ -57,15 +57,13 @@ STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.pa
         border: 2px solid #4687f4;
     }
     QComboBox::drop-down {
-        subcontrol-origin: padding;
-        subcontrol-position: top right;
-        width: 30px;
-        border-left: 1px solid #ccc;
+        border: none;
+        width: 0px;
     }
     QComboBox::down-arrow {
-        image: url(src/sources/down_arrow.svg);
-        width: 16px;
-        height: 16px;
+        image: none;
+        border: none;
+        width: 0px;
     }
     QComboBox QAbstractItemView {
         background-color: #ffffff;
@@ -96,6 +94,49 @@ STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.pa
     QCheckBox::indicator:unchecked {
         background: transparent;
         border: 1px solid #ccc;
+    }
+    QScrollBar:vertical {
+        background: rgba(240, 240, 240, 0.20);
+        width: 12px;
+        border-radius: 6px;
+        margin: 0px;
+        position: absolute;
+        right: 0px;
+    }
+    QScrollBar::handle:vertical {
+        background: rgba(192, 192, 192, 0.20);
+        border-radius: 6px;
+        min-height: 20px;
+        margin: 0px;
+    }
+    QScrollBar::handle:vertical:hover {
+        background: rgba(160, 160, 160, 0.35);
+    }
+    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+        height: 0px;
+    }
+    QScrollBar:horizontal {
+        background: rgba(240, 240, 240, 0.35);
+        height: 12px;
+        border-radius: 6px;
+        margin: 0px;
+        position: absolute;
+        bottom: 0px;
+    }
+    QScrollBar::handle:horizontal {
+        background: rgba(192, 192, 192, 0.35);
+        border-radius: 6px;
+        min-width: 20px;
+        margin: 0px;
+    }
+    QScrollBar::handle:horizontal:hover {
+        background: rgba(160, 160, 160, 0.35);
+    }
+    QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+        width: 0px;
+    }
+    QScrollBar::sub-control:corner {
+        background: transparent;
     }
 """
 
