@@ -7064,7 +7064,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         if use_song_title_overlay:
                             title = extract_mp3_title(dry_mp3)
                             temp_png = create_temp_file(suffix='_dryrun_songtitle.png')
-                            create_song_title_png(title, temp_png, width=1920, height=280, font_size=song_title_font_size, font_name=song_title_font, color=song_title_color, bg=song_title_bg, bg_color=song_title_bg_color, opacity=song_title_opacity, text_effect=song_title_text_effect, text_effect_color=song_title_text_effect_color, text_effect_intensity=song_title_text_effect_intensity)
+                            create_song_title_png(title, temp_png, width=1920, height=240, font_size=song_title_font_size, font_name=song_title_font, color=song_title_color, bg=song_title_bg, bg_color=song_title_bg_color, opacity=song_title_opacity, text_effect=song_title_text_effect, text_effect_color=song_title_text_effect_color, text_effect_intensity=song_title_text_effect_intensity)
                             extra_overlays = [{
                                 'path': temp_png,
                                 'start': song_title_start_at,
