@@ -4638,6 +4638,7 @@ class SuperCutUI(QWidget):
             frame_box_duration_label.setEnabled(enabled)
             self.frame_box_start_edit.setEnabled(enabled)
             frame_box_start_label.setEnabled(enabled)
+            self.frame_box_caption_checkbox.setEnabled(enabled)
             if enabled:
                 self.frame_box_size_combo.setStyleSheet("")
                 self.frame_box_x_combo.setStyleSheet("")
@@ -4649,6 +4650,7 @@ class SuperCutUI(QWidget):
                 frame_box_y_label.setStyleSheet("")
                 frame_box_duration_label.setStyleSheet("")
                 frame_box_start_label.setStyleSheet("")
+                self.frame_box_caption_checkbox.setStyleSheet("")
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.frame_box_size_combo.setStyleSheet(grey_btn_style)
@@ -4661,6 +4663,7 @@ class SuperCutUI(QWidget):
                 frame_box_y_label.setStyleSheet("color: grey;")
                 frame_box_duration_label.setStyleSheet("color: grey;")
                 frame_box_start_label.setStyleSheet("color: grey;")
+                self.frame_box_caption_checkbox.setStyleSheet("color: grey;")
         self.frame_box_checkbox.stateChanged.connect(lambda _: set_frame_box_enabled(self.frame_box_checkbox.checkState()))
         
         frame_box_layout.addWidget(self.frame_box_checkbox)
@@ -4762,6 +4765,17 @@ class SuperCutUI(QWidget):
         frame_box_effect_layout.addStretch()
         layout.addLayout(frame_box_effect_layout)
 
+        # --- Frame Box Caption Checkbox ---
+        self.frame_box_caption_checkbox = QtWidgets.QCheckBox("Frame Box Caption:")
+        self.frame_box_caption_checkbox.setFixedWidth(140)
+        self.frame_box_caption_checkbox.setChecked(False)
+        def update_frame_box_caption_checkbox_style(state):
+            self.frame_box_caption_checkbox.setStyleSheet("")  # Always default color
+        self.frame_box_caption_checkbox.stateChanged.connect(update_frame_box_caption_checkbox_style)
+        update_frame_box_caption_checkbox_style(self.frame_box_caption_checkbox.checkState())
+        # Place directly below frame box effect UI
+        layout.addWidget(self.frame_box_caption_checkbox)
+
         # Initialize frame box enabled state after all controls are created
         set_frame_box_enabled(self.frame_box_checkbox.checkState())
 
@@ -4779,6 +4793,8 @@ class SuperCutUI(QWidget):
                 self.frame_box_duration_edit.setEnabled(False)
                 self.frame_box_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.frame_box_duration_full_checkbox.setEnabled(False)
+                self.frame_box_caption_checkbox.setStyleSheet("color: grey;")
+                self.frame_box_caption_checkbox.setEnabled(False)
             else:
                 frame_box_label.setStyleSheet("")
                 self.frame_box_effect_combo.setStyleSheet("")
@@ -4789,6 +4805,8 @@ class SuperCutUI(QWidget):
                 # Re-enable the full duration checkbox and let it control the duration field styling
                 self.frame_box_duration_full_checkbox.setStyleSheet("")
                 self.frame_box_duration_full_checkbox.setEnabled(True)
+                self.frame_box_caption_checkbox.setStyleSheet("")
+                self.frame_box_caption_checkbox.setEnabled(True)
                 set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
         self.frame_box_checkbox.stateChanged.connect(lambda _: update_frame_box_effect_label_style())
         self.frame_box_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState()))
