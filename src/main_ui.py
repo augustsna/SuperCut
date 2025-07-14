@@ -3416,8 +3416,110 @@ class SuperCutUI(QWidget):
         song_title_effects_layout.addWidget(song_title_start_label)
         song_title_effects_layout.addSpacing(2)
         song_title_effects_layout.addWidget(self.song_title_start_edit)
+        
+        # --- Add Preview Song Title PNG Button ---
+        preview_song_title_btn = QPushButton("Preview ")
+        preview_song_title_btn.setFixedWidth(180)
+        song_title_effects_layout.addSpacing(10)
+        song_title_effects_layout.addWidget(preview_song_title_btn)
         song_title_effects_layout.addStretch()
         layout.addLayout(song_title_effects_layout)
+
+        # --- Handler for Preview Song Title PNG ---
+        def on_preview_song_title_png():
+            import os
+            from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QDialogButtonBox, QPushButton, QHBoxLayout
+            from PyQt6.QtGui import QPixmap
+            from PyQt6.QtCore import Qt
+            from src.utils import create_song_title_png
+            dry_run_dir = os.path.join(PROJECT_ROOT, "src", "Dry Run")            
+            output_png = os.path.join(dry_run_dir, "Song Titles Preview.png")
+            # Use current settings for the PNG
+            title_text = "Song's Titles"
+            width, height = 1920, 280
+            font_size = self.song_title_font_size
+            font_name = self.song_title_font
+            color = self.song_title_color
+            bg = self.song_title_bg
+            bg_color = self.song_title_bg_color
+            opacity = self.song_title_opacity
+            text_effect = self.song_title_text_effect
+            text_effect_color = self.song_title_text_effect_color
+            text_effect_intensity = self.song_title_text_effect_intensity
+            # Create PNG
+            try:
+                create_song_title_png(
+                    title_text, output_png, width=width, height=height, font_size=font_size, font_name=font_name,
+                    color=color, bg=bg, bg_color=bg_color, opacity=opacity, text_effect=text_effect,
+                    text_effect_color=text_effect_color, text_effect_intensity=text_effect_intensity
+                )
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to create PNG: {e}")
+                return
+            # Show preview dialog
+            class SongTitlePngPreviewDialog(QDialog):
+                def __init__(self, parent=None, png_path=None):
+                    super().__init__(parent)
+                    self.setWindowTitle("Song Title PNG Preview")
+                    self.setFixedSize(600, 200)
+                    self.setStyleSheet("QDialog { background: #373737; }");
+                    vbox = QVBoxLayout(self)
+                    vbox.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                    label = QLabel("")
+                    label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                    
+                    pixmap = QPixmap(png_path)
+                    img_label = QLabel()
+                    img_label.setPixmap(pixmap.scaled(650, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+                    img_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                    img_label.setStyleSheet("background: #373737;");
+                    vbox.addWidget(img_label)
+                    vbox.addSpacing(20)
+                    # Button row
+                    btn_row = QHBoxLayout()
+                    view_btn = QPushButton("View")
+                    folder_btn = QPushButton("Folder")
+                    ok_btn = QPushButton("OK")
+                    view_btn.setFixedWidth(90)
+                    folder_btn.setFixedWidth(90)
+                    ok_btn.setFixedWidth(90)
+                    btn_row.addStretch()
+                    btn_row.addWidget(view_btn)
+                    btn_row.addSpacing(10)
+                    btn_row.addWidget(folder_btn)
+                    btn_row.addSpacing(10)
+                    btn_row.addWidget(ok_btn)
+                    btn_row.addStretch()
+                    vbox.addLayout(btn_row)
+                    # Handlers
+                    def open_view():
+                        if png_path and isinstance(png_path, str) and os.path.exists(png_path):
+                            try:
+                                if os.name == 'nt':
+                                    os.startfile(png_path)
+                                elif os.name == 'posix':
+                                    import subprocess
+                                    subprocess.Popen(['xdg-open', str(png_path)])
+                            except Exception as e:
+                                QMessageBox.warning(self, "Error", f"Failed to open image: {e}")
+                    def open_folder():
+                        if png_path and isinstance(png_path, str) and os.path.exists(png_path):
+                            folder = os.path.dirname(png_path)
+                            if folder and isinstance(folder, str):
+                                try:
+                                    if os.name == 'nt':
+                                        os.startfile(folder)
+                                    elif os.name == 'posix':
+                                        import subprocess
+                                        subprocess.Popen(['xdg-open', str(folder)])
+                                except Exception as e:
+                                    QMessageBox.warning(self, "Error", f"Failed to open folder: {e}")
+                    view_btn.clicked.connect(open_view)
+                    folder_btn.clicked.connect(open_folder)
+                    ok_btn.clicked.connect(self.accept)
+            dlg = SongTitlePngPreviewDialog(self, png_path=output_png)
+            dlg.exec()
+        preview_song_title_btn.clicked.connect(on_preview_song_title_png)
 
         # Overlay 8 controls (similar to Overlay 7)
         self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
@@ -7064,7 +7166,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         if use_song_title_overlay:
                             title = extract_mp3_title(dry_mp3)
                             temp_png = create_temp_file(suffix='_dryrun_songtitle.png')
-                            create_song_title_png(title, temp_png, width=1920, height=240, font_size=song_title_font_size, font_name=song_title_font, color=song_title_color, bg=song_title_bg, bg_color=song_title_bg_color, opacity=song_title_opacity, text_effect=song_title_text_effect, text_effect_color=song_title_text_effect_color, text_effect_intensity=song_title_text_effect_intensity)
+                            create_song_title_png(title, temp_png, width=1920, height=280, font_size=song_title_font_size, font_name=song_title_font, color=song_title_color, bg=song_title_bg, bg_color=song_title_bg_color, opacity=song_title_opacity, text_effect=song_title_text_effect, text_effect_color=song_title_text_effect_color, text_effect_intensity=song_title_text_effect_intensity)
                             extra_overlays = [{
                                 'path': temp_png,
                                 'start': song_title_start_at,
