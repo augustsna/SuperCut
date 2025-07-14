@@ -4778,9 +4778,10 @@ class SuperCutUI(QWidget):
         frame_box_color_label.setFixedWidth(80)
         self.frame_box_color_btn = QPushButton()        
         self.frame_box_color_btn.setFixedWidth(27)
+        self.frame_box_color_btn.setFixedHeight(27)
         self.frame_box_color = (255, 255, 255)  # Default white
         self.frame_box_color_btn.setStyleSheet(
-            f"background-color: rgb(255,255,255);")
+            f"background-color: white; border: 1px solid #ccc;")
         
         def on_frame_box_color_clicked():
             color = QColorDialog.getColor()
@@ -4788,7 +4789,7 @@ class SuperCutUI(QWidget):
                 self.frame_box_color = (color.red(), color.green(), color.blue())
                 self.frame_box_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()});")
         self.frame_box_color_btn.clicked.connect(on_frame_box_color_clicked)
-        self.frame_box_color_btn.setStyleSheet("background-color: rgb(255,255,255);")
+        self.frame_box_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
         frame_box_color_layout.addWidget(frame_box_color_label)
         frame_box_color_layout.addWidget(self.frame_box_color_btn)
         frame_box_color_layout.addSpacing(16)
@@ -4886,7 +4887,7 @@ class SuperCutUI(QWidget):
                 frame_box_duration_label.setStyleSheet("")
                 frame_box_start_label.setStyleSheet("")
                 self.frame_box_caption_checkbox.setStyleSheet("")
-                self.frame_box_color_btn.setStyleSheet("background-color: rgb(255,255,255);")
+                self.frame_box_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
                 self.frame_box_opacity_combo.setStyleSheet("")
                 self.frame_box_pad_left_combo.setStyleSheet("")
                 self.frame_box_pad_right_combo.setStyleSheet("")
