@@ -180,6 +180,26 @@ def create_video_with_ffmpeg(
     overlay10_effect: str = "fadein",
     overlay10_start_time: int = 5,
     overlay10_duration: int = 6,
+    # --- Add frame box parameters ---
+    use_frame_box: bool = False,
+    frame_box_path: str = "",
+    frame_box_size_percent: int = 50,
+    frame_box_x_percent: int = 0,
+    frame_box_y_percent: int = 0,
+    frame_box_effect: str = "fadein",
+    frame_box_start_time: int = 5,
+    frame_box_duration: int = 6,
+    frame_box_duration_full_checkbox_checked: bool = True,
+    # --- Add frame mp3cover parameters ---
+    use_frame_mp3cover: bool = False,
+    frame_mp3cover_path: str = "",
+    frame_mp3cover_size_percent: int = 50,
+    frame_mp3cover_x_percent: int = 0,
+    frame_mp3cover_y_percent: int = 0,
+    frame_mp3cover_effect: str = "fadein",
+    frame_mp3cover_start_time: int = 5,
+    frame_mp3cover_duration: int = 6,
+    frame_mp3cover_duration_full_checkbox_checked: bool = True,
     overlay1_start_at: int = 0,
     overlay2_start_at: int = 0
 ) -> Tuple[bool, Optional[str]]:
@@ -235,6 +255,8 @@ def create_video_with_ffmpeg(
         ext8 = os.path.splitext(overlay8_path)[1].lower() if overlay8_path else ''
         ext9 = os.path.splitext(overlay9_path)[1].lower() if overlay9_path else ''
         ext10 = os.path.splitext(overlay10_path)[1].lower() if overlay10_path else ''
+        ext_frame_box = os.path.splitext(frame_box_path)[1].lower() if frame_box_path else ''
+        ext_frame_mp3cover = os.path.splitext(frame_mp3cover_path)[1].lower() if frame_mp3cover_path else ''
         ext_intro = os.path.splitext(intro_path)[1].lower() if intro_path else ''
         intro_idx = None
         overlay1_idx = None
@@ -247,6 +269,8 @@ def create_video_with_ffmpeg(
         overlay8_idx = None
         overlay9_idx = None
         overlay10_idx = None
+        frame_box_idx = None
+        frame_mp3cover_idx = None
         input_idx = 2
         if use_intro and intro_path and ext_intro in ['.gif', '.png']:
             if ext_intro == '.gif':
@@ -351,6 +375,24 @@ def create_video_with_ffmpeg(
                 cmd.extend(["-i", overlay10_path])
             overlay10_idx = input_idx
             input_idx += 1
+        if use_frame_box and frame_box_path and ext_frame_box in ['.gif', '.png']:
+            if ext_frame_box == '.gif':
+                cmd.extend(["-stream_loop", "-1", "-i", frame_box_path])
+            elif ext_frame_box == '.png':
+                cmd.extend(["-loop", "1", "-i", frame_box_path])
+            else:
+                cmd.extend(["-i", frame_box_path])
+            frame_box_idx = input_idx
+            input_idx += 1
+        if use_frame_mp3cover and frame_mp3cover_path and ext_frame_mp3cover in ['.gif', '.png']:
+            if ext_frame_mp3cover == '.gif':
+                cmd.extend(["-stream_loop", "-1", "-i", frame_mp3cover_path])
+            elif ext_frame_mp3cover == '.png':
+                cmd.extend(["-loop", "1", "-i", frame_mp3cover_path])
+            else:
+                cmd.extend(["-i", frame_mp3cover_path])
+            frame_mp3cover_idx = input_idx
+            input_idx += 1
         # --- Add extra overlays (song titles) as inputs ---
         extra_overlay_indices = []
         if extra_overlays:
@@ -360,7 +402,7 @@ def create_video_with_ffmpeg(
                 input_idx += 1
         # --- End Song Title Overlay Filter Graph ---
         # Build filter graph with correct indices
-        overlays_present = use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5 or use_overlay6 or use_overlay7 or use_overlay8 or use_overlay9 or use_overlay10 or bool(extra_overlays)
+        overlays_present = use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5 or use_overlay6 or use_overlay7 or use_overlay8 or use_overlay9 or use_overlay10 or use_frame_box or use_frame_mp3cover or bool(extra_overlays)
         if overlays_present:
             scale_factor_intro = intro_size_percent / 100.0
             owi = f"iw*{scale_factor_intro:.3f}"
@@ -395,6 +437,12 @@ def create_video_with_ffmpeg(
             scale_factor10 = overlay10_size_percent / 100.0
             ow10 = f"iw*{scale_factor10:.3f}"
             oh10 = f"ih*{scale_factor10:.3f}"
+            scale_factor_frame_box = frame_box_size_percent / 100.0
+            ow_frame_box = f"iw*{scale_factor_frame_box:.3f}"
+            oh_frame_box = f"ih*{scale_factor_frame_box:.3f}"
+            scale_factor_frame_mp3cover = frame_mp3cover_size_percent / 100.0
+            ow_frame_mp3cover = f"iw*{scale_factor_frame_mp3cover:.3f}"
+            oh_frame_mp3cover = f"ih*{scale_factor_frame_mp3cover:.3f}"
             position_map = {
                 "top_left": ("0", "0"),
                 "top_right": (f"W-w", "0"),
@@ -425,6 +473,10 @@ def create_video_with_ffmpeg(
             oy9 = f"(H-h)*(1-({overlay9_y_percent}/100))" if overlay9_y_percent != 100 else "0"
             ox10 = f"(W-w)*{overlay10_x_percent}/100" if overlay10_x_percent != 0 else "0"
             oy10 = f"(H-h)*(1-({overlay10_y_percent}/100))" if overlay10_y_percent != 100 else "0"
+            ox_frame_box = f"(W-w)*{frame_box_x_percent}/100" if frame_box_x_percent != 0 else "0"
+            oy_frame_box = f"(H-h)*(1-({frame_box_y_percent}/100))" if frame_box_y_percent != 100 else "0"
+            ox_frame_mp3cover = f"(W-w)*{frame_mp3cover_x_percent}/100" if frame_mp3cover_x_percent != 0 else "0"
+            oy_frame_mp3cover = f"(H-h)*(1-({frame_mp3cover_y_percent}/100))" if frame_mp3cover_y_percent != 100 else "0"
             filter_bg = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height}[bg]"
 
             # Effect logic for overlays
@@ -548,6 +600,18 @@ def create_video_with_ffmpeg(
             
             filter_overlay9 = overlay_effect_chain(overlay9_idx, f"{ow9}:{oh9}", "ol9", overlay9_effect, overlay9_start_time, ext9, overlay9_actual_duration) if overlay9_idx is not None else ""
             filter_overlay10 = overlay_effect_chain(overlay10_idx, f"{ow10}:{oh10}", "ol10", overlay10_effect, overlay10_start_time, ext10, overlay10_duration) if overlay10_idx is not None else ""
+            # Calculate duration for frame box based on full duration checkbox
+            frame_box_actual_duration = None
+            if not frame_box_duration_full_checkbox_checked:
+                frame_box_actual_duration = frame_box_duration
+            
+            filter_frame_box = overlay_effect_chain(frame_box_idx, f"{ow_frame_box}:{oh_frame_box}", "ol_frame_box", frame_box_effect, frame_box_start_time, ext_frame_box, frame_box_actual_duration) if frame_box_idx is not None else ""
+            # Calculate duration for frame mp3cover based on full duration checkbox
+            frame_mp3cover_actual_duration = None
+            if not frame_mp3cover_duration_full_checkbox_checked:
+                frame_mp3cover_actual_duration = frame_mp3cover_duration
+            
+            filter_frame_mp3cover = overlay_effect_chain(frame_mp3cover_idx, f"{ow_frame_mp3cover}:{oh_frame_mp3cover}", "ol_frame_mp3cover", frame_mp3cover_effect, frame_mp3cover_start_time, ext_frame_mp3cover, frame_mp3cover_actual_duration) if frame_mp3cover_idx is not None else ""
             # --- Song Title Overlay Filter Graph ---
             filter_chains = []
             overlay_labels = []
@@ -730,6 +794,28 @@ def create_video_with_ffmpeg(
                 # Limited duration - show for specified duration (no full duration option for overlay10)
                 filter_graph += f";{last_label}[ol10]overlay={ox10}:{oy10}:enable='between(t,{overlay10_start_time},{overlay10_start_time+overlay10_duration})'[tmp10]"
                 last_label = "[tmp10]"
+            # Frame Box
+            if filter_frame_box:
+                filter_graph += f";{filter_frame_box}"
+                # Use duration control like other overlays
+                if frame_box_duration_full_checkbox_checked:
+                    # Full duration - show for entire video
+                    filter_graph += f";{last_label}[ol_frame_box]overlay={ox_frame_box}:{oy_frame_box}:enable='gte(t,{frame_box_start_time})'[tmp_frame_box]"
+                else:
+                    # Limited duration - show for specified duration
+                    filter_graph += f";{last_label}[ol_frame_box]overlay={ox_frame_box}:{oy_frame_box}:enable='between(t,{frame_box_start_time},{frame_box_start_time+frame_box_duration})'[tmp_frame_box]"
+                last_label = "[tmp_frame_box]"
+            # Frame MP3Cover
+            if filter_frame_mp3cover:
+                filter_graph += f";{filter_frame_mp3cover}"
+                # Use duration control like other overlays
+                if frame_mp3cover_duration_full_checkbox_checked:
+                    # Full duration - show for entire video
+                    filter_graph += f";{last_label}[ol_frame_mp3cover]overlay={ox_frame_mp3cover}:{oy_frame_mp3cover}:enable='gte(t,{frame_mp3cover_start_time})'[tmp_frame_mp3cover]"
+                else:
+                    # Limited duration - show for specified duration
+                    filter_graph += f";{last_label}[ol_frame_mp3cover]overlay={ox_frame_mp3cover}:{oy_frame_mp3cover}:enable='between(t,{frame_mp3cover_start_time},{frame_mp3cover_start_time+frame_mp3cover_duration})'[tmp_frame_mp3cover]"
+                last_label = "[tmp_frame_mp3cover]"
             # Intro
             if filter_intro:
                 filter_graph += f";{filter_intro}"

@@ -5451,6 +5451,8 @@ class SuperCutUI(QWidget):
             self.overlay_checkbox, self.overlay2_checkbox, self.overlay3_checkbox,
             self.overlay4_checkbox, self.overlay5_checkbox, self.overlay6_checkbox,
             self.overlay7_checkbox, self.overlay8_checkbox, self.overlay9_checkbox,
+            self.frame_box_checkbox,
+            self.frame_mp3cover_checkbox,
             
             # Overlay edit fields
             self.overlay1_edit, self.overlay2_edit, self.overlay3_edit,
@@ -5467,6 +5469,14 @@ class SuperCutUI(QWidget):
             self.overlay7_size_combo, self.overlay7_x_combo, self.overlay7_y_combo,
             self.overlay8_size_combo, self.overlay8_x_combo, self.overlay8_y_combo,
             self.overlay9_size_combo, self.overlay9_x_combo, self.overlay9_y_combo,
+            # Frame box controls
+            self.frame_box_size_combo, self.frame_box_x_combo, self.frame_box_y_combo,
+            self.frame_box_effect_combo, self.frame_box_duration_edit, self.frame_box_start_edit,
+            self.frame_box_duration_full_checkbox,
+            # Frame mp3cover controls
+            self.frame_mp3cover_size_combo, self.frame_mp3cover_x_combo, self.frame_mp3cover_y_combo,
+            self.frame_mp3cover_effect_combo, self.frame_mp3cover_duration_edit, self.frame_mp3cover_start_edit,
+            self.frame_mp3cover_duration_full_checkbox,
             
             # Intro controls
             self.intro_checkbox, self.intro_edit, self.intro_duration_edit,
@@ -5743,6 +5753,26 @@ class SuperCutUI(QWidget):
             overlay9_popup_start_at=self.overlay9_popup_start_at_percent,
             overlay9_popup_interval=self.overlay9_popup_interval_percent,
             overlay9_popup_checkbox_checked=self.overlay9_popup_checkbox.isChecked(),
+            # --- Add frame box parameters ---
+            use_frame_box=self.frame_box_checkbox.isChecked(),
+            frame_box_path="src/sources/icon.png",  # Hardcoded path for now
+            frame_box_size_percent=self.frame_box_size_percent,
+            frame_box_x_percent=self.frame_box_x_percent,
+            frame_box_y_percent=self.frame_box_y_percent,
+            frame_box_effect=self.selected_frame_box_effect,
+            frame_box_start_time=self.frame_box_start_percent,
+            frame_box_duration=self.frame_box_duration,
+            frame_box_duration_full_checkbox_checked=self.frame_box_duration_full_checkbox.isChecked(),
+            # --- Add frame mp3cover parameters ---
+            use_frame_mp3cover=self.frame_mp3cover_checkbox.isChecked(),
+            frame_mp3cover_path="src/sources/icon.png",  # Hardcoded path for now
+            frame_mp3cover_size_percent=self.frame_mp3cover_size_percent,
+            frame_mp3cover_x_percent=self.frame_mp3cover_x_percent,
+            frame_mp3cover_y_percent=self.frame_mp3cover_y_percent,
+            frame_mp3cover_effect=self.selected_frame_mp3cover_effect,
+            frame_mp3cover_start_time=self.frame_mp3cover_start_percent,
+            frame_mp3cover_duration=self.frame_mp3cover_duration,
+            frame_mp3cover_duration_full_checkbox_checked=self.frame_mp3cover_duration_full_checkbox.isChecked(),
 
         )
         self._worker.moveToThread(self._thread)

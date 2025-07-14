@@ -59,7 +59,13 @@ class VideoWorker(QObject):
                  # --- Add overlay10, overlay10 effect ---
                  use_overlay10: bool = False, overlay10_path: str = "", overlay10_size_percent: int = 10, overlay10_x_percent: int = 75, overlay10_y_percent: int = 0,
                  overlay10_effect: str = "fadein", overlay10_start_time: int = 5, overlay10_start_from: int = 0, overlay10_duration: int = 6, overlay10_start_at_checkbox_checked: bool = True,
-                 overlay10_song_start_end_checked: bool = False, overlay10_start_end_value: str = "start"):
+                 overlay10_song_start_end_checked: bool = False, overlay10_start_end_value: str = "start",
+                 # --- Add frame box parameters ---
+                 use_frame_box: bool = False, frame_box_path: str = "", frame_box_size_percent: int = 50, frame_box_x_percent: int = 0, frame_box_y_percent: int = 0,
+                 frame_box_effect: str = "fadein", frame_box_start_time: int = 5, frame_box_duration: int = 6, frame_box_duration_full_checkbox_checked: bool = True,
+                 # --- Add frame mp3cover parameters ---
+                 use_frame_mp3cover: bool = False, frame_mp3cover_path: str = "", frame_mp3cover_size_percent: int = 50, frame_mp3cover_x_percent: int = 0, frame_mp3cover_y_percent: int = 0,
+                 frame_mp3cover_effect: str = "fadein", frame_mp3cover_start_time: int = 5, frame_mp3cover_duration: int = 6, frame_mp3cover_duration_full_checkbox_checked: bool = True):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -206,6 +212,26 @@ class VideoWorker(QObject):
         self.overlay10_start_at_checkbox_checked = overlay10_start_at_checkbox_checked
         self.overlay10_song_start_end_checked = overlay10_song_start_end_checked
         self.overlay10_start_end_value = overlay10_start_end_value
+        # --- Add frame box attributes ---
+        self.use_frame_box = use_frame_box
+        self.frame_box_path = frame_box_path
+        self.frame_box_size_percent = frame_box_size_percent
+        self.frame_box_x_percent = frame_box_x_percent
+        self.frame_box_y_percent = frame_box_y_percent
+        self.frame_box_effect = frame_box_effect
+        self.frame_box_start_time = frame_box_start_time
+        self.frame_box_duration = frame_box_duration
+        self.frame_box_duration_full_checkbox_checked = frame_box_duration_full_checkbox_checked
+        # --- Add frame mp3cover attributes ---
+        self.use_frame_mp3cover = use_frame_mp3cover
+        self.frame_mp3cover_path = frame_mp3cover_path
+        self.frame_mp3cover_size_percent = frame_mp3cover_size_percent
+        self.frame_mp3cover_x_percent = frame_mp3cover_x_percent
+        self.frame_mp3cover_y_percent = frame_mp3cover_y_percent
+        self.frame_mp3cover_effect = frame_mp3cover_effect
+        self.frame_mp3cover_start_time = frame_mp3cover_start_time
+        self.frame_mp3cover_duration = frame_mp3cover_duration
+        self.frame_mp3cover_duration_full_checkbox_checked = frame_mp3cover_duration_full_checkbox_checked
 
     def stop(self):
         """Stop the video processing"""
@@ -777,6 +803,26 @@ class VideoWorker(QObject):
                 overlay10_start_time=actual_overlay10_start_at,
                 overlay10_duration=self.overlay10_duration,
                 overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox_checked,
+                # --- Add frame box parameters ---
+                use_frame_box=self.use_frame_box,
+                frame_box_path=self.frame_box_path,
+                frame_box_size_percent=self.frame_box_size_percent,
+                frame_box_x_percent=self.frame_box_x_percent,
+                frame_box_y_percent=self.frame_box_y_percent,
+                frame_box_effect=self.frame_box_effect,
+                frame_box_start_time=self.frame_box_start_time,
+                frame_box_duration=self.frame_box_duration,
+                frame_box_duration_full_checkbox_checked=self.frame_box_duration_full_checkbox_checked,
+                # --- Add frame mp3cover parameters ---
+                use_frame_mp3cover=self.use_frame_mp3cover,
+                frame_mp3cover_path=self.frame_mp3cover_path,
+                frame_mp3cover_size_percent=self.frame_mp3cover_size_percent,
+                frame_mp3cover_x_percent=self.frame_mp3cover_x_percent,
+                frame_mp3cover_y_percent=self.frame_mp3cover_y_percent,
+                frame_mp3cover_effect=self.frame_mp3cover_effect,
+                frame_mp3cover_start_time=self.frame_mp3cover_start_time,
+                frame_mp3cover_duration=self.frame_mp3cover_duration,
+                frame_mp3cover_duration_full_checkbox_checked=self.frame_mp3cover_duration_full_checkbox_checked,
                 overlay1_start_at=actual_overlay1_start_at,
                 overlay2_start_at=actual_overlay2_start_at
             )
