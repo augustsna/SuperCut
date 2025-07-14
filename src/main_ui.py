@@ -4630,42 +4630,7 @@ class SuperCutUI(QWidget):
         self.frame_box_y_combo.currentIndexChanged.connect(on_frame_box_y_changed)
         on_frame_box_y_changed(self.frame_box_y_combo.currentIndex())
 
-        def set_frame_box_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            self.frame_box_size_combo.setEnabled(enabled)
-            self.frame_box_x_combo.setEnabled(enabled)
-            self.frame_box_y_combo.setEnabled(enabled)
-            self.frame_box_duration_edit.setEnabled(enabled)
-            frame_box_duration_label.setEnabled(enabled)
-            self.frame_box_start_edit.setEnabled(enabled)
-            frame_box_start_label.setEnabled(enabled)
-            self.frame_box_caption_checkbox.setEnabled(enabled)
-            if enabled:
-                self.frame_box_size_combo.setStyleSheet("")
-                self.frame_box_x_combo.setStyleSheet("")
-                self.frame_box_y_combo.setStyleSheet("")
-                self.frame_box_duration_edit.setStyleSheet("")
-                self.frame_box_start_edit.setStyleSheet("")
-                frame_box_size_label.setStyleSheet("")
-                frame_box_x_label.setStyleSheet("")
-                frame_box_y_label.setStyleSheet("")
-                frame_box_duration_label.setStyleSheet("")
-                frame_box_start_label.setStyleSheet("")
-                self.frame_box_caption_checkbox.setStyleSheet("")
-            else:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.frame_box_size_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_x_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_y_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_duration_edit.setStyleSheet(grey_btn_style)
-                self.frame_box_start_edit.setStyleSheet(grey_btn_style)
-                frame_box_size_label.setStyleSheet("color: grey;")
-                frame_box_x_label.setStyleSheet("color: grey;")
-                frame_box_y_label.setStyleSheet("color: grey;")
-                frame_box_duration_label.setStyleSheet("color: grey;")
-                frame_box_start_label.setStyleSheet("color: grey;")
-                self.frame_box_caption_checkbox.setStyleSheet("color: grey;")
-        self.frame_box_checkbox.stateChanged.connect(lambda _: set_frame_box_enabled(self.frame_box_checkbox.checkState()))
+        
         
         frame_box_layout.addWidget(self.frame_box_checkbox)
         frame_box_layout.addSpacing(188)
@@ -4806,7 +4771,146 @@ class SuperCutUI(QWidget):
                 self.frame_box_caption_png_path = None
         self.frame_box_caption_checkbox.stateChanged.connect(on_frame_box_caption_checked)
 
-        # Initialize frame box enabled state after all controls are created
+        # --- Frame Box Color Picker and Opacity Control (same line) ---
+        frame_box_color_layout = QHBoxLayout()
+        frame_box_color_layout.setContentsMargins(0, 0, 0, 0)
+        frame_box_color_label = QLabel("Frame Color:")
+        frame_box_color_label.setFixedWidth(80)
+        self.frame_box_color_btn = QPushButton()
+        self.frame_box_color_btn.setFixedWidth(27)
+        self.frame_box_color = (255, 255, 255)  # Default white
+        def on_frame_box_color_clicked():
+            color = QColorDialog.getColor()
+            if color.isValid():
+                self.frame_box_color = (color.red(), color.green(), color.blue())
+                self.frame_box_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()});")
+        self.frame_box_color_btn.clicked.connect(on_frame_box_color_clicked)
+        self.frame_box_color_btn.setStyleSheet("background-color: rgb(255,255,255);")
+        frame_box_color_layout.addWidget(frame_box_color_label)
+        frame_box_color_layout.addWidget(self.frame_box_color_btn)
+
+        frame_box_color_layout.addSpacing(16)
+        frame_box_opacity_label = QLabel("Frame Opacity:")
+        frame_box_opacity_label.setFixedWidth(80)
+        self.frame_box_opacity_combo = NoWheelComboBox()
+        self.frame_box_opacity_combo.setFixedWidth(80)
+        for percent in range(0, 101, 5):
+            self.frame_box_opacity_combo.addItem(f"{percent}%", percent / 100.0)
+        self.frame_box_opacity_combo.setCurrentIndex(100 // 5)  # Default 100%
+        self.frame_box_opacity = 1.0
+        def on_frame_box_opacity_changed(idx):
+            self.frame_box_opacity = self.frame_box_opacity_combo.itemData(idx)
+        self.frame_box_opacity_combo.currentIndexChanged.connect(on_frame_box_opacity_changed)
+        on_frame_box_opacity_changed(self.frame_box_opacity_combo.currentIndex())
+
+        # Add custom padding controls (left, right, top, bottom) after opacity
+        pad_label = QLabel("Pad:")
+        pad_label.setFixedWidth(32)
+        frame_box_color_layout.addWidget(pad_label)
+        self.frame_box_pad_left_combo = NoWheelComboBox()
+        self.frame_box_pad_left_combo.setFixedWidth(50)
+        self.frame_box_pad_right_combo = NoWheelComboBox()
+        self.frame_box_pad_right_combo.setFixedWidth(50)
+        self.frame_box_pad_top_combo = NoWheelComboBox()
+        self.frame_box_pad_top_combo.setFixedWidth(50)
+        self.frame_box_pad_bottom_combo = NoWheelComboBox()
+        self.frame_box_pad_bottom_combo.setFixedWidth(50)
+        for px in range(0, 65, 2):
+            self.frame_box_pad_left_combo.addItem(f"L:{px}", px)
+            self.frame_box_pad_right_combo.addItem(f"R:{px}", px)
+            self.frame_box_pad_top_combo.addItem(f"T:{px}", px)
+            self.frame_box_pad_bottom_combo.addItem(f"B:{px}", px)
+        self.frame_box_pad_left_combo.setCurrentIndex(6)   # 12px
+        self.frame_box_pad_right_combo.setCurrentIndex(6)  # 12px
+        self.frame_box_pad_top_combo.setCurrentIndex(6)    # 12px
+        self.frame_box_pad_bottom_combo.setCurrentIndex(6) # 12px
+        self.frame_box_pad_left = 12
+        self.frame_box_pad_right = 12
+        self.frame_box_pad_top = 12
+        self.frame_box_pad_bottom = 12
+        def on_frame_box_pad_left_changed(idx):
+            self.frame_box_pad_left = self.frame_box_pad_left_combo.itemData(idx)
+        def on_frame_box_pad_right_changed(idx):
+            self.frame_box_pad_right = self.frame_box_pad_right_combo.itemData(idx)
+        def on_frame_box_pad_top_changed(idx):
+            self.frame_box_pad_top = self.frame_box_pad_top_combo.itemData(idx)
+        def on_frame_box_pad_bottom_changed(idx):
+            self.frame_box_pad_bottom = self.frame_box_pad_bottom_combo.itemData(idx)
+        self.frame_box_pad_left_combo.currentIndexChanged.connect(on_frame_box_pad_left_changed)
+        self.frame_box_pad_right_combo.currentIndexChanged.connect(on_frame_box_pad_right_changed)
+        self.frame_box_pad_top_combo.currentIndexChanged.connect(on_frame_box_pad_top_changed)
+        self.frame_box_pad_bottom_combo.currentIndexChanged.connect(on_frame_box_pad_bottom_changed)
+        on_frame_box_pad_left_changed(self.frame_box_pad_left_combo.currentIndex())
+        on_frame_box_pad_right_changed(self.frame_box_pad_right_combo.currentIndex())
+        on_frame_box_pad_top_changed(self.frame_box_pad_top_combo.currentIndex())
+        on_frame_box_pad_bottom_changed(self.frame_box_pad_bottom_combo.currentIndex())
+        frame_box_color_layout.addWidget(self.frame_box_pad_left_combo)
+        frame_box_color_layout.addWidget(self.frame_box_pad_right_combo)
+        frame_box_color_layout.addWidget(self.frame_box_pad_top_combo)
+        frame_box_color_layout.addWidget(self.frame_box_pad_bottom_combo)
+
+        frame_box_color_layout.addWidget(frame_box_opacity_label)
+        frame_box_color_layout.addWidget(self.frame_box_opacity_combo)
+
+        frame_box_color_layout.addStretch()
+        layout.addLayout(frame_box_color_layout)
+
+        def set_frame_box_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.frame_box_size_combo.setEnabled(enabled)
+            self.frame_box_x_combo.setEnabled(enabled)
+            self.frame_box_y_combo.setEnabled(enabled)
+            self.frame_box_duration_edit.setEnabled(enabled)
+            frame_box_duration_label.setEnabled(enabled)
+            self.frame_box_start_edit.setEnabled(enabled)
+            frame_box_start_label.setEnabled(enabled)
+            self.frame_box_caption_checkbox.setEnabled(enabled)
+            self.frame_box_color_btn.setEnabled(enabled)
+            self.frame_box_opacity_combo.setEnabled(enabled)
+            self.frame_box_pad_left_combo.setEnabled(enabled)
+            self.frame_box_pad_right_combo.setEnabled(enabled)
+            self.frame_box_pad_top_combo.setEnabled(enabled)
+            self.frame_box_pad_bottom_combo.setEnabled(enabled)
+            if enabled:
+                self.frame_box_size_combo.setStyleSheet("")
+                self.frame_box_x_combo.setStyleSheet("")
+                self.frame_box_y_combo.setStyleSheet("")
+                self.frame_box_duration_edit.setStyleSheet("")
+                self.frame_box_start_edit.setStyleSheet("")
+                frame_box_size_label.setStyleSheet("")
+                frame_box_x_label.setStyleSheet("")
+                frame_box_y_label.setStyleSheet("")
+                frame_box_duration_label.setStyleSheet("")
+                frame_box_start_label.setStyleSheet("")
+                self.frame_box_caption_checkbox.setStyleSheet("")
+                self.frame_box_color_btn.setStyleSheet("")
+                self.frame_box_opacity_combo.setStyleSheet("")
+                self.frame_box_pad_left_combo.setStyleSheet("")
+                self.frame_box_pad_right_combo.setStyleSheet("")
+                self.frame_box_pad_top_combo.setStyleSheet("")
+                self.frame_box_pad_bottom_combo.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.frame_box_size_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_x_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_y_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_duration_edit.setStyleSheet(grey_btn_style)
+                self.frame_box_start_edit.setStyleSheet(grey_btn_style)
+                frame_box_size_label.setStyleSheet("color: grey;")
+                frame_box_x_label.setStyleSheet("color: grey;")
+                frame_box_y_label.setStyleSheet("color: grey;")
+                frame_box_duration_label.setStyleSheet("color: grey;")
+                frame_box_start_label.setStyleSheet("color: grey;")
+                self.frame_box_caption_checkbox.setStyleSheet("color: grey;")
+                self.frame_box_color_btn.setStyleSheet(grey_btn_style)
+                self.frame_box_opacity_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_pad_left_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_pad_right_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_pad_top_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_pad_bottom_combo.setStyleSheet(grey_btn_style)
+        self.frame_box_checkbox.stateChanged.connect(lambda _: set_frame_box_enabled(self.frame_box_checkbox.checkState()))
+        
+         # Initialize frame box enabled state after all controls are created
         set_frame_box_enabled(self.frame_box_checkbox.checkState())
 
         # --- Frame box effect greying logic ---
@@ -5841,6 +5945,21 @@ class SuperCutUI(QWidget):
                         new_size = (square.width + 2 * pad, square.height + 2 * pad)
                         padded = Image.new('RGBA', new_size, (0, 0, 0, 0))
                         padded.paste(square, (pad, pad))
+                        # Draw frame (rectangle) in the padding area
+                        from PIL import ImageDraw
+                        frame_color = self.frame_box_color if hasattr(self, 'frame_box_color') else (255, 255, 255)
+                        frame_opacity = int((self.frame_box_opacity if hasattr(self, 'frame_box_opacity') else 1.0) * 255)
+                        draw = ImageDraw.Draw(padded)
+                        # Outer rectangle (full image)
+                        rect_color = (*frame_color, frame_opacity)
+                        # Draw top
+                        draw.rectangle([0, 0, new_size[0]-1, pad-1], fill=rect_color)
+                        # Draw bottom
+                        draw.rectangle([0, new_size[1]-pad, new_size[0]-1, new_size[1]-1], fill=rect_color)
+                        # Draw left
+                        draw.rectangle([0, pad, pad-1, new_size[1]-pad-1], fill=rect_color)
+                        # Draw right
+                        draw.rectangle([new_size[0]-pad, pad, new_size[0]-1, new_size[1]-pad-1], fill=rect_color)
                         temp_png_path = create_temp_file(suffix="_framebox_square.png", prefix="supercut_")
                         padded.save(temp_png_path, 'PNG')
                         frame_box_path = temp_png_path
