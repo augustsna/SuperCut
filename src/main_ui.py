@@ -4687,7 +4687,9 @@ class SuperCutUI(QWidget):
                 frame_box_start_label.setStyleSheet("")
                 self.frame_box_start_edit.setStyleSheet("")
                 self.frame_box_start_edit.setEnabled(True)
-                # Let the duration full checkbox control the duration field styling
+                # Re-enable the full duration checkbox and let it control the duration field styling
+                self.frame_box_duration_full_checkbox.setStyleSheet("")
+                self.frame_box_duration_full_checkbox.setEnabled(True)
                 set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
         self.frame_box_checkbox.stateChanged.connect(lambda _: update_frame_box_effect_label_style())
         self.frame_box_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState()))
@@ -4906,7 +4908,9 @@ class SuperCutUI(QWidget):
                 frame_mp3cover_start_label.setStyleSheet("")
                 self.frame_mp3cover_start_edit.setStyleSheet("")
                 self.frame_mp3cover_start_edit.setEnabled(True)
-                # Let the duration full checkbox control the duration field styling
+                # Re-enable the full duration checkbox and let it control the duration field styling
+                self.frame_mp3cover_duration_full_checkbox.setStyleSheet("")
+                self.frame_mp3cover_duration_full_checkbox.setEnabled(True)
                 set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState())
         self.frame_mp3cover_checkbox.stateChanged.connect(lambda _: update_frame_mp3cover_effect_label_style())
         self.frame_mp3cover_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState()))
