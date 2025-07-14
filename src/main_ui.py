@@ -4956,8 +4956,8 @@ class SuperCutUI(QWidget):
         layout.addLayout(lyric_layout)
 
         # last_item label
-        self.last_item_label = QtWidgets.QLabel("Last item...")
-        self.last_item_label.setStyleSheet("font-size: 14px; font-weight: normal; color: #333;")
+        self.last_item_label = QtWidgets.QLabel("Let's fucking go!")
+        self.last_item_label.setStyleSheet("font-size: 14px; font-weight: thin; color: #888;")
         self.last_item_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Add last_item label to layout
