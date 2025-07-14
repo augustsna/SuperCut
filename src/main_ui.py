@@ -3146,6 +3146,74 @@ class SuperCutUI(QWidget):
         self.song_title_opacity_combo.currentIndexChanged.connect(on_song_title_opacity_changed)
         on_song_title_opacity_changed(self.song_title_opacity_combo.currentIndex())
         
+        # --- Text Effects Controls ---
+        # Text effect dropdown
+        song_title_text_effect_label = QLabel("Text FX:")
+        song_title_text_effect_label.setFixedWidth(50)
+        self.song_title_text_effect_combo = NoWheelComboBox()
+        self.song_title_text_effect_combo.setFixedWidth(100)
+        song_title_text_effect_options = [
+            ("None", "none"),
+            ("Text outlines", "outline"),
+            ("Outward stroke", "outward_stroke"),
+            ("Inward stroke", "inward_stroke"),
+            ("Text shadows", "shadow"),
+            ("Glow effects", "glow")
+        ]
+        for label, value in song_title_text_effect_options:
+            self.song_title_text_effect_combo.addItem(label, value)
+        self.song_title_text_effect_combo.setCurrentIndex(0)  # Default none
+        self.song_title_text_effect = "none"
+        def on_song_title_text_effect_changed(idx):
+            self.song_title_text_effect = self.song_title_text_effect_combo.itemData(idx)
+            # Grey out FX color and intensity controls when "None" is selected
+            is_none_selected = self.song_title_text_effect == "none"
+            self.song_title_text_effect_color_btn.setEnabled(not is_none_selected)
+            self.song_title_text_effect_intensity_combo.setEnabled(not is_none_selected)
+            song_title_text_effect_color_label.setStyleSheet("color: grey;" if is_none_selected else "")
+            song_title_text_effect_intensity_label.setStyleSheet("color: grey;" if is_none_selected else "")
+            
+            # Update button styling
+            if is_none_selected:
+                self.song_title_text_effect_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+                self.song_title_text_effect_intensity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            else:
+                # Restore normal styling
+                self.song_title_text_effect_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_text_effect_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                self.song_title_text_effect_intensity_combo.setStyleSheet("")
+        self.song_title_text_effect_combo.currentIndexChanged.connect(on_song_title_text_effect_changed)
+        
+        # Text effect color picker
+        song_title_text_effect_color_label = QLabel("FX C:")
+        song_title_text_effect_color_label.setFixedWidth(35)
+        self.song_title_text_effect_color_btn = QPushButton()
+        self.song_title_text_effect_color_btn.setFixedSize(27, 27)
+        self.song_title_text_effect_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+        self.song_title_text_effect_color = (0, 0, 0)  # Default black
+        def on_song_title_text_effect_color_clicked():
+            color = QColorDialog.getColor(QColor(*self.song_title_text_effect_color), self, "Select Text Effect Color")
+            if color.isValid():
+                self.song_title_text_effect_color = (color.red(), color.green(), color.blue())
+                self.song_title_text_effect_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_text_effect_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+        self.song_title_text_effect_color_btn.clicked.connect(on_song_title_text_effect_color_clicked)
+        
+        # Text effect intensity (1-100)
+        song_title_text_effect_intensity_label = QLabel("FX I:")
+        song_title_text_effect_intensity_label.setFixedWidth(35)
+        self.song_title_text_effect_intensity_combo = NoWheelComboBox()
+        self.song_title_text_effect_intensity_combo.setFixedWidth(60)
+        for value in range(1, 101, 1):
+            self.song_title_text_effect_intensity_combo.addItem(f"{value}", value)
+        self.song_title_text_effect_intensity_combo.setCurrentIndex(19)  # Default 20
+        self.song_title_text_effect_intensity = 20
+        def on_song_title_text_effect_intensity_changed(idx):
+            self.song_title_text_effect_intensity = self.song_title_text_effect_intensity_combo.itemData(idx)
+        self.song_title_text_effect_intensity_combo.currentIndexChanged.connect(on_song_title_text_effect_intensity_changed)
+        on_song_title_text_effect_intensity_changed(self.song_title_text_effect_intensity_combo.currentIndex())
+        
+        # Now call the text effect changed function after all controls are created
+        on_song_title_text_effect_changed(self.song_title_text_effect_combo.currentIndex())
+        
         # Effect control (moved to next line)
         song_title_effect_layout = QHBoxLayout()
         song_title_effect_layout.setSpacing(0)
@@ -3226,6 +3294,9 @@ class SuperCutUI(QWidget):
             self.song_title_color_btn.setEnabled(enabled)
             self.song_title_bg_combo.setEnabled(enabled)
             self.song_title_opacity_combo.setEnabled(enabled)
+            self.song_title_text_effect_combo.setEnabled(enabled)
+            self.song_title_text_effect_color_btn.setEnabled(enabled)
+            self.song_title_text_effect_intensity_combo.setEnabled(enabled)
             self.song_title_scale_combo.setEnabled(enabled)
             self.song_title_x_combo.setEnabled(enabled)
             self.song_title_y_combo.setEnabled(enabled)
@@ -3238,6 +3309,9 @@ class SuperCutUI(QWidget):
             song_title_color_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_bg_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_scale_label.setStyleSheet("" if enabled else "color: grey;")
+            song_title_text_effect_label.setStyleSheet("" if enabled else "color: grey;")
+            song_title_text_effect_color_label.setStyleSheet("" if enabled else "color: grey;")
+            song_title_text_effect_intensity_label.setStyleSheet("" if enabled else "color: grey;")
             if not enabled:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.song_title_effect_combo.setStyleSheet(grey_btn_style)
@@ -3247,7 +3321,10 @@ class SuperCutUI(QWidget):
                 self.song_title_scale_combo.setStyleSheet(grey_btn_style)
                 self.song_title_bg_combo.setStyleSheet(grey_btn_style)
                 self.song_title_opacity_combo.setStyleSheet(grey_btn_style)
+                self.song_title_text_effect_combo.setStyleSheet(grey_btn_style)
+                self.song_title_text_effect_intensity_combo.setStyleSheet(grey_btn_style)
                 self.song_title_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+                self.song_title_text_effect_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
                 # Only grey out song title start edit if both song title and overlay 3 are disabled
                 if not song_title_start_enabled:
                     self.song_title_start_edit.setStyleSheet(grey_btn_style)
@@ -3262,11 +3339,18 @@ class SuperCutUI(QWidget):
                 self.song_title_scale_combo.setStyleSheet("")
                 self.song_title_bg_combo.setStyleSheet("")
                 self.song_title_opacity_combo.setStyleSheet("")
+                self.song_title_text_effect_combo.setStyleSheet("")
+                self.song_title_text_effect_intensity_combo.setStyleSheet("")
                 # Restore color button style based on current settings
                 if self.song_title_bg == "custom":
                     self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.last_custom_bg_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 else:
                     self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                # Restore text effect color button style based on current text effect
+                if self.song_title_text_effect == "none":
+                    self.song_title_text_effect_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+                else:
+                    self.song_title_text_effect_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_text_effect_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
             # Update background color button state
             update_bg_color_state()
         self.song_title_checkbox.stateChanged.connect(lambda _: set_song_title_controls_enabled(self.song_title_checkbox.checkState()))
@@ -3297,7 +3381,7 @@ class SuperCutUI(QWidget):
         song_title_checkbox_layout.addStretch()
         layout.addLayout(song_title_checkbox_layout)
         
-        # Second line: bg, opacity, effect, start at
+        # Second line: bg, opacity, text effects
         song_title_controls_layout = QHBoxLayout()        
         song_title_controls_layout.addSpacing(10)  # Align with song title checkbox
         song_title_controls_layout.addWidget(song_title_bg_label)
@@ -3308,15 +3392,32 @@ class SuperCutUI(QWidget):
         song_title_controls_layout.addSpacing(-5)
         song_title_controls_layout.addWidget(self.song_title_opacity_combo)
         song_title_controls_layout.addSpacing(6)
-        song_title_controls_layout.addWidget(song_title_effect_label)
+        song_title_controls_layout.addWidget(song_title_text_effect_label)
         song_title_controls_layout.addSpacing(2)
-        song_title_controls_layout.addWidget(self.song_title_effect_combo)
-        song_title_controls_layout.addSpacing(-1)
-        song_title_controls_layout.addWidget(song_title_start_label)
-        song_title_controls_layout.addSpacing(-32)
-        song_title_controls_layout.addWidget(self.song_title_start_edit)
+        song_title_controls_layout.addWidget(self.song_title_text_effect_combo)
+        song_title_controls_layout.addSpacing(4)
+        song_title_controls_layout.addWidget(song_title_text_effect_color_label)
+        song_title_controls_layout.addSpacing(2)
+        song_title_controls_layout.addWidget(self.song_title_text_effect_color_btn)
+        song_title_controls_layout.addSpacing(4)
+        song_title_controls_layout.addWidget(song_title_text_effect_intensity_label)
+        song_title_controls_layout.addSpacing(2)
+        song_title_controls_layout.addWidget(self.song_title_text_effect_intensity_combo)
         song_title_controls_layout.addStretch()
         layout.addLayout(song_title_controls_layout)
+        
+        # Third line: titles effect and start at
+        song_title_effects_layout = QHBoxLayout()
+        song_title_effects_layout.addSpacing(10)  # Align with song title checkbox
+        song_title_effects_layout.addWidget(song_title_effect_label)
+        song_title_effects_layout.addSpacing(2)
+        song_title_effects_layout.addWidget(self.song_title_effect_combo)
+        song_title_effects_layout.addSpacing(20)
+        song_title_effects_layout.addWidget(song_title_start_label)
+        song_title_effects_layout.addSpacing(2)
+        song_title_effects_layout.addWidget(self.song_title_start_edit)
+        song_title_effects_layout.addStretch()
+        layout.addLayout(song_title_effects_layout)
 
         # Overlay 8 controls (similar to Overlay 7)
         self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
@@ -5696,6 +5797,10 @@ class SuperCutUI(QWidget):
             song_title_y_percent=self.song_title_y_percent,
             song_title_start_at=self.song_title_start_at,
             song_title_scale_percent=self.song_title_scale_percent,
+            # --- Add song title text effect parameters ---
+            song_title_text_effect=self.song_title_text_effect,
+            song_title_text_effect_color=self.song_title_text_effect_color,
+            song_title_text_effect_intensity=self.song_title_text_effect_intensity,
             overlay4_effect=self.selected_overlay4_5_effect,
             overlay4_start_time=self.overlay4_5_start_at,
             overlay4_duration=self.overlay4_5_duration,
@@ -6951,11 +7056,15 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         song_title_y_percent = self.params['song_title_y_percent']
                         song_title_start_at = self.params['song_title_start_at']
                         song_title_scale_percent = self.params['song_title_scale_percent']
+                        # --- Add song title text effect parameters ---
+                        song_title_text_effect = self.params['song_title_text_effect']
+                        song_title_text_effect_color = self.params['song_title_text_effect_color']
+                        song_title_text_effect_intensity = self.params['song_title_text_effect_intensity']
                         extra_overlays = None
                         if use_song_title_overlay:
                             title = extract_mp3_title(dry_mp3)
                             temp_png = create_temp_file(suffix='_dryrun_songtitle.png')
-                            create_song_title_png(title, temp_png, width=1920, height=240, font_size=song_title_font_size, font_name=song_title_font, color=song_title_color, bg=song_title_bg, bg_color=song_title_bg_color, opacity=song_title_opacity)
+                            create_song_title_png(title, temp_png, width=1920, height=240, font_size=song_title_font_size, font_name=song_title_font, color=song_title_color, bg=song_title_bg, bg_color=song_title_bg_color, opacity=song_title_opacity, text_effect=song_title_text_effect, text_effect_color=song_title_text_effect_color, text_effect_intensity=song_title_text_effect_intensity)
                             extra_overlays = [{
                                 'path': temp_png,
                                 'start': song_title_start_at,
@@ -7187,7 +7296,11 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 song_title_x_percent=self.song_title_x_percent,
                 song_title_y_percent=self.song_title_y_percent,
                 song_title_start_at=self.song_title_start_at,
-                song_title_scale_percent=self.song_title_scale_percent
+                song_title_scale_percent=self.song_title_scale_percent,
+                # --- Add song title text effect parameters ---
+                song_title_text_effect=self.song_title_text_effect,
+                song_title_text_effect_color=self.song_title_text_effect_color,
+                song_title_text_effect_intensity=self.song_title_text_effect_intensity
             )
             worker = DryRunWorker(params)
             thread = QThread()

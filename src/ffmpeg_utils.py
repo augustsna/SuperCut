@@ -151,6 +151,10 @@ def create_video_with_ffmpeg(
     song_title_bg_color: tuple = (0, 0, 0),
     song_title_opacity: float = 1.0,
     song_title_scale_percent: int = 100,
+    # --- Add song title text effect parameters ---
+    song_title_text_effect: str = "none",
+    song_title_text_effect_color: tuple = (0, 0, 0),
+    song_title_text_effect_intensity: int = 20,
     overlay3_effect: str = "fadein",
     overlay3_start_time: int = 5,
     overlay4_effect: str = "fadein",

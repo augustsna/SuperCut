@@ -240,7 +240,7 @@ def extract_mp3_title(mp3_path):
     import os
     return os.path.splitext(os.path.basename(mp3_path))[0]
 
-def create_song_title_png(title, output_path, width=400, height=40, font_size=12, font_name="default", color=(255, 255, 255), bg="transparent", bg_color=(0, 0, 0), opacity=1.0):
+def create_song_title_png(title, output_path, width=400, height=40, font_size=12, font_name="default", color=(255, 255, 255), bg="transparent", bg_color=(0, 0, 0), opacity=1.0, text_effect="none", text_effect_color=(0, 0, 0), text_effect_intensity=20):
     """
     Create a PNG image with the song title text at the top-left.
     Args:
@@ -254,6 +254,9 @@ def create_song_title_png(title, output_path, width=400, height=40, font_size=12
         bg (str): Background type ("transparent", "black", "white", "custom")
         bg_color (tuple): RGB color tuple for custom background.
         opacity (float): Opacity value (0.0 to 1.0).
+        text_effect (str): Text effect type ("none", "outline", "outward_stroke", "inward_stroke", "shadow", "glow")
+        text_effect_color (tuple): RGB color tuple for text effect.
+        text_effect_intensity (int): Intensity of the text effect (0-100).
     """
     from src.config import PROJECT_ROOT
     
@@ -288,17 +291,79 @@ def create_song_title_png(title, output_path, width=400, height=40, font_size=12
         except Exception:
             font = ImageFont.load_default()
     
-    # Center text using anchor if available (Pillow >=8.0)
+    # Calculate text position (center)
     try:
-        draw.text((width // 2, height // 2), title, font=font, fill=(*color, 255), anchor='mm')
+        # Use anchor for newer Pillow versions
+        text_x, text_y = width // 2, height // 2
+        anchor = 'mm'
     except TypeError:
         # Fallback for older Pillow: use manual bbox calculation
         text_bbox = draw.textbbox((0, 0), title, font=font)
         text_width = text_bbox[2] - text_bbox[0]
         text_height = text_bbox[3] - text_bbox[1]
-        x = (width - text_width) // 2
-        y = (height - text_height) // 2
-        draw.text((x, y), title, font=font, fill=(*color, 255))
+        text_x = (width - text_width) // 2
+        text_y = (height - text_height) // 2
+        anchor = None
+    
+    # Apply text effects
+    if text_effect != "none":
+        effect_intensity = max(1, text_effect_intensity // 10)  # Convert 0-100 to 1-10
+        
+        if text_effect == "outline":
+            # Draw outline effect
+            for dx in range(-effect_intensity, effect_intensity + 1):
+                for dy in range(-effect_intensity, effect_intensity + 1):
+                    if dx != 0 or dy != 0:  # Skip center pixel
+                        if anchor:
+                            draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255), anchor=anchor)
+                        else:
+                            draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255))
+        
+        elif text_effect == "outward_stroke":
+            # Draw outward stroke (thicker outline)
+            for dx in range(-effect_intensity * 2, effect_intensity * 2 + 1):
+                for dy in range(-effect_intensity * 2, effect_intensity * 2 + 1):
+                    if anchor:
+                        draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255), anchor=anchor)
+                    else:
+                        draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255))
+        
+        elif text_effect == "inward_stroke":
+            # Draw inward stroke (inner outline)
+            for dx in range(-effect_intensity // 2, effect_intensity // 2 + 1):
+                for dy in range(-effect_intensity // 2, effect_intensity // 2 + 1):
+                    if anchor:
+                        draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255), anchor=anchor)
+                    else:
+                        draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255))
+        
+        elif text_effect == "shadow":
+            # Draw shadow effect (offset to bottom-right)
+            shadow_x = text_x + effect_intensity
+            shadow_y = text_y + effect_intensity
+            if anchor:
+                draw.text((shadow_x, shadow_y), title, font=font, fill=(*text_effect_color, 128), anchor=anchor)
+            else:
+                draw.text((shadow_x, shadow_y), title, font=font, fill=(*text_effect_color, 128))
+        
+        elif text_effect == "glow":
+            # Draw glow effect (multiple layers with decreasing opacity)
+            for i in range(effect_intensity, 0, -1):
+                opacity_factor = 255 // (effect_intensity + 1) * i
+                glow_color = (*text_effect_color, opacity_factor)
+                for dx in range(-i, i + 1):
+                    for dy in range(-i, i + 1):
+                        if anchor:
+                            draw.text((text_x + dx, text_y + dy), title, font=font, fill=glow_color, anchor=anchor)
+                        else:
+                            draw.text((text_x + dx, text_y + dy), title, font=font, fill=glow_color)
+    
+    # Draw main text
+    if anchor:
+        draw.text((text_x, text_y), title, font=font, fill=(*color, 255), anchor=anchor)
+    else:
+        draw.text((text_x, text_y), title, font=font, fill=(*color, 255))
+    
     img.save(output_path, 'PNG')
 
 # Register cleanup function to run at exit
