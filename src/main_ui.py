@@ -4955,6 +4955,18 @@ class SuperCutUI(QWidget):
         lyric_layout.addStretch()
         layout.addLayout(lyric_layout)
 
+        # last_item label
+        self.last_item_label = QtWidgets.QLabel("Last item...")
+        self.last_item_label.setStyleSheet("font-size: 14px; font-weight: normal; color: #333;")
+        self.last_item_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Add last_item label to layout
+        last_item_label_layout = QHBoxLayout()
+        last_item_label_layout.addStretch()
+        last_item_label_layout.addWidget(self.last_item_label)
+        last_item_label_layout.addStretch()
+        layout.addLayout(last_item_label_layout)
+
     def create_action_buttons(self, layout):
         """Create action buttons"""
         button_layout = QHBoxLayout()
