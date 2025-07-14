@@ -6258,6 +6258,39 @@ class SuperCutUI(QWidget):
             except (TypeError, RuntimeError):
                 pass
 
+    def _gather_preview_inputs(self):
+        """Gather inputs for preview without validation checks for media folder and output folder."""
+        media_sources = self.media_sources_edit.text()
+        use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
+        if use_name_list:
+            export_name = ""  # Will use name list, but pass empty string for validation
+        else:
+            export_name = self.part1_edit.text().strip()
+        number = self.part2_edit.text().strip()
+        if not number or number == '0':
+            number = '1'
+        if not use_name_list:
+            export_name = sanitize_filename(export_name or "")
+        folder = self.folder_edit.text().strip()
+        codec = self.codec_combo.currentData()
+        resolution = self.resolution_combo.currentData()
+        fps = self.fps_combo.currentData()
+        if self.mp3_count_checkbox.isChecked():
+            try:
+                min_mp3_count = int(self.mp3_count_edit.text())
+                if min_mp3_count < 1:
+                    min_mp3_count = DEFAULT_MIN_MP3_COUNT
+            except Exception:
+                min_mp3_count = DEFAULT_MIN_MP3_COUNT
+        else:
+            min_mp3_count = DEFAULT_MIN_MP3_COUNT
+        
+        # For preview, we'll use empty sets for mp3_files and image_files since we're not validating
+        mp3_files = set()
+        image_files = set()
+        
+        return (media_sources, export_name, number, folder, codec, resolution, fps, mp3_files, image_files, min_mp3_count)
+
     def show_preview_dialog(self):
         # Check if preview dialog is already open - if so, close it
         if hasattr(self, '_preview_dialog') and self._preview_dialog is not None:
@@ -6265,8 +6298,8 @@ class SuperCutUI(QWidget):
             self._preview_dialog = None
             return
         
-        # Gather all FFmpeg settings as would be passed to video creation
-        inputs = self._gather_and_validate_inputs()
+        # Gather all FFmpeg settings as would be passed to video creation (without validation)
+        inputs = self._gather_preview_inputs()
         if not inputs:
             return  # Don't show dialog when there are warnings/errors
         (
