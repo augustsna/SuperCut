@@ -6813,6 +6813,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         overlay2_y_percent = self.params['overlay2_y_percent']
                         overlay1_start_at = self.params['overlay1_start_at']
                         overlay2_start_at = self.params['overlay2_start_at']
+                        overlay1_2_duration = self.params['overlay1_2_duration']
+                        overlay1_2_duration_full_checkbox_checked = self.params['overlay1_2_duration_full_checkbox_checked']
                         use_overlay3 = self.params['use_overlay3']
                         overlay3_path = self.params['overlay3_path']
                         overlay3_size_percent = self.params['overlay3_size_percent']
@@ -6960,7 +6962,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             use_overlay9, overlay9_path, overlay9_size_percent, overlay9_x_percent, overlay9_y_percent,
                             use_overlay10, overlay10_path, overlay10_size_percent, overlay10_x_percent, overlay10_y_percent,
                             use_intro, intro_path, intro_size_percent, intro_x_percent, intro_y_percent,
-                            effect, effect_time, 6, False, intro_effect, actual_intro_duration, actual_intro_start_at, intro_duration_full_checkbox_checked, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
+                            effect, effect_time, overlay1_2_duration, overlay1_2_duration_full_checkbox_checked, intro_effect, actual_intro_duration, actual_intro_start_at, intro_duration_full_checkbox_checked, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
                             extra_overlays=extra_overlays,
                             song_title_effect=song_title_effect,
                             song_title_font=song_title_font,
@@ -7122,6 +7124,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 intro_duration_full_checkbox_checked=self.intro_duration_full_checkbox.isChecked(),
                 overlay1_2_start_from=self.overlay1_2_start_from,
                 overlay1_2_start_at_checkbox_checked=self.overlay1_2_start_at_checkbox.isChecked(),
+                overlay1_2_duration=self.overlay1_2_duration,
+                overlay1_2_duration_full_checkbox_checked=self.overlay1_2_duration_full_checkbox.checkState() == Qt.CheckState.Checked,
                 overlay4_5_start_from=self.overlay4_5_start_from,
                 overlay4_5_start_at_checkbox_checked=self.overlay4_5_start_at_checkbox.isChecked(),
                             effect=self.selected_overlay1_2_effect,

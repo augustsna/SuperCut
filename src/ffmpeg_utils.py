@@ -263,8 +263,9 @@ def create_video_with_ffmpeg(
             elif ext1 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay1_path])
             elif ext1 == '.mp4':
-                # For video overlays, loop infinitely like GIFs
-                cmd.extend(["-stream_loop", "-1", "-i", overlay1_path])
+                # For MP4 overlays, start from the beginning at the overlay1_start_at time
+                # Use -itsoffset to delay the overlay input
+                cmd.extend(["-itsoffset", str(overlay1_start_at), "-stream_loop", "-1", "-i", overlay1_path])
             else:
                 cmd.extend(["-i", overlay1_path])
             overlay1_idx = input_idx
