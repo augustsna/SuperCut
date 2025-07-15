@@ -194,6 +194,10 @@ def create_video_with_ffmpeg(
     frame_box_start_time: int = 5,
     frame_box_duration: int = 6,
     frame_box_duration_full_checkbox_checked: bool = True,
+    frame_box_pad_left: int = 12,
+    frame_box_pad_right: int = 12,
+    frame_box_pad_top: int = 12,
+    frame_box_pad_bottom: int = 12,
     # --- Add frame mp3cover parameters ---
     use_frame_mp3cover: bool = False,
     frame_mp3cover_path: str = "",
@@ -477,8 +481,11 @@ def create_video_with_ffmpeg(
             oy9 = f"(H-h)*(1-({overlay9_y_percent}/100))" if overlay9_y_percent != 100 else "0"
             ox10 = f"(W-w)*{overlay10_x_percent}/100" if overlay10_x_percent != 0 else "0"
             oy10 = f"(H-h)*(1-({overlay10_y_percent}/100))" if overlay10_y_percent != 100 else "0"
-            ox_frame_box = f"(W-w)*{frame_box_x_percent}/100" if frame_box_x_percent != 0 else "0"
-            oy_frame_box = f"(H-h)*(1-({frame_box_y_percent}/100))" if frame_box_y_percent != 100 else "0"
+            # Calculate framebox position with padding
+            base_x = f"(W-w)*{frame_box_x_percent}/100" if frame_box_x_percent != 0 else "0"
+            base_y = f"(H-h)*(1-({frame_box_y_percent}/100))" if frame_box_y_percent != 100 else "0"
+            ox_frame_box = f"({base_x})+{frame_box_pad_left}"
+            oy_frame_box = f"({base_y})+{frame_box_pad_top}"
             ox_frame_mp3cover = f"(W-w)*{frame_mp3cover_x_percent}/100" if frame_mp3cover_x_percent != 0 else "0"
             oy_frame_mp3cover = f"(H-h)*(1-({frame_mp3cover_y_percent}/100))" if frame_mp3cover_y_percent != 100 else "0"
             filter_bg = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height}[bg]"
