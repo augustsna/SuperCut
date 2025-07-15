@@ -70,7 +70,18 @@ class VideoWorker(QObject):
                  frame_box_pad_left: int = 12, frame_box_pad_right: int = 12, frame_box_pad_top: int = 12, frame_box_pad_bottom: int = 12,
                  # --- Add frame mp3cover parameters ---
                  use_frame_mp3cover: bool = False, frame_mp3cover_path: str = "", frame_mp3cover_size_percent: int = 50, frame_mp3cover_x_percent: int = 0, frame_mp3cover_y_percent: int = 0,
-                 frame_mp3cover_effect: str = "fadein", frame_mp3cover_start_time: int = 5, frame_mp3cover_duration: int = 6, frame_mp3cover_duration_full_checkbox_checked: bool = True):
+                 frame_mp3cover_effect: str = "fadein", frame_mp3cover_start_time: int = 5, frame_mp3cover_duration: int = 6, frame_mp3cover_duration_full_checkbox_checked: bool = True,
+                 # --- Add dynamic MP3 cover parameters ---
+                 use_mp3_cover_overlay: bool = False,
+                 mp3_cover_effect: str = "fadeinout",
+                 mp3_cover_size_percent: int = 20,
+                 mp3_cover_x_percent: int = 75,
+                 mp3_cover_y_percent: int = 75,
+                 mp3_cover_start_at: int = 0,
+                 mp3_cover_duration: int = 6,
+                 mp3_cover_duration_full_checkbox_checked: bool = True,
+                 mp3_cover_frame_color: tuple = (255, 255, 255),
+                 mp3_cover_frame_size: int = 10):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -245,6 +256,18 @@ class VideoWorker(QObject):
         self.frame_mp3cover_start_time = frame_mp3cover_start_time
         self.frame_mp3cover_duration = frame_mp3cover_duration
         self.frame_mp3cover_duration_full_checkbox_checked = frame_mp3cover_duration_full_checkbox_checked
+        
+        # --- Add dynamic MP3 cover attributes ---
+        self.use_mp3_cover_overlay = use_mp3_cover_overlay
+        self.mp3_cover_effect = mp3_cover_effect
+        self.mp3_cover_size_percent = mp3_cover_size_percent
+        self.mp3_cover_x_percent = mp3_cover_x_percent
+        self.mp3_cover_y_percent = mp3_cover_y_percent
+        self.mp3_cover_start_at = mp3_cover_start_at
+        self.mp3_cover_duration = mp3_cover_duration
+        self.mp3_cover_duration_full_checkbox_checked = mp3_cover_duration_full_checkbox_checked
+        self.mp3_cover_frame_color = mp3_cover_frame_color
+        self.mp3_cover_frame_size = mp3_cover_frame_size
 
     def stop(self):
         """Stop the video processing"""
@@ -336,6 +359,32 @@ class VideoWorker(QObject):
                 # Add x/y percent and start_at to overlay dict for ffmpeg_utils
                 song_title_pngs.append({'path': temp_png_path, 'title': title, 'x_percent': self.song_title_x_percent, 'y_percent': self.song_title_y_percent, 'start_at': self.song_title_start_at})
         # --- End Song Title Overlays ---
+
+        # --- MP3 Cover Overlays: Extract cover and create framed PNG for each selected MP3 ---
+        mp3_cover_pngs = []
+        if self.use_mp3_cover_overlay:
+            from src.utils import extract_and_frame_mp3_cover
+            for idx, mp3_path in enumerate(selected_mp3s, start=100):  # mp3cover100, mp3cover101, ...
+                # Create a temp PNG file for the MP3 cover overlay
+                temp_cover_path = create_temp_file(suffix=f'_mp3cover{idx}.png', prefix='supercut_')
+                
+                # Extract and frame the MP3 cover image with custom frame color and size
+                success = extract_and_frame_mp3_cover(mp3_path, temp_cover_path, frame_width=self.mp3_cover_frame_size, frame_color=self.mp3_cover_frame_color)
+                
+                if success:
+                    # Add x/y percent and start_at to overlay dict for ffmpeg_utils
+                    mp3_cover_pngs.append({
+                        'path': temp_cover_path, 
+                        'mp3_path': mp3_path, 
+                        'x_percent': self.mp3_cover_x_percent, 
+                        'y_percent': self.mp3_cover_y_percent, 
+                        'start_at': 0,  # Will be overridden by timing logic
+                        'size_percent': self.mp3_cover_size_percent,
+                        'effect': self.mp3_cover_effect
+                    })
+                else:
+                    logger.warning(f"Failed to create MP3 cover overlay for {mp3_path}")
+        # --- End MP3 Cover Overlays ---
         
         # Select available image
         available_images = [img for img in image_files if img not in used_images]
@@ -377,7 +426,7 @@ class VideoWorker(QObject):
 
         try:
             # Calculate timing for each overlay with proper song durations
-            overlay_count = len(song_title_pngs)
+            overlay_count = len(song_title_pngs) + len(mp3_cover_pngs) # Count both song titles and MP3 covers
             extra_overlays = []
             
             if overlay_count > 0:
@@ -422,6 +471,46 @@ class VideoWorker(QObject):
                         'x_percent': song_title_pngs[i]['x_percent'],
                         'y_percent': song_title_pngs[i]['y_percent']
                     })
+
+            # --- Add MP3 Cover overlays to extra_overlays ---
+            if self.use_mp3_cover_overlay and len(mp3_cover_pngs) > 0:
+                # MP3 covers work like song titles: each cover appears during its corresponding song
+                from src.ffmpeg_utils import get_audio_duration
+                song_durations = []
+                cumulative_time = 0.0
+                for mp3_path in selected_mp3s:
+                    duration = get_audio_duration(mp3_path)
+                    song_durations.append((cumulative_time, duration))
+                    cumulative_time += duration
+                
+                for i, (song_start, song_duration) in enumerate(song_durations):
+                    if i < len(mp3_cover_pngs):  # Make sure we have a cover for this song
+                        if i == 0:
+                            # First cover: start at user input, duration depends on full duration checkbox
+                            overlay_start = self.mp3_cover_start_at
+                            if self.mp3_cover_duration_full_checkbox_checked:
+                                overlay_duration = song_duration - (overlay_start - song_start)
+                                overlay_duration = max(overlay_duration, 1.0)
+                            else:
+                                overlay_duration = self.mp3_cover_duration
+                        else:
+                            # Subsequent covers: start at song start, duration depends on full duration checkbox
+                            overlay_start = song_start
+                            if self.mp3_cover_duration_full_checkbox_checked:
+                                overlay_duration = song_duration
+                            else:
+                                overlay_duration = self.mp3_cover_duration
+                        
+                        extra_overlays.append({
+                            'path': mp3_cover_pngs[i]['path'],
+                            'start': overlay_start,
+                            'duration': overlay_duration,
+                            'x_percent': mp3_cover_pngs[i]['x_percent'],
+                            'y_percent': mp3_cover_pngs[i]['y_percent'],
+                            'size_percent': mp3_cover_pngs[i]['size_percent'],
+                            'effect': mp3_cover_pngs[i]['effect']
+                        })
+            # --- End MP3 Cover overlays ---
             
             # Calculate actual intro start time and duration based on checkbox states
             from src.ffmpeg_utils import get_audio_duration
@@ -705,6 +794,8 @@ class VideoWorker(QObject):
                 print(f"Warning: Overlay10 duration is negative: {self.overlay10_duration}, setting to 1")
                 self.overlay10_duration = 1
             
+            
+
             # Create video (Overlay 1: GIF/PNG, with size)
             # Call create_video_with_ffmpeg, but if overlay10_multi_song, set use_overlay10=False so it is not added as a static overlay
             ffmpeg_use_overlay10 = self.use_overlay10 and not overlay10_multi_song

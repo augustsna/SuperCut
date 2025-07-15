@@ -5581,7 +5581,7 @@ class SuperCutUI(QWidget):
         frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_start_edit)
         frame_mp3cover_effect_layout.addStretch()
         layout.addLayout(frame_mp3cover_effect_layout)
-
+        
         # Initialize frame mp3cover enabled state after all controls are created
         set_frame_mp3cover_enabled(self.frame_mp3cover_checkbox.checkState())
 
@@ -5614,6 +5614,264 @@ class SuperCutUI(QWidget):
         self.frame_mp3cover_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState()))
         update_frame_mp3cover_effect_label_style()
         set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState())
+
+        # --- DYNAMIC MP3 COVER OVERLAY ---
+        self.mp3_cover_overlay_checkbox = QtWidgets.QCheckBox("MP3 Cover Overlay:")
+        self.mp3_cover_overlay_checkbox.setFixedWidth(120)
+        self.mp3_cover_overlay_checkbox.setChecked(False)
+        def update_mp3_cover_overlay_checkbox_style(state):
+            self.mp3_cover_overlay_checkbox.setStyleSheet("")  # Always default color
+        self.mp3_cover_overlay_checkbox.stateChanged.connect(update_mp3_cover_overlay_checkbox_style)
+        update_mp3_cover_overlay_checkbox_style(self.mp3_cover_overlay_checkbox.checkState())
+
+        mp3_cover_overlay_layout = QHBoxLayout()
+        mp3_cover_overlay_layout.setSpacing(4)
+        
+        # MP3 cover size option (5% to 100%)
+        mp3_cover_size_label = QLabel("S:")
+        mp3_cover_size_label.setFixedWidth(18)
+        self.mp3_cover_size_combo = NoWheelComboBox()
+        self.mp3_cover_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.mp3_cover_size_combo.addItem(f"{percent}%", percent)
+        self.mp3_cover_size_combo.setCurrentIndex(3)  # Default 20%
+        self.mp3_cover_size_percent = 20
+        def on_mp3_cover_size_changed(idx):
+            self.mp3_cover_size_percent = self.mp3_cover_size_combo.itemData(idx)
+        self.mp3_cover_size_combo.setEditable(False)
+        self.mp3_cover_size_combo.currentIndexChanged.connect(on_mp3_cover_size_changed)
+        on_mp3_cover_size_changed(self.mp3_cover_size_combo.currentIndex())
+
+        # MP3 cover X coordinate
+        mp3_cover_x_label = QLabel("X:")
+        mp3_cover_x_label.setFixedWidth(18)
+        self.mp3_cover_x_combo = NoWheelComboBox()
+        self.mp3_cover_x_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.mp3_cover_x_combo.addItem(f"{percent}%", percent)
+        self.mp3_cover_x_combo.setCurrentIndex(75)  # Default 75%
+        self.mp3_cover_x_percent = 75
+        def on_mp3_cover_x_changed(idx):
+            self.mp3_cover_x_percent = self.mp3_cover_x_combo.itemData(idx)
+        self.mp3_cover_x_combo.currentIndexChanged.connect(on_mp3_cover_x_changed)
+        on_mp3_cover_x_changed(self.mp3_cover_x_combo.currentIndex())
+
+        # MP3 cover Y coordinate
+        mp3_cover_y_label = QLabel("Y:")
+        mp3_cover_y_label.setFixedWidth(18)
+        self.mp3_cover_y_combo = NoWheelComboBox()
+        self.mp3_cover_y_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.mp3_cover_y_combo.addItem(f"{percent}%", percent)
+        self.mp3_cover_y_combo.setCurrentIndex(75)  # Default 75%
+        self.mp3_cover_y_percent = 75
+        def on_mp3_cover_y_changed(idx):
+            self.mp3_cover_y_percent = self.mp3_cover_y_combo.itemData(idx)
+        self.mp3_cover_y_combo.currentIndexChanged.connect(on_mp3_cover_y_changed)
+        on_mp3_cover_y_changed(self.mp3_cover_y_combo.currentIndex())
+
+        # MP3 cover effect
+        mp3_cover_effect_label = QLabel("Effect:")
+        mp3_cover_effect_label.setFixedWidth(40)
+        self.mp3_cover_effect_combo = NoWheelComboBox()
+        self.mp3_cover_effect_combo.setFixedWidth(combo_width)
+        for label, value in effect_options:
+            self.mp3_cover_effect_combo.addItem(label, value)
+        self.mp3_cover_effect_combo.setCurrentIndex(0)  # Default fadeinout
+        self.selected_mp3_cover_effect = "fadeinout"
+        def on_mp3_cover_effect_changed(idx):
+            self.selected_mp3_cover_effect = self.mp3_cover_effect_combo.itemData(idx)
+        self.mp3_cover_effect_combo.currentIndexChanged.connect(on_mp3_cover_effect_changed)
+        on_mp3_cover_effect_changed(self.mp3_cover_effect_combo.currentIndex())
+
+        # MP3 cover overlay duration controls
+        mp3_cover_duration_label = QLabel("Duration:")
+        mp3_cover_duration_label.setFixedWidth(80)
+        self.mp3_cover_duration_edit = QLineEdit("6")
+        self.mp3_cover_duration_edit.setFixedWidth(40)
+        self.mp3_cover_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.mp3_cover_duration_edit.setPlaceholderText("6")
+        self.mp3_cover_duration = 6
+        def on_mp3_cover_duration_changed():
+            try:
+                self.mp3_cover_duration = int(self.mp3_cover_duration_edit.text())
+            except Exception:
+                self.mp3_cover_duration = 6
+        self.mp3_cover_duration_edit.textChanged.connect(on_mp3_cover_duration_changed)
+        on_mp3_cover_duration_changed()
+
+        # MP3 cover overlay full duration checkbox
+        self.mp3_cover_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
+        self.mp3_cover_duration_full_checkbox.setFixedWidth(100)
+        self.mp3_cover_duration_full_checkbox.setChecked(True)
+        def update_mp3_cover_duration_full_checkbox_style(state):
+            self.mp3_cover_duration_full_checkbox.setStyleSheet("")  # Always default color
+        self.mp3_cover_duration_full_checkbox.stateChanged.connect(update_mp3_cover_duration_full_checkbox_style)
+        update_mp3_cover_duration_full_checkbox_style(self.mp3_cover_duration_full_checkbox.checkState())
+
+        # Function to control MP3 cover overlay duration field based on duration full checkbox
+        def set_mp3_cover_duration_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When duration full checkbox is checked, disable duration input field
+            self.mp3_cover_duration_edit.setEnabled(not enabled)
+            mp3_cover_duration_label.setEnabled(not enabled)
+            
+            if enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.mp3_cover_duration_edit.setStyleSheet(grey_btn_style)
+                mp3_cover_duration_label.setStyleSheet("color: grey;")
+            else:
+                self.mp3_cover_duration_edit.setStyleSheet("")
+                mp3_cover_duration_label.setStyleSheet("")
+
+        # MP3 cover overlay start at control
+        mp3_cover_start_label = QLabel("Start at (first song):")
+        mp3_cover_start_label.setFixedWidth(130)
+        self.mp3_cover_start_edit = QLineEdit("0")
+        self.mp3_cover_start_edit.setFixedWidth(60)
+        self.mp3_cover_start_edit.setValidator(QIntValidator(0, 999, self))
+        self.mp3_cover_start_edit.setPlaceholderText("0")
+        self.mp3_cover_start_at = 0
+        def on_mp3_cover_start_changed():
+            try:
+                self.mp3_cover_start_at = int(self.mp3_cover_start_edit.text())
+            except Exception:
+                self.mp3_cover_start_at = 0
+        self.mp3_cover_start_edit.textChanged.connect(on_mp3_cover_start_changed)
+        on_mp3_cover_start_changed()
+
+        # MP3 cover frame color picker
+        mp3_cover_frame_color_label = QLabel("Frame Color:")
+        mp3_cover_frame_color_label.setFixedWidth(80)
+        self.mp3_cover_frame_color_btn = QPushButton()
+        self.mp3_cover_frame_color_btn.setFixedSize(27, 27)
+        self.mp3_cover_frame_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+        self.mp3_cover_frame_color = (255, 255, 255)  # Default white
+        def on_mp3_cover_frame_color_clicked():
+            color = QColorDialog.getColor(QColor(*self.mp3_cover_frame_color), self, "Select MP3 Cover Frame Color")
+            if color.isValid():
+                self.mp3_cover_frame_color = (color.red(), color.green(), color.blue())
+                self.mp3_cover_frame_color_btn.setStyleSheet(f"background-color: rgb{self.mp3_cover_frame_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+        self.mp3_cover_frame_color_btn.clicked.connect(on_mp3_cover_frame_color_clicked)
+
+        # MP3 cover frame size dropdown
+        mp3_cover_frame_size_label = QLabel("Frame Size:")
+        mp3_cover_frame_size_label.setFixedWidth(75)
+        self.mp3_cover_frame_size_combo = NoWheelComboBox()
+        self.mp3_cover_frame_size_combo.setFixedWidth(80)
+        frame_size_options = [
+            ("5px", 5),
+            ("10px", 10),
+            ("15px", 15),
+            ("20px", 20),
+            ("25px", 25),
+            ("30px", 30)
+        ]
+        for label, value in frame_size_options:
+            self.mp3_cover_frame_size_combo.addItem(label, value)
+        self.mp3_cover_frame_size_combo.setCurrentIndex(1)  # Default 10px
+        self.mp3_cover_frame_size = 10
+        def on_mp3_cover_frame_size_changed(idx):
+            if idx >= 0:
+                self.mp3_cover_frame_size = self.mp3_cover_frame_size_combo.itemData(idx)
+        self.mp3_cover_frame_size_combo.currentIndexChanged.connect(on_mp3_cover_frame_size_changed)
+        on_mp3_cover_frame_size_changed(self.mp3_cover_frame_size_combo.currentIndex())
+
+        def set_mp3_cover_overlay_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.mp3_cover_size_combo.setEnabled(enabled)
+            self.mp3_cover_x_combo.setEnabled(enabled)
+            self.mp3_cover_y_combo.setEnabled(enabled)
+            self.mp3_cover_effect_combo.setEnabled(enabled)
+            self.mp3_cover_duration_edit.setEnabled(enabled and not self.mp3_cover_duration_full_checkbox.isChecked())
+            self.mp3_cover_duration_full_checkbox.setEnabled(enabled)
+            self.mp3_cover_start_edit.setEnabled(enabled)
+            self.mp3_cover_frame_color_btn.setEnabled(enabled)
+            self.mp3_cover_frame_size_combo.setEnabled(enabled)
+            if enabled:
+                self.mp3_cover_size_combo.setStyleSheet("")
+                self.mp3_cover_x_combo.setStyleSheet("")
+                self.mp3_cover_y_combo.setStyleSheet("")
+                self.mp3_cover_effect_combo.setStyleSheet("")
+                self.mp3_cover_duration_full_checkbox.setStyleSheet("")
+                self.mp3_cover_start_edit.setStyleSheet("")
+                self.mp3_cover_frame_color_btn.setStyleSheet(f"background-color: rgb{self.mp3_cover_frame_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                self.mp3_cover_frame_size_combo.setStyleSheet("")
+                mp3_cover_size_label.setStyleSheet("")
+                mp3_cover_x_label.setStyleSheet("")
+                mp3_cover_y_label.setStyleSheet("")
+                mp3_cover_effect_label.setStyleSheet("")
+                mp3_cover_start_label.setStyleSheet("")
+                mp3_cover_frame_color_label.setStyleSheet("")
+                mp3_cover_frame_size_label.setStyleSheet("")
+                # Duration controls depend on full duration checkbox
+                if not self.mp3_cover_duration_full_checkbox.isChecked():
+                    self.mp3_cover_duration_edit.setStyleSheet("")
+                    mp3_cover_duration_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.mp3_cover_size_combo.setStyleSheet(grey_btn_style)
+                self.mp3_cover_x_combo.setStyleSheet(grey_btn_style)
+                self.mp3_cover_y_combo.setStyleSheet(grey_btn_style)
+                self.mp3_cover_effect_combo.setStyleSheet(grey_btn_style)
+                self.mp3_cover_duration_edit.setStyleSheet(grey_btn_style)
+                self.mp3_cover_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.mp3_cover_start_edit.setStyleSheet(grey_btn_style)
+                self.mp3_cover_frame_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf; padding: 0px; margin: 0px;")
+                self.mp3_cover_frame_size_combo.setStyleSheet(grey_btn_style)
+                mp3_cover_size_label.setStyleSheet("color: grey;")
+                mp3_cover_x_label.setStyleSheet("color: grey;")
+                mp3_cover_y_label.setStyleSheet("color: grey;")
+                mp3_cover_effect_label.setStyleSheet("color: grey;")
+                mp3_cover_duration_label.setStyleSheet("color: grey;")
+                mp3_cover_start_label.setStyleSheet("color: grey;")
+                mp3_cover_frame_color_label.setStyleSheet("color: grey;")
+                mp3_cover_frame_size_label.setStyleSheet("color: grey;")
+        
+        self.mp3_cover_overlay_checkbox.stateChanged.connect(lambda _: set_mp3_cover_overlay_enabled(self.mp3_cover_overlay_checkbox.checkState()))
+        self.mp3_cover_duration_full_checkbox.stateChanged.connect(lambda _: set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState()))
+        
+        # First line: checkbox, frame controls, size, x, y controls
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_overlay_checkbox)
+        mp3_cover_overlay_layout.addSpacing(4)
+        mp3_cover_overlay_layout.addWidget(mp3_cover_frame_color_label)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_frame_color_btn)
+        mp3_cover_overlay_layout.addSpacing(4)
+        mp3_cover_overlay_layout.addWidget(mp3_cover_frame_size_label)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_frame_size_combo)
+        mp3_cover_overlay_layout.addSpacing(4)
+        mp3_cover_overlay_layout.addWidget(mp3_cover_size_label)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_size_combo)
+        mp3_cover_overlay_layout.addSpacing(4)
+        mp3_cover_overlay_layout.addWidget(mp3_cover_x_label)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_x_combo)
+        mp3_cover_overlay_layout.addSpacing(4)
+        mp3_cover_overlay_layout.addWidget(mp3_cover_y_label)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_y_combo)
+        mp3_cover_overlay_layout.addStretch()
+        layout.addLayout(mp3_cover_overlay_layout)
+
+        # Second line: effect, duration, and start controls
+        mp3_cover_effect_layout = QHBoxLayout()
+        mp3_cover_effect_layout.setSpacing(4)
+        mp3_cover_effect_layout.addSpacing(188)  # Align with other controls
+        mp3_cover_effect_layout.addWidget(mp3_cover_effect_label)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_effect_combo)
+        mp3_cover_effect_layout.addSpacing(4)
+        mp3_cover_effect_layout.addWidget(mp3_cover_duration_label)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_duration_edit)
+        mp3_cover_effect_layout.addSpacing(4)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_duration_full_checkbox)
+        mp3_cover_effect_layout.addSpacing(4)
+        mp3_cover_effect_layout.addWidget(mp3_cover_start_label)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_start_edit)
+        mp3_cover_effect_layout.addStretch()
+        layout.addLayout(mp3_cover_effect_layout)
+
+        # Initialize MP3 cover overlay enabled state
+        set_mp3_cover_overlay_enabled(self.mp3_cover_overlay_checkbox.checkState())
+        set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState())
+        # --- END DYNAMIC MP3 COVER OVERLAY ---
 
         # Placeholder checkbox (placeholder - does nothing for now)
         self.lyric_checkbox = QtWidgets.QCheckBox("Placeholder:")
@@ -6630,6 +6888,17 @@ class SuperCutUI(QWidget):
             frame_mp3cover_start_time=self.frame_mp3cover_start_percent,
             frame_mp3cover_duration=self.frame_mp3cover_duration,
             frame_mp3cover_duration_full_checkbox_checked=self.frame_mp3cover_duration_full_checkbox.isChecked(),
+            # --- Add MP3 cover overlay parameters ---
+            use_mp3_cover_overlay=self.mp3_cover_overlay_checkbox.isChecked() if hasattr(self, 'mp3_cover_overlay_checkbox') else False,
+            mp3_cover_effect=self.selected_mp3_cover_effect if hasattr(self, 'selected_mp3_cover_effect') else "fadeinout",
+            mp3_cover_size_percent=self.mp3_cover_size_percent if hasattr(self, 'mp3_cover_size_percent') else 20,
+            mp3_cover_x_percent=self.mp3_cover_x_percent if hasattr(self, 'mp3_cover_x_percent') else 75,
+            mp3_cover_y_percent=self.mp3_cover_y_percent if hasattr(self, 'mp3_cover_y_percent') else 75,
+            mp3_cover_start_at=self.mp3_cover_start_at if hasattr(self, 'mp3_cover_start_at') else 0,
+            mp3_cover_duration=self.mp3_cover_duration if hasattr(self, 'mp3_cover_duration') else 6,
+            mp3_cover_duration_full_checkbox_checked=self.mp3_cover_duration_full_checkbox.isChecked() if hasattr(self, 'mp3_cover_duration_full_checkbox') else True,
+            mp3_cover_frame_color=self.mp3_cover_frame_color if hasattr(self, 'mp3_cover_frame_color') else (255, 255, 255),
+            mp3_cover_frame_size=self.mp3_cover_frame_size if hasattr(self, 'mp3_cover_frame_size') else 10,
 
         )
         self._worker.moveToThread(self._thread)

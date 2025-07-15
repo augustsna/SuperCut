@@ -9,6 +9,8 @@ from src.logger import logger
 import shutil
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
+from mutagen.id3 import ID3
+from mutagen.id3._frames import APIC
 from PIL import Image, ImageDraw, ImageFont
 
 # Global set to track temporary files
@@ -439,3 +441,97 @@ def merge_images_with_position(background_path, overlay_path, output_path, posit
             
             # Save result
             result.save(output_path, 'PNG') 
+
+def extract_mp3_cover_image(mp3_path):
+    """
+    Extract cover image from MP3 file's metadata.
+    Returns the image data as bytes, or None if not found.
+    """
+    try:
+        audio = MP3(mp3_path, ID3=ID3)
+        
+        # Look for attached picture frames
+        if audio.tags:
+            for key in audio.tags:
+                if key.startswith('APIC'):
+                    apic = audio.tags[key]
+                    if hasattr(apic, 'data') and apic.data:
+                        return apic.data
+            
+    except Exception as e:
+        logger.debug(f"Failed to extract cover from {mp3_path}: {e}")
+    
+    return None
+
+def create_framed_cover_image(cover_data_or_path, output_path, frame_width=10, frame_color=(255, 255, 255)):
+    """
+    Create a PNG image with a colored frame around the cover image.
+    
+    Args:
+        cover_data_or_path: Either bytes (cover image data) or str (path to default image)
+        output_path: Where to save the framed PNG
+        frame_width: Width of the frame in pixels (default 10px)
+        frame_color: RGB tuple for frame color (default white)
+    """
+    try:
+        # Load the image
+        if isinstance(cover_data_or_path, bytes):
+            # Cover image from MP3 metadata
+            from io import BytesIO
+            img = Image.open(BytesIO(cover_data_or_path))
+        else:
+            # Default cover image from file path
+            img = Image.open(cover_data_or_path)
+        
+        # Convert to RGBA if needed
+        if img.mode != 'RGBA':
+            img = img.convert('RGBA')
+        
+        # Calculate new size with frame
+        original_width, original_height = img.size
+        new_width = original_width + (frame_width * 2)
+        new_height = original_height + (frame_width * 2)
+        
+        # Create new image with colored background (frame)
+        framed_img = Image.new('RGBA', (new_width, new_height), (*frame_color, 255))
+        
+        # Paste the original image centered in the frame
+        framed_img.paste(img, (frame_width, frame_width), img if img.mode == 'RGBA' else None)
+        
+        # Save as PNG
+        framed_img.save(output_path, 'PNG')
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to create framed cover image: {e}")
+        return False
+
+def extract_and_frame_mp3_cover(mp3_path, output_path, default_cover_path="src/sources/mp3cover/mp3cover.png", frame_width=10, frame_color=(255, 255, 255)):
+    """
+    Extract cover image from MP3 file and create a framed version.
+    If no cover exists in MP3, use the default cover image.
+    
+    Args:
+        mp3_path: Path to the MP3 file
+        output_path: Where to save the framed cover PNG
+        default_cover_path: Path to default cover image if MP3 has no cover
+        frame_width: Width of the frame in pixels
+        frame_color: RGB tuple for frame color
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    # Try to extract cover from MP3
+    cover_data = extract_mp3_cover_image(mp3_path)
+    
+    if cover_data:
+        # Use extracted cover
+        return create_framed_cover_image(cover_data, output_path, frame_width, frame_color)
+    else:
+        # Use default cover if exists
+        if os.path.exists(default_cover_path):
+            return create_framed_cover_image(default_cover_path, output_path, frame_width, frame_color)
+        else:
+            logger.warning(f"No cover found in MP3 and default cover not found at {default_cover_path}")
+            return False
