@@ -67,7 +67,7 @@ def merge_mp3s_with_ffmpeg(input_files: list, output_file: str) -> bool:
         logger.error(f"Error merging MP3s: {e}")
         return False
 
-def create_video_with_ffmpeg(
+def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     image_path: str, 
     audio_path: str, 
     output_path: str, 
