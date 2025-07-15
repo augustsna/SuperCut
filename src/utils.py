@@ -442,30 +442,102 @@ def merge_images_with_position(background_path, overlay_path, output_path, posit
             # Save result
             result.save(output_path, 'PNG') 
 
-def extract_mp3_cover_image(mp3_path):
+def extract_mp3_cover_with_ffmpeg(mp3_path, output_path):
     """
-    Extract cover image from MP3 file's metadata.
-    Returns the image data as bytes, or None if not found.
+    Extract cover image from MP3 file using FFmpeg directly.
+    This is much faster than using mutagen for metadata extraction.
+    
+    Args:
+        mp3_path: Path to the MP3 file
+        output_path: Where to save the extracted cover image
+    
+    Returns:
+        bool: True if successful, False otherwise
     """
     try:
-        audio = MP3(mp3_path, ID3=ID3)
+        from src.config import FFMPEG_BINARY
+        import subprocess
         
-        # Look for attached picture frames
-        if audio.tags:
-            for key in audio.tags:
-                if key.startswith('APIC'):
-                    apic = audio.tags[key]
-                    if hasattr(apic, 'data') and apic.data:
-                        return apic.data
+        # Try different stream mappings as cover art can be at different indexes
+        stream_mappings = ["0:v:0", "0:1", "0:2", "0:v"]
+        
+        for stream_map in stream_mappings:
+            # Use FFmpeg to extract the cover image
+            # Try different stream mappings to find the cover art
+            cmd = [
+                FFMPEG_BINARY,
+                "-i", mp3_path,
+                "-map", stream_map,
+                "-c", "copy",
+                output_path,
+                "-y"  # Overwrite output file
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                # Check if file was actually created and has content
+                if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                    return True
+            
+        # If all mappings failed, log the last error
+        logger.debug(f"FFmpeg failed to extract cover from {mp3_path} with all stream mappings")
+        return False
+            
+    except Exception as e:
+        logger.debug(f"Failed to extract cover with FFmpeg from {mp3_path}: {e}")
+        return False
+
+def extract_mp3_cover_image(mp3_path):
+    """
+    Extract cover image from MP3 file's metadata using FFmpeg (optimized version).
+    Returns the image data as bytes, or None if not found.
+    """
+    temp_cover_path = None
+    try:
+        # Create a temporary file for FFmpeg extraction
+        temp_cover_path = create_temp_file(suffix='.png', prefix='mp3cover_')
+        
+        # Try FFmpeg extraction first (faster)
+        if extract_mp3_cover_with_ffmpeg(mp3_path, temp_cover_path):
+            # Read the extracted file as bytes
+            with open(temp_cover_path, 'rb') as f:
+                cover_data = f.read()
+            return cover_data
+        else:
+            # Fallback to mutagen if FFmpeg fails
+            try:
+                audio = MP3(mp3_path, ID3=ID3)
+                
+                # Look for attached picture frames
+                if audio.tags:
+                    for key in audio.tags:
+                        if key.startswith('APIC'):
+                            apic = audio.tags[key]
+                            if hasattr(apic, 'data') and apic.data:
+                                return apic.data
+                        
+            except Exception as e:
+                logger.debug(f"Mutagen fallback failed for {mp3_path}: {e}")
+            
+            return None
             
     except Exception as e:
         logger.debug(f"Failed to extract cover from {mp3_path}: {e}")
-    
-    return None
+        return None
+    finally:
+        # Ensure temp file is cleaned up if it exists
+        # Note: create_temp_file already registers files for cleanup, but this is extra safety
+        if temp_cover_path and os.path.exists(temp_cover_path):
+            try:
+                os.unlink(temp_cover_path)
+            except:
+                pass  # File might already be cleaned up
 
 def create_framed_cover_image(cover_data_or_path, output_path, frame_width=10, frame_color=(255, 255, 255)):
     """
-    Create a PNG image with a colored frame around the cover image.
+    Create a PNG image with a colored frame overlaid on the cover image.
+    The frame overlays on top of the cover, cutting off edges based on frame size.
     
     Args:
         cover_data_or_path: Either bytes (cover image data) or str (path to default image)
@@ -487,16 +559,33 @@ def create_framed_cover_image(cover_data_or_path, output_path, frame_width=10, f
         if img.mode != 'RGBA':
             img = img.convert('RGBA')
         
-        # Calculate new size with frame
+        # Keep original size - frame will overlay on top
         original_width, original_height = img.size
-        new_width = original_width + (frame_width * 2)
-        new_height = original_height + (frame_width * 2)
         
-        # Create new image with colored background (frame)
-        framed_img = Image.new('RGBA', (new_width, new_height), (*frame_color, 255))
+        # Create a copy of the original image to work with
+        framed_img = img.copy()
         
-        # Paste the original image centered in the frame
-        framed_img.paste(img, (frame_width, frame_width), img if img.mode == 'RGBA' else None)
+        # Create a drawing context to draw the frame overlay
+        draw = ImageDraw.Draw(framed_img)
+        
+        # Draw frame borders as overlay (cutting into the image)
+        frame_color_with_alpha = (*frame_color, 255)
+        
+        # Top border
+        if frame_width > 0:
+            draw.rectangle([0, 0, original_width-1, frame_width-1], fill=frame_color_with_alpha)
+        
+        # Bottom border  
+        if frame_width > 0:
+            draw.rectangle([0, original_height-frame_width, original_width-1, original_height-1], fill=frame_color_with_alpha)
+        
+        # Left border
+        if frame_width > 0:
+            draw.rectangle([0, frame_width, frame_width-1, original_height-frame_width-1], fill=frame_color_with_alpha)
+        
+        # Right border
+        if frame_width > 0:
+            draw.rectangle([original_width-frame_width, frame_width, original_width-1, original_height-frame_width-1], fill=frame_color_with_alpha)
         
         # Save as PNG
         framed_img.save(output_path, 'PNG')
@@ -509,7 +598,7 @@ def create_framed_cover_image(cover_data_or_path, output_path, frame_width=10, f
 
 def extract_and_frame_mp3_cover(mp3_path, output_path, default_cover_path="src/sources/mp3cover/mp3cover.png", frame_width=10, frame_color=(255, 255, 255)):
     """
-    Extract cover image from MP3 file and create a framed version.
+    Extract cover image from MP3 file using optimized FFmpeg method and create a framed version.
     If no cover exists in MP3, use the default cover image.
     
     Args:
@@ -522,7 +611,7 @@ def extract_and_frame_mp3_cover(mp3_path, output_path, default_cover_path="src/s
     Returns:
         bool: True if successful, False otherwise
     """
-    # Try to extract cover from MP3
+    # Try to extract cover from MP3 using optimized FFmpeg method
     cover_data = extract_mp3_cover_image(mp3_path)
     
     if cover_data:
