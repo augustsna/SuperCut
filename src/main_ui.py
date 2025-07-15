@@ -3647,21 +3647,24 @@ class SuperCutUI(QWidget):
                 set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
 
             self.overlay8_start_at_checkbox.setEnabled(enabled)
-            self.overlay8_start_combo.setEnabled(enabled)
-            self.overlay8_start_from_combo.setEnabled(enabled)
+            # When re-enabling start controls, restore the proper start at/from toggle state
+            if enabled:
+                # Call the start toggle function to properly set start_combo vs start_from_combo
+                set_overlay8_start_enabled(self.overlay8_start_at_checkbox.checkState())
+            else:
+                # When disabling, just disable both
+                self.overlay8_start_combo.setEnabled(False)
+                self.overlay8_start_from_combo.setEnabled(False)
             
             # Popup start at dropdown - enabled when popup is checked
             self.overlay8_popup_start_at_combo.setEnabled(popup_checked)
             # Popup interval dropdown - enabled when popup is checked
             self.overlay8_popup_interval_combo.setEnabled(popup_checked)
             
-            # Update styling for start controls
+            # Update styling for start controls (checkbox only, dropdowns are handled by toggle function)
             if enabled:
                 self.overlay8_start_at_checkbox.setStyleSheet("")
-                overlay8_start_label.setStyleSheet("")
-                overlay8_start_from_label.setStyleSheet("")
-                self.overlay8_start_combo.setStyleSheet("")
-                self.overlay8_start_from_combo.setStyleSheet("")
+                # Don't set dropdown styles here - let set_overlay8_start_enabled handle them
             else:
                 self.overlay8_start_at_checkbox.setStyleSheet("color: grey;")
                 overlay8_start_label.setStyleSheet("color: grey;")
@@ -4071,21 +4074,24 @@ class SuperCutUI(QWidget):
                 set_overlay9_duration_enabled(self.overlay9_duration_full_checkbox.checkState())
 
             self.overlay9_start_at_checkbox.setEnabled(enabled)
-            self.overlay9_start_combo.setEnabled(enabled)
-            self.overlay9_start_from_combo.setEnabled(enabled)
+            # When re-enabling start controls, restore the proper start at/from toggle state
+            if enabled:
+                # Call the start toggle function to properly set start_combo vs start_from_combo
+                set_overlay9_start_enabled(self.overlay9_start_at_checkbox.checkState())
+            else:
+                # When disabling, just disable both
+                self.overlay9_start_combo.setEnabled(False)
+                self.overlay9_start_from_combo.setEnabled(False)
             
             # Popup start at dropdown - enabled when popup is checked
             self.overlay9_popup_start_at_combo.setEnabled(popup_checked)
             # Popup interval dropdown - enabled when popup is checked
             self.overlay9_popup_interval_combo.setEnabled(popup_checked)
             
-            # Update styling for start controls
+            # Update styling for start controls (checkbox only, dropdowns are handled by toggle function)
             if enabled:
                 self.overlay9_start_at_checkbox.setStyleSheet("")
-                overlay9_start_label.setStyleSheet("")
-                overlay9_start_from_label.setStyleSheet("")
-                self.overlay9_start_combo.setStyleSheet("")
-                self.overlay9_start_from_combo.setStyleSheet("")
+                # Don't set dropdown styles here - let set_overlay9_start_enabled handle them
             else:
                 self.overlay9_start_at_checkbox.setStyleSheet("color: grey;")
                 overlay9_start_label.setStyleSheet("color: grey;")
@@ -5854,7 +5860,7 @@ class SuperCutUI(QWidget):
         # Second line: effect, duration, and start controls
         mp3_cover_effect_layout = QHBoxLayout()
         mp3_cover_effect_layout.setSpacing(4)
-        mp3_cover_effect_layout.addSpacing(188)  # Align with other controls
+        mp3_cover_effect_layout.addSpacing(0)  # Align with other controls
         mp3_cover_effect_layout.addWidget(mp3_cover_effect_label)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_effect_combo)
         mp3_cover_effect_layout.addSpacing(4)
@@ -6556,19 +6562,386 @@ class SuperCutUI(QWidget):
                 }
             """)
         
-        # After re-enabling controls, restore proper logical state for overlay dependencies
+        # After re-enabling controls, restore proper logical state for ALL checkbox dependencies
         if not processing:
-            # Restore overlay8 popup checkbox state based on overlay8 checkbox
-            if hasattr(self, 'overlay8_checkbox') and hasattr(self, 'overlay8_popup_checkbox'):
-                if not self.overlay8_checkbox.isChecked():
-                    self.overlay8_popup_checkbox.setEnabled(False)
-                    self.overlay8_popup_checkbox.setStyleSheet("color: grey;")
+            # Restore all checkbox-dependent states by calling their state management functions
+            # This ensures inputs follow their header checkbox states properly after re-enabling
             
-            # Restore overlay9 popup checkbox state based on overlay9 checkbox
-            if hasattr(self, 'overlay9_checkbox') and hasattr(self, 'overlay9_popup_checkbox'):
-                if not self.overlay9_checkbox.isChecked():
-                    self.overlay9_popup_checkbox.setEnabled(False)
-                    self.overlay9_popup_checkbox.setStyleSheet("color: grey;")
+            # Global control buttons that always should be enabled (not checkbox dependent)
+            for attr in ['media_sources_select_btn', 'output_folder_select_btn', 'settings_btn']:
+                if hasattr(self, attr):
+                    getattr(self, attr).setEnabled(True)
+            
+            # Name list controls
+            if hasattr(self, 'name_list_checkbox') and hasattr(self, 'name_list_enter_btn'):
+                name_list_enabled = self.name_list_checkbox.isChecked()
+                self.name_list_enter_btn.setEnabled(name_list_enabled)
+            
+            # Intro controls - use the existing state management function
+            if hasattr(self, 'intro_checkbox'):
+                # Trigger the existing intro state management function by simulating checkbox change
+                state = Qt.CheckState.Checked.value if self.intro_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                # Find and call the set_intro_enabled function by triggering the checkbox change
+                self.intro_checkbox.stateChanged.emit(state)
+            
+            # Overlay 1 controls - use the existing state management function
+            if hasattr(self, 'overlay_checkbox'):
+                state = Qt.CheckState.Checked.value if self.overlay_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                self.overlay_checkbox.stateChanged.emit(state)
+            
+            # Overlay 2 controls - use the existing state management function  
+            if hasattr(self, 'overlay2_checkbox'):
+                state = Qt.CheckState.Checked.value if self.overlay2_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                self.overlay2_checkbox.stateChanged.emit(state)
+            
+            # Overlay 1&2 timing controls 
+            if hasattr(self, 'overlay_checkbox') or hasattr(self, 'overlay2_checkbox'):
+                overlay12_enabled = (hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked()) or \
+                                   (hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked())
+                # Effect combo for overlay 1&2
+                if hasattr(self, 'effect_combo'):
+                    self.effect_combo.setEnabled(overlay12_enabled)
+                if hasattr(self, 'overlay1_2_start_at_checkbox'):
+                    self.overlay1_2_start_at_checkbox.setEnabled(overlay12_enabled)
+                    if overlay12_enabled and hasattr(self, 'overlay_start_at_edit') and hasattr(self, 'overlay1_2_start_from_edit'):
+                        start_at_checked = self.overlay1_2_start_at_checkbox.isChecked()
+                        self.overlay_start_at_edit.setEnabled(start_at_checked)
+                        self.overlay1_2_start_from_edit.setEnabled(not start_at_checked)
+                    elif hasattr(self, 'overlay_start_at_edit') and hasattr(self, 'overlay1_2_start_from_edit'):
+                        self.overlay_start_at_edit.setEnabled(False)
+                        self.overlay1_2_start_from_edit.setEnabled(False)
+                if hasattr(self, 'overlay1_2_duration_full_checkbox'):
+                    self.overlay1_2_duration_full_checkbox.setEnabled(overlay12_enabled)
+                    if overlay12_enabled and hasattr(self, 'overlay1_2_duration_edit'):
+                        full_checked = self.overlay1_2_duration_full_checkbox.isChecked()
+                        self.overlay1_2_duration_edit.setEnabled(not full_checked)
+                    elif hasattr(self, 'overlay1_2_duration_edit'):
+                        self.overlay1_2_duration_edit.setEnabled(False)
+            
+            # Overlay 3 controls - use the existing state management function
+            if hasattr(self, 'overlay3_checkbox'):
+                state = Qt.CheckState.Checked.value if self.overlay3_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                self.overlay3_checkbox.stateChanged.emit(state)
+            
+            # Overlay 4 controls - use the existing state management function
+            if hasattr(self, 'overlay4_checkbox'):
+                state = Qt.CheckState.Checked.value if self.overlay4_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                self.overlay4_checkbox.stateChanged.emit(state)
+            
+            # Overlay 5 controls - use the existing state management function
+            if hasattr(self, 'overlay5_checkbox'):
+                state = Qt.CheckState.Checked.value if self.overlay5_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                self.overlay5_checkbox.stateChanged.emit(state)
+            
+            # Overlay 4&5 timing controls
+            if hasattr(self, 'overlay4_checkbox') or hasattr(self, 'overlay5_checkbox'):
+                overlay45_enabled = (hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked()) or \
+                                   (hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked())
+                # Effect combo for overlay 4&5
+                if hasattr(self, 'overlay4_5_effect_combo'):
+                    self.overlay4_5_effect_combo.setEnabled(overlay45_enabled)
+                if hasattr(self, 'overlay4_5_start_at_checkbox'):
+                    self.overlay4_5_start_at_checkbox.setEnabled(overlay45_enabled)
+                    if overlay45_enabled and hasattr(self, 'overlay4_5_start_edit') and hasattr(self, 'overlay4_5_start_from_edit'):
+                        start_at_checked = self.overlay4_5_start_at_checkbox.isChecked()
+                        self.overlay4_5_start_edit.setEnabled(start_at_checked)
+                        self.overlay4_5_start_from_edit.setEnabled(not start_at_checked)
+                    elif hasattr(self, 'overlay4_5_start_edit') and hasattr(self, 'overlay4_5_start_from_edit'):
+                        self.overlay4_5_start_edit.setEnabled(False)
+                        self.overlay4_5_start_from_edit.setEnabled(False)
+                if hasattr(self, 'overlay4_5_duration_full_checkbox'):
+                    self.overlay4_5_duration_full_checkbox.setEnabled(overlay45_enabled)
+                    if overlay45_enabled and hasattr(self, 'overlay4_5_duration_edit'):
+                        full_checked = self.overlay4_5_duration_full_checkbox.isChecked()
+                        self.overlay4_5_duration_edit.setEnabled(not full_checked)
+                    elif hasattr(self, 'overlay4_5_duration_edit'):
+                        self.overlay4_5_duration_edit.setEnabled(False)
+            
+            # Overlay 6 controls - use the existing state management function
+            if hasattr(self, 'overlay6_checkbox'):
+                state = Qt.CheckState.Checked.value if self.overlay6_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                self.overlay6_checkbox.stateChanged.emit(state)
+            
+            # Overlay 7 controls - use the existing state management function
+            if hasattr(self, 'overlay7_checkbox'):
+                state = Qt.CheckState.Checked.value if self.overlay7_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                self.overlay7_checkbox.stateChanged.emit(state)
+            
+            # Overlay 6&7 timing controls
+            if hasattr(self, 'overlay6_checkbox') or hasattr(self, 'overlay7_checkbox'):
+                overlay67_enabled = (hasattr(self, 'overlay6_checkbox') and self.overlay6_checkbox.isChecked()) or \
+                                   (hasattr(self, 'overlay7_checkbox') and self.overlay7_checkbox.isChecked())
+                # Effect combo for overlay 6&7
+                if hasattr(self, 'overlay6_7_effect_combo'):
+                    self.overlay6_7_effect_combo.setEnabled(overlay67_enabled)
+                if hasattr(self, 'overlay6_7_start_at_checkbox'):
+                    self.overlay6_7_start_at_checkbox.setEnabled(overlay67_enabled)
+                    if overlay67_enabled and hasattr(self, 'overlay6_7_start_edit') and hasattr(self, 'overlay6_7_start_from_edit'):
+                        start_at_checked = self.overlay6_7_start_at_checkbox.isChecked()
+                        self.overlay6_7_start_edit.setEnabled(start_at_checked)
+                        self.overlay6_7_start_from_edit.setEnabled(not start_at_checked)
+                    elif hasattr(self, 'overlay6_7_start_edit') and hasattr(self, 'overlay6_7_start_from_edit'):
+                        self.overlay6_7_start_edit.setEnabled(False)
+                        self.overlay6_7_start_from_edit.setEnabled(False)
+                if hasattr(self, 'overlay6_7_duration_full_checkbox'):
+                    self.overlay6_7_duration_full_checkbox.setEnabled(overlay67_enabled)
+                    if overlay67_enabled and hasattr(self, 'overlay6_7_duration_edit'):
+                        full_checked = self.overlay6_7_duration_full_checkbox.isChecked()
+                        self.overlay6_7_duration_edit.setEnabled(not full_checked)
+                    elif hasattr(self, 'overlay6_7_duration_edit'):
+                        self.overlay6_7_duration_edit.setEnabled(False)
+            
+            # Overlay 8 controls - use the existing state management function plus restore start at/from toggle
+            if hasattr(self, 'overlay8_checkbox'):
+                overlay8_enabled = self.overlay8_checkbox.isChecked()
+                # First call the basic function to handle edit, button, combos, and popup timing logic
+                state = Qt.CheckState.Checked.value if overlay8_enabled else Qt.CheckState.Unchecked.value
+                self.overlay8_checkbox.stateChanged.emit(state)
+                
+                # Then restore the start at/from toggle state by triggering the start at checkbox
+                if overlay8_enabled and hasattr(self, 'overlay8_start_at_checkbox'):
+                    start_state = Qt.CheckState.Checked.value if self.overlay8_start_at_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                    self.overlay8_start_at_checkbox.stateChanged.emit(start_state)
+                
+                # Handle the effect combo manually
+                if hasattr(self, 'overlay8_effect_combo'):
+                    self.overlay8_effect_combo.setEnabled(overlay8_enabled)
+                
+                # Overlay8 popup checkbox state
+                if hasattr(self, 'overlay8_popup_checkbox'):
+                    self.overlay8_popup_checkbox.setEnabled(overlay8_enabled)
+                    if not overlay8_enabled:
+                        self.overlay8_popup_checkbox.setStyleSheet("color: grey;")
+                    else:
+                        self.overlay8_popup_checkbox.setStyleSheet("")
+                        
+                        # Handle timing controls based on popup state
+                        popup_checked = self.overlay8_popup_checkbox.isChecked()
+                        
+                        # Non-popup timing controls (enabled when popup is OFF)
+                        if hasattr(self, 'overlay8_start_at_checkbox'):
+                            self.overlay8_start_at_checkbox.setEnabled(not popup_checked)
+                            # Start at/from toggle logic (only when not in popup mode)
+                            if not popup_checked:
+                                start_at_checked = self.overlay8_start_at_checkbox.isChecked()
+                                if hasattr(self, 'overlay8_start_combo'):
+                                    self.overlay8_start_combo.setEnabled(start_at_checked)
+                                if hasattr(self, 'overlay8_start_from_combo'):
+                                    self.overlay8_start_from_combo.setEnabled(not start_at_checked)
+                            else:
+                                if hasattr(self, 'overlay8_start_combo'):
+                                    self.overlay8_start_combo.setEnabled(False)
+                                if hasattr(self, 'overlay8_start_from_combo'):
+                                    self.overlay8_start_from_combo.setEnabled(False)
+                        
+                        # Popup timing controls (enabled when popup is ON)
+                        if hasattr(self, 'overlay8_popup_start_at_combo'):
+                            self.overlay8_popup_start_at_combo.setEnabled(popup_checked)
+                        if hasattr(self, 'overlay8_popup_interval_combo'):
+                            self.overlay8_popup_interval_combo.setEnabled(popup_checked)
+                        
+                        # Duration controls
+                        if hasattr(self, 'overlay8_duration_full_checkbox'):
+                            if popup_checked:
+                                self.overlay8_duration_full_checkbox.setEnabled(False)
+                                if hasattr(self, 'overlay8_duration_edit'):
+                                    self.overlay8_duration_edit.setEnabled(True)
+                            else:
+                                self.overlay8_duration_full_checkbox.setEnabled(True)
+                                if hasattr(self, 'overlay8_duration_edit'):
+                                    full_checked = self.overlay8_duration_full_checkbox.isChecked()
+                                    self.overlay8_duration_edit.setEnabled(not full_checked)
+                else:
+                    # Disable timing controls when overlay8 is disabled
+                    for attr in ['overlay8_start_at_checkbox', 'overlay8_start_combo', 'overlay8_start_from_combo',
+                                'overlay8_popup_start_at_combo', 'overlay8_popup_interval_combo', 'overlay8_duration_full_checkbox', 'overlay8_duration_edit']:
+                        if hasattr(self, attr):
+                            getattr(self, attr).setEnabled(False)
+            
+            # Overlay 9 controls - use the existing state management function plus restore start at/from toggle
+            if hasattr(self, 'overlay9_checkbox'):
+                overlay9_enabled = self.overlay9_checkbox.isChecked()
+                # First call the basic function to handle edit, button, combos, and popup timing logic
+                state = Qt.CheckState.Checked.value if overlay9_enabled else Qt.CheckState.Unchecked.value
+                self.overlay9_checkbox.stateChanged.emit(state)
+                
+                # Then restore the start at/from toggle state by triggering the start at checkbox
+                if overlay9_enabled and hasattr(self, 'overlay9_start_at_checkbox'):
+                    start_state = Qt.CheckState.Checked.value if self.overlay9_start_at_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                    self.overlay9_start_at_checkbox.stateChanged.emit(start_state)
+                
+                # Handle the effect combo manually
+                if hasattr(self, 'overlay9_effect_combo'):
+                    self.overlay9_effect_combo.setEnabled(overlay9_enabled)
+                
+                # Overlay9 popup checkbox state
+                if hasattr(self, 'overlay9_popup_checkbox'):
+                    self.overlay9_popup_checkbox.setEnabled(overlay9_enabled)
+                    if not overlay9_enabled:
+                        self.overlay9_popup_checkbox.setStyleSheet("color: grey;")
+                    else:
+                        self.overlay9_popup_checkbox.setStyleSheet("")
+                        
+                        # Handle timing controls based on popup state
+                        popup_checked = self.overlay9_popup_checkbox.isChecked()
+                        
+                        # Non-popup timing controls (enabled when popup is OFF)
+                        if hasattr(self, 'overlay9_start_at_checkbox'):
+                            self.overlay9_start_at_checkbox.setEnabled(not popup_checked)
+                            # Start at/from toggle logic (only when not in popup mode)
+                            if not popup_checked:
+                                start_at_checked = self.overlay9_start_at_checkbox.isChecked()
+                                if hasattr(self, 'overlay9_start_combo'):
+                                    self.overlay9_start_combo.setEnabled(start_at_checked)
+                                if hasattr(self, 'overlay9_start_from_combo'):
+                                    self.overlay9_start_from_combo.setEnabled(not start_at_checked)
+                            else:
+                                if hasattr(self, 'overlay9_start_combo'):
+                                    self.overlay9_start_combo.setEnabled(False)
+                                if hasattr(self, 'overlay9_start_from_combo'):
+                                    self.overlay9_start_from_combo.setEnabled(False)
+                        
+                        # Popup timing controls (enabled when popup is ON)
+                        if hasattr(self, 'overlay9_popup_start_at_combo'):
+                            self.overlay9_popup_start_at_combo.setEnabled(popup_checked)
+                        if hasattr(self, 'overlay9_popup_interval_combo'):
+                            self.overlay9_popup_interval_combo.setEnabled(popup_checked)
+                        
+                        # Duration controls
+                        if hasattr(self, 'overlay9_duration_full_checkbox'):
+                            if popup_checked:
+                                self.overlay9_duration_full_checkbox.setEnabled(False)
+                                if hasattr(self, 'overlay9_duration_edit'):
+                                    self.overlay9_duration_edit.setEnabled(True)
+                            else:
+                                self.overlay9_duration_full_checkbox.setEnabled(True)
+                                if hasattr(self, 'overlay9_duration_edit'):
+                                    full_checked = self.overlay9_duration_full_checkbox.isChecked()
+                                    self.overlay9_duration_edit.setEnabled(not full_checked)
+                else:
+                    # Disable timing controls when overlay9 is disabled
+                    for attr in ['overlay9_start_at_checkbox', 'overlay9_start_combo', 'overlay9_start_from_combo',
+                                'overlay9_popup_start_at_combo', 'overlay9_popup_interval_combo', 'overlay9_duration_full_checkbox', 'overlay9_duration_edit']:
+                        if hasattr(self, attr):
+                            getattr(self, attr).setEnabled(False)
+            
+            # Song title controls
+            if hasattr(self, 'song_title_checkbox'):
+                song_title_enabled = self.song_title_checkbox.isChecked()
+                overlay3_enabled = hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked()
+                song_title_start_enabled = song_title_enabled or overlay3_enabled
+                
+                for attr in ['song_title_effect_combo', 'song_title_font_combo', 'song_title_color_btn',
+                            'song_title_bg_combo', 'song_title_opacity_combo', 'song_title_text_effect_combo',
+                            'song_title_text_effect_color_btn', 'song_title_text_effect_intensity_combo',
+                            'song_title_scale_combo', 'song_title_x_combo', 'song_title_y_combo']:
+                    if hasattr(self, attr):
+                        getattr(self, attr).setEnabled(song_title_enabled)
+                
+                # Song title background color button has special logic - only enabled if bg is custom
+                if hasattr(self, 'song_title_bg_color_btn') and hasattr(self, 'song_title_bg_combo'):
+                    bg_is_custom = self.song_title_bg_combo.currentText() == "Custom"
+                    self.song_title_bg_color_btn.setEnabled(song_title_enabled and bg_is_custom)
+                
+                # Song title text effect controls depend on effect selection
+                if hasattr(self, 'song_title_text_effect_combo'):
+                    text_effect_enabled = song_title_enabled and getattr(self, 'song_title_text_effect', 'none') != 'none'
+                    for attr in ['song_title_text_effect_color_btn', 'song_title_text_effect_intensity_combo']:
+                        if hasattr(self, attr):
+                            getattr(self, attr).setEnabled(text_effect_enabled)
+                
+                if hasattr(self, 'song_title_start_edit'):
+                    self.song_title_start_edit.setEnabled(song_title_start_enabled)
+            
+            # Frame box controls
+            if hasattr(self, 'frame_box_checkbox'):
+                frame_box_enabled = self.frame_box_checkbox.isChecked()
+                for attr in ['frame_box_size_combo', 'frame_box_x_combo', 'frame_box_y_combo',
+                            'frame_box_effect_combo', 'frame_box_duration_edit', 'frame_box_start_edit',
+                            'frame_box_caption_checkbox', 'frame_box_color_btn', 'frame_box_opacity_combo',
+                            'frame_box_pad_left_combo', 'frame_box_pad_right_combo', 'frame_box_pad_top_combo', 'frame_box_pad_bottom_combo']:
+                    if hasattr(self, attr):
+                        getattr(self, attr).setEnabled(frame_box_enabled)
+                
+                if hasattr(self, 'frame_box_duration_full_checkbox'):
+                    self.frame_box_duration_full_checkbox.setEnabled(frame_box_enabled)
+                    if frame_box_enabled and hasattr(self, 'frame_box_duration_edit'):
+                        full_checked = self.frame_box_duration_full_checkbox.isChecked()
+                        self.frame_box_duration_edit.setEnabled(not full_checked)
+                
+                # Frame box caption controls - more complex dependency
+                if hasattr(self, 'frame_box_caption_checkbox'):
+                    caption_enabled = frame_box_enabled and self.frame_box_caption_checkbox.isChecked()
+                    for attr in ['frame_box_caption_png_checkbox', 'frame_box_caption_position_combo']:
+                        if hasattr(self, attr):
+                            getattr(self, attr).setEnabled(caption_enabled)
+                    
+                    if caption_enabled and hasattr(self, 'frame_box_caption_png_checkbox'):
+                        png_mode = self.frame_box_caption_png_checkbox.isChecked()
+                        if hasattr(self, 'frame_box_caption_text_edit'):
+                            self.frame_box_caption_text_edit.setEnabled(not png_mode)
+                        if hasattr(self, 'frame_box_caption_png_edit'):
+                            self.frame_box_caption_png_edit.setEnabled(png_mode)
+                        if hasattr(self, 'frame_box_caption_png_btn'):
+                            self.frame_box_caption_png_btn.setEnabled(png_mode)
+                        
+                        # Text styling controls - only enabled in text mode
+                        text_mode_enabled = caption_enabled and not png_mode
+                        for attr in ['frame_box_caption_font_combo', 'frame_box_caption_font_size_combo',
+                                    'frame_box_caption_color_btn', 'frame_box_caption_effect_combo']:
+                            if hasattr(self, attr):
+                                getattr(self, attr).setEnabled(text_mode_enabled)
+                        
+                        # Effect controls depend on effect selection AND text mode
+                        if hasattr(self, 'frame_box_caption_effect_combo') and text_mode_enabled:
+                            effect_enabled = getattr(self, 'frame_box_caption_effect', 'none') != 'none'
+                            for attr in ['frame_box_caption_effect_color_btn', 'frame_box_caption_effect_intensity_combo']:
+                                if hasattr(self, attr):
+                                    getattr(self, attr).setEnabled(effect_enabled)
+                        else:
+                            # Disable effect controls when not in text mode or caption disabled
+                            for attr in ['frame_box_caption_effect_color_btn', 'frame_box_caption_effect_intensity_combo']:
+                                if hasattr(self, attr):
+                                    getattr(self, attr).setEnabled(False)
+                    else:
+                        # Disable all caption sub-controls when caption is disabled
+                        for attr in ['frame_box_caption_text_edit', 'frame_box_caption_png_edit', 'frame_box_caption_png_btn',
+                                    'frame_box_caption_font_combo', 'frame_box_caption_font_size_combo', 'frame_box_caption_color_btn',
+                                    'frame_box_caption_effect_combo', 'frame_box_caption_effect_color_btn', 'frame_box_caption_effect_intensity_combo']:
+                            if hasattr(self, attr):
+                                getattr(self, attr).setEnabled(False)
+            
+            # MP3 count edit control
+            if hasattr(self, 'mp3_count_checkbox') and hasattr(self, 'mp3_count_edit'):
+                self.mp3_count_edit.setEnabled(self.mp3_count_checkbox.isChecked())
+            
+            # Overlay 10 controls - use the existing state management function
+            if hasattr(self, 'overlay10_checkbox'):
+                state = Qt.CheckState.Checked.value if self.overlay10_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                self.overlay10_checkbox.stateChanged.emit(state)
+            
+            # Frame MP3 cover controls
+            if hasattr(self, 'frame_mp3cover_checkbox'):
+                frame_mp3cover_enabled = self.frame_mp3cover_checkbox.isChecked()
+                for attr in ['frame_mp3cover_size_combo', 'frame_mp3cover_x_combo', 'frame_mp3cover_y_combo',
+                            'frame_mp3cover_effect_combo', 'frame_mp3cover_duration_edit', 'frame_mp3cover_start_edit']:
+                    if hasattr(self, attr):
+                        getattr(self, attr).setEnabled(frame_mp3cover_enabled)
+                
+                if hasattr(self, 'frame_mp3cover_duration_full_checkbox'):
+                    self.frame_mp3cover_duration_full_checkbox.setEnabled(frame_mp3cover_enabled)
+                    if frame_mp3cover_enabled and hasattr(self, 'frame_mp3cover_duration_edit'):
+                        full_checked = self.frame_mp3cover_duration_full_checkbox.isChecked()
+                        self.frame_mp3cover_duration_edit.setEnabled(not full_checked)
+            
+            # MP3 cover overlay controls - use the existing state management function
+            if hasattr(self, 'mp3_cover_overlay_checkbox'):
+                state = Qt.CheckState.Checked.value if self.mp3_cover_overlay_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                self.mp3_cover_overlay_checkbox.stateChanged.emit(state)
+            
+            # Lyric dropdown control
+            if hasattr(self, 'lyric_checkbox') and hasattr(self, 'lyric_dropdown'):
+                self.lyric_dropdown.setEnabled(self.lyric_checkbox.isChecked())
         
         # Handle Preview button (which contains Dry Run) - disable during normal processing
         if hasattr(self, 'preview_btn'):
