@@ -212,7 +212,8 @@ def create_video_with_ffmpeg(
     overlay2_start_at: int = 0,
     # --- Add background layer parameters ---
     use_bg_layer: bool = False,
-    bg_scale_percent: int = 103
+    bg_scale_percent: int = 103,
+    bg_crop_position: str = "center"
 ) -> Tuple[bool, Optional[str]]:
     temp_png_path = None
     try:
@@ -493,7 +494,43 @@ def create_video_with_ffmpeg(
             oy_frame_mp3cover = f"(H-h)*(1-({frame_mp3cover_y_percent}/100))" if frame_mp3cover_y_percent != 100 else "0"
             # Use configurable background scale if enabled, otherwise use default 103%
             bg_scale = bg_scale_percent / 100.0 if use_bg_layer else 1.03
-            filter_bg = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}[bg]"
+            # Calculate crop x/y offsets based on position
+            crop_x = crop_y = 0
+            if use_bg_layer:
+                if bg_crop_position == "center":
+                    crop_x = f"(in_w-out_w)/2"
+                    crop_y = f"(in_h-out_h)/2"
+                elif bg_crop_position == "left":
+                    crop_x = 0
+                    crop_y = f"(in_h-out_h)/2"
+                elif bg_crop_position == "right":
+                    crop_x = f"in_w-out_w"
+                    crop_y = f"(in_h-out_h)/2"
+                elif bg_crop_position == "top":
+                    crop_x = f"(in_w-out_w)/2"
+                    crop_y = 0
+                elif bg_crop_position == "bottom":
+                    crop_x = f"(in_w-out_w)/2"
+                    crop_y = f"in_h-out_h"
+                elif bg_crop_position == "top_left":
+                    crop_x = 0
+                    crop_y = 0
+                elif bg_crop_position == "top_right":
+                    crop_x = f"in_w-out_w"
+                    crop_y = 0
+                elif bg_crop_position == "bottom_left":
+                    crop_x = 0
+                    crop_y = f"in_h-out_h"
+                elif bg_crop_position == "bottom_right":
+                    crop_x = f"in_w-out_w"
+                    crop_y = f"in_h-out_h"
+                else:
+                    crop_x = f"(in_w-out_w)/2"
+                    crop_y = f"(in_h-out_h)/2"
+            else:
+                crop_x = f"(in_w-out_w)/2"
+                crop_y = f"(in_h-out_h)/2"
+            filter_bg = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}:{crop_x}:{crop_y}[bg]"
 
             # Effect logic for overlays
             def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext, duration=None):
@@ -854,7 +891,45 @@ def create_video_with_ffmpeg(
             else:
                 filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout]"
         else:
-            filter_graph = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            # Use configurable background scale if enabled, otherwise use default 103%
+            bg_scale = bg_scale_percent / 100.0 if use_bg_layer else 1.03
+            # Calculate crop x/y offsets based on position
+            crop_x = crop_y = 0
+            if use_bg_layer:
+                if bg_crop_position == "center":
+                    crop_x = f"(in_w-out_w)/2"
+                    crop_y = f"(in_h-out_h)/2"
+                elif bg_crop_position == "left":
+                    crop_x = 0
+                    crop_y = f"(in_h-out_h)/2"
+                elif bg_crop_position == "right":
+                    crop_x = f"in_w-out_w"
+                    crop_y = f"(in_h-out_h)/2"
+                elif bg_crop_position == "top":
+                    crop_x = f"(in_w-out_w)/2"
+                    crop_y = 0
+                elif bg_crop_position == "bottom":
+                    crop_x = f"(in_w-out_w)/2"
+                    crop_y = f"in_h-out_h"
+                elif bg_crop_position == "top_left":
+                    crop_x = 0
+                    crop_y = 0
+                elif bg_crop_position == "top_right":
+                    crop_x = f"in_w-out_w"
+                    crop_y = 0
+                elif bg_crop_position == "bottom_left":
+                    crop_x = 0
+                    crop_y = f"in_h-out_h"
+                elif bg_crop_position == "bottom_right":
+                    crop_x = f"in_w-out_w"
+                    crop_y = f"in_h-out_h"
+                else:
+                    crop_x = f"(in_w-out_w)/2"
+                    crop_y = f"(in_h-out_h)/2"
+            else:
+                crop_x = f"(in_w-out_w)/2"
+                crop_y = f"(in_h-out_h)/2"
+            filter_graph = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}:{crop_x}:{crop_y},format={VIDEO_SETTINGS['pixel_format']}[vout]"
         cmd.extend(["-filter_complex", filter_graph, "-map", "[vout]", "-map", "1:a"])
 
         cmd.extend(["-c:v", codec, "-preset", preset])       

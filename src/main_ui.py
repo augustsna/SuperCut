@@ -5906,16 +5906,46 @@ class SuperCutUI(QWidget):
         self.bg_scale_combo.currentIndexChanged.connect(on_bg_scale_changed)
         on_bg_scale_changed(self.bg_scale_combo.currentIndex())
 
+        # Background crop position dropdown
+        bg_crop_position_label = QLabel("Crop:")
+        bg_crop_position_label.setFixedWidth(40)
+        self.bg_crop_position_combo = NoWheelComboBox()
+        self.bg_crop_position_combo.setFixedWidth(80)
+        crop_positions = [
+            "Center",
+            "Left",
+            "Right",
+            "Top",
+            "Bottom",
+            "Top Left",
+            "Top Right",
+            "Bottom Left",
+            "Bottom Right"
+        ]
+        for position in crop_positions:
+            self.bg_crop_position_combo.addItem(position)
+        self.bg_crop_position_combo.setCurrentIndex(0)  # Default Center
+        self.bg_crop_position = "center"
+        def on_bg_crop_position_changed(idx):
+            self.bg_crop_position = self.bg_crop_position_combo.itemText(idx).lower().replace(" ", "_")
+        self.bg_crop_position_combo.currentIndexChanged.connect(on_bg_crop_position_changed)
+        on_bg_crop_position_changed(self.bg_crop_position_combo.currentIndex())
+
         def set_bg_layer_enabled(state):
             enabled = state == Qt.CheckState.Checked
             self.bg_scale_combo.setEnabled(enabled)
+            self.bg_crop_position_combo.setEnabled(enabled)
             if enabled:
                 self.bg_scale_combo.setStyleSheet("")
                 bg_scale_label.setStyleSheet("")
+                self.bg_crop_position_combo.setStyleSheet("")
+                bg_crop_position_label.setStyleSheet("")
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.bg_scale_combo.setStyleSheet(grey_btn_style)
                 bg_scale_label.setStyleSheet("color: grey;")
+                self.bg_crop_position_combo.setStyleSheet(grey_btn_style)
+                bg_crop_position_label.setStyleSheet("color: grey;")
         
         self.bg_layer_checkbox.stateChanged.connect(lambda _: set_bg_layer_enabled(self.bg_layer_checkbox.checkState()))
 
@@ -5925,6 +5955,9 @@ class SuperCutUI(QWidget):
         bg_layer_layout.addSpacing(4)
         bg_layer_layout.addWidget(bg_scale_label)
         bg_layer_layout.addWidget(self.bg_scale_combo)
+        bg_layer_layout.addSpacing(4)
+        bg_layer_layout.addWidget(bg_crop_position_label)
+        bg_layer_layout.addWidget(self.bg_crop_position_combo)
         bg_layer_layout.addStretch()
         layout.addLayout(bg_layer_layout)
 
@@ -6522,7 +6555,7 @@ class SuperCutUI(QWidget):
             self.frame_mp3cover_duration_full_checkbox,
             
             # Background layer controls
-            self.bg_layer_checkbox, self.bg_scale_combo,
+            self.bg_layer_checkbox, self.bg_scale_combo, self.bg_crop_position_combo,
             
             # Intro controls
             self.intro_checkbox, self.intro_edit, self.intro_duration_edit,
@@ -7331,7 +7364,7 @@ class SuperCutUI(QWidget):
             # --- Add background layer parameters ---
             use_bg_layer=self.bg_layer_checkbox.isChecked() if hasattr(self, 'bg_layer_checkbox') else False,
             bg_scale_percent=self.bg_scale_percent if hasattr(self, 'bg_scale_percent') else 103,
-
+            bg_crop_position=self.bg_crop_position if hasattr(self, 'bg_crop_position') else "center",
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)

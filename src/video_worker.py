@@ -84,7 +84,8 @@ class VideoWorker(QObject):
                  mp3_cover_frame_size: int = 10,
                  # --- Add background layer parameters ---
                  use_bg_layer: bool = False,
-                 bg_scale_percent: int = 103):
+                 bg_scale_percent: int = 103,
+                 bg_crop_position: str = "center"):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -274,6 +275,7 @@ class VideoWorker(QObject):
         # --- Add background layer attributes ---
         self.use_bg_layer = use_bg_layer
         self.bg_scale_percent = bg_scale_percent
+        self.bg_crop_position = bg_crop_position
 
     def stop(self):
         """Stop the video processing"""
@@ -944,6 +946,7 @@ class VideoWorker(QObject):
                 # --- Add background layer parameters ---
                 use_bg_layer=self.use_bg_layer,
                 bg_scale_percent=self.bg_scale_percent,
+                bg_crop_position=self.bg_crop_position,
                 overlay1_start_at=actual_overlay1_start_at,
                 overlay2_start_at=actual_overlay2_start_at
             )
