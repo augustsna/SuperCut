@@ -40,7 +40,7 @@ from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
     validate_inputs, validate_media_files, clean_file_path
 )
-from src.ui_components import FolderDropLineEdit, PleaseWaitDialog, StoppedDialog, SuccessDialog, DryRunSuccessDialog, ScrollableErrorDialog, ImageDropLineEdit, NoWheelComboBox
+from src.ui_components import FolderDropLineEdit, PleaseWaitDialog, StoppedDialog, SuccessDialog, DryRunSuccessDialog, ScrollableErrorDialog, ImageDropLineEdit, NoWheelComboBox, KhmerSupportLineEdit, KhmerSupportPlainTextEdit
 from src.video_worker import VideoWorker
 from src.terminal_widget import TerminalWidget
 
@@ -289,7 +289,7 @@ class SettingsDialog(QDialog):
         left_form.addRow("Buffsize:", self.bufsize_combo)
         # --- Default Intro Path ---
         intro_path_layout = QHBoxLayout()
-        self.default_intro_path_edit = QLineEdit()
+        self.default_intro_path_edit = KhmerSupportLineEdit()
         self.default_intro_path_edit.setFixedWidth(120)
         if self.settings is not None:
             self.default_intro_path_edit.setText(self.settings.value('default_intro_path', '', type=str))
@@ -346,7 +346,7 @@ class SettingsDialog(QDialog):
         right_form.addRow("Intro Size:", self.default_intro_size_combo)
         # --- Default Overlay 1 Path ---
         overlay1_path_layout = QHBoxLayout()
-        self.default_overlay1_path_edit = QLineEdit()
+        self.default_overlay1_path_edit = KhmerSupportLineEdit()
         self.default_overlay1_path_edit.setFixedWidth(120)
         if self.settings is not None:
             self.default_overlay1_path_edit.setText(self.settings.value('default_overlay1_path', '', type=str))
@@ -406,7 +406,7 @@ class SettingsDialog(QDialog):
         right_form.addRow("Overlay 1 Size:", self.default_overlay1_size_combo)
         # --- Default Overlay 2 Path ---
         overlay2_path_layout = QHBoxLayout()
-        self.default_overlay2_path_edit = QLineEdit()
+        self.default_overlay2_path_edit = KhmerSupportLineEdit()
         self.default_overlay2_path_edit.setFixedWidth(120)
         if self.settings is not None:
             self.default_overlay2_path_edit.setText(self.settings.value('default_overlay2_path', '', type=str))
@@ -616,7 +616,7 @@ class NameListDialog(QDialog):
         label = QLabel("Enter one name per line (max 180 chars per line). Each name will be used for one video batch.")
         label.setWordWrap(True)
         layout.addWidget(label)
-        self.text_edit = QtWidgets.QPlainTextEdit()
+        self.text_edit = KhmerSupportPlainTextEdit()
         self.text_edit.setLineWrapMode(QtWidgets.QPlainTextEdit.LineWrapMode.NoWrap)
         self.text_edit.setStyleSheet(self.text_edit.styleSheet() + SCROLLBAR_STYLE)
         if initial_names:
@@ -681,7 +681,7 @@ class NameListDialog(QDialog):
         layout = QVBoxLayout(dlg)
         label = QLabel("Current name list:")
         layout.addWidget(label)
-        preview_text = QPlainTextEdit()
+        preview_text = KhmerSupportPlainTextEdit()
         preview_text.setReadOnly(True)
         preview_text.setStyleSheet(preview_text.styleSheet() + SCROLLBAR_STYLE)
         names = self.get_names()
@@ -1093,10 +1093,10 @@ class SuperCutUI(QWidget):
     def create_export_inputs(self, layout):
         """Create export name, number, and mp3 per video inputs"""
         part_layout = QHBoxLayout()
-        self.part1_edit = QLineEdit(DEFAULT_EXPORT_NAME)
+        self.part1_edit = KhmerSupportLineEdit(DEFAULT_EXPORT_NAME)
         self.part1_edit.setPlaceholderText("Export Name")
         self.part1_edit.setFixedWidth(100)  # Make Name textbox wider
-        self.part2_edit = QLineEdit(DEFAULT_START_NUMBER)
+        self.part2_edit = KhmerSupportLineEdit(DEFAULT_START_NUMBER)
         self.part2_edit.setPlaceholderText("12345")
         self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
         self.part2_edit.setFixedWidth(60)   # Make Number textbox smaller
@@ -4782,7 +4782,7 @@ class SuperCutUI(QWidget):
         # Text caption input
         caption_text_label = QLabel("Text:")
         caption_text_label.setFixedWidth(30)
-        self.frame_box_caption_text_edit = QLineEdit()
+        self.frame_box_caption_text_edit = KhmerSupportLineEdit()
         self.frame_box_caption_text_edit.setFixedWidth(120)
         self.frame_box_caption_text_edit.setText("Frame Box Caption")
         self.frame_box_caption_text = "Frame Box Caption"
@@ -4841,11 +4841,12 @@ class SuperCutUI(QWidget):
         caption_font_label.setFixedWidth(35)
         self.frame_box_caption_font_combo = NoWheelComboBox()
         self.frame_box_caption_font_combo.setFixedWidth(120)
+        self.frame_box_caption_font_combo.addItem("Default", "")
         self.frame_box_caption_font_combo.addItem("KantumruyPro", "KantumruyPro-VariableFont_wght.ttf")
         self.frame_box_caption_font_combo.addItem("KantumruyPro Italic", "KantumruyPro-Italic-VariableFont_wght.ttf")
         self.frame_box_caption_font_combo.addItem("Roboto", "Roboto-VariableFont_wdth,wght.ttf")
         self.frame_box_caption_font_combo.addItem("Roboto Italic", "Roboto-Italic-VariableFont_wdth,wght.ttf")
-        self.frame_box_caption_font = "KantumruyPro-VariableFont_wght.ttf"
+        self.frame_box_caption_font = ""
         
         def on_frame_box_caption_font_changed(idx):
             self.frame_box_caption_font = self.frame_box_caption_font_combo.itemData(idx)

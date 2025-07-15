@@ -32,8 +32,10 @@ STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.pa
     QLineEdit {
         border: 1px solid #ccc;
         border-radius: 6px;
-        padding: 6px;
+        padding: 6px 8px;
         background-color: white;
+        font-size: 13px;
+        line-height: 1.4;
     }
     QPushButton {
         background-color: #4a90e2;
@@ -138,6 +140,15 @@ STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.pa
     }
     QScrollBar::sub-control:corner {
         background: transparent;        
+    }
+    
+    QPlainTextEdit {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px 8px;
+        background-color: white;
+        font-size: 13px;
+        line-height: 1.4;
     }
     
 """

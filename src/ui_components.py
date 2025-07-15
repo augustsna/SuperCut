@@ -10,12 +10,87 @@ from PyQt6.QtWidgets import (
     QComboBox
 )
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QMovie, QIcon, QFont, QShortcut, QKeySequence, QWheelEvent
+from PyQt6.QtGui import QMovie, QIcon, QFont, QShortcut, QKeySequence, QWheelEvent, QFontDatabase
 
 from src.utils import clean_file_path
 
-class FolderDropLineEdit(QLineEdit):
-    """Custom QLineEdit that accepts folder drag and drop"""
+class KhmerSupportLineEdit(QLineEdit):
+    """Custom QLineEdit with enhanced Khmer font support"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._setup_khmer_font_support()
+    
+    def _setup_khmer_font_support(self):
+        """Setup Khmer font support with proper fallback"""
+        # Get the project root to locate font files
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        font_dir = os.path.join(project_root, "src", "sources", "system fonts")
+        
+        # Load Khmer fonts if available
+        khmer_fonts = []
+        font_files = [
+            "KhmerFont1.ttf",
+            "KhmerFont2.ttf", 
+            "KhmerFont3.ttf"
+        ]
+        
+        for font_file in font_files:
+            font_path = os.path.join(font_dir, font_file)
+            if os.path.exists(font_path):
+                font_id = QFontDatabase.addApplicationFont(font_path)
+                if font_id != -1:
+                    font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+                    khmer_fonts.append(font_family)
+        
+        # Create font with fallback chain
+        if khmer_fonts:
+            # Use the first available Khmer font as primary
+            primary_font = khmer_fonts[0]
+            font = QFont(primary_font, 13)
+            
+            # Set the font
+            self.setFont(font)
+            
+            # Apply specific styling for better Khmer text rendering
+            self.setStyleSheet("""
+                QLineEdit {
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    padding: 6px 8px;
+                    background-color: white;
+                    font-size: 13px;
+                    line-height: 1.4;
+                    text-align: left;
+                }
+                QLineEdit:focus {
+                    border: 2px solid #4a90e2;
+                    background-color: #ffffff;
+                }
+                QLineEdit:hover {
+                    border: 1px solid #a0a0a0;
+                    background-color: #f8f8f8;
+                }
+            """)
+        else:
+            # Fallback to system fonts if Khmer fonts not available
+            font = QFont("Segoe UI", 13)
+            self.setFont(font)
+    
+    def text(self):
+        """Override to ensure proper text handling"""
+        return super().text()
+    
+    def setText(self, text):
+        """Override to ensure proper text setting"""
+        super().setText(text)
+    
+    def insert(self, text):
+        """Override to ensure proper text insertion"""
+        super().insert(text)
+
+class FolderDropLineEdit(KhmerSupportLineEdit):
+    """Custom QLineEdit that accepts folder drag and drop with Khmer font support"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setAcceptDrops(True)
@@ -58,8 +133,8 @@ class FolderDropLineEdit(QLineEdit):
         else:
             super().paste()
 
-class ImageDropLineEdit(QLineEdit):
-    """Custom QLineEdit that accepts GIF, PNG, or MP4 file drag and drop (*.gif, *.png, *.mp4)"""
+class ImageDropLineEdit(KhmerSupportLineEdit):
+    """Custom QLineEdit that accepts GIF, PNG, or MP4 file drag and drop (*.gif, *.png, *.mp4) with Khmer font support"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setAcceptDrops(True)
@@ -820,3 +895,66 @@ class ScrollableErrorDialog(QDialog):
 
         # Shortcut
         QShortcut(QKeySequence("Ctrl+W"), self, self.close) 
+
+class KhmerSupportPlainTextEdit(QtWidgets.QPlainTextEdit):
+    """Custom QPlainTextEdit with enhanced Khmer font support"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._setup_khmer_font_support()
+    
+    def _setup_khmer_font_support(self):
+        """Setup Khmer font support with proper fallback"""
+        # Get the project root to locate font files
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        font_dir = os.path.join(project_root, "src", "sources", "system fonts")
+        
+        # Load Khmer fonts if available
+        khmer_fonts = []
+        font_files = [
+            "KhmerFont1.ttf",
+            "KhmerFont2.ttf", 
+            "KhmerFont3.ttf"
+        ]
+        
+        for font_file in font_files:
+            font_path = os.path.join(font_dir, font_file)
+            if os.path.exists(font_path):
+                font_id = QFontDatabase.addApplicationFont(font_path)
+                if font_id != -1:
+                    font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+                    khmer_fonts.append(font_family)
+        
+        # Create font with fallback chain
+        if khmer_fonts:
+            # Use the first available Khmer font as primary
+            primary_font = khmer_fonts[0]
+            font = QFont(primary_font, 13)
+            
+            # Set the font
+            self.setFont(font)
+            
+            # Apply specific styling for better Khmer text rendering
+            self.setStyleSheet("""
+                QPlainTextEdit {
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    padding: 6px 8px;
+                    background-color: white;
+                    font-size: 13px;
+                    line-height: 1.4;
+                    text-align: left;
+                }
+                QPlainTextEdit:focus {
+                    border: 2px solid #4a90e2;
+                    background-color: #ffffff;
+                }
+                QPlainTextEdit:hover {
+                    border: 1px solid #a0a0a0;
+                    background-color: #f8f8f8;
+                }
+            """)
+        else:
+            # Fallback to system fonts if Khmer fonts not available
+            font = QFont("Segoe UI", 13)
+            self.setFont(font) 
