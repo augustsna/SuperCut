@@ -3107,14 +3107,21 @@ class SuperCutUI(QWidget):
             
             if not is_enabled:
                 self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
-            elif not is_custom:
-                self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
-            else:
-                # Show current color or white if no color selected
+            elif self.song_title_bg == "white":
+                # White background selected - show white background
+                self.song_title_bg_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+            elif self.song_title_bg == "black":
+                # Black background selected - show black background
+                self.song_title_bg_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+            elif is_custom:
+                # Custom background - show current color or white if no color selected
                 if self.song_title_bg_color != (0, 0, 0):
-                    self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                    self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb({self.song_title_bg_color[0]}, {self.song_title_bg_color[1]}, {self.song_title_bg_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 else:
                     self.song_title_bg_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+            else:
+                # Transparent or other - disabled gray
+                self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
         
         # Connect background dropdown to update color button state
         self.song_title_bg_combo.currentIndexChanged.connect(lambda _: update_bg_color_state())
@@ -3343,14 +3350,8 @@ class SuperCutUI(QWidget):
                     self.song_title_opacity_combo.setStyleSheet("")
                 self.song_title_text_effect_combo.setStyleSheet("")
                 self.song_title_text_effect_intensity_combo.setStyleSheet("")
-                # Restore color button style based on current settings
-                if self.song_title_bg == "custom":
-                    if self.song_title_bg_color != (0, 0, 0):
-                        self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
-                    else:
-                        self.song_title_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
-                else:
-                    self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                # Restore main title color button style
+                self.song_title_color_btn.setStyleSheet(f"background-color: rgb({self.song_title_color[0]}, {self.song_title_color[1]}, {self.song_title_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 # Restore text effect color button style based on current text effect
                 if self.song_title_text_effect == "none":
                     self.song_title_text_effect_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
@@ -4924,7 +4925,8 @@ class SuperCutUI(QWidget):
             
             # Update styling
             if effect_enabled:
-                self.frame_box_caption_effect_color_btn.setStyleSheet("")
+                # Set background to white when effect is enabled (like MP3 cover color picker)
+                self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 self.frame_box_caption_effect_intensity_combo.setStyleSheet("")
                 caption_effect_color_label.setStyleSheet("")
                 caption_effect_intensity_label.setStyleSheet("")
@@ -4942,14 +4944,14 @@ class SuperCutUI(QWidget):
         self.frame_box_caption_effect_color_btn = QPushButton()
         self.frame_box_caption_effect_color_btn.setFixedWidth(27)
         self.frame_box_caption_effect_color_btn.setFixedHeight(27)
-        self.frame_box_caption_effect_color = (0, 0, 0)  # Default black
-        self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc;")
+        self.frame_box_caption_effect_color = (255, 255, 255)  # Default white
+        self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
         
         def on_frame_box_caption_effect_color_clicked():
-            color = QColorDialog.getColor()
+            color = QColorDialog.getColor(QColor(*self.frame_box_caption_effect_color), self, "Select Frame Box Caption Effect Color")
             if color.isValid():
                 self.frame_box_caption_effect_color = (color.red(), color.green(), color.blue())
-                self.frame_box_caption_effect_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()});")
+                self.frame_box_caption_effect_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
         
         self.frame_box_caption_effect_color_btn.clicked.connect(on_frame_box_caption_effect_color_clicked)
         
@@ -5104,7 +5106,8 @@ class SuperCutUI(QWidget):
                     # Effect controls styling
                     effect_enabled = self.frame_box_caption_effect != "none"
                     if effect_enabled:
-                        self.frame_box_caption_effect_color_btn.setStyleSheet("")
+                        # Set background to white when effect is enabled (like MP3 cover color picker)
+                        self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
                         self.frame_box_caption_effect_intensity_combo.setStyleSheet("")
                         caption_effect_color_label.setStyleSheet("")
                         caption_effect_intensity_label.setStyleSheet("")
@@ -5751,13 +5754,13 @@ class SuperCutUI(QWidget):
         mp3_cover_frame_color_label.setFixedWidth(80)
         self.mp3_cover_frame_color_btn = QPushButton()
         self.mp3_cover_frame_color_btn.setFixedSize(27, 27)
-        self.mp3_cover_frame_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
-        self.mp3_cover_frame_color = (255, 255, 255)  # Default white
+        self.mp3_cover_frame_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+        self.mp3_cover_frame_color = (0, 0, 0)  # Default black
         def on_mp3_cover_frame_color_clicked():
             color = QColorDialog.getColor(QColor(*self.mp3_cover_frame_color), self, "Select MP3 Cover Frame Color")
             if color.isValid():
                 self.mp3_cover_frame_color = (color.red(), color.green(), color.blue())
-                self.mp3_cover_frame_color_btn.setStyleSheet(f"background-color: rgb{self.mp3_cover_frame_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                self.mp3_cover_frame_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
         self.mp3_cover_frame_color_btn.clicked.connect(on_mp3_cover_frame_color_clicked)
 
         # MP3 cover frame size dropdown
@@ -5801,7 +5804,7 @@ class SuperCutUI(QWidget):
                 self.mp3_cover_effect_combo.setStyleSheet("")
                 self.mp3_cover_duration_full_checkbox.setStyleSheet("")
                 self.mp3_cover_start_edit.setStyleSheet("")
-                self.mp3_cover_frame_color_btn.setStyleSheet(f"background-color: rgb{self.mp3_cover_frame_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                self.mp3_cover_frame_color_btn.setStyleSheet(f"background-color: rgb({self.mp3_cover_frame_color[0]}, {self.mp3_cover_frame_color[1]}, {self.mp3_cover_frame_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 self.mp3_cover_frame_size_combo.setStyleSheet("")
                 mp3_cover_size_label.setStyleSheet("")
                 mp3_cover_x_label.setStyleSheet("")
@@ -7086,7 +7089,7 @@ class SuperCutUI(QWidget):
                             caption_font_size = self.frame_box_caption_font_size if hasattr(self, 'frame_box_caption_font_size') else 24
                             caption_color = self.frame_box_caption_color if hasattr(self, 'frame_box_caption_color') else (255, 255, 255)
                             caption_effect = self.frame_box_caption_effect if hasattr(self, 'frame_box_caption_effect') else "none"
-                            caption_effect_color = self.frame_box_caption_effect_color if hasattr(self, 'frame_box_caption_effect_color') else (0, 0, 0)
+                            caption_effect_color = self.frame_box_caption_effect_color if hasattr(self, 'frame_box_caption_effect_color') else (255, 255, 255)
                             caption_effect_intensity = self.frame_box_caption_effect_intensity if hasattr(self, 'frame_box_caption_effect_intensity') else 5
                             
                             # Create 1st PNG (caption text)
@@ -7270,7 +7273,7 @@ class SuperCutUI(QWidget):
             mp3_cover_start_at=self.mp3_cover_start_at if hasattr(self, 'mp3_cover_start_at') else 0,
             mp3_cover_duration=self.mp3_cover_duration if hasattr(self, 'mp3_cover_duration') else 6,
             mp3_cover_duration_full_checkbox_checked=self.mp3_cover_duration_full_checkbox.isChecked() if hasattr(self, 'mp3_cover_duration_full_checkbox') else True,
-            mp3_cover_frame_color=self.mp3_cover_frame_color if hasattr(self, 'mp3_cover_frame_color') else (255, 255, 255),
+            mp3_cover_frame_color=self.mp3_cover_frame_color if hasattr(self, 'mp3_cover_frame_color') else (0, 0, 0),
             mp3_cover_frame_size=self.mp3_cover_frame_size if hasattr(self, 'mp3_cover_frame_size') else 10,
 
         )
