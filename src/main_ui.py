@@ -5931,21 +5931,65 @@ class SuperCutUI(QWidget):
         self.bg_crop_position_combo.currentIndexChanged.connect(on_bg_crop_position_changed)
         on_bg_crop_position_changed(self.bg_crop_position_combo.currentIndex())
 
+        # Background effect dropdown
+        bg_effect_label = QLabel("Effect:")
+        bg_effect_label.setFixedWidth(40)
+        self.bg_effect_combo = NoWheelComboBox()
+        self.bg_effect_combo.setFixedWidth(100)
+        bg_effects = [
+            ("None", "none"),
+            ("Gaussian Blur", "gaussian_blur"),
+            ("Sharpen", "sharpen"),
+            ("Vignette", "vignette")
+        ]
+        for label, value in bg_effects:
+            self.bg_effect_combo.addItem(label, value)
+        self.bg_effect_combo.setCurrentIndex(0)  # Default None
+        self.bg_effect = "none"
+        def on_bg_effect_changed(idx):
+            self.bg_effect = self.bg_effect_combo.itemData(idx)
+        self.bg_effect_combo.currentIndexChanged.connect(on_bg_effect_changed)
+        on_bg_effect_changed(self.bg_effect_combo.currentIndex())
+
+        # Background effect intensity dropdown (1-100)
+        bg_intensity_label = QLabel("Intensity:")
+        bg_intensity_label.setFixedWidth(50)
+        self.bg_intensity_combo = NoWheelComboBox()
+        self.bg_intensity_combo.setFixedWidth(60)
+        for intensity in range(1, 101):
+            self.bg_intensity_combo.addItem(str(intensity), intensity)
+        self.bg_intensity_combo.setCurrentIndex(49)  # Default 50
+        self.bg_intensity = 50
+        def on_bg_intensity_changed(idx):
+            self.bg_intensity = self.bg_intensity_combo.itemData(idx)
+        self.bg_intensity_combo.currentIndexChanged.connect(on_bg_intensity_changed)
+        on_bg_intensity_changed(self.bg_intensity_combo.currentIndex())
+
         def set_bg_layer_enabled(state):
             enabled = state == Qt.CheckState.Checked
             self.bg_scale_combo.setEnabled(enabled)
             self.bg_crop_position_combo.setEnabled(enabled)
+            self.bg_effect_combo.setEnabled(enabled)
+            self.bg_intensity_combo.setEnabled(enabled)
             if enabled:
                 self.bg_scale_combo.setStyleSheet("")
                 bg_scale_label.setStyleSheet("")
                 self.bg_crop_position_combo.setStyleSheet("")
                 bg_crop_position_label.setStyleSheet("")
+                self.bg_effect_combo.setStyleSheet("")
+                bg_effect_label.setStyleSheet("")
+                self.bg_intensity_combo.setStyleSheet("")
+                bg_intensity_label.setStyleSheet("")
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.bg_scale_combo.setStyleSheet(grey_btn_style)
                 bg_scale_label.setStyleSheet("color: grey;")
                 self.bg_crop_position_combo.setStyleSheet(grey_btn_style)
                 bg_crop_position_label.setStyleSheet("color: grey;")
+                self.bg_effect_combo.setStyleSheet(grey_btn_style)
+                bg_effect_label.setStyleSheet("color: grey;")
+                self.bg_intensity_combo.setStyleSheet(grey_btn_style)
+                bg_intensity_label.setStyleSheet("color: grey;")
         
         self.bg_layer_checkbox.stateChanged.connect(lambda _: set_bg_layer_enabled(self.bg_layer_checkbox.checkState()))
 
@@ -5958,6 +6002,12 @@ class SuperCutUI(QWidget):
         bg_layer_layout.addSpacing(4)
         bg_layer_layout.addWidget(bg_crop_position_label)
         bg_layer_layout.addWidget(self.bg_crop_position_combo)
+        bg_layer_layout.addSpacing(4)
+        bg_layer_layout.addWidget(bg_effect_label)
+        bg_layer_layout.addWidget(self.bg_effect_combo)
+        bg_layer_layout.addSpacing(4)
+        bg_layer_layout.addWidget(bg_intensity_label)
+        bg_layer_layout.addWidget(self.bg_intensity_combo)
         bg_layer_layout.addStretch()
         layout.addLayout(bg_layer_layout)
 
@@ -6555,7 +6605,7 @@ class SuperCutUI(QWidget):
             self.frame_mp3cover_duration_full_checkbox,
             
             # Background layer controls
-            self.bg_layer_checkbox, self.bg_scale_combo, self.bg_crop_position_combo,
+            self.bg_layer_checkbox, self.bg_scale_combo, self.bg_crop_position_combo, self.bg_effect_combo, self.bg_intensity_combo,
             
             # Intro controls
             self.intro_checkbox, self.intro_edit, self.intro_duration_edit,
@@ -7365,6 +7415,9 @@ class SuperCutUI(QWidget):
             use_bg_layer=self.bg_layer_checkbox.isChecked() if hasattr(self, 'bg_layer_checkbox') else False,
             bg_scale_percent=self.bg_scale_percent if hasattr(self, 'bg_scale_percent') else 103,
             bg_crop_position=self.bg_crop_position if hasattr(self, 'bg_crop_position') else "center",
+            bg_effect=self.bg_effect if hasattr(self, 'bg_effect') else "none",
+            bg_intensity=self.bg_intensity if hasattr(self, 'bg_intensity') else 50,
+
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)

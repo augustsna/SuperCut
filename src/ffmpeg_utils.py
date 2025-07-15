@@ -213,7 +213,9 @@ def create_video_with_ffmpeg(
     # --- Add background layer parameters ---
     use_bg_layer: bool = False,
     bg_scale_percent: int = 103,
-    bg_crop_position: str = "center"
+    bg_crop_position: str = "center",
+    bg_effect: str = "none",
+    bg_intensity: int = 50
 ) -> Tuple[bool, Optional[str]]:
     temp_png_path = None
     try:
@@ -530,7 +532,21 @@ def create_video_with_ffmpeg(
             else:
                 crop_x = f"(in_w-out_w)/2"
                 crop_y = f"(in_h-out_h)/2"
-            filter_bg = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}:{crop_x}:{crop_y}[bg]"
+            # Apply background effects if enabled
+            effect_filter = ""
+            if use_bg_layer and bg_effect != "none":
+                intensity_factor = bg_intensity / 100.0
+                if bg_effect == "gaussian_blur":
+                    sigma = intensity_factor * 10  # 0-10 range
+                    effect_filter = f",gblur=sigma={sigma:.2f}"
+                elif bg_effect == "sharpen":
+                    amount = intensity_factor * 2  # 0-2 range
+                    effect_filter = f",unsharp=3:3:1.5:3:3:{amount:.2f}"
+                elif bg_effect == "vignette":
+                    # Use simple vignette intensity
+                    effect_filter = f",vignette={intensity_factor:.2f}"
+            
+            filter_bg = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}:{crop_x}:{crop_y}{effect_filter}[bg]"
 
             # Effect logic for overlays
             def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext, duration=None):
@@ -929,7 +945,21 @@ def create_video_with_ffmpeg(
             else:
                 crop_x = f"(in_w-out_w)/2"
                 crop_y = f"(in_h-out_h)/2"
-            filter_graph = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}:{crop_x}:{crop_y},format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            # Apply background effects if enabled
+            effect_filter = ""
+            if use_bg_layer and bg_effect != "none":
+                intensity_factor = bg_intensity / 100.0
+                if bg_effect == "gaussian_blur":
+                    sigma = intensity_factor * 10  # 0-10 range
+                    effect_filter = f",gblur=sigma={sigma:.2f}"
+                elif bg_effect == "sharpen":
+                    amount = intensity_factor * 2  # 0-2 range
+                    effect_filter = f",unsharp=3:3:1.5:3:3:{amount:.2f}"
+                elif bg_effect == "vignette":
+                    # Use simple vignette intensity
+                    effect_filter = f",vignette={intensity_factor:.2f}"
+            
+            filter_graph = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}:{crop_x}:{crop_y}{effect_filter},format={VIDEO_SETTINGS['pixel_format']}[vout]"
         cmd.extend(["-filter_complex", filter_graph, "-map", "[vout]", "-map", "1:a"])
 
         cmd.extend(["-c:v", codec, "-preset", preset])       
