@@ -4742,10 +4742,39 @@ class SuperCutUI(QWidget):
         # Place directly below frame box effect UI
         layout.addWidget(self.frame_box_caption_checkbox)
 
-        # --- Frame Box Caption Options (PNG file or text caption) ---
-        frame_box_caption_layout = QHBoxLayout()
-        frame_box_caption_layout.setContentsMargins(0, 0, 0, 0)
-        frame_box_caption_layout.setSpacing(4)
+        # --- Frame Box Caption Position Selection ---
+        frame_box_caption_position_layout = QHBoxLayout()
+        frame_box_caption_position_layout.setContentsMargins(0, 0, 0, 0)
+        frame_box_caption_position_layout.setSpacing(4)
+        
+        # Caption position selection
+        caption_position_label = QLabel("Position:")
+        caption_position_label.setFixedWidth(50)
+        self.frame_box_caption_position_combo = NoWheelComboBox()
+        self.frame_box_caption_position_combo.setFixedWidth(100)
+        self.frame_box_caption_position_combo.addItem("Bottom Center", "bottom_center")
+        self.frame_box_caption_position_combo.addItem("Bottom Left", "bottom_left")
+        self.frame_box_caption_position_combo.addItem("Bottom Right", "bottom_right")
+        self.frame_box_caption_position_combo.addItem("Top Center", "top_center")
+        self.frame_box_caption_position_combo.addItem("Top Left", "top_left")
+        self.frame_box_caption_position_combo.addItem("Top Right", "top_right")
+        self.frame_box_caption_position = "bottom_center"
+        
+        def on_frame_box_caption_position_changed(idx):
+            self.frame_box_caption_position = self.frame_box_caption_position_combo.itemData(idx)
+        
+        self.frame_box_caption_position_combo.currentIndexChanged.connect(on_frame_box_caption_position_changed)
+        
+        # Add position control to layout
+        frame_box_caption_position_layout.addWidget(caption_position_label)
+        frame_box_caption_position_layout.addWidget(self.frame_box_caption_position_combo)
+        frame_box_caption_position_layout.addStretch()
+        layout.addLayout(frame_box_caption_position_layout)
+
+        # --- Frame Box Caption Type Selection ---
+        frame_box_caption_type_layout = QHBoxLayout()
+        frame_box_caption_type_layout.setContentsMargins(0, 0, 0, 0)
+        frame_box_caption_type_layout.setSpacing(4)
         
         # Caption type selection
         caption_type_label = QLabel("Type:")
@@ -4762,6 +4791,17 @@ class SuperCutUI(QWidget):
             update_caption_controls_state()
         
         self.frame_box_caption_type_combo.currentIndexChanged.connect(on_frame_box_caption_type_changed)
+        
+        # Add type control to layout
+        frame_box_caption_type_layout.addWidget(caption_type_label)
+        frame_box_caption_type_layout.addWidget(self.frame_box_caption_type_combo)
+        frame_box_caption_type_layout.addStretch()
+        layout.addLayout(frame_box_caption_type_layout)
+
+        # --- Frame Box Caption Input Options (PNG file or text caption) ---
+        frame_box_caption_layout = QHBoxLayout()
+        frame_box_caption_layout.setContentsMargins(0, 0, 0, 0)
+        frame_box_caption_layout.setSpacing(4)
         
         # Text caption input
         caption_text_label = QLabel("Text:")
@@ -4964,7 +5004,9 @@ class SuperCutUI(QWidget):
             
             # Enable/disable caption controls
             self.frame_box_caption_type_combo.setEnabled(both_enabled)
+            self.frame_box_caption_position_combo.setEnabled(both_enabled)
             caption_type_label.setEnabled(both_enabled)
+            caption_position_label.setEnabled(both_enabled)
             caption_text_label.setEnabled(both_enabled)
             caption_png_label.setEnabled(both_enabled)
             
@@ -5032,7 +5074,9 @@ class SuperCutUI(QWidget):
             if both_enabled:
                 # Caption controls are enabled
                 self.frame_box_caption_type_combo.setStyleSheet("")
+                self.frame_box_caption_position_combo.setStyleSheet("")
                 caption_type_label.setStyleSheet("")
+                caption_position_label.setStyleSheet("")
                 caption_text_label.setStyleSheet("")
                 caption_png_label.setStyleSheet("")
                 
@@ -5086,7 +5130,9 @@ class SuperCutUI(QWidget):
                 # Caption controls are disabled
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.frame_box_caption_type_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_position_combo.setStyleSheet(grey_btn_style)
                 caption_type_label.setStyleSheet("color: grey;")
+                caption_position_label.setStyleSheet("color: grey;")
                 caption_text_label.setStyleSheet("color: grey;")
                 caption_png_label.setStyleSheet("color: grey;")
                 self.frame_box_caption_text_edit.setStyleSheet(grey_btn_style)
