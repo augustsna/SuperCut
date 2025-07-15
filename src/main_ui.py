@@ -872,16 +872,16 @@ class SuperCutUI(QWidget):
         self.setWindowTitle(WINDOW_TITLE)
         
         # Load saved window size or use defaults
-        saved_width = self.settings.value('default_window_width', 666, type=int)
+        saved_width = self.settings.value('default_window_width', 800, type=int)
         saved_height = self.settings.value('default_window_height', WINDOW_SIZE[1], type=int)
         
         # Use saved values directly, but ensure they're reasonable
         width = max(saved_width, 400)  # Minimum reasonable width
-        width = min(width, 720)  # Maximum width constraint
+        width = min(width, 800)  # Maximum width constraint
         height = max(saved_height, 400)  # Minimum reasonable height
         
         self.setMinimumSize(400, 400)  # Set a reasonable minimum size
-        self.setMaximumWidth(720)  # Set maximum width to 686px
+        self.setMaximumWidth(800)  # Set maximum width to 800px
         self.resize(width, height)  # Set initial size from settings
         self.setStyleSheet(STYLE_SHEET)
         
@@ -4731,7 +4731,12 @@ class SuperCutUI(QWidget):
         frame_box_effect_layout.addStretch()
         layout.addLayout(frame_box_effect_layout)
 
-        # --- Frame Box Caption Checkbox ---
+        # --- Frame Box Caption Checkbox and Position Selection ---
+        frame_box_caption_header_layout = QHBoxLayout()
+        frame_box_caption_header_layout.setContentsMargins(0, 0, 0, 0)
+        frame_box_caption_header_layout.setSpacing(4)
+        
+        # Frame Box Caption Checkbox
         self.frame_box_caption_checkbox = QtWidgets.QCheckBox("Frame Box Caption:")
         self.frame_box_caption_checkbox.setFixedWidth(140)
         self.frame_box_caption_checkbox.setChecked(False)
@@ -4739,13 +4744,6 @@ class SuperCutUI(QWidget):
             self.frame_box_caption_checkbox.setStyleSheet("")  # Always default color
         self.frame_box_caption_checkbox.stateChanged.connect(update_frame_box_caption_checkbox_style)
         update_frame_box_caption_checkbox_style(self.frame_box_caption_checkbox.checkState())
-        # Place directly below frame box effect UI
-        layout.addWidget(self.frame_box_caption_checkbox)
-
-        # --- Frame Box Caption Position Selection ---
-        frame_box_caption_position_layout = QHBoxLayout()
-        frame_box_caption_position_layout.setContentsMargins(0, 0, 0, 0)
-        frame_box_caption_position_layout.setSpacing(4)
         
         # Caption position selection
         caption_position_label = QLabel("Position:")
@@ -4765,22 +4763,11 @@ class SuperCutUI(QWidget):
         
         self.frame_box_caption_position_combo.currentIndexChanged.connect(on_frame_box_caption_position_changed)
         
-        # Add position control to layout
-        frame_box_caption_position_layout.addWidget(caption_position_label)
-        frame_box_caption_position_layout.addWidget(self.frame_box_caption_position_combo)
-        frame_box_caption_position_layout.addStretch()
-        layout.addLayout(frame_box_caption_position_layout)
-
-        # --- Frame Box Caption Type Selection ---
-        frame_box_caption_type_layout = QHBoxLayout()
-        frame_box_caption_type_layout.setContentsMargins(0, 0, 0, 0)
-        frame_box_caption_type_layout.setSpacing(4)
-        
         # Caption type selection
         caption_type_label = QLabel("Type:")
-        caption_type_label.setFixedWidth(35)
+        caption_type_label.setFixedWidth(30)
         self.frame_box_caption_type_combo = NoWheelComboBox()
-        self.frame_box_caption_type_combo.setFixedWidth(80)
+        self.frame_box_caption_type_combo.setFixedWidth(70)
         self.frame_box_caption_type_combo.addItem("Text", "text")
         self.frame_box_caption_type_combo.addItem("PNG File", "png")
         self.frame_box_caption_type = "text"
@@ -4792,22 +4779,11 @@ class SuperCutUI(QWidget):
         
         self.frame_box_caption_type_combo.currentIndexChanged.connect(on_frame_box_caption_type_changed)
         
-        # Add type control to layout
-        frame_box_caption_type_layout.addWidget(caption_type_label)
-        frame_box_caption_type_layout.addWidget(self.frame_box_caption_type_combo)
-        frame_box_caption_type_layout.addStretch()
-        layout.addLayout(frame_box_caption_type_layout)
-
-        # --- Frame Box Caption Input Options (PNG file or text caption) ---
-        frame_box_caption_layout = QHBoxLayout()
-        frame_box_caption_layout.setContentsMargins(0, 0, 0, 0)
-        frame_box_caption_layout.setSpacing(4)
-        
         # Text caption input
         caption_text_label = QLabel("Text:")
-        caption_text_label.setFixedWidth(35)
+        caption_text_label.setFixedWidth(30)
         self.frame_box_caption_text_edit = QLineEdit()
-        self.frame_box_caption_text_edit.setFixedWidth(200)
+        self.frame_box_caption_text_edit.setFixedWidth(120)
         self.frame_box_caption_text_edit.setText("Frame Box Caption")
         self.frame_box_caption_text = "Frame Box Caption"
         
@@ -4815,6 +4791,45 @@ class SuperCutUI(QWidget):
             self.frame_box_caption_text = self.frame_box_caption_text_edit.text()
         
         self.frame_box_caption_text_edit.textChanged.connect(on_frame_box_caption_text_changed)
+        
+        # PNG file input
+        caption_png_label = QLabel("PNG:")
+        caption_png_label.setFixedWidth(30)
+        self.frame_box_caption_png_edit = ImageDropLineEdit()
+        self.frame_box_caption_png_edit.setFixedWidth(120)
+        self.frame_box_caption_png_edit.setPlaceholderText("Select PNG file...")
+        self.frame_box_caption_png_path = None
+        
+        def select_frame_box_caption_png():
+            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self, "Select PNG File", "", "PNG Files (*.png)"
+            )
+            if file_path:
+                self.frame_box_caption_png_edit.setText(file_path)
+                self.frame_box_caption_png_path = file_path
+        
+        self.frame_box_caption_png_btn = QPushButton("Browse")
+        self.frame_box_caption_png_btn.setFixedWidth(50)
+        self.frame_box_caption_png_btn.clicked.connect(select_frame_box_caption_png)
+        
+        def on_frame_box_caption_png_changed():
+            self.frame_box_caption_png_path = self.frame_box_caption_png_edit.text()
+        
+        self.frame_box_caption_png_edit.textChanged.connect(on_frame_box_caption_png_changed)
+        
+        # Add all controls to the same horizontal layout
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_checkbox)
+        frame_box_caption_header_layout.addWidget(caption_position_label)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_position_combo)
+        frame_box_caption_header_layout.addWidget(caption_type_label)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_type_combo)
+        frame_box_caption_header_layout.addWidget(caption_text_label)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_text_edit)
+        frame_box_caption_header_layout.addWidget(caption_png_label)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_edit)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_btn)
+        frame_box_caption_header_layout.addStretch()
+        layout.addLayout(frame_box_caption_header_layout)
         
         # Text styling controls (second line)
         frame_box_caption_styling_layout = QHBoxLayout()
@@ -4955,42 +4970,6 @@ class SuperCutUI(QWidget):
         
         # Initialize effect controls state
         on_frame_box_caption_effect_changed(0)  # Default to "none"
-        
-        # PNG file input
-        caption_png_label = QLabel("PNG:")
-        caption_png_label.setFixedWidth(35)
-        self.frame_box_caption_png_edit = ImageDropLineEdit()
-        self.frame_box_caption_png_edit.setFixedWidth(200)
-        self.frame_box_caption_png_edit.setPlaceholderText("Select PNG file...")
-        self.frame_box_caption_png_path = None
-        
-        def select_frame_box_caption_png():
-            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-                self, "Select PNG File", "", "PNG Files (*.png)"
-            )
-            if file_path:
-                self.frame_box_caption_png_edit.setText(file_path)
-                self.frame_box_caption_png_path = file_path
-        
-        self.frame_box_caption_png_btn = QPushButton("Browse")
-        self.frame_box_caption_png_btn.setFixedWidth(60)
-        self.frame_box_caption_png_btn.clicked.connect(select_frame_box_caption_png)
-        
-        def on_frame_box_caption_png_changed():
-            self.frame_box_caption_png_path = self.frame_box_caption_png_edit.text()
-        
-        self.frame_box_caption_png_edit.textChanged.connect(on_frame_box_caption_png_changed)
-        
-        # Add controls to layout
-        frame_box_caption_layout.addWidget(caption_type_label)
-        frame_box_caption_layout.addWidget(self.frame_box_caption_type_combo)
-        frame_box_caption_layout.addWidget(caption_text_label)
-        frame_box_caption_layout.addWidget(self.frame_box_caption_text_edit)
-        frame_box_caption_layout.addWidget(caption_png_label)
-        frame_box_caption_layout.addWidget(self.frame_box_caption_png_edit)
-        frame_box_caption_layout.addWidget(self.frame_box_caption_png_btn)
-        frame_box_caption_layout.addStretch()
-        layout.addLayout(frame_box_caption_layout)
         
         # Add styling controls layout
         layout.addLayout(frame_box_caption_styling_layout)
