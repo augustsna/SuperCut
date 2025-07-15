@@ -4893,6 +4893,8 @@ class SuperCutUI(QWidget):
         self.frame_box_caption_effect_combo.setFixedWidth(80)
         self.frame_box_caption_effect_combo.addItem("None", "none")
         self.frame_box_caption_effect_combo.addItem("Outline", "outline")
+        self.frame_box_caption_effect_combo.addItem("Outward Stroke", "outward_stroke")
+        self.frame_box_caption_effect_combo.addItem("Inward Stroke", "inward_stroke")
         self.frame_box_caption_effect_combo.addItem("Shadow", "shadow")
         self.frame_box_caption_effect_combo.addItem("Glow", "glow")
         self.frame_box_caption_effect = "none"
