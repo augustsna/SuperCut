@@ -5001,9 +5001,12 @@ class SuperCutUI(QWidget):
             # Set input states based on PNG checkbox state
             if both_enabled:
                 if not self.frame_box_caption_png_checkbox.isChecked():  # Text mode
-                    self.frame_box_caption_text_edit.setEnabled(True)
-                    self.frame_box_caption_png_edit.setEnabled(False)
-                    self.frame_box_caption_png_btn.setEnabled(False)
+                    if hasattr(self, 'frame_box_caption_text_edit'):
+                        self.frame_box_caption_text_edit.setEnabled(True)
+                    if hasattr(self, 'frame_box_caption_png_edit'):
+                        self.frame_box_caption_png_edit.setEnabled(False)
+                    if hasattr(self, 'frame_box_caption_png_btn'):
+                        self.frame_box_caption_png_btn.setEnabled(False)
                     
                     # Enable text styling controls
                     self.frame_box_caption_font_combo.setEnabled(True)
@@ -5022,9 +5025,12 @@ class SuperCutUI(QWidget):
                     caption_effect_color_label.setEnabled(effect_enabled)
                     caption_effect_intensity_label.setEnabled(effect_enabled)
                 else:  # PNG mode
-                    self.frame_box_caption_text_edit.setEnabled(False)
-                    self.frame_box_caption_png_edit.setEnabled(True)
-                    self.frame_box_caption_png_btn.setEnabled(True)
+                    if hasattr(self, 'frame_box_caption_text_edit'):
+                        self.frame_box_caption_text_edit.setEnabled(False)
+                    if hasattr(self, 'frame_box_caption_png_edit'):
+                        self.frame_box_caption_png_edit.setEnabled(True)
+                    if hasattr(self, 'frame_box_caption_png_btn'):
+                        self.frame_box_caption_png_btn.setEnabled(True)
                     
                     # Disable text styling controls for PNG mode
                     self.frame_box_caption_font_combo.setEnabled(False)
@@ -5040,9 +5046,12 @@ class SuperCutUI(QWidget):
                     caption_effect_color_label.setEnabled(False)
                     caption_effect_intensity_label.setEnabled(False)
             else:
-                self.frame_box_caption_text_edit.setEnabled(False)
-                self.frame_box_caption_png_edit.setEnabled(False)
-                self.frame_box_caption_png_btn.setEnabled(False)
+                if hasattr(self, 'frame_box_caption_text_edit'):
+                    self.frame_box_caption_text_edit.setEnabled(False)
+                if hasattr(self, 'frame_box_caption_png_edit'):
+                    self.frame_box_caption_png_edit.setEnabled(False)
+                if hasattr(self, 'frame_box_caption_png_btn'):
+                    self.frame_box_caption_png_btn.setEnabled(False)
                 
                 # Disable all styling controls
                 self.frame_box_caption_font_combo.setEnabled(False)
@@ -5069,9 +5078,12 @@ class SuperCutUI(QWidget):
                 caption_png_label.setStyleSheet("")
                 
                 if not self.frame_box_caption_png_checkbox.isChecked():  # Text mode
-                    self.frame_box_caption_text_edit.setStyleSheet("")
-                    self.frame_box_caption_png_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                    self.frame_box_caption_png_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    if hasattr(self, 'frame_box_caption_text_edit'):
+                        self.frame_box_caption_text_edit.setStyleSheet("")
+                    if hasattr(self, 'frame_box_caption_png_edit'):
+                        self.frame_box_caption_png_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    if hasattr(self, 'frame_box_caption_png_btn'):
+                        self.frame_box_caption_png_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                     
                     # Text styling controls enabled
                     self.frame_box_caption_font_combo.setStyleSheet("")
@@ -5096,9 +5108,12 @@ class SuperCutUI(QWidget):
                         caption_effect_color_label.setStyleSheet("color: grey;")
                         caption_effect_intensity_label.setStyleSheet("color: grey;")
                 else:  # PNG mode
-                    self.frame_box_caption_text_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                    self.frame_box_caption_png_edit.setStyleSheet("")
-                    self.frame_box_caption_png_btn.setStyleSheet("")
+                    if hasattr(self, 'frame_box_caption_text_edit'):
+                        self.frame_box_caption_text_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    if hasattr(self, 'frame_box_caption_png_edit'):
+                        self.frame_box_caption_png_edit.setStyleSheet("")
+                    if hasattr(self, 'frame_box_caption_png_btn'):
+                        self.frame_box_caption_png_btn.setStyleSheet("")
                     
                     # Text styling controls disabled for PNG mode
                     grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
@@ -5123,9 +5138,12 @@ class SuperCutUI(QWidget):
                 caption_position_label.setStyleSheet("color: grey;")
                 caption_text_label.setStyleSheet("color: grey;")
                 caption_png_label.setStyleSheet("color: grey;")
-                self.frame_box_caption_text_edit.setStyleSheet(grey_btn_style)
-                self.frame_box_caption_png_edit.setStyleSheet(grey_btn_style)
-                self.frame_box_caption_png_btn.setStyleSheet(grey_btn_style)
+                if hasattr(self, 'frame_box_caption_text_edit'):
+                    self.frame_box_caption_text_edit.setStyleSheet(grey_btn_style)
+                if hasattr(self, 'frame_box_caption_png_edit'):
+                    self.frame_box_caption_png_edit.setStyleSheet(grey_btn_style)
+                if hasattr(self, 'frame_box_caption_png_btn'):
+                    self.frame_box_caption_png_btn.setStyleSheet(grey_btn_style)
                 
                 # All styling controls disabled
                 self.frame_box_caption_font_combo.setStyleSheet(grey_btn_style)
@@ -5996,6 +6014,30 @@ class SuperCutUI(QWidget):
             if not overlay10_path or not os.path.isfile(overlay10_path) or os.path.splitext(overlay10_path)[1].lower() not in ['.gif', '.png']:
                 QMessageBox.warning(self, "⚠️ Overlay 10 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 10.", QMessageBox.StandardButton.Ok)
                 return
+        
+        # --- Frame Box Caption validation ---
+        if hasattr(self, 'frame_box_checkbox') and self.frame_box_checkbox.isChecked():
+            if hasattr(self, 'frame_box_caption_checkbox') and self.frame_box_caption_checkbox.isChecked():
+                # Check if PNG mode is selected
+                if hasattr(self, 'frame_box_caption_png_checkbox') and self.frame_box_caption_png_checkbox.isChecked():
+                    # PNG mode validation
+                    if hasattr(self, 'frame_box_caption_png_path') and self.frame_box_caption_png_path:
+                        if not os.path.isfile(self.frame_box_caption_png_path) or os.path.splitext(self.frame_box_caption_png_path)[1].lower() != '.png':
+                            QMessageBox.warning(self, "⚠️ Frame Box Caption PNG Required", "Please provide a valid PNG file (*.png) for Frame Box Caption.", QMessageBox.StandardButton.Ok)
+                            return
+                    else:
+                        QMessageBox.warning(self, "⚠️ Frame Box Caption PNG Required", "Please select a PNG file for Frame Box Caption.", QMessageBox.StandardButton.Ok)
+                        return
+                else:
+                    # Text mode validation
+                    if hasattr(self, 'frame_box_caption_text') and self.frame_box_caption_text:
+                        caption_text = self.frame_box_caption_text.strip()
+                        if not caption_text:
+                            QMessageBox.warning(self, "⚠️ Frame Box Caption Text Required", "Please enter text for Frame Box Caption.", QMessageBox.StandardButton.Ok)
+                            return
+                    else:
+                        QMessageBox.warning(self, "⚠️ Frame Box Caption Text Required", "Please enter text for Frame Box Caption.", QMessageBox.StandardButton.Ok)
+                        return
             
         # --- Name list validation ---
         use_name_list = hasattr(self, 'name_list_checkbox') and self.name_list_checkbox.isChecked()
