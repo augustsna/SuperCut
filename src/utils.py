@@ -279,11 +279,18 @@ def create_song_title_png(title, output_path, width=400, height=40, font_size=12
             font_path = os.path.join(PROJECT_ROOT, "src", "sources", "font", font_name)
             if os.path.exists(font_path):
                 font = ImageFont.truetype(font_path, font_size)
+            else:
+                logger.warning(f"Font file not found: {font_path}")
         except Exception as e:
             logger.warning(f"Failed to load custom font {font_name}: {e}")
     if font is None:
         try:
-            font = ImageFont.truetype("arial.ttf", font_size)
+            # Try to use KantumruyPro as fallback for better Khmer support
+            fallback_font_path = os.path.join(PROJECT_ROOT, "src", "sources", "font", "KantumruyPro-VariableFont_wght.ttf")
+            if os.path.exists(fallback_font_path):
+                font = ImageFont.truetype(fallback_font_path, font_size)
+            else:
+                font = ImageFont.truetype("arial.ttf", font_size)
         except Exception:
             font = ImageFont.load_default()
     # Calculate text position (centered in the original area, not including padding)
@@ -347,4 +354,70 @@ def create_song_title_png(title, output_path, width=400, height=40, font_size=12
     img.save(output_path, 'PNG')
 
 # Register cleanup function to run at exit
-atexit.register(cleanup_temp_files) 
+atexit.register(cleanup_temp_files)
+
+def merge_images_with_position(background_path, overlay_path, output_path, position="bottom_center", overlay_size_percent=100):
+    """
+    Merge two images with the overlay positioned according to the position parameter.
+    
+    Args:
+        background_path (str): Path to the background image
+        overlay_path (str): Path to the overlay image
+        output_path (str): Path where the merged image will be saved
+        position (str): Position of overlay ("bottom_center", "bottom_left", "bottom_right", "top_center", "top_left", "top_right")
+        overlay_size_percent (int): Size of overlay as percentage of background (1-100)
+    """
+    from PIL import Image
+    
+    # Open images
+    with Image.open(background_path) as bg_img:
+        with Image.open(overlay_path) as overlay_img:
+            # Convert to RGBA if needed
+            if bg_img.mode != 'RGBA':
+                bg_img = bg_img.convert('RGBA')
+            if overlay_img.mode != 'RGBA':
+                overlay_img = overlay_img.convert('RGBA')
+            
+            bg_width, bg_height = bg_img.size
+            overlay_width, overlay_height = overlay_img.size
+            
+            # Resize overlay based on percentage
+            if overlay_size_percent != 100:
+                new_width = int(overlay_width * overlay_size_percent / 100)
+                new_height = int(overlay_height * overlay_size_percent / 100)
+                overlay_img = overlay_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                overlay_width, overlay_height = overlay_img.size
+            
+            # Calculate position with 10px spacing from edges to avoid cutoff
+            spacing = 10
+            if position == "bottom_center":
+                x = (bg_width - overlay_width) // 2
+                y = bg_height - overlay_height - spacing
+            elif position == "bottom_left":
+                x = spacing
+                y = bg_height - overlay_height - spacing
+            elif position == "bottom_right":
+                x = bg_width - overlay_width - spacing
+                y = bg_height - overlay_height - spacing
+            elif position == "top_center":
+                x = (bg_width - overlay_width) // 2
+                y = spacing
+            elif position == "top_left":
+                x = spacing
+                y = spacing
+            elif position == "top_right":
+                x = bg_width - overlay_width - spacing
+                y = spacing
+            else:  # Default to bottom_center
+                x = (bg_width - overlay_width) // 2
+                y = bg_height - overlay_height - spacing
+            
+            # Create new image with background
+            result = Image.new('RGBA', (bg_width, bg_height), (0, 0, 0, 0))
+            result.paste(bg_img, (0, 0))
+            
+            # Paste overlay at calculated position
+            result.paste(overlay_img, (x, y), overlay_img)
+            
+            # Save result
+            result.save(output_path, 'PNG') 

@@ -4819,7 +4819,7 @@ class SuperCutUI(QWidget):
         
         # Add all controls to the same horizontal layout
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_checkbox)
-        frame_box_caption_header_layout.addWidget(caption_position_label)
+        #frame_box_caption_header_layout.addWidget(caption_position_label)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_position_combo)
         frame_box_caption_header_layout.addWidget(caption_type_label)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_type_combo)
@@ -4841,13 +4841,11 @@ class SuperCutUI(QWidget):
         caption_font_label.setFixedWidth(35)
         self.frame_box_caption_font_combo = NoWheelComboBox()
         self.frame_box_caption_font_combo.setFixedWidth(120)
-        self.frame_box_caption_font_combo.addItem("Default", "default")
-        self.frame_box_caption_font_combo.addItem("Arial", "arial")
-        self.frame_box_caption_font_combo.addItem("Times New Roman", "times")
-        self.frame_box_caption_font_combo.addItem("Courier New", "courier")
-        self.frame_box_caption_font_combo.addItem("Verdana", "verdana")
-        self.frame_box_caption_font_combo.addItem("Georgia", "georgia")
-        self.frame_box_caption_font = "default"
+        self.frame_box_caption_font_combo.addItem("KantumruyPro", "KantumruyPro-VariableFont_wght.ttf")
+        self.frame_box_caption_font_combo.addItem("KantumruyPro Italic", "KantumruyPro-Italic-VariableFont_wght.ttf")
+        self.frame_box_caption_font_combo.addItem("Roboto", "Roboto-VariableFont_wdth,wght.ttf")
+        self.frame_box_caption_font_combo.addItem("Roboto Italic", "Roboto-Italic-VariableFont_wdth,wght.ttf")
+        self.frame_box_caption_font = "KantumruyPro-VariableFont_wght.ttf"
         
         def on_frame_box_caption_font_changed(idx):
             self.frame_box_caption_font = self.frame_box_caption_font_combo.itemData(idx)
@@ -4859,10 +4857,10 @@ class SuperCutUI(QWidget):
         caption_font_size_label.setFixedWidth(35)
         self.frame_box_caption_font_size_combo = NoWheelComboBox()
         self.frame_box_caption_font_size_combo.setFixedWidth(60)
-        for size in range(12, 73, 2):
+        for size in range(48, 221, 4):
             self.frame_box_caption_font_size_combo.addItem(f"{size}", size)
-        self.frame_box_caption_font_size_combo.setCurrentIndex(6)  # Default 24
-        self.frame_box_caption_font_size = 24
+        self.frame_box_caption_font_size_combo.setCurrentIndex(6)  # Default 72
+        self.frame_box_caption_font_size = 72
         
         def on_frame_box_caption_font_size_changed(idx):
             self.frame_box_caption_font_size = self.frame_box_caption_font_size_combo.itemData(idx)
@@ -5138,38 +5136,10 @@ class SuperCutUI(QWidget):
         # Initial state
         update_caption_controls_state()
 
-        # --- Create PNG when frame box caption is checked ---
+        # --- Frame box caption checkbox handler ---
         def on_frame_box_caption_checked(state):
-            if state == Qt.CheckState.Checked:
-                # Update caption controls state
-                update_caption_controls_state()
-                
-                # Create initial PNG if needed
-                if self.frame_box_caption_type == "text":
-                    from src.utils import create_temp_file, create_song_title_png
-                    import os
-                    temp_png_path = create_temp_file(suffix="_framebox_caption.png", prefix="supercut_")
-                    create_song_title_png(
-                        self.frame_box_caption_text,
-                        temp_png_path,
-                        width=400,
-                        height=40,
-                        font_size=24,
-                        font_name="default",
-                        color=(255, 255, 255),
-                        bg="black",
-                        bg_color=(0, 0, 0),
-                        opacity=1.0,
-                        text_effect="none"
-                    )
-                    print(f"Frame box caption PNG created at: {temp_png_path}")
-                    self.frame_box_caption_png_path = temp_png_path
-            else:
-                # Update caption controls state
-                update_caption_controls_state()
-                
-                # Clear the stored path
-                self.frame_box_caption_png_path = None
+            # Update caption controls state
+            update_caption_controls_state()
         self.frame_box_caption_checkbox.stateChanged.connect(on_frame_box_caption_checked)
 
         # --- Frame Box Color Picker and Opacity Control (same line) ---
@@ -5251,14 +5221,14 @@ class SuperCutUI(QWidget):
             self.frame_box_pad_right_combo.addItem(f"{px}px", px)
             self.frame_box_pad_top_combo.addItem(f"{px}px", px)
             self.frame_box_pad_bottom_combo.addItem(f"{px}px", px)
-        self.frame_box_pad_left_combo.setCurrentIndex(6)   # 12px
-        self.frame_box_pad_right_combo.setCurrentIndex(6)  # 12px
-        self.frame_box_pad_top_combo.setCurrentIndex(6)    # 12px
-        self.frame_box_pad_bottom_combo.setCurrentIndex(6) # 12px
+        self.frame_box_pad_left_combo.setCurrentIndex(12)   # 12px
+        self.frame_box_pad_right_combo.setCurrentIndex(12)  # 12px
+        self.frame_box_pad_top_combo.setCurrentIndex(12)    # 12px
+        self.frame_box_pad_bottom_combo.setCurrentIndex(48) # 48px
         self.frame_box_pad_left = 12
         self.frame_box_pad_right = 12
         self.frame_box_pad_top = 12
-        self.frame_box_pad_bottom = 12
+        self.frame_box_pad_bottom = 48
         def on_frame_box_pad_left_changed(idx):
             self.frame_box_pad_left = self.frame_box_pad_left_combo.itemData(idx)
         def on_frame_box_pad_right_changed(idx):
@@ -6371,62 +6341,122 @@ class SuperCutUI(QWidget):
         use_frame_box = self.frame_box_checkbox.isChecked()
         frame_box_path = None
         if use_frame_box:
-            if hasattr(self, 'frame_box_caption_checkbox') and self.frame_box_caption_checkbox.isChecked():
-                # If caption is checked, use the caption PNG (existing logic)
-                frame_box_path = self.frame_box_caption_png_path
-            else:
-                # If caption is unchecked, crop main image to square and add 12px padding
-                from src.utils import create_temp_file
-                from PIL import Image
-                import os
-                # Use the first image from original_image_files as the main image
-                if original_image_files:
-                    main_img_path = list(original_image_files)[0]
-                    with Image.open(main_img_path) as img:
-                        w, h = img.size
-                        # Crop to square using height, center horizontally
-                        left = (w - h) // 2 if w > h else 0
-                        upper = 0
-                        right = left + h if w > h else w
-                        lower = h
-                        square = img.crop((left, upper, right, lower))
-                        # Add padding using individual padding values
-                        pad_left = self.frame_box_pad_left if hasattr(self, 'frame_box_pad_left') else 12
-                        pad_right = self.frame_box_pad_right if hasattr(self, 'frame_box_pad_right') else 12
-                        pad_top = self.frame_box_pad_top if hasattr(self, 'frame_box_pad_top') else 12
-                        pad_bottom = self.frame_box_pad_bottom if hasattr(self, 'frame_box_pad_bottom') else 12
+            from src.utils import create_temp_file, create_song_title_png, merge_images_with_position
+            from PIL import Image, ImageDraw
+            import os
+            
+            # Use the first image from original_image_files as the main image
+            if original_image_files:
+                main_img_path = list(original_image_files)[0]
+                with Image.open(main_img_path) as img:
+                    w, h = img.size
+                    # Crop to square using height, center horizontally
+                    left = (w - h) // 2 if w > h else 0
+                    upper = 0
+                    right = left + h if w > h else w
+                    lower = h
+                    square = img.crop((left, upper, right, lower))
+                    
+                    # Add padding using individual padding values
+                    pad_left = self.frame_box_pad_left if hasattr(self, 'frame_box_pad_left') else 12
+                    pad_right = self.frame_box_pad_right if hasattr(self, 'frame_box_pad_right') else 12
+                    pad_top = self.frame_box_pad_top if hasattr(self, 'frame_box_pad_top') else 12
+                    pad_bottom = self.frame_box_pad_bottom if hasattr(self, 'frame_box_pad_bottom') else 12
+                    
+                    # Ensure padding values are valid (non-negative)
+                    pad_left = max(0, pad_left)
+                    pad_right = max(0, pad_right)
+                    pad_top = max(0, pad_top)
+                    pad_bottom = max(0, pad_bottom)
+                    
+                    new_size = (square.width + pad_left + pad_right, square.height + pad_top + pad_bottom)
+                    padded = Image.new('RGBA', new_size, (0, 0, 0, 0))
+                    padded.paste(square, (pad_left, pad_top))
+                    
+                    # Draw frame (rectangle) in the padding area
+                    frame_color = self.frame_box_color if hasattr(self, 'frame_box_color') else (255, 255, 255)
+                    frame_opacity = int((self.frame_box_opacity if hasattr(self, 'frame_box_opacity') else 1.0) * 255)
+                    draw = ImageDraw.Draw(padded)
+                    rect_color = (*frame_color, frame_opacity)
+                    
+                    # Draw borders
+                    if pad_top > 0:
+                        draw.rectangle([0, 0, new_size[0]-1, pad_top-1], fill=rect_color)
+                    if pad_bottom > 0:
+                        draw.rectangle([0, new_size[1]-pad_bottom, new_size[0]-1, new_size[1]-1], fill=rect_color)
+                    if pad_left > 0:
+                        draw.rectangle([0, pad_top, pad_left-1, new_size[1]-pad_bottom-1], fill=rect_color)
+                    if pad_right > 0:
+                        draw.rectangle([new_size[0]-pad_right, pad_top, new_size[0]-1, new_size[1]-pad_bottom-1], fill=rect_color)
+                    
+                    # Save the frame box (2nd PNG)
+                    frame_box_temp_path = create_temp_file(suffix="_framebox_with_frame.png", prefix="supercut_")
+                    padded.save(frame_box_temp_path, 'PNG')
+                    
+                    # Check if caption is enabled
+                    if hasattr(self, 'frame_box_caption_checkbox') and self.frame_box_caption_checkbox.isChecked():
+                        caption_position = self.frame_box_caption_position if hasattr(self, 'frame_box_caption_position') else "bottom_center"
                         
-                        # Ensure padding values are valid (non-negative)
-                        pad_left = max(0, pad_left)
-                        pad_right = max(0, pad_right)
-                        pad_top = max(0, pad_top)
-                        pad_bottom = max(0, pad_bottom)
-                        
-                        new_size = (square.width + pad_left + pad_right, square.height + pad_top + pad_bottom)
-                        padded = Image.new('RGBA', new_size, (0, 0, 0, 0))
-                        padded.paste(square, (pad_left, pad_top))
-                        # Draw frame (rectangle) in the padding area
-                        from PIL import ImageDraw
-                        frame_color = self.frame_box_color if hasattr(self, 'frame_box_color') else (255, 255, 255)
-                        frame_opacity = int((self.frame_box_opacity if hasattr(self, 'frame_box_opacity') else 1.0) * 255)
-                        draw = ImageDraw.Draw(padded)
-                        # Outer rectangle (full image)
-                        rect_color = (*frame_color, frame_opacity)
-                        # Draw top border (only if pad_top > 0)
-                        if pad_top > 0:
-                            draw.rectangle([0, 0, new_size[0]-1, pad_top-1], fill=rect_color)
-                        # Draw bottom border (only if pad_bottom > 0)
-                        if pad_bottom > 0:
-                            draw.rectangle([0, new_size[1]-pad_bottom, new_size[0]-1, new_size[1]-1], fill=rect_color)
-                        # Draw left border (only if pad_left > 0)
-                        if pad_left > 0:
-                            draw.rectangle([0, pad_top, pad_left-1, new_size[1]-pad_bottom-1], fill=rect_color)
-                        # Draw right border (only if pad_right > 0)
-                        if pad_right > 0:
-                            draw.rectangle([new_size[0]-pad_right, pad_top, new_size[0]-1, new_size[1]-pad_bottom-1], fill=rect_color)
-                        temp_png_path = create_temp_file(suffix="_framebox_square.png", prefix="supercut_")
-                        padded.save(temp_png_path, 'PNG')
-                        frame_box_path = temp_png_path
+                        if hasattr(self, 'frame_box_caption_type') and self.frame_box_caption_type == "text":
+                            # Text mode: Generate 1st PNG from text, then merge with 2nd PNG
+                            caption_text = self.frame_box_caption_text if hasattr(self, 'frame_box_caption_text') else "Frame Box Caption"
+                            caption_font = self.frame_box_caption_font if hasattr(self, 'frame_box_caption_font') else "default"
+                            caption_font_size = self.frame_box_caption_font_size if hasattr(self, 'frame_box_caption_font_size') else 24
+                            caption_color = self.frame_box_caption_color if hasattr(self, 'frame_box_caption_color') else (255, 255, 255)
+                            caption_effect = self.frame_box_caption_effect if hasattr(self, 'frame_box_caption_effect') else "none"
+                            caption_effect_color = self.frame_box_caption_effect_color if hasattr(self, 'frame_box_caption_effect_color') else (0, 0, 0)
+                            caption_effect_intensity = self.frame_box_caption_effect_intensity if hasattr(self, 'frame_box_caption_effect_intensity') else 5
+                            
+                            # Create 1st PNG (caption text)
+                            caption_temp_path = create_temp_file(suffix="_framebox_caption_text.png", prefix="supercut_")
+                            # Calculate height based on background image width: height = width/8 (no bottom padding)
+                            bg_width = new_size[0]  # Width of the frame box (background)
+                            caption_height = bg_width // 8
+                            create_song_title_png(
+                                caption_text,
+                                caption_temp_path,
+                                width=bg_width,
+                                height=caption_height,
+                                font_size=caption_font_size,
+                                font_name=caption_font,
+                                color=caption_color,
+                                bg="transparent",
+                                bg_color=(0, 0, 0),
+                                opacity=1.0,
+                                text_effect=caption_effect,
+                                text_effect_color=caption_effect_color,
+                                text_effect_intensity=caption_effect_intensity
+                            )
+                            
+                            # Create 3rd PNG (merge 1st and 2nd)
+                            frame_box_path = create_temp_file(suffix="_framebox_final.png", prefix="supercut_")
+                            merge_images_with_position(
+                                frame_box_temp_path,  # 2nd PNG as background
+                                caption_temp_path,    # 1st PNG as overlay
+                                frame_box_path,
+                                position=caption_position
+                            )
+                            
+                        elif hasattr(self, 'frame_box_caption_type') and self.frame_box_caption_type == "png":
+                            # PNG mode: Check if PNG file exists, then merge with 2nd PNG
+                            if hasattr(self, 'frame_box_caption_png_path') and self.frame_box_caption_png_path and os.path.exists(self.frame_box_caption_png_path):
+                                # Create final PNG (merge selected PNG and 2nd PNG)
+                                frame_box_path = create_temp_file(suffix="_framebox_final.png", prefix="supercut_")
+                                merge_images_with_position(
+                                    frame_box_temp_path,  # 2nd PNG as background
+                                    self.frame_box_caption_png_path,  # Selected PNG as overlay
+                                    frame_box_path,
+                                    position=caption_position
+                                )
+                            else:
+                                # No valid PNG file, use frame box without caption
+                                frame_box_path = frame_box_temp_path
+                        else:
+                            # Invalid caption type, use frame box without caption
+                            frame_box_path = frame_box_temp_path
+                    else:
+                        # No caption, use frame box without caption
+                        frame_box_path = frame_box_temp_path
         # Fallback if not set
         if not frame_box_path:
             frame_box_path = "src/sources/icon.png"
