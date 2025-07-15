@@ -81,7 +81,10 @@ class VideoWorker(QObject):
                  mp3_cover_duration: int = 6,
                  mp3_cover_duration_full_checkbox_checked: bool = True,
                  mp3_cover_frame_color: tuple = (255, 255, 255),
-                 mp3_cover_frame_size: int = 10):
+                 mp3_cover_frame_size: int = 10,
+                 # --- Add background layer parameters ---
+                 use_bg_layer: bool = False,
+                 bg_scale_percent: int = 103):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -268,6 +271,9 @@ class VideoWorker(QObject):
         self.mp3_cover_duration_full_checkbox_checked = mp3_cover_duration_full_checkbox_checked
         self.mp3_cover_frame_color = mp3_cover_frame_color
         self.mp3_cover_frame_size = mp3_cover_frame_size
+        # --- Add background layer attributes ---
+        self.use_bg_layer = use_bg_layer
+        self.bg_scale_percent = bg_scale_percent
 
     def stop(self):
         """Stop the video processing"""
@@ -935,6 +941,9 @@ class VideoWorker(QObject):
                 frame_mp3cover_start_time=self.frame_mp3cover_start_time,
                 frame_mp3cover_duration=self.frame_mp3cover_duration,
                 frame_mp3cover_duration_full_checkbox_checked=self.frame_mp3cover_duration_full_checkbox_checked,
+                # --- Add background layer parameters ---
+                use_bg_layer=self.use_bg_layer,
+                bg_scale_percent=self.bg_scale_percent,
                 overlay1_start_at=actual_overlay1_start_at,
                 overlay2_start_at=actual_overlay2_start_at
             )

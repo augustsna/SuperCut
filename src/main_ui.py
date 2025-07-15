@@ -5882,6 +5882,56 @@ class SuperCutUI(QWidget):
         set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState())
         # --- END DYNAMIC MP3 COVER OVERLAY ---
 
+        # --- BACKGROUND LAYER SCALE CONTROL ---
+        self.bg_layer_checkbox = QtWidgets.QCheckBox("BG Layer:")
+        self.bg_layer_checkbox.setFixedWidth(80)
+        self.bg_layer_checkbox.setChecked(False)
+        def update_bg_layer_checkbox_style(state):
+            self.bg_layer_checkbox.setStyleSheet("")  # Always default color
+        self.bg_layer_checkbox.stateChanged.connect(update_bg_layer_checkbox_style)
+        update_bg_layer_checkbox_style(self.bg_layer_checkbox.checkState())
+
+        # Background scale dropdown (100% to 200%)
+        bg_scale_label = QLabel("Scale:")
+        bg_scale_label.setFixedWidth(40)
+        self.bg_scale_combo = NoWheelComboBox()
+        self.bg_scale_combo.setFixedWidth(80)
+        for percent in range(100, 201, 5):  # 100% to 200% in 5% increments
+            self.bg_scale_combo.addItem(f"{percent}%", percent)
+        # Set default to 103% (index 0 for 100%, index 1 for 105%, so we'll use 100% as default)
+        self.bg_scale_combo.setCurrentIndex(0)  # Default 100%
+        self.bg_scale_percent = 100  # Default to 100%, will be overridden to 103% when checkbox is unchecked
+        def on_bg_scale_changed(idx):
+            self.bg_scale_percent = self.bg_scale_combo.itemData(idx)
+        self.bg_scale_combo.currentIndexChanged.connect(on_bg_scale_changed)
+        on_bg_scale_changed(self.bg_scale_combo.currentIndex())
+
+        def set_bg_layer_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.bg_scale_combo.setEnabled(enabled)
+            if enabled:
+                self.bg_scale_combo.setStyleSheet("")
+                bg_scale_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.bg_scale_combo.setStyleSheet(grey_btn_style)
+                bg_scale_label.setStyleSheet("color: grey;")
+        
+        self.bg_layer_checkbox.stateChanged.connect(lambda _: set_bg_layer_enabled(self.bg_layer_checkbox.checkState()))
+
+        bg_layer_layout = QHBoxLayout()
+        bg_layer_layout.setSpacing(4)
+        bg_layer_layout.addWidget(self.bg_layer_checkbox)
+        bg_layer_layout.addSpacing(4)
+        bg_layer_layout.addWidget(bg_scale_label)
+        bg_layer_layout.addWidget(self.bg_scale_combo)
+        bg_layer_layout.addStretch()
+        layout.addLayout(bg_layer_layout)
+
+        # Initialize background layer enabled state
+        set_bg_layer_enabled(self.bg_layer_checkbox.checkState())
+        # --- END BACKGROUND LAYER SCALE CONTROL ---
+
         # Placeholder checkbox (placeholder - does nothing for now)
         self.lyric_checkbox = QtWidgets.QCheckBox("Placeholder:")
         self.lyric_checkbox.setFixedWidth(100)
@@ -6470,6 +6520,9 @@ class SuperCutUI(QWidget):
             self.frame_mp3cover_size_combo, self.frame_mp3cover_x_combo, self.frame_mp3cover_y_combo,
             self.frame_mp3cover_effect_combo, self.frame_mp3cover_duration_edit, self.frame_mp3cover_start_edit,
             self.frame_mp3cover_duration_full_checkbox,
+            
+            # Background layer controls
+            self.bg_layer_checkbox, self.bg_scale_combo,
             
             # Intro controls
             self.intro_checkbox, self.intro_edit, self.intro_duration_edit,
@@ -7275,6 +7328,9 @@ class SuperCutUI(QWidget):
             mp3_cover_duration_full_checkbox_checked=self.mp3_cover_duration_full_checkbox.isChecked() if hasattr(self, 'mp3_cover_duration_full_checkbox') else True,
             mp3_cover_frame_color=self.mp3_cover_frame_color if hasattr(self, 'mp3_cover_frame_color') else (0, 0, 0),
             mp3_cover_frame_size=self.mp3_cover_frame_size if hasattr(self, 'mp3_cover_frame_size') else 10,
+            # --- Add background layer parameters ---
+            use_bg_layer=self.bg_layer_checkbox.isChecked() if hasattr(self, 'bg_layer_checkbox') else False,
+            bg_scale_percent=self.bg_scale_percent if hasattr(self, 'bg_scale_percent') else 103,
 
         )
         self._worker.moveToThread(self._thread)

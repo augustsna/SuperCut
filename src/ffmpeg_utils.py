@@ -209,7 +209,10 @@ def create_video_with_ffmpeg(
     frame_mp3cover_duration: int = 6,
     frame_mp3cover_duration_full_checkbox_checked: bool = True,
     overlay1_start_at: int = 0,
-    overlay2_start_at: int = 0
+    overlay2_start_at: int = 0,
+    # --- Add background layer parameters ---
+    use_bg_layer: bool = False,
+    bg_scale_percent: int = 103
 ) -> Tuple[bool, Optional[str]]:
     temp_png_path = None
     try:
@@ -488,7 +491,9 @@ def create_video_with_ffmpeg(
             oy_frame_box = f"({base_y})+{frame_box_pad_top}"
             ox_frame_mp3cover = f"(W-w)*{frame_mp3cover_x_percent}/100" if frame_mp3cover_x_percent != 0 else "0"
             oy_frame_mp3cover = f"(H-h)*(1-({frame_mp3cover_y_percent}/100))" if frame_mp3cover_y_percent != 100 else "0"
-            filter_bg = f"[0:v]scale={int(width*1.03)}:{int(height*1.03)},crop={width}:{height}[bg]"
+            # Use configurable background scale if enabled, otherwise use default 103%
+            bg_scale = bg_scale_percent / 100.0 if use_bg_layer else 1.03
+            filter_bg = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}[bg]"
 
             # Effect logic for overlays
             def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext, duration=None):
