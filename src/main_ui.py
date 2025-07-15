@@ -1051,9 +1051,11 @@ class SuperCutUI(QWidget):
         self.media_sources_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
         def clean_media_folder_path():
             current_text = self.media_sources_edit.text()
-            cleaned_text = clean_file_path(current_text)
-            if cleaned_text != current_text:
-                self.media_sources_edit.setText(cleaned_text)
+            # Only clean if it looks like a file:// URL or has obvious path issues
+            if current_text.startswith('file://') or (os.name == 'nt' and current_text.startswith('/') and len(current_text) > 2 and current_text[1] == ':'):
+                cleaned_text = clean_file_path(current_text)
+                if cleaned_text != current_text:
+                    self.media_sources_edit.setText(cleaned_text)
         self.media_sources_edit.textChanged.connect(clean_media_folder_path)
         media_sources_btn = QPushButton("Select Folder")
         media_sources_btn.setFixedWidth(folder_row_style["btn_width"])
@@ -1076,9 +1078,11 @@ class SuperCutUI(QWidget):
         self.folder_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
         def clean_output_folder_path():
             current_text = self.folder_edit.text()
-            cleaned_text = clean_file_path(current_text)
-            if cleaned_text != current_text:
-                self.folder_edit.setText(cleaned_text)
+            # Only clean if it looks like a file:// URL or has obvious path issues
+            if current_text.startswith('file://') or (os.name == 'nt' and current_text.startswith('/') and len(current_text) > 2 and current_text[1] == ':'):
+                cleaned_text = clean_file_path(current_text)
+                if cleaned_text != current_text:
+                    self.folder_edit.setText(cleaned_text)
         self.folder_edit.textChanged.connect(clean_output_folder_path)
         folder_btn = QPushButton("Select Folder")
         folder_btn.setFixedWidth(folder_row_style["btn_width"])
@@ -4763,21 +4767,25 @@ class SuperCutUI(QWidget):
         
         self.frame_box_caption_position_combo.currentIndexChanged.connect(on_frame_box_caption_position_changed)
         
-        # Caption type selection
+        # Caption type selection using single PNG checkbox
         caption_type_label = QLabel("Type:")
         caption_type_label.setFixedWidth(30)
-        self.frame_box_caption_type_combo = NoWheelComboBox()
-        self.frame_box_caption_type_combo.setFixedWidth(70)
-        self.frame_box_caption_type_combo.addItem("Text", "text")
-        self.frame_box_caption_type_combo.addItem("PNG File", "png")
-        self.frame_box_caption_type = "text"
         
-        def on_frame_box_caption_type_changed(idx):
-            self.frame_box_caption_type = self.frame_box_caption_type_combo.itemData(idx)
-            # Update caption controls state
+        # PNG type checkbox (single checkbox approach)
+        self.frame_box_caption_png_checkbox = QtWidgets.QCheckBox("PNG")
+        self.frame_box_caption_png_checkbox.setFixedWidth(50)
+        self.frame_box_caption_png_checkbox.setChecked(False)  # Default to text mode
+        
+        self.frame_box_caption_type = "text"  # Default to text mode
+        
+        def on_frame_box_caption_png_checked(state):
+            if state == Qt.CheckState.Checked:
+                self.frame_box_caption_type = "png"
+            else:
+                self.frame_box_caption_type = "text"
             update_caption_controls_state()
         
-        self.frame_box_caption_type_combo.currentIndexChanged.connect(on_frame_box_caption_type_changed)
+        self.frame_box_caption_png_checkbox.stateChanged.connect(on_frame_box_caption_png_checked)
         
         # Text caption input
         caption_text_label = QLabel("Text:")
@@ -4822,7 +4830,7 @@ class SuperCutUI(QWidget):
         #frame_box_caption_header_layout.addWidget(caption_position_label)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_position_combo)
         frame_box_caption_header_layout.addWidget(caption_type_label)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_type_combo)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_checkbox)
         frame_box_caption_header_layout.addWidget(caption_text_label)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_text_edit)
         frame_box_caption_header_layout.addWidget(caption_png_label)
@@ -4983,16 +4991,16 @@ class SuperCutUI(QWidget):
             both_enabled = frame_box_enabled and caption_enabled
             
             # Enable/disable caption controls
-            self.frame_box_caption_type_combo.setEnabled(both_enabled)
+            self.frame_box_caption_png_checkbox.setEnabled(both_enabled)
             self.frame_box_caption_position_combo.setEnabled(both_enabled)
             caption_type_label.setEnabled(both_enabled)
             caption_position_label.setEnabled(both_enabled)
             caption_text_label.setEnabled(both_enabled)
             caption_png_label.setEnabled(both_enabled)
             
-            # Set input states based on type selection
+            # Set input states based on PNG checkbox state
             if both_enabled:
-                if self.frame_box_caption_type == "text":
+                if not self.frame_box_caption_png_checkbox.isChecked():  # Text mode
                     self.frame_box_caption_text_edit.setEnabled(True)
                     self.frame_box_caption_png_edit.setEnabled(False)
                     self.frame_box_caption_png_btn.setEnabled(False)
@@ -5013,7 +5021,7 @@ class SuperCutUI(QWidget):
                     self.frame_box_caption_effect_intensity_combo.setEnabled(effect_enabled)
                     caption_effect_color_label.setEnabled(effect_enabled)
                     caption_effect_intensity_label.setEnabled(effect_enabled)
-                else:  # png
+                else:  # PNG mode
                     self.frame_box_caption_text_edit.setEnabled(False)
                     self.frame_box_caption_png_edit.setEnabled(True)
                     self.frame_box_caption_png_btn.setEnabled(True)
@@ -5053,14 +5061,14 @@ class SuperCutUI(QWidget):
             # Update styling based on state
             if both_enabled:
                 # Caption controls are enabled
-                self.frame_box_caption_type_combo.setStyleSheet("")
+                self.frame_box_caption_png_checkbox.setStyleSheet("")
                 self.frame_box_caption_position_combo.setStyleSheet("")
                 caption_type_label.setStyleSheet("")
                 caption_position_label.setStyleSheet("")
                 caption_text_label.setStyleSheet("")
                 caption_png_label.setStyleSheet("")
                 
-                if self.frame_box_caption_type == "text":
+                if not self.frame_box_caption_png_checkbox.isChecked():  # Text mode
                     self.frame_box_caption_text_edit.setStyleSheet("")
                     self.frame_box_caption_png_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                     self.frame_box_caption_png_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
@@ -5087,7 +5095,7 @@ class SuperCutUI(QWidget):
                         self.frame_box_caption_effect_intensity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                         caption_effect_color_label.setStyleSheet("color: grey;")
                         caption_effect_intensity_label.setStyleSheet("color: grey;")
-                else:  # png
+                else:  # PNG mode
                     self.frame_box_caption_text_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                     self.frame_box_caption_png_edit.setStyleSheet("")
                     self.frame_box_caption_png_btn.setStyleSheet("")
@@ -5109,7 +5117,7 @@ class SuperCutUI(QWidget):
             else:
                 # Caption controls are disabled
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.frame_box_caption_type_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_png_checkbox.setStyleSheet("color: grey;")
                 self.frame_box_caption_position_combo.setStyleSheet(grey_btn_style)
                 caption_type_label.setStyleSheet("color: grey;")
                 caption_position_label.setStyleSheet("color: grey;")
@@ -5133,9 +5141,7 @@ class SuperCutUI(QWidget):
                 caption_effect_color_label.setStyleSheet("color: grey;")
                 caption_effect_intensity_label.setStyleSheet("color: grey;")
         
-        # Initialize caption type
-        on_frame_box_caption_type_changed(0)  # Default to text mode
-        
+        # Initialize caption type (text mode is default)
         # Initial state
         update_caption_controls_state()
 
@@ -6400,7 +6406,7 @@ class SuperCutUI(QWidget):
                     if hasattr(self, 'frame_box_caption_checkbox') and self.frame_box_caption_checkbox.isChecked():
                         caption_position = self.frame_box_caption_position if hasattr(self, 'frame_box_caption_position') else "bottom_center"
                         
-                        if hasattr(self, 'frame_box_caption_type') and self.frame_box_caption_type == "text":
+                        if hasattr(self, 'frame_box_caption_png_checkbox') and not self.frame_box_caption_png_checkbox.isChecked():  # Text mode
                             # Text mode: Generate 1st PNG from text, then merge with 2nd PNG
                             caption_text = self.frame_box_caption_text if hasattr(self, 'frame_box_caption_text') else "Frame Box Caption"
                             caption_font = self.frame_box_caption_font if hasattr(self, 'frame_box_caption_font') else "default"
@@ -6440,7 +6446,7 @@ class SuperCutUI(QWidget):
                                 position=caption_position
                             )
                             
-                        elif hasattr(self, 'frame_box_caption_type') and self.frame_box_caption_type == "png":
+                        elif hasattr(self, 'frame_box_caption_png_checkbox') and self.frame_box_caption_png_checkbox.isChecked():  # PNG mode
                             # PNG mode: Check if PNG file exists, then merge with 2nd PNG
                             if hasattr(self, 'frame_box_caption_png_path') and self.frame_box_caption_png_path and os.path.exists(self.frame_box_caption_png_path):
                                 # Create final PNG (merge selected PNG and 2nd PNG)

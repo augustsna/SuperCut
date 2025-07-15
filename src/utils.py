@@ -35,12 +35,20 @@ def clean_file_path(path: str) -> str:
     
     # Handle Windows paths that might have extra slashes
     if os.name == 'nt' and path.startswith('/'):
-        # Convert /C:/path to C:/path
+        # Convert /C:/path to C:/path (Windows absolute path)
         if len(path) > 2 and path[1] == ':' and path[2] == '/':
             path = path[1:]
         # Convert /path to path (relative path)
         elif len(path) > 1:
             path = path[1:]
+    
+    # Handle Windows paths that might have backslashes converted to forward slashes
+    if os.name == 'nt' and ':' in path and path.count(':') == 1:
+        # This looks like a Windows path, ensure proper format
+        drive_part, rest = path.split(':', 1)
+        if rest.startswith('/'):
+            # Convert C:/path to C:\path
+            path = drive_part + ':' + rest.replace('/', '\\')
     
     # Normalize the path
     return os.path.normpath(path)
