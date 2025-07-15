@@ -3068,45 +3068,31 @@ class SuperCutUI(QWidget):
         self.song_title_bg = "transparent"
         def on_song_title_bg_changed(idx):
             self.song_title_bg = self.song_title_bg_combo.itemData(idx)
-            if self.song_title_bg == "custom":
-                # Use the color shown in the button (last custom color)
-                self.song_title_bg_color = self.last_custom_bg_color
+            
+            # Enable/disable opacity control based on background selection (only if control exists)
+            if hasattr(self, 'song_title_opacity_combo'):
+                is_transparent = self.song_title_bg == "transparent"
+                self.song_title_opacity_combo.setEnabled(not is_transparent)
+                
+                # Update opacity control styling
+                if is_transparent:
+                    self.song_title_opacity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                else:
+                    self.song_title_opacity_combo.setStyleSheet("")
         self.song_title_bg_combo.currentIndexChanged.connect(on_song_title_bg_changed)
         on_song_title_bg_changed(self.song_title_bg_combo.currentIndex())
         
         # Background color control
         self.song_title_bg_color_btn = QPushButton()
         self.song_title_bg_color_btn.setFixedSize(28, 28)
-        self.song_title_bg_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc;")
+        self.song_title_bg_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
         self.song_title_bg_color = (0, 0, 0)  # Default black
         
-        # Load last custom color from settings
-        last_custom_r = self.settings.value('song_title_last_custom_bg_r', 0, type=int)
-        last_custom_g = self.settings.value('song_title_last_custom_bg_g', 0, type=int)
-        last_custom_b = self.settings.value('song_title_last_custom_bg_b', 0, type=int)
-        self.last_custom_bg_color = (last_custom_r, last_custom_g, last_custom_b)
-        
-        # Ensure internal state matches UI if last custom color is set and mode is custom
-        if self.last_custom_bg_color != (0, 0, 0) and self.song_title_bg == "custom":
-            self.song_title_bg_color = self.last_custom_bg_color
-            self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc;")
-        
         def on_song_title_bg_color_clicked():
-            # Use the last custom color as initial, or current if no custom color was picked yet
-            if self.last_custom_bg_color != (0, 0, 0):
-                initial_color = QColor(*self.last_custom_bg_color)
-            else:
-                initial_color = QColor(*self.song_title_bg_color)
-            color = QColorDialog.getColor(initial_color, self, "Select Background Color")
+            color = QColorDialog.getColor(QColor(*self.song_title_bg_color), self, "Select Background Color")
             if color.isValid():
                 self.song_title_bg_color = (color.red(), color.green(), color.blue())
-                self.last_custom_bg_color = self.song_title_bg_color  # Remember this custom color
-                # Save to settings
-                self.settings.setValue('song_title_last_custom_bg_r', color.red())
-                self.settings.setValue('song_title_last_custom_bg_g', color.green())
-                self.settings.setValue('song_title_last_custom_bg_b', color.blue())
-                self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc;")
-                update_bg_color_state()  # Update the state to reflect the new color
+                self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc;")
         self.song_title_bg_color_btn.clicked.connect(on_song_title_bg_color_clicked)
         
         # Function to update background color button state
@@ -3120,11 +3106,11 @@ class SuperCutUI(QWidget):
             elif not is_custom:
                 self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
             else:
-                # Use the last custom color when custom is selected, or the current color if no custom color was picked yet
-                if self.last_custom_bg_color != (0, 0, 0):
-                    self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.last_custom_bg_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
-                else:
+                # Show current color or white if no color selected
+                if self.song_title_bg_color != (0, 0, 0):
                     self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                else:
+                    self.song_title_bg_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
         
         # Connect background dropdown to update color button state
         self.song_title_bg_combo.currentIndexChanged.connect(lambda _: update_bg_color_state())
@@ -3146,6 +3132,9 @@ class SuperCutUI(QWidget):
             self.song_title_opacity = self.song_title_opacity_combo.itemData(idx)
         self.song_title_opacity_combo.currentIndexChanged.connect(on_song_title_opacity_changed)
         on_song_title_opacity_changed(self.song_title_opacity_combo.currentIndex())
+        
+        # Update opacity control state based on current background selection
+        on_song_title_bg_changed(self.song_title_bg_combo.currentIndex())
         
         # --- Text Effects Controls ---
         # Text effect dropdown
@@ -3179,8 +3168,8 @@ class SuperCutUI(QWidget):
                 self.song_title_text_effect_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
                 self.song_title_text_effect_intensity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
             else:
-                # Restore normal styling
-                self.song_title_text_effect_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_text_effect_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                # Set background to black when effect is enabled (similar to framebox text effect)
+                self.song_title_text_effect_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 self.song_title_text_effect_intensity_combo.setStyleSheet("")
         self.song_title_text_effect_combo.currentIndexChanged.connect(on_song_title_text_effect_changed)
         
@@ -3189,13 +3178,13 @@ class SuperCutUI(QWidget):
         song_title_text_effect_color_label.setFixedWidth(35)
         self.song_title_text_effect_color_btn = QPushButton()
         self.song_title_text_effect_color_btn.setFixedSize(27, 27)
-        self.song_title_text_effect_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+        self.song_title_text_effect_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
         self.song_title_text_effect_color = (0, 0, 0)  # Default black
         def on_song_title_text_effect_color_clicked():
             color = QColorDialog.getColor(QColor(*self.song_title_text_effect_color), self, "Select Text Effect Color")
             if color.isValid():
                 self.song_title_text_effect_color = (color.red(), color.green(), color.blue())
-                self.song_title_text_effect_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_text_effect_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                self.song_title_text_effect_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
         self.song_title_text_effect_color_btn.clicked.connect(on_song_title_text_effect_color_clicked)
         
         # Text effect intensity (1-100)
@@ -3321,7 +3310,11 @@ class SuperCutUI(QWidget):
                 self.song_title_y_combo.setStyleSheet(grey_btn_style)
                 self.song_title_scale_combo.setStyleSheet(grey_btn_style)
                 self.song_title_bg_combo.setStyleSheet(grey_btn_style)
-                self.song_title_opacity_combo.setStyleSheet(grey_btn_style)
+                # Opacity control should be greyed out if transparent is selected, regardless of enabled state
+                if self.song_title_bg == "transparent":
+                    self.song_title_opacity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                else:
+                    self.song_title_opacity_combo.setStyleSheet(grey_btn_style)
                 self.song_title_text_effect_combo.setStyleSheet(grey_btn_style)
                 self.song_title_text_effect_intensity_combo.setStyleSheet(grey_btn_style)
                 self.song_title_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
@@ -3339,19 +3332,26 @@ class SuperCutUI(QWidget):
                 self.song_title_start_edit.setStyleSheet("")
                 self.song_title_scale_combo.setStyleSheet("")
                 self.song_title_bg_combo.setStyleSheet("")
-                self.song_title_opacity_combo.setStyleSheet("")
+                # Restore opacity control style based on background selection
+                if self.song_title_bg == "transparent":
+                    self.song_title_opacity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                else:
+                    self.song_title_opacity_combo.setStyleSheet("")
                 self.song_title_text_effect_combo.setStyleSheet("")
                 self.song_title_text_effect_intensity_combo.setStyleSheet("")
                 # Restore color button style based on current settings
                 if self.song_title_bg == "custom":
-                    self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.last_custom_bg_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                    if self.song_title_bg_color != (0, 0, 0):
+                        self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_bg_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                    else:
+                        self.song_title_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 else:
                     self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 # Restore text effect color button style based on current text effect
                 if self.song_title_text_effect == "none":
                     self.song_title_text_effect_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
                 else:
-                    self.song_title_text_effect_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_text_effect_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                    self.song_title_text_effect_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc; padding: 0px; margin: 0px;")
             # Update background color button state
             update_bg_color_state()
         self.song_title_checkbox.stateChanged.connect(lambda _: set_song_title_controls_enabled(self.song_title_checkbox.checkState()))
@@ -4742,32 +4742,408 @@ class SuperCutUI(QWidget):
         # Place directly below frame box effect UI
         layout.addWidget(self.frame_box_caption_checkbox)
 
+        # --- Frame Box Caption Options (PNG file or text caption) ---
+        frame_box_caption_layout = QHBoxLayout()
+        frame_box_caption_layout.setContentsMargins(0, 0, 0, 0)
+        frame_box_caption_layout.setSpacing(4)
+        
+        # Caption type selection
+        caption_type_label = QLabel("Type:")
+        caption_type_label.setFixedWidth(35)
+        self.frame_box_caption_type_combo = NoWheelComboBox()
+        self.frame_box_caption_type_combo.setFixedWidth(80)
+        self.frame_box_caption_type_combo.addItem("Text", "text")
+        self.frame_box_caption_type_combo.addItem("PNG File", "png")
+        self.frame_box_caption_type = "text"
+        
+        def on_frame_box_caption_type_changed(idx):
+            self.frame_box_caption_type = self.frame_box_caption_type_combo.itemData(idx)
+            # Update caption controls state
+            update_caption_controls_state()
+        
+        self.frame_box_caption_type_combo.currentIndexChanged.connect(on_frame_box_caption_type_changed)
+        
+        # Text caption input
+        caption_text_label = QLabel("Text:")
+        caption_text_label.setFixedWidth(35)
+        self.frame_box_caption_text_edit = QLineEdit()
+        self.frame_box_caption_text_edit.setFixedWidth(200)
+        self.frame_box_caption_text_edit.setText("Frame Box Caption")
+        self.frame_box_caption_text = "Frame Box Caption"
+        
+        def on_frame_box_caption_text_changed():
+            self.frame_box_caption_text = self.frame_box_caption_text_edit.text()
+        
+        self.frame_box_caption_text_edit.textChanged.connect(on_frame_box_caption_text_changed)
+        
+        # Text styling controls (second line)
+        frame_box_caption_styling_layout = QHBoxLayout()
+        frame_box_caption_styling_layout.setContentsMargins(0, 0, 0, 0)
+        frame_box_caption_styling_layout.setSpacing(4)
+        
+        # Font selection
+        caption_font_label = QLabel("Font:")
+        caption_font_label.setFixedWidth(35)
+        self.frame_box_caption_font_combo = NoWheelComboBox()
+        self.frame_box_caption_font_combo.setFixedWidth(120)
+        self.frame_box_caption_font_combo.addItem("Default", "default")
+        self.frame_box_caption_font_combo.addItem("Arial", "arial")
+        self.frame_box_caption_font_combo.addItem("Times New Roman", "times")
+        self.frame_box_caption_font_combo.addItem("Courier New", "courier")
+        self.frame_box_caption_font_combo.addItem("Verdana", "verdana")
+        self.frame_box_caption_font_combo.addItem("Georgia", "georgia")
+        self.frame_box_caption_font = "default"
+        
+        def on_frame_box_caption_font_changed(idx):
+            self.frame_box_caption_font = self.frame_box_caption_font_combo.itemData(idx)
+        
+        self.frame_box_caption_font_combo.currentIndexChanged.connect(on_frame_box_caption_font_changed)
+        
+        # Font size
+        caption_font_size_label = QLabel("Size:")
+        caption_font_size_label.setFixedWidth(35)
+        self.frame_box_caption_font_size_combo = NoWheelComboBox()
+        self.frame_box_caption_font_size_combo.setFixedWidth(60)
+        for size in range(12, 73, 2):
+            self.frame_box_caption_font_size_combo.addItem(f"{size}", size)
+        self.frame_box_caption_font_size_combo.setCurrentIndex(6)  # Default 24
+        self.frame_box_caption_font_size = 24
+        
+        def on_frame_box_caption_font_size_changed(idx):
+            self.frame_box_caption_font_size = self.frame_box_caption_font_size_combo.itemData(idx)
+        
+        self.frame_box_caption_font_size_combo.currentIndexChanged.connect(on_frame_box_caption_font_size_changed)
+        
+        # Text color picker
+        caption_color_label = QLabel("Color:")
+        caption_color_label.setFixedWidth(35)
+        self.frame_box_caption_color_btn = QPushButton()
+        self.frame_box_caption_color_btn.setFixedWidth(27)
+        self.frame_box_caption_color_btn.setFixedHeight(27)
+        self.frame_box_caption_color = (255, 255, 255)  # Default white
+        self.frame_box_caption_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
+        
+        def on_frame_box_caption_color_clicked():
+            color = QColorDialog.getColor()
+            if color.isValid():
+                self.frame_box_caption_color = (color.red(), color.green(), color.blue())
+                self.frame_box_caption_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc;")
+        
+        self.frame_box_caption_color_btn.clicked.connect(on_frame_box_caption_color_clicked)
+        self.frame_box_caption_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
+        
+        # Text effect
+        caption_effect_label = QLabel("FX:")
+        caption_effect_label.setFixedWidth(25)
+        self.frame_box_caption_effect_combo = NoWheelComboBox()
+        self.frame_box_caption_effect_combo.setFixedWidth(80)
+        self.frame_box_caption_effect_combo.addItem("None", "none")
+        self.frame_box_caption_effect_combo.addItem("Outline", "outline")
+        self.frame_box_caption_effect_combo.addItem("Shadow", "shadow")
+        self.frame_box_caption_effect_combo.addItem("Glow", "glow")
+        self.frame_box_caption_effect = "none"
+        
+        def on_frame_box_caption_effect_changed(idx):
+            self.frame_box_caption_effect = self.frame_box_caption_effect_combo.itemData(idx)
+            # Enable/disable effect controls based on selection
+            effect_enabled = self.frame_box_caption_effect != "none"
+            self.frame_box_caption_effect_color_btn.setEnabled(effect_enabled)
+            self.frame_box_caption_effect_intensity_combo.setEnabled(effect_enabled)
+            caption_effect_color_label.setEnabled(effect_enabled)
+            caption_effect_intensity_label.setEnabled(effect_enabled)
+            
+            # Update styling
+            if effect_enabled:
+                self.frame_box_caption_effect_color_btn.setStyleSheet("")
+                self.frame_box_caption_effect_intensity_combo.setStyleSheet("")
+                caption_effect_color_label.setStyleSheet("")
+                caption_effect_intensity_label.setStyleSheet("")
+            else:
+                self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.frame_box_caption_effect_intensity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                caption_effect_color_label.setStyleSheet("color: grey;")
+                caption_effect_intensity_label.setStyleSheet("color: grey;")
+        
+        self.frame_box_caption_effect_combo.currentIndexChanged.connect(on_frame_box_caption_effect_changed)
+        
+        # Effect color picker
+        caption_effect_color_label = QLabel("FX Color:")
+        caption_effect_color_label.setFixedWidth(50)
+        self.frame_box_caption_effect_color_btn = QPushButton()
+        self.frame_box_caption_effect_color_btn.setFixedWidth(27)
+        self.frame_box_caption_effect_color_btn.setFixedHeight(27)
+        self.frame_box_caption_effect_color = (0, 0, 0)  # Default black
+        self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc;")
+        
+        def on_frame_box_caption_effect_color_clicked():
+            color = QColorDialog.getColor()
+            if color.isValid():
+                self.frame_box_caption_effect_color = (color.red(), color.green(), color.blue())
+                self.frame_box_caption_effect_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()});")
+        
+        self.frame_box_caption_effect_color_btn.clicked.connect(on_frame_box_caption_effect_color_clicked)
+        
+        # Effect intensity
+        caption_effect_intensity_label = QLabel("FX Int:")
+        caption_effect_intensity_label.setFixedWidth(40)
+        self.frame_box_caption_effect_intensity_combo = NoWheelComboBox()
+        self.frame_box_caption_effect_intensity_combo.setFixedWidth(60)
+        for intensity in range(1, 11, 1):
+            self.frame_box_caption_effect_intensity_combo.addItem(f"{intensity}", intensity)
+        self.frame_box_caption_effect_intensity_combo.setCurrentIndex(4)  # Default 5
+        self.frame_box_caption_effect_intensity = 5
+        
+        def on_frame_box_caption_effect_intensity_changed(idx):
+            self.frame_box_caption_effect_intensity = self.frame_box_caption_effect_intensity_combo.itemData(idx)
+        
+        self.frame_box_caption_effect_intensity_combo.currentIndexChanged.connect(on_frame_box_caption_effect_intensity_changed)
+        
+        # Add styling controls to layout
+        frame_box_caption_styling_layout.addWidget(caption_font_label)
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_font_combo)
+        frame_box_caption_styling_layout.addWidget(caption_font_size_label)
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_font_size_combo)
+        frame_box_caption_styling_layout.addWidget(caption_color_label)
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_color_btn)
+        frame_box_caption_styling_layout.addWidget(caption_effect_label)
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_combo)
+        frame_box_caption_styling_layout.addWidget(caption_effect_color_label)
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_color_btn)
+        frame_box_caption_styling_layout.addWidget(caption_effect_intensity_label)
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_intensity_combo)
+        frame_box_caption_styling_layout.addStretch()
+        
+        # Initialize effect controls state
+        on_frame_box_caption_effect_changed(0)  # Default to "none"
+        
+        # PNG file input
+        caption_png_label = QLabel("PNG:")
+        caption_png_label.setFixedWidth(35)
+        self.frame_box_caption_png_edit = ImageDropLineEdit()
+        self.frame_box_caption_png_edit.setFixedWidth(200)
+        self.frame_box_caption_png_edit.setPlaceholderText("Select PNG file...")
+        self.frame_box_caption_png_path = None
+        
+        def select_frame_box_caption_png():
+            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self, "Select PNG File", "", "PNG Files (*.png)"
+            )
+            if file_path:
+                self.frame_box_caption_png_edit.setText(file_path)
+                self.frame_box_caption_png_path = file_path
+        
+        self.frame_box_caption_png_btn = QPushButton("Browse")
+        self.frame_box_caption_png_btn.setFixedWidth(60)
+        self.frame_box_caption_png_btn.clicked.connect(select_frame_box_caption_png)
+        
+        def on_frame_box_caption_png_changed():
+            self.frame_box_caption_png_path = self.frame_box_caption_png_edit.text()
+        
+        self.frame_box_caption_png_edit.textChanged.connect(on_frame_box_caption_png_changed)
+        
+        # Add controls to layout
+        frame_box_caption_layout.addWidget(caption_type_label)
+        frame_box_caption_layout.addWidget(self.frame_box_caption_type_combo)
+        frame_box_caption_layout.addWidget(caption_text_label)
+        frame_box_caption_layout.addWidget(self.frame_box_caption_text_edit)
+        frame_box_caption_layout.addWidget(caption_png_label)
+        frame_box_caption_layout.addWidget(self.frame_box_caption_png_edit)
+        frame_box_caption_layout.addWidget(self.frame_box_caption_png_btn)
+        frame_box_caption_layout.addStretch()
+        layout.addLayout(frame_box_caption_layout)
+        
+        # Add styling controls layout
+        layout.addLayout(frame_box_caption_styling_layout)
+        
+        # Function to update caption controls state
+        def update_caption_controls_state():
+            # Check if both frame box and caption are enabled
+            frame_box_enabled = self.frame_box_checkbox.isChecked()
+            caption_enabled = self.frame_box_caption_checkbox.isChecked()
+            both_enabled = frame_box_enabled and caption_enabled
+            
+            # Enable/disable caption controls
+            self.frame_box_caption_type_combo.setEnabled(both_enabled)
+            caption_type_label.setEnabled(both_enabled)
+            caption_text_label.setEnabled(both_enabled)
+            caption_png_label.setEnabled(both_enabled)
+            
+            # Set input states based on type selection
+            if both_enabled:
+                if self.frame_box_caption_type == "text":
+                    self.frame_box_caption_text_edit.setEnabled(True)
+                    self.frame_box_caption_png_edit.setEnabled(False)
+                    self.frame_box_caption_png_btn.setEnabled(False)
+                    
+                    # Enable text styling controls
+                    self.frame_box_caption_font_combo.setEnabled(True)
+                    self.frame_box_caption_font_size_combo.setEnabled(True)
+                    self.frame_box_caption_color_btn.setEnabled(True)
+                    self.frame_box_caption_effect_combo.setEnabled(True)
+                    caption_font_label.setEnabled(True)
+                    caption_font_size_label.setEnabled(True)
+                    caption_color_label.setEnabled(True)
+                    caption_effect_label.setEnabled(True)
+                    
+                    # Effect controls state depends on effect selection
+                    effect_enabled = self.frame_box_caption_effect != "none"
+                    self.frame_box_caption_effect_color_btn.setEnabled(effect_enabled)
+                    self.frame_box_caption_effect_intensity_combo.setEnabled(effect_enabled)
+                    caption_effect_color_label.setEnabled(effect_enabled)
+                    caption_effect_intensity_label.setEnabled(effect_enabled)
+                else:  # png
+                    self.frame_box_caption_text_edit.setEnabled(False)
+                    self.frame_box_caption_png_edit.setEnabled(True)
+                    self.frame_box_caption_png_btn.setEnabled(True)
+                    
+                    # Disable text styling controls for PNG mode
+                    self.frame_box_caption_font_combo.setEnabled(False)
+                    self.frame_box_caption_font_size_combo.setEnabled(False)
+                    self.frame_box_caption_color_btn.setEnabled(False)
+                    self.frame_box_caption_effect_combo.setEnabled(False)
+                    self.frame_box_caption_effect_color_btn.setEnabled(False)
+                    self.frame_box_caption_effect_intensity_combo.setEnabled(False)
+                    caption_font_label.setEnabled(False)
+                    caption_font_size_label.setEnabled(False)
+                    caption_color_label.setEnabled(False)
+                    caption_effect_label.setEnabled(False)
+                    caption_effect_color_label.setEnabled(False)
+                    caption_effect_intensity_label.setEnabled(False)
+            else:
+                self.frame_box_caption_text_edit.setEnabled(False)
+                self.frame_box_caption_png_edit.setEnabled(False)
+                self.frame_box_caption_png_btn.setEnabled(False)
+                
+                # Disable all styling controls
+                self.frame_box_caption_font_combo.setEnabled(False)
+                self.frame_box_caption_font_size_combo.setEnabled(False)
+                self.frame_box_caption_color_btn.setEnabled(False)
+                self.frame_box_caption_effect_combo.setEnabled(False)
+                self.frame_box_caption_effect_color_btn.setEnabled(False)
+                self.frame_box_caption_effect_intensity_combo.setEnabled(False)
+                caption_font_label.setEnabled(False)
+                caption_font_size_label.setEnabled(False)
+                caption_color_label.setEnabled(False)
+                caption_effect_label.setEnabled(False)
+                caption_effect_color_label.setEnabled(False)
+                caption_effect_intensity_label.setEnabled(False)
+            
+            # Update styling based on state
+            if both_enabled:
+                # Caption controls are enabled
+                self.frame_box_caption_type_combo.setStyleSheet("")
+                caption_type_label.setStyleSheet("")
+                caption_text_label.setStyleSheet("")
+                caption_png_label.setStyleSheet("")
+                
+                if self.frame_box_caption_type == "text":
+                    self.frame_box_caption_text_edit.setStyleSheet("")
+                    self.frame_box_caption_png_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    self.frame_box_caption_png_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    
+                    # Text styling controls enabled
+                    self.frame_box_caption_font_combo.setStyleSheet("")
+                    self.frame_box_caption_font_size_combo.setStyleSheet("")
+                    self.frame_box_caption_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
+                    self.frame_box_caption_effect_combo.setStyleSheet("")
+                    caption_font_label.setStyleSheet("")
+                    caption_font_size_label.setStyleSheet("")
+                    caption_color_label.setStyleSheet("")
+                    caption_effect_label.setStyleSheet("")
+                    
+                    # Effect controls styling
+                    effect_enabled = self.frame_box_caption_effect != "none"
+                    if effect_enabled:
+                        self.frame_box_caption_effect_color_btn.setStyleSheet("")
+                        self.frame_box_caption_effect_intensity_combo.setStyleSheet("")
+                        caption_effect_color_label.setStyleSheet("")
+                        caption_effect_intensity_label.setStyleSheet("")
+                    else:
+                        self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                        self.frame_box_caption_effect_intensity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                        caption_effect_color_label.setStyleSheet("color: grey;")
+                        caption_effect_intensity_label.setStyleSheet("color: grey;")
+                else:  # png
+                    self.frame_box_caption_text_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    self.frame_box_caption_png_edit.setStyleSheet("")
+                    self.frame_box_caption_png_btn.setStyleSheet("")
+                    
+                    # Text styling controls disabled for PNG mode
+                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                    self.frame_box_caption_font_combo.setStyleSheet(grey_btn_style)
+                    self.frame_box_caption_font_size_combo.setStyleSheet(grey_btn_style)
+                    self.frame_box_caption_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+                    self.frame_box_caption_effect_combo.setStyleSheet(grey_btn_style)
+                    self.frame_box_caption_effect_color_btn.setStyleSheet(grey_btn_style)
+                    self.frame_box_caption_effect_intensity_combo.setStyleSheet(grey_btn_style)
+                    caption_font_label.setStyleSheet("color: grey;")
+                    caption_font_size_label.setStyleSheet("color: grey;")
+                    caption_color_label.setStyleSheet("color: grey;")
+                    caption_effect_label.setStyleSheet("color: grey;")
+                    caption_effect_color_label.setStyleSheet("color: grey;")
+                    caption_effect_intensity_label.setStyleSheet("color: grey;")
+            else:
+                # Caption controls are disabled
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.frame_box_caption_type_combo.setStyleSheet(grey_btn_style)
+                caption_type_label.setStyleSheet("color: grey;")
+                caption_text_label.setStyleSheet("color: grey;")
+                caption_png_label.setStyleSheet("color: grey;")
+                self.frame_box_caption_text_edit.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_png_edit.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_png_btn.setStyleSheet(grey_btn_style)
+                
+                # All styling controls disabled
+                self.frame_box_caption_font_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_font_size_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+                self.frame_box_caption_effect_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_effect_color_btn.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_effect_intensity_combo.setStyleSheet(grey_btn_style)
+                caption_font_label.setStyleSheet("color: grey;")
+                caption_font_size_label.setStyleSheet("color: grey;")
+                caption_color_label.setStyleSheet("color: grey;")
+                caption_effect_label.setStyleSheet("color: grey;")
+                caption_effect_color_label.setStyleSheet("color: grey;")
+                caption_effect_intensity_label.setStyleSheet("color: grey;")
+        
+        # Initialize caption type
+        on_frame_box_caption_type_changed(0)  # Default to text mode
+        
+        # Initial state
+        update_caption_controls_state()
+
         # --- Create PNG when frame box caption is checked ---
         def on_frame_box_caption_checked(state):
             if state == Qt.CheckState.Checked:
-                from src.utils import create_temp_file, create_song_title_png
-                import os
-                temp_png_path = create_temp_file(suffix="_framebox_caption.png", prefix="supercut_")
-                # You can customize the caption text, size, font, etc. as needed
-                caption_text = "Frame Box Caption"
-                create_song_title_png(
-                    caption_text,
-                    temp_png_path,
-                    width=400,
-                    height=40,
-                    font_size=24,
-                    font_name="default",
-                    color=(255, 255, 255),
-                    bg="black",
-                    bg_color=(0, 0, 0),
-                    opacity=1.0,
-                    text_effect="none"
-                )
-                print(f"Frame box caption PNG created at: {temp_png_path}")
-                # Optionally, store the path for later use
-                self.frame_box_caption_png_path = temp_png_path
+                # Update caption controls state
+                update_caption_controls_state()
+                
+                # Create initial PNG if needed
+                if self.frame_box_caption_type == "text":
+                    from src.utils import create_temp_file, create_song_title_png
+                    import os
+                    temp_png_path = create_temp_file(suffix="_framebox_caption.png", prefix="supercut_")
+                    create_song_title_png(
+                        self.frame_box_caption_text,
+                        temp_png_path,
+                        width=400,
+                        height=40,
+                        font_size=24,
+                        font_name="default",
+                        color=(255, 255, 255),
+                        bg="black",
+                        bg_color=(0, 0, 0),
+                        opacity=1.0,
+                        text_effect="none"
+                    )
+                    print(f"Frame box caption PNG created at: {temp_png_path}")
+                    self.frame_box_caption_png_path = temp_png_path
             else:
-                # Optionally, clear the stored path
+                # Update caption controls state
+                update_caption_controls_state()
+                
+                # Clear the stored path
                 self.frame_box_caption_png_path = None
         self.frame_box_caption_checkbox.stateChanged.connect(on_frame_box_caption_checked)
 
@@ -4787,7 +5163,7 @@ class SuperCutUI(QWidget):
             color = QColorDialog.getColor()
             if color.isValid():
                 self.frame_box_color = (color.red(), color.green(), color.blue())
-                self.frame_box_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()});")
+                self.frame_box_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc;")
         self.frame_box_color_btn.clicked.connect(on_frame_box_color_clicked)
         self.frame_box_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
         frame_box_color_layout.addWidget(frame_box_color_label)
@@ -4907,6 +5283,9 @@ class SuperCutUI(QWidget):
             right_pad_label.setEnabled(enabled)
             top_pad_label.setEnabled(enabled)
             bottom_pad_label.setEnabled(enabled)
+            
+            # Update caption controls state
+            update_caption_controls_state()
             if enabled:
                 self.frame_box_size_combo.setStyleSheet("")
                 self.frame_box_x_combo.setStyleSheet("")
@@ -4929,6 +5308,8 @@ class SuperCutUI(QWidget):
                 right_pad_label.setStyleSheet("")
                 top_pad_label.setStyleSheet("")
                 bottom_pad_label.setStyleSheet("")
+                
+
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.frame_box_size_combo.setStyleSheet(grey_btn_style)
@@ -4952,6 +5333,8 @@ class SuperCutUI(QWidget):
                 right_pad_label.setStyleSheet("color: grey;")
                 top_pad_label.setStyleSheet("color: grey;")
                 bottom_pad_label.setStyleSheet("color: grey;")
+                
+
         self.frame_box_checkbox.stateChanged.connect(lambda _: set_frame_box_enabled(self.frame_box_checkbox.checkState()))
         
          # Initialize frame box enabled state after all controls are created
@@ -4971,8 +5354,7 @@ class SuperCutUI(QWidget):
                 self.frame_box_duration_edit.setEnabled(False)
                 self.frame_box_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.frame_box_duration_full_checkbox.setEnabled(False)
-                self.frame_box_caption_checkbox.setStyleSheet("color: grey;")
-                self.frame_box_caption_checkbox.setEnabled(False)
+                # Don't manage caption checkbox here - let the caption system handle it
             else:
                 frame_box_label.setStyleSheet("")
                 self.frame_box_effect_combo.setStyleSheet("")
@@ -4983,8 +5365,7 @@ class SuperCutUI(QWidget):
                 # Re-enable the full duration checkbox and let it control the duration field styling
                 self.frame_box_duration_full_checkbox.setStyleSheet("")
                 self.frame_box_duration_full_checkbox.setEnabled(True)
-                self.frame_box_caption_checkbox.setStyleSheet("")
-                self.frame_box_caption_checkbox.setEnabled(True)
+                # Don't manage caption checkbox here - let the caption system handle it
                 set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
         self.frame_box_checkbox.stateChanged.connect(lambda _: update_frame_box_effect_label_style())
         self.frame_box_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState()))
