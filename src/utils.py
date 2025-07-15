@@ -389,8 +389,18 @@ def merge_images_with_position(background_path, overlay_path, output_path, posit
             bg_width, bg_height = bg_img.size
             overlay_width, overlay_height = overlay_img.size
             
-            # Resize overlay based on percentage
-            if overlay_size_percent != 100:
+            # Special scaling for framebox caption PNG mode
+            # If PNG width is larger than background height, scale PNG width to match background height
+            # and scale PNG height proportionally based on the width decrease
+            if overlay_width > bg_height:
+                # Calculate the scale factor to make PNG width equal to background height
+                scale_factor = bg_height / overlay_width
+                new_width = int(overlay_width * scale_factor)
+                new_height = int(overlay_height * scale_factor)
+                overlay_img = overlay_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                overlay_width, overlay_height = overlay_img.size
+            # Regular percentage-based scaling (only if not already scaled by the special logic above)
+            elif overlay_size_percent != 100:
                 new_width = int(overlay_width * overlay_size_percent / 100)
                 new_height = int(overlay_height * overlay_size_percent / 100)
                 overlay_img = overlay_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
