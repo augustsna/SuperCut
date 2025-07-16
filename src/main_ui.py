@@ -868,6 +868,7 @@ class SuperCutUI(QWidget):
         self._preview_dialog = None  # Track preview dialog for toggle functionality
         self.frame_box_caption_png_path = None
         self.layer_order = None  # Initialize layer order to None (uses default)
+        self.layer_manager_dialog = None  # Track layer manager dialog for toggle functionality
         
         self.init_ui()
         self.restore_window_position()
@@ -6469,6 +6470,82 @@ class SuperCutUI(QWidget):
         # Update terminal title to show positioning
         self.terminal_widget.setWindowTitle(f"SuperCut Terminal [{position_side}]")
 
+    def position_layer_manager_dialog(self):
+        """Position the layer manager dialog intelligently based on main window position and screen space"""
+        if not self.layer_manager_dialog:
+            return
+            
+        # Get main window geometry
+        main_geometry = self.geometry()
+        
+        # Get layer manager dialog size (use default if not yet shown)
+        dialog_width = self.layer_manager_dialog.width() if self.layer_manager_dialog.width() > 0 else 400
+        dialog_height = self.layer_manager_dialog.height() if self.layer_manager_dialog.height() > 0 else 500
+        
+        # Get screen geometry
+        screen = self.screen() if hasattr(self, 'screen') and self.screen() else QApplication.primaryScreen()
+        if screen is not None:
+            screen_geometry = screen.geometry()
+            screen_width = screen_geometry.width()
+            screen_height = screen_geometry.height()
+        else:
+            screen_width = 1920
+            screen_height = 1080
+        
+        # Calculate title bar height offset (typical Windows title bar is ~30px)
+        title_bar_height = 30
+        
+        # Calculate available space on left and right, accounting for title bar
+        space_on_right = screen_width - (main_geometry.x() + main_geometry.width())
+        space_on_left = main_geometry.x()
+        
+        # Adjust for title bar in vertical positioning
+        available_height = screen_height - title_bar_height
+        
+        # Determine optimal position
+        if space_on_right >= dialog_width + 10:
+            # Enough space on the right - position there
+            dialog_x = main_geometry.x() + main_geometry.width() + 10
+            dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+            position_side = "right"
+        elif space_on_left >= dialog_width + 10:
+            # Enough space on the left - position there
+            dialog_x = main_geometry.x() - dialog_width - 10
+            dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+            position_side = "left"
+        else:
+            # Not enough space on either side, try to fit it
+            if space_on_right > space_on_left:
+                # More space on right, try to fit there
+                dialog_x = main_geometry.x() + main_geometry.width() + 5
+                dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+                position_side = "right (tight)"
+            else:
+                # More space on left, try to fit there
+                dialog_x = main_geometry.x() - dialog_width - 5
+                dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+                position_side = "left (tight)"
+        
+        # Ensure dialog doesn't go off-screen vertically (accounting for title bar)
+        if dialog_y + dialog_height > available_height:
+            dialog_y = available_height - dialog_height - 10
+        
+        if dialog_y < title_bar_height:
+            dialog_y = title_bar_height + 10
+        
+        # Ensure dialog doesn't go off-screen horizontally
+        if dialog_x + dialog_width > screen_width:
+            dialog_x = screen_width - dialog_width - 10
+        
+        if dialog_x < 0:
+            dialog_x = 10
+        
+        # Position the layer manager dialog
+        self.layer_manager_dialog.move(dialog_x, dialog_y)
+        
+        # Update dialog title to show positioning
+        self.layer_manager_dialog.setWindowTitle(f"Layer Order Manager [{position_side}]")
+
     def on_terminal_closed(self):
         """Handle terminal widget closed signal"""
         self.terminal_widget = None
@@ -7829,6 +7906,11 @@ class SuperCutUI(QWidget):
         if hasattr(self, '_preview_dialog') and self._preview_dialog is not None:
             self._preview_dialog.close()
             self._preview_dialog = None
+        
+        # Close layer manager dialog if it exists
+        if hasattr(self, 'layer_manager_dialog') and self.layer_manager_dialog is not None:
+            self.layer_manager_dialog.close()
+            self.layer_manager_dialog = None
         # If a video creation thread is running, warn the user
         if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
             if self.quit_dialog is not None:
@@ -7916,15 +7998,27 @@ class SuperCutUI(QWidget):
             self.terminal_widget is not None and 
             self.terminal_widget.isVisible()):
             self.position_terminal_widget()
+        
+        # Reposition layer manager dialog if it exists and is visible
+        if (hasattr(self, 'layer_manager_dialog') and 
+            self.layer_manager_dialog is not None and 
+            self.layer_manager_dialog.isVisible()):
+            self.position_layer_manager_dialog()
 
     def moveEvent(self, event):
-        """Handle window move event to reposition terminal widget"""
+        """Handle window move event to reposition terminal widget and layer manager dialog"""
         super().moveEvent(event)
         # Reposition terminal widget if it exists and is visible
         if (hasattr(self, 'terminal_widget') and 
             self.terminal_widget is not None and 
             self.terminal_widget.isVisible()):
             self.position_terminal_widget()
+        
+        # Reposition layer manager dialog if it exists and is visible
+        if (hasattr(self, 'layer_manager_dialog') and 
+            self.layer_manager_dialog is not None and 
+            self.layer_manager_dialog.isVisible()):
+            self.position_layer_manager_dialog()
 
     def on_media_folder_changed(self):
         """When media folder is changed, set output folder to same only if output folder is empty"""
@@ -7945,7 +8039,13 @@ class SuperCutUI(QWidget):
             self.apply_settings()
 
     def show_layer_manager(self):
-        """Show layer order manager dialog"""
+        """Show or toggle layer order manager dialog"""
+        # Check if layer manager dialog is already open - if so, close it
+        if hasattr(self, 'layer_manager_dialog') and self.layer_manager_dialog is not None:
+            self.layer_manager_dialog.close()
+            self.layer_manager_dialog = None
+            return
+        
         # Get current layer states from UI
         layer_states = {
             'background': True,  # Always enabled
@@ -7966,9 +8066,19 @@ class SuperCutUI(QWidget):
             'soundwave': hasattr(self, 'soundwave_checkbox') and self.soundwave_checkbox.isChecked(),
         }
         
-        dialog = LayerManagerDialog(self, self.layer_order)
-        dialog.update_layer_states(layer_states)
-        dialog.show()
+        # Create layer manager dialog
+        self.layer_manager_dialog = LayerManagerDialog(self, self.layer_order)
+        self.layer_manager_dialog.update_layer_states(layer_states)
+        
+        # Show the dialog first to get its actual size
+        self.layer_manager_dialog.show()
+        
+        # Position dialog intelligently based on main window position (after showing)
+        self.position_layer_manager_dialog()
+        
+        # Raise and activate the dialog
+        self.layer_manager_dialog.raise_()
+        self.layer_manager_dialog.activateWindow()
         
         # Layer order will be updated when "Save & Apply" is clicked
 
