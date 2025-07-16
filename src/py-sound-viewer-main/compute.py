@@ -14,6 +14,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from matplotlib import collections as mc
 import numpy as np
+from matplotlib.patches import Circle
 
 import colorsys
 
@@ -49,13 +50,13 @@ def init_color(color):
 def init_bars(lines, color):
   color = init_color(color)
   lines.set_color(color)
-  return lines,
+  return lines
 
 def init_spectrum(line, color):
   color = init_color(color)
   line.set_ydata(np.zeros(nFFT - 1))
   line.set_color(color)
-  return line,
+  return line
 
 def init_wave(lines, color, x, MAX_y):
   color = init_color(color)
@@ -64,13 +65,13 @@ def init_wave(lines, color, x, MAX_y):
   lines[1][0].set_ydata(MAX_y * np.ones(len(x)))
   lines[1][0].set_color(color)
 
-  return lines,
+  return lines
 
 def init_rain(circles, color):
   color = init_color(color)
   for circle in circles:
     circle.set_color(color)
-  return circles,
+  return circles
 
 
 # ========================
@@ -221,7 +222,7 @@ def compute_bars(fig, wf, color):
 
   return animation.FuncAnimation(
     fig, animate_bars, int(wf.getnframes() / RATE * FPS),
-    init_func=lambda: init_bars(lines, color),
+    init_func=lambda: [init_bars(lines, color)],
     fargs=(lines, lines_x, wf, color, max_y, bar_min),
     interval=1000.0 / FPS, blit=False
   )
@@ -240,7 +241,7 @@ def compute_spectrum(fig, wf, color):
 
   return animation.FuncAnimation(
     fig, animate_spectrum, int(wf.getnframes() / RATE * FPS),
-    init_func=lambda: init_spectrum(line, color),
+    init_func=lambda: [init_spectrum(line, color)],
     fargs=(line, wf, color, max_y),
     interval=1000.0 / FPS, blit=False
   )
@@ -289,7 +290,7 @@ def compute_rain(fig, wf, color):
   ystep = max_y / col_count
   for _ in range(nFFT):
     ix, iy = cx * xstep, cy * ystep
-    circles.append(plt.Circle((ix + x_offset, iy + ystep / 2), 0.01))
+    circles.append(Circle((ix + x_offset, iy + ystep / 2), 0.01))
     cy += 1
     if cy == col_count:
       cy = 0
