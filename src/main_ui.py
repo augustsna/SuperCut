@@ -503,6 +503,10 @@ class SettingsDialog(QDialog):
         self.save_btn.setDefault(True)
         self.save_btn.setAutoDefault(True)
         self.setFixedSize(640, 640)
+        
+        # Add Ctrl+W shortcut to close dialog
+        self.shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
+        self.shortcut.activated.connect(self.reject)
 
         # --- Add to SettingsDialog: Show Placeholder Controls Checkbox ---
         self.show_placeholder_checkbox = QtWidgets.QCheckBox("Show Placeholder")
@@ -646,6 +650,10 @@ class NameListDialog(QDialog):
         self.ok_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
         self.preview_btn.clicked.connect(self.open_preview_dialog)
+        
+        # Add Ctrl+W shortcut to close dialog
+        self.shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
+        self.shortcut.activated.connect(self.reject)
     def set_names(self, names):
         # Show indicators
         lines = [f"{i+1}. {name}" for i, name in enumerate(names)]
@@ -7816,6 +7824,11 @@ class SuperCutUI(QWidget):
         if hasattr(self, 'terminal_widget') and self.terminal_widget is not None:
             self.terminal_widget.close()
             self.terminal_widget = None
+        
+        # Close preview dialog if it exists
+        if hasattr(self, '_preview_dialog') and self._preview_dialog is not None:
+            self._preview_dialog.close()
+            self._preview_dialog = None
         # If a video creation thread is running, warn the user
         if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
             if self.quit_dialog is not None:
@@ -7953,15 +7966,11 @@ class SuperCutUI(QWidget):
             'soundwave': hasattr(self, 'soundwave_checkbox') and self.soundwave_checkbox.isChecked(),
         }
         
-        dialog = LayerManagerDialog(self)
+        dialog = LayerManagerDialog(self, self.layer_order)
         dialog.update_layer_states(layer_states)
+        dialog.show()
         
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            # Store the layer order for use in video creation
-            self.layer_order = dialog.get_layer_order()
-            self.enabled_layers = dialog.get_enabled_layers()
-            print(f"Layer order updated: {self.layer_order}")
-            print(f"Enabled layers: {self.enabled_layers}")
+        # Layer order will be updated when "Save & Apply" is clicked
 
     def apply_settings(self):
         # Apply window size settings only if window is already shown (i.e., settings were changed)
@@ -8321,6 +8330,10 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         def on_dialog_closed():
             self._preview_dialog = None
         dlg.finished.connect(on_dialog_closed)
+        
+        # Add Ctrl+W shortcut to close dialog
+        shortcut = QShortcut(QKeySequence("Ctrl+W"), dlg)
+        shortcut.activated.connect(dlg.close)
         dlg.setStyleSheet("""
             QWidget {
                 background-color: transparent;
@@ -9101,6 +9114,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         video_path=msg,
                         open_folder=open_dry_run_folder
                     )
+                    
                     # If pending close, auto-close after 3 seconds
                     if hasattr(self, '_pending_close') and self._pending_close:
                         timer = QTimer(self)
