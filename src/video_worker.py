@@ -94,7 +94,8 @@ class VideoWorker(QObject):
                  soundwave_color: str = "hue_rotate",
                  soundwave_size_percent: int = 50,
                  soundwave_x_percent: int = 50,
-                 soundwave_y_percent: int = 50):
+                 soundwave_y_percent: int = 50,
+                 layer_order: Optional[List[str]] = None):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -294,6 +295,7 @@ class VideoWorker(QObject):
         self.soundwave_size_percent = soundwave_size_percent
         self.soundwave_x_percent = soundwave_x_percent
         self.soundwave_y_percent = soundwave_y_percent
+        self.layer_order = layer_order
         
         # Debug soundwave parameters
         print(f"🎵 Soundwave parameters:")
@@ -302,6 +304,12 @@ class VideoWorker(QObject):
         print(f"   - Color: {self.soundwave_color}")
         print(f"   - Size: {self.soundwave_size_percent}%")
         print(f"   - Position: ({self.soundwave_x_percent}%, {self.soundwave_y_percent}%)")
+        
+        # Debug layer order
+        if self.layer_order:
+            print(f"🎨 Layer order: {self.layer_order}")
+        else:
+            print(f"🎨 Using default layer order")
 
     def stop(self):
         """Stop the video processing"""
@@ -1006,7 +1014,9 @@ class VideoWorker(QObject):
                 soundwave_x_percent=self.soundwave_x_percent,
                 soundwave_y_percent=self.soundwave_y_percent,
                 overlay1_start_at=actual_overlay1_start_at,
-                overlay2_start_at=actual_overlay2_start_at
+                overlay2_start_at=actual_overlay2_start_at,
+                # --- Add layer order parameter ---
+                layer_order=self.layer_order
             )
             if not success:
                 self.error.emit(err or f"Failed to create video: {output_filename}")

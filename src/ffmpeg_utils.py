@@ -221,7 +221,9 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     soundwave_overlay_path: str = "",
     soundwave_size_percent: int = 50,
     soundwave_x_percent: int = 50,
-    soundwave_y_percent: int = 50
+    soundwave_y_percent: int = 50,
+    # --- Add layer order parameter ---
+    layer_order: Optional[List[str]] = None
 ) -> Tuple[bool, Optional[str]]:
     temp_png_path = None
     try:
@@ -783,157 +785,186 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         filter_chains.append(chain)
                         overlay_labels.append((label, start, duration, x_expr, y_expr))
             # --- End Song Title Overlay Filter Graph ---
+            # Print layer order information for debugging
+            if layer_order:
+                print(f"🎨 Custom layer order: {layer_order}")
+            else:
+                print(f"🎨 Using default layer order")
+            
+            # Build filter graph based on layer order
             filter_graph = filter_bg
             last_label = "[bg]"
-            # Overlay 1
-            if filter_overlay1:
-                filter_graph += f";{filter_overlay1}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay1_2_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";[bg][ol1]overlay={ox1}:{oy1}:enable='gte(t,{overlay1_start_at})'[tmp1]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";[bg][ol1]overlay={ox1}:{oy1}:enable='between(t,{overlay1_start_at},{overlay1_start_at+overlay1_2_duration})'[tmp1]"
-                last_label = "[tmp1]"
-            # Overlay 2
-            if filter_overlay2:
-                filter_graph += f";{filter_overlay2}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay1_2_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol2]overlay={ox2}:{oy2}:enable='gte(t,{overlay2_start_at})'[tmp2]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol2]overlay={ox2}:{oy2}:enable='between(t,{overlay2_start_at},{overlay2_start_at+overlay1_2_duration})'[tmp2]"
-                last_label = "[tmp2]"
-            # Overlay 3
-            if filter_overlay3:
-                filter_graph += f";{filter_overlay3}"
-                filter_graph += f";{last_label}[ol3]overlay={ox3}:{oy3}[tmp3]"
-                last_label = "[tmp3]"
-            # Overlay 4
-            if filter_overlay4:
-                filter_graph += f";{filter_overlay4}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay4_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}:enable='gte(t,{overlay4_start_time})'[tmp4]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}:enable='between(t,{overlay4_start_time},{overlay4_start_time+overlay4_duration})'[tmp4]"
-                last_label = "[tmp4]"
-            # Overlay 5
-            if filter_overlay5:
-                filter_graph += f";{filter_overlay5}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay5_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}:enable='gte(t,{overlay5_start_time})'[tmp5]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}:enable='between(t,{overlay5_start_time},{overlay5_start_time+overlay5_duration})'[tmp5]"
-                last_label = "[tmp5]"
-            # Overlay 6
-            if filter_overlay6:
-                filter_graph += f";{filter_overlay6}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay6_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol6]overlay={ox6}:{oy6}:enable='gte(t,{overlay6_start_time})'[tmp6]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol6]overlay={ox6}:{oy6}:enable='between(t,{overlay6_start_time},{overlay6_start_time+overlay6_duration})'[tmp6]"
-                last_label = "[tmp6]"
-            # Overlay 7
-            if filter_overlay7:
-                filter_graph += f";{filter_overlay7}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay7_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol7]overlay={ox7}:{oy7}:enable='gte(t,{overlay7_start_time})'[tmp7]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol7]overlay={ox7}:{oy7}:enable='between(t,{overlay7_start_time},{overlay7_start_time+overlay7_duration})'[tmp7]"
-                last_label = "[tmp7]"
-            # Overlay 8
-            if filter_overlay8:
-                filter_graph += f";{filter_overlay8}"
-                # Use duration control like intro if duration full checkbox is not checked
-                if overlay8_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol8]overlay={ox8}:{oy8}:enable='gte(t,{overlay8_start_time})'[tmp8]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol8]overlay={ox8}:{oy8}:enable='between(t,{overlay8_start_time},{overlay8_start_time+overlay8_duration})'[tmp8]"
-                last_label = "[tmp8]"
-            # Overlay 9
-            if filter_overlay9:
-                filter_graph += f";{filter_overlay9}"
-                # Use duration control like intro if duration full checkbox is not checked
-                if overlay9_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol9]overlay={ox9}:{oy9}:enable='gte(t,{overlay9_start_time})'[tmp9]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol9]overlay={ox9}:{oy9}:enable='between(t,{overlay9_start_time},{overlay9_start_time+overlay9_duration})'[tmp9]"
-                last_label = "[tmp9]"
-            # Overlay 10
-            if filter_overlay10:
-                filter_graph += f";{filter_overlay10}"
-                # Limited duration - show for specified duration (no full duration option for overlay10)
-                filter_graph += f";{last_label}[ol10]overlay={ox10}:{oy10}:enable='between(t,{overlay10_start_time},{overlay10_start_time+overlay10_duration})'[tmp10]"
-                last_label = "[tmp10]"
-            # Frame Box
-            if filter_frame_box:
-                filter_graph += f";{filter_frame_box}"
-                # Use duration control like other overlays
-                if frame_box_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol_frame_box]overlay={ox_frame_box}:{oy_frame_box}:enable='gte(t,{frame_box_start_time})'[tmp_frame_box]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol_frame_box]overlay={ox_frame_box}:{oy_frame_box}:enable='between(t,{frame_box_start_time},{frame_box_start_time+frame_box_duration})'[tmp_frame_box]"
-                last_label = "[tmp_frame_box]"
-            # Frame MP3Cover
-            if filter_frame_mp3cover:
-                filter_graph += f";{filter_frame_mp3cover}"
-                # Use duration control like other overlays
-                if frame_mp3cover_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol_frame_mp3cover]overlay={ox_frame_mp3cover}:{oy_frame_mp3cover}:enable='gte(t,{frame_mp3cover_start_time})'[tmp_frame_mp3cover]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol_frame_mp3cover]overlay={ox_frame_mp3cover}:{oy_frame_mp3cover}:enable='between(t,{frame_mp3cover_start_time},{frame_mp3cover_start_time+frame_mp3cover_duration})'[tmp_frame_mp3cover]"
-                last_label = "[tmp_frame_mp3cover]"
-            # Intro
-            if filter_intro:
-                filter_graph += f";{filter_intro}"
-                # Use duration control like overlays if duration full checkbox is not checked
-                if intro_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[oi]overlay={ox_intro}:{oy_intro}:enable='gte(t,{intro_start_at})'[v1]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[oi]overlay={ox_intro}:{oy_intro}:enable='between(t,{intro_start_at},{intro_start_at+intro_duration})'[v1]"
-                last_label = "[v1]"
-            # Extra overlays
-            if filter_chains:
-                filter_graph += ";" + ";".join(filter_chains)
-                for i, (label, start, duration, x_expr, y_expr) in enumerate(overlay_labels):
-                    enable_expr = f"between(t,{start},{start+duration})"
-                    out_label = f"songtmp{i+1}" if i < len(overlay_labels)-1 else "vout"
-                    filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
-                    last_label = f"[{out_label}]"
             
-            # --- Add soundwave overlay processing ---
-            if use_soundwave_overlay and soundwave_idx is not None:
-                # Process soundwave overlay with transparency support (MOV format) - no scaling needed
-                filter_graph += f";[{soundwave_idx}:v]format=yuva420p[soundwave]"
-                # Overlay soundwave on the video
-                filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[vout]"
-                last_label = "[vout]"
-            elif not filter_chains:
+            # Define layer configurations for custom ordering
+            layer_configs = {
+                'background': {'filter': None, 'label': '[bg]'},  # Background is always first
+                'overlay1': {
+                    'filter': filter_overlay1,
+                    'overlay': f"[ol1]overlay={ox1}:{oy1}",
+                    'duration_control': overlay1_2_duration_full_checkbox_checked,
+                    'start_time': overlay1_start_at,
+                    'duration': overlay1_2_duration
+                },
+                'overlay2': {
+                    'filter': filter_overlay2,
+                    'overlay': f"[ol2]overlay={ox2}:{oy2}",
+                    'duration_control': overlay1_2_duration_full_checkbox_checked,
+                    'start_time': overlay2_start_at,
+                    'duration': overlay1_2_duration
+                },
+                'overlay3': {
+                    'filter': filter_overlay3,
+                    'overlay': f"[ol3]overlay={ox3}:{oy3}",
+                    'duration_control': None,
+                    'start_time': None,
+                    'duration': None
+                },
+                'overlay4': {
+                    'filter': filter_overlay4,
+                    'overlay': f"[ol4]overlay={ox4}:{oy4}",
+                    'duration_control': overlay4_duration_full_checkbox_checked,
+                    'start_time': overlay4_start_time,
+                    'duration': overlay4_duration
+                },
+                'overlay5': {
+                    'filter': filter_overlay5,
+                    'overlay': f"[ol5]overlay={ox5}:{oy5}",
+                    'duration_control': overlay5_duration_full_checkbox_checked,
+                    'start_time': overlay5_start_time,
+                    'duration': overlay5_duration
+                },
+                'overlay6': {
+                    'filter': filter_overlay6,
+                    'overlay': f"[ol6]overlay={ox6}:{oy6}",
+                    'duration_control': overlay6_duration_full_checkbox_checked,
+                    'start_time': overlay6_start_time,
+                    'duration': overlay6_duration
+                },
+                'overlay7': {
+                    'filter': filter_overlay7,
+                    'overlay': f"[ol7]overlay={ox7}:{oy7}",
+                    'duration_control': overlay7_duration_full_checkbox_checked,
+                    'start_time': overlay7_start_time,
+                    'duration': overlay7_duration
+                },
+                'overlay8': {
+                    'filter': filter_overlay8,
+                    'overlay': f"[ol8]overlay={ox8}:{oy8}",
+                    'duration_control': overlay8_duration_full_checkbox_checked,
+                    'start_time': overlay8_start_time,
+                    'duration': overlay8_duration
+                },
+                'overlay9': {
+                    'filter': filter_overlay9,
+                    'overlay': f"[ol9]overlay={ox9}:{oy9}",
+                    'duration_control': overlay9_duration_full_checkbox_checked,
+                    'start_time': overlay9_start_time,
+                    'duration': overlay9_duration
+                },
+                'overlay10': {
+                    'filter': filter_overlay10,
+                    'overlay': f"[ol10]overlay={ox10}:{oy10}",
+                    'duration_control': False,  # Always limited duration
+                    'start_time': overlay10_start_time,
+                    'duration': overlay10_duration
+                },
+                'frame_box': {
+                    'filter': filter_frame_box,
+                    'overlay': f"[ol_frame_box]overlay={ox_frame_box}:{oy_frame_box}",
+                    'duration_control': frame_box_duration_full_checkbox_checked,
+                    'start_time': frame_box_start_time,
+                    'duration': frame_box_duration
+                },
+                'frame_mp3cover': {
+                    'filter': filter_frame_mp3cover,
+                    'overlay': f"[ol_frame_mp3cover]overlay={ox_frame_mp3cover}:{oy_frame_mp3cover}",
+                    'duration_control': frame_mp3cover_duration_full_checkbox_checked,
+                    'start_time': frame_mp3cover_start_time,
+                    'duration': frame_mp3cover_duration
+                },
+                'intro': {
+                    'filter': filter_intro,
+                    'overlay': f"[oi]overlay={ox_intro}:{oy_intro}",
+                    'duration_control': intro_duration_full_checkbox_checked,
+                    'start_time': intro_start_at,
+                    'duration': intro_duration
+                },
+                'song_titles': {
+                    'filter': filter_chains,
+                    'overlay': None,  # Handled separately
+                    'duration_control': None,
+                    'start_time': None,
+                    'duration': None
+                },
+                'soundwave': {
+                    'filter': None,  # Handled separately
+                    'overlay': None,
+                    'duration_control': None,
+                    'start_time': None,
+                    'duration': None
+                }
+            }
+            
+            # Use custom layer order if provided, otherwise use default
+            if layer_order:
+                # Filter out layers that don't exist in our config
+                valid_layers = [layer for layer in layer_order if layer in layer_configs]
+                # Add any missing layers at the end in default order
+                default_order = ['background', 'overlay1', 'overlay2', 'overlay3', 'overlay4', 'overlay5',
+                               'overlay6', 'overlay7', 'overlay8', 'overlay9', 'overlay10',
+                               'intro', 'frame_box', 'frame_mp3cover', 'song_titles', 'soundwave']
+                missing_layers = [layer for layer in default_order if layer not in valid_layers]
+                final_order = valid_layers + missing_layers
+            else:
+                final_order = ['background', 'overlay1', 'overlay2', 'overlay3', 'overlay4', 'overlay5',
+                             'overlay6', 'overlay7', 'overlay8', 'overlay9', 'overlay10',
+                             'intro', 'frame_box', 'frame_mp3cover', 'song_titles', 'soundwave']
+            
+            # Build filter graph based on final order
+            for layer_id in final_order:
+                if layer_id == 'background':
+                    continue  # Background is already the base
+                
+                config = layer_configs.get(layer_id)
+                if not config:
+                    continue
+                
+                # Handle song titles (special case)
+                if layer_id == 'song_titles' and config['filter']:
+                    filter_graph += ";" + ";".join(config['filter'])
+                    for i, (label, start, duration, x_expr, y_expr) in enumerate(overlay_labels):
+                        enable_expr = f"between(t,{start},{start+duration})"
+                        out_label = f"songtmp{i+1}" if i < len(overlay_labels)-1 else "vout"
+                        filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
+                        last_label = f"[{out_label}]"
+                    continue
+                
+                # Handle soundwave (special case)
+                if layer_id == 'soundwave' and use_soundwave_overlay and soundwave_idx is not None:
+                    filter_graph += f";[{soundwave_idx}:v]format=yuva420p[soundwave]"
+                    filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[vout]"
+                    last_label = "[vout]"
+                    continue
+                
+                # Handle regular overlays
+                if config['filter']:
+                    filter_graph += f";{config['filter']}"
+                    
+                    # Apply overlay with duration control
+                    if config['duration_control'] is None:
+                        # No duration control (like overlay3)
+                        filter_graph += f";{last_label}{config['overlay']}[tmp_{layer_id}]"
+                    elif config['duration_control']:
+                        # Full duration
+                        filter_graph += f";{last_label}{config['overlay']}:enable='gte(t,{config['start_time']})'[tmp_{layer_id}]"
+                    else:
+                        # Limited duration
+                        filter_graph += f";{last_label}{config['overlay']}:enable='between(t,{config['start_time']},{config['start_time']+config['duration']})'[tmp_{layer_id}]"
+                    
+                    last_label = f"[tmp_{layer_id}]"
+            
+            # Handle final output if no song titles or soundwave were processed
+            if not filter_chains and not (use_soundwave_overlay and soundwave_idx is not None):
                 filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout]"
         else:
             # Use configurable background scale if enabled, otherwise use default 103%

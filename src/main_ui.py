@@ -43,6 +43,7 @@ from src.utils import (
 from src.ui_components import FolderDropLineEdit, PleaseWaitDialog, StoppedDialog, SuccessDialog, DryRunSuccessDialog, ScrollableErrorDialog, ImageDropLineEdit, NoWheelComboBox, KhmerSupportLineEdit, KhmerSupportPlainTextEdit
 from src.video_worker import VideoWorker
 from src.terminal_widget import TerminalWidget
+from src.layer_manager import LayerManagerDialog
 
 import time
 import threading
@@ -858,6 +859,7 @@ class SuperCutUI(QWidget):
         self.is_dry_run_mode = False  # Track dry run state
         self._preview_dialog = None  # Track preview dialog for toggle functionality
         self.frame_box_caption_png_path = None
+        self.layer_order = None  # Initialize layer order to None (uses default)
         
         self.init_ui()
         self.restore_window_position()
@@ -6238,6 +6240,18 @@ class SuperCutUI(QWidget):
         self.settings_btn.clicked.connect(self.show_settings_dialog)
         button_layout.addWidget(self.settings_btn)
 
+        # Add layer manager button
+        button_layout.addSpacing(10)
+        self.layer_manager_btn = QPushButton()
+        layer_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "logo", "icons8-program-100.png")
+        self.layer_manager_btn.setIcon(QIcon(layer_icon_path))
+        self.layer_manager_btn.setFixedSize(32, 32)
+        self.layer_manager_btn.setIconSize(self.layer_manager_btn.size())
+        self.layer_manager_btn.setToolTip("Layer Order Manager")
+        self.layer_manager_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
+        self.layer_manager_btn.clicked.connect(self.show_layer_manager)
+        button_layout.addWidget(self.layer_manager_btn)
+
         # Add terminal button next
         button_layout.addSpacing(10)
         self.terminal_btn = QPushButton()
@@ -7584,6 +7598,8 @@ class SuperCutUI(QWidget):
             soundwave_size_percent=self.soundwave_size_percent if hasattr(self, 'soundwave_size_percent') else 50,
             soundwave_x_percent=self.soundwave_x_percent if hasattr(self, 'soundwave_x_percent') else 50,
             soundwave_y_percent=self.soundwave_y_percent if hasattr(self, 'soundwave_y_percent') else 50,
+            # --- Add layer order parameter ---
+            layer_order=getattr(self, 'layer_order', None),
 
         )
         self._worker.moveToThread(self._thread)
@@ -7914,6 +7930,38 @@ class SuperCutUI(QWidget):
         dlg = SettingsDialog(self, settings=self.settings, fps_options=DEFAULT_FPS_OPTIONS)
         if dlg.exec() == QDialog.DialogCode.Accepted:
             self.apply_settings()
+
+    def show_layer_manager(self):
+        """Show layer order manager dialog"""
+        # Get current layer states from UI
+        layer_states = {
+            'background': True,  # Always enabled
+            'overlay1': hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked(),
+            'overlay2': hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked(),
+            'overlay3': hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked(),
+            'overlay4': hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked(),
+            'overlay5': hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked(),
+            'overlay6': hasattr(self, 'overlay6_checkbox') and self.overlay6_checkbox.isChecked(),
+            'overlay7': hasattr(self, 'overlay7_checkbox') and self.overlay7_checkbox.isChecked(),
+            'overlay8': hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked(),
+            'overlay9': hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked(),
+            'overlay10': hasattr(self, 'overlay10_checkbox') and self.overlay10_checkbox.isChecked(),
+            'intro': hasattr(self, 'intro_checkbox') and self.intro_checkbox.isChecked(),
+            'frame_box': hasattr(self, 'frame_box_checkbox') and self.frame_box_checkbox.isChecked(),
+            'frame_mp3cover': hasattr(self, 'frame_mp3cover_checkbox') and self.frame_mp3cover_checkbox.isChecked(),
+            'song_titles': hasattr(self, 'song_title_checkbox') and self.song_title_checkbox.isChecked(),
+            'soundwave': hasattr(self, 'soundwave_checkbox') and self.soundwave_checkbox.isChecked(),
+        }
+        
+        dialog = LayerManagerDialog(self)
+        dialog.update_layer_states(layer_states)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Store the layer order for use in video creation
+            self.layer_order = dialog.get_layer_order()
+            self.enabled_layers = dialog.get_enabled_layers()
+            print(f"Layer order updated: {self.layer_order}")
+            print(f"Enabled layers: {self.enabled_layers}")
 
     def apply_settings(self):
         # Apply window size settings only if window is already shown (i.e., settings were changed)
@@ -8762,6 +8810,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         song_title_text_effect = self.params['song_title_text_effect']
                         song_title_text_effect_color = self.params['song_title_text_effect_color']
                         song_title_text_effect_intensity = self.params['song_title_text_effect_intensity']
+                        # --- Add layer order parameter ---
+                        layer_order = self.params.get('layer_order', None)
                         extra_overlays = None
                         if use_song_title_overlay:
                             title = extract_mp3_title(dry_mp3)
@@ -8857,7 +8907,9 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             overlay9_duration=overlay9_duration,
                             overlay9_duration_full_checkbox_checked=overlay9_duration_full_checkbox_checked,
                             overlay1_start_at=overlay1_start_at,
-                            overlay2_start_at=overlay2_start_at
+                            overlay2_start_at=overlay2_start_at,
+                            # --- Add layer order parameter ---
+                            layer_order=layer_order
                         )
                         self.finished.emit(success, err if not success else dry_out)
                     except Exception as e:
@@ -9002,7 +9054,9 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 # --- Add song title text effect parameters ---
                 song_title_text_effect=self.song_title_text_effect,
                 song_title_text_effect_color=self.song_title_text_effect_color,
-                song_title_text_effect_intensity=self.song_title_text_effect_intensity
+                song_title_text_effect_intensity=self.song_title_text_effect_intensity,
+                # --- Add layer order parameter ---
+                layer_order=getattr(self, 'layer_order', None)
             )
             worker = DryRunWorker(params)
             thread = QThread()
