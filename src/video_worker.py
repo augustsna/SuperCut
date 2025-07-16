@@ -87,7 +87,14 @@ class VideoWorker(QObject):
                  bg_scale_percent: int = 103,
                  bg_crop_position: str = "center",
                  bg_effect: str = "none",
-                 bg_intensity: int = 50):
+                 bg_intensity: int = 50,
+                 # --- Add soundwave overlay parameters ---
+                 use_soundwave_overlay: bool = False,
+                 soundwave_method: str = "bars",
+                 soundwave_color: str = "hue_rotate",
+                 soundwave_size_percent: int = 50,
+                 soundwave_x_percent: int = 50,
+                 soundwave_y_percent: int = 50):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -280,6 +287,21 @@ class VideoWorker(QObject):
         self.bg_crop_position = bg_crop_position
         self.bg_effect = bg_effect
         self.bg_intensity = bg_intensity
+        # --- Soundwave overlay parameters ---
+        self.use_soundwave_overlay = use_soundwave_overlay
+        self.soundwave_method = soundwave_method
+        self.soundwave_color = soundwave_color
+        self.soundwave_size_percent = soundwave_size_percent
+        self.soundwave_x_percent = soundwave_x_percent
+        self.soundwave_y_percent = soundwave_y_percent
+        
+        # Debug soundwave parameters
+        print(f"🎵 Soundwave parameters:")
+        print(f"   - Enabled: {self.use_soundwave_overlay}")
+        print(f"   - Method: {self.soundwave_method}")
+        print(f"   - Color: {self.soundwave_color}")
+        print(f"   - Size: {self.soundwave_size_percent}%")
+        print(f"   - Position: ({self.soundwave_x_percent}%, {self.soundwave_y_percent}%)")
 
     def stop(self):
         """Stop the video processing"""
@@ -436,6 +458,26 @@ class VideoWorker(QObject):
             self.error.emit(f"Failed to merge MP3 files or get duration")
             return False, []
 
+        # --- Generate soundwave overlay if enabled ---
+        soundwave_overlay_path = None
+        print(f"🔍 Soundwave overlay enabled: {self.use_soundwave_overlay}")
+        if self.use_soundwave_overlay:
+            try:
+                from src.soundwave_generator import create_soundwave_from_merged_audio
+                print(f"🎵 Generating soundwave overlay with method: {self.soundwave_method}")
+                soundwave_overlay_path = create_soundwave_from_merged_audio(
+                    merged_audio_path,
+                    method=self.soundwave_method,
+                    color=self.soundwave_color
+                )
+                if soundwave_overlay_path:
+                    print(f"✅ Soundwave overlay created: {os.path.basename(soundwave_overlay_path)}")
+                else:
+                    print("⚠️ Failed to create soundwave overlay")
+            except Exception as e:
+                logger.warning(f"Error creating soundwave overlay: {e}")
+                print(f"⚠️ Soundwave overlay error: {e}")
+
         try:
             # Calculate timing for each overlay with proper song durations
             overlay_count = len(song_title_pngs) + len(mp3_cover_pngs) # Count both song titles and MP3 covers
@@ -523,6 +565,10 @@ class VideoWorker(QObject):
                             'effect': mp3_cover_pngs[i]['effect']
                         })
             # --- End MP3 Cover overlays ---
+            
+            # --- Add soundwave overlay to extra_overlays ---
+            # REMOVED: Soundwave overlay is now handled independently in FFmpeg utils
+            # --- End soundwave overlay ---
             
             # Calculate actual intro start time and duration based on checkbox states
             from src.ffmpeg_utils import get_audio_duration
@@ -953,6 +999,12 @@ class VideoWorker(QObject):
                 bg_crop_position=self.bg_crop_position,
                 bg_effect=self.bg_effect,
                 bg_intensity=self.bg_intensity,
+                # --- Add soundwave overlay parameters ---
+                use_soundwave_overlay=self.use_soundwave_overlay,
+                soundwave_overlay_path=soundwave_overlay_path or "",
+                soundwave_size_percent=self.soundwave_size_percent,
+                soundwave_x_percent=self.soundwave_x_percent,
+                soundwave_y_percent=self.soundwave_y_percent,
                 overlay1_start_at=actual_overlay1_start_at,
                 overlay2_start_at=actual_overlay2_start_at
             )
@@ -965,6 +1017,12 @@ class VideoWorker(QObject):
         finally:
             # Always cleanup temporary audio file
             self._cleanup_temp_audio(merged_audio_path)
+            # Clean up soundwave overlay file
+            if 'soundwave_overlay_path' in locals() and soundwave_overlay_path and os.path.exists(soundwave_overlay_path):
+                try:
+                    os.remove(soundwave_overlay_path)
+                except:
+                    pass
             
         # Create log and move files
         failed_moves = self._create_log_and_move_files(

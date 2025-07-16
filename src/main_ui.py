@@ -3425,6 +3425,158 @@ class SuperCutUI(QWidget):
         song_title_effects_layout.addStretch()
         layout.addLayout(song_title_effects_layout)
 
+        # --- SOUNDWAVE OVERLAY CONTROLS ---
+        self.soundwave_checkbox = QtWidgets.QCheckBox("Soundwave:")
+        self.soundwave_checkbox.setFixedWidth(85)
+        self.soundwave_checkbox.setChecked(False)
+        def update_soundwave_checkbox_style(state):
+            self.soundwave_checkbox.setStyleSheet("")
+        self.soundwave_checkbox.stateChanged.connect(update_soundwave_checkbox_style)
+        update_soundwave_checkbox_style(self.soundwave_checkbox.checkState())
+        
+        # Soundwave method dropdown
+        soundwave_method_label = QLabel("Method:")
+        soundwave_method_label.setFixedWidth(50)
+        self.soundwave_method_combo = NoWheelComboBox()
+        self.soundwave_method_combo.setFixedWidth(100)
+        soundwave_method_options = [
+            ("Bars", "bars"),
+            ("Spectrum", "spectrum"),
+            ("Wave", "wave"),
+            ("Rain", "rain")
+        ]
+        for label, value in soundwave_method_options:
+            self.soundwave_method_combo.addItem(label, value)
+        self.soundwave_method_combo.setCurrentIndex(0)  # Default bars
+        self.soundwave_method = "bars"
+        def on_soundwave_method_changed(idx):
+            self.soundwave_method = self.soundwave_method_combo.itemData(idx)
+        self.soundwave_method_combo.currentIndexChanged.connect(on_soundwave_method_changed)
+        on_soundwave_method_changed(self.soundwave_method_combo.currentIndex())
+        
+        # Soundwave color dropdown
+        soundwave_color_label = QLabel("Color:")
+        soundwave_color_label.setFixedWidth(40)
+        self.soundwave_color_combo = NoWheelComboBox()
+        self.soundwave_color_combo.setFixedWidth(120)
+        soundwave_color_options = [
+            ("Hue Rotate", "hue_rotate"),
+            ("Red", "#ff0000"),
+            ("Green", "#00ff00"),
+            ("Blue", "#0000ff"),
+            ("Yellow", "#ffff00"),
+            ("Magenta", "#ff00ff"),
+            ("Cyan", "#00ffff")
+        ]
+        for label, value in soundwave_color_options:
+            self.soundwave_color_combo.addItem(label, value)
+        self.soundwave_color_combo.setCurrentIndex(0)  # Default hue_rotate
+        self.soundwave_color = "hue_rotate"
+        def on_soundwave_color_changed(idx):
+            self.soundwave_color = self.soundwave_color_combo.itemData(idx)
+        self.soundwave_color_combo.currentIndexChanged.connect(on_soundwave_color_changed)
+        on_soundwave_color_changed(self.soundwave_color_combo.currentIndex())
+        
+        # Soundwave size control
+        soundwave_size_label = QLabel("Size:")
+        soundwave_size_label.setFixedWidth(35)
+        self.soundwave_size_combo = NoWheelComboBox()
+        self.soundwave_size_combo.setFixedWidth(80)
+        for percent in range(10, 101, 10):
+            self.soundwave_size_combo.addItem(f"{percent}%", percent)
+        self.soundwave_size_combo.setCurrentIndex(4)  # Default 50%
+        self.soundwave_size_percent = 50
+        def on_soundwave_size_changed(idx):
+            self.soundwave_size_percent = self.soundwave_size_combo.itemData(idx)
+        self.soundwave_size_combo.currentIndexChanged.connect(on_soundwave_size_changed)
+        on_soundwave_size_changed(self.soundwave_size_combo.currentIndex())
+        
+        # Soundwave X position
+        soundwave_x_label = QLabel("X:")
+        soundwave_x_label.setFixedWidth(18)
+        self.soundwave_x_combo = NoWheelComboBox()
+        self.soundwave_x_combo.setFixedWidth(80)
+        for percent in range(0, 101, 5):
+            self.soundwave_x_combo.addItem(f"{percent}%", percent)
+        self.soundwave_x_combo.setCurrentIndex(10)  # Default 50%
+        self.soundwave_x_percent = 50
+        def on_soundwave_x_changed(idx):
+            self.soundwave_x_percent = self.soundwave_x_combo.itemData(idx)
+        self.soundwave_x_combo.currentIndexChanged.connect(on_soundwave_x_changed)
+        on_soundwave_x_changed(self.soundwave_x_combo.currentIndex())
+        
+        # Soundwave Y position
+        soundwave_y_label = QLabel("Y:")
+        soundwave_y_label.setFixedWidth(18)
+        self.soundwave_y_combo = NoWheelComboBox()
+        self.soundwave_y_combo.setFixedWidth(80)
+        for percent in range(0, 101, 5):
+            self.soundwave_y_combo.addItem(f"{percent}%", percent)
+        self.soundwave_y_combo.setCurrentIndex(10)  # Default 50%
+        self.soundwave_y_percent = 50
+        def on_soundwave_y_changed(idx):
+            self.soundwave_y_percent = self.soundwave_y_combo.itemData(idx)
+        self.soundwave_y_combo.currentIndexChanged.connect(on_soundwave_y_changed)
+        on_soundwave_y_changed(self.soundwave_y_combo.currentIndex())
+        
+        # Function to enable/disable soundwave controls
+        def set_soundwave_controls_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.soundwave_method_combo.setEnabled(enabled)
+            self.soundwave_color_combo.setEnabled(enabled)
+            self.soundwave_size_combo.setEnabled(enabled)
+            self.soundwave_x_combo.setEnabled(enabled)
+            self.soundwave_y_combo.setEnabled(enabled)
+            
+            if enabled:
+                self.soundwave_method_combo.setStyleSheet("")
+                self.soundwave_color_combo.setStyleSheet("")
+                self.soundwave_size_combo.setStyleSheet("")
+                self.soundwave_x_combo.setStyleSheet("")
+                self.soundwave_y_combo.setStyleSheet("")
+                soundwave_method_label.setStyleSheet("")
+                soundwave_color_label.setStyleSheet("")
+                soundwave_size_label.setStyleSheet("")
+                soundwave_x_label.setStyleSheet("")
+                soundwave_y_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.soundwave_method_combo.setStyleSheet(grey_btn_style)
+                self.soundwave_color_combo.setStyleSheet(grey_btn_style)
+                self.soundwave_size_combo.setStyleSheet(grey_btn_style)
+                self.soundwave_x_combo.setStyleSheet(grey_btn_style)
+                self.soundwave_y_combo.setStyleSheet(grey_btn_style)
+                soundwave_method_label.setStyleSheet("color: grey;")
+                soundwave_color_label.setStyleSheet("color: grey;")
+                soundwave_size_label.setStyleSheet("color: grey;")
+                soundwave_x_label.setStyleSheet("color: grey;")
+                soundwave_y_label.setStyleSheet("color: grey;")
+        
+        self.soundwave_checkbox.stateChanged.connect(lambda _: set_soundwave_controls_enabled(self.soundwave_checkbox.checkState()))
+        set_soundwave_controls_enabled(self.soundwave_checkbox.checkState())
+        
+        # Soundwave layout
+        soundwave_layout = QHBoxLayout()
+        soundwave_layout.setSpacing(4)
+        soundwave_layout.addWidget(self.soundwave_checkbox)
+        soundwave_layout.addSpacing(5)
+        soundwave_layout.addWidget(soundwave_method_label)
+        soundwave_layout.addWidget(self.soundwave_method_combo)
+        soundwave_layout.addSpacing(4)
+        soundwave_layout.addWidget(soundwave_color_label)
+        soundwave_layout.addWidget(self.soundwave_color_combo)
+        soundwave_layout.addSpacing(4)
+        soundwave_layout.addWidget(soundwave_size_label)
+        soundwave_layout.addWidget(self.soundwave_size_combo)
+        soundwave_layout.addSpacing(4)
+        soundwave_layout.addWidget(soundwave_x_label)
+        soundwave_layout.addWidget(self.soundwave_x_combo)
+        soundwave_layout.addSpacing(4)
+        soundwave_layout.addWidget(soundwave_y_label)
+        soundwave_layout.addWidget(self.soundwave_y_combo)
+        soundwave_layout.addStretch()
+        layout.addLayout(soundwave_layout)
+
         # Overlay 8 controls (similar to Overlay 7)
         self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
         self.overlay8_checkbox.setFixedWidth(82)
@@ -6992,6 +7144,14 @@ class SuperCutUI(QWidget):
                 if hasattr(self, 'song_title_start_edit'):
                     self.song_title_start_edit.setEnabled(song_title_start_enabled)
             
+            # Soundwave controls
+            if hasattr(self, 'soundwave_checkbox'):
+                soundwave_enabled = self.soundwave_checkbox.isChecked()
+                for attr in ['soundwave_method_combo', 'soundwave_color_combo', 'soundwave_size_combo', 
+                            'soundwave_x_combo', 'soundwave_y_combo']:
+                    if hasattr(self, attr):
+                        getattr(self, attr).setEnabled(soundwave_enabled)
+            
             # Frame box controls
             if hasattr(self, 'frame_box_checkbox'):
                 frame_box_enabled = self.frame_box_checkbox.isChecked()
@@ -7417,6 +7577,13 @@ class SuperCutUI(QWidget):
             bg_crop_position=self.bg_crop_position if hasattr(self, 'bg_crop_position') else "center",
             bg_effect=self.bg_effect if hasattr(self, 'bg_effect') else "none",
             bg_intensity=self.bg_intensity if hasattr(self, 'bg_intensity') else 50,
+            # --- Add soundwave overlay parameters ---
+            use_soundwave_overlay=self.soundwave_checkbox.isChecked() if hasattr(self, 'soundwave_checkbox') else False,
+            soundwave_method=self.soundwave_method if hasattr(self, 'soundwave_method') else "bars",
+            soundwave_color=self.soundwave_color if hasattr(self, 'soundwave_color') else "hue_rotate",
+            soundwave_size_percent=self.soundwave_size_percent if hasattr(self, 'soundwave_size_percent') else 50,
+            soundwave_x_percent=self.soundwave_x_percent if hasattr(self, 'soundwave_x_percent') else 50,
+            soundwave_y_percent=self.soundwave_y_percent if hasattr(self, 'soundwave_y_percent') else 50,
 
         )
         self._worker.moveToThread(self._thread)

@@ -215,7 +215,13 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     bg_scale_percent: int = 103,
     bg_crop_position: str = "center",
     bg_effect: str = "none",
-    bg_intensity: int = 50
+    bg_intensity: int = 50,
+    # --- Add soundwave overlay parameters ---
+    use_soundwave_overlay: bool = False,
+    soundwave_overlay_path: str = "",
+    soundwave_size_percent: int = 50,
+    soundwave_x_percent: int = 50,
+    soundwave_y_percent: int = 50
 ) -> Tuple[bool, Optional[str]]:
     temp_png_path = None
     try:
@@ -414,9 +420,16 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 cmd.extend(["-loop", "1", "-i", overlay['path']])
                 extra_overlay_indices.append(input_idx)
                 input_idx += 1
+        
+        # --- Add soundwave overlay as separate input ---
+        soundwave_idx = None
+        if use_soundwave_overlay and soundwave_overlay_path:
+            cmd.extend(["-stream_loop", "-1", "-i", soundwave_overlay_path])
+            soundwave_idx = input_idx
+            input_idx += 1
         # --- End Song Title Overlay Filter Graph ---
         # Build filter graph with correct indices
-        overlays_present = use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5 or use_overlay6 or use_overlay7 or use_overlay8 or use_overlay9 or use_overlay10 or use_frame_box or use_frame_mp3cover or bool(extra_overlays)
+        overlays_present = use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5 or use_overlay6 or use_overlay7 or use_overlay8 or use_overlay9 or use_overlay10 or use_frame_box or use_frame_mp3cover or bool(extra_overlays) or use_soundwave_overlay
         if overlays_present:
             scale_factor_intro = intro_size_percent / 100.0
             owi = f"iw*{scale_factor_intro:.3f}"
@@ -457,6 +470,12 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             scale_factor_frame_mp3cover = frame_mp3cover_size_percent / 100.0
             ow_frame_mp3cover = f"iw*{scale_factor_frame_mp3cover:.3f}"
             oh_frame_mp3cover = f"ih*{scale_factor_frame_mp3cover:.3f}"
+            # --- Add soundwave scale and position calculations ---
+            scale_factor_soundwave = soundwave_size_percent / 100.0
+            ow_soundwave = f"iw*{scale_factor_soundwave:.3f}"
+            oh_soundwave = f"ih*{scale_factor_soundwave:.3f}"
+            ox_soundwave = f"(W-w)*({soundwave_x_percent}/100)" if soundwave_x_percent != 0 else "0"
+            oy_soundwave = f"(H-h)*(1-({soundwave_y_percent}/100))" if soundwave_y_percent != 100 else "0"
             position_map = {
                 "top_left": ("0", "0"),
                 "top_right": (f"W-w", "0"),
@@ -712,6 +731,8 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         ext = os.path.splitext(overlay.get('path', ''))[1].lower()
                         if ext == ".gif":
                             chain += "fps=30,"
+                        
+                        # Convert to rgba for overlay processing
                         chain += "format=rgba,"
                         
                         # Apply effect based on overlay8 effect
@@ -904,7 +925,15 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     out_label = f"songtmp{i+1}" if i < len(overlay_labels)-1 else "vout"
                     filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
                     last_label = f"[{out_label}]"
-            else:
+            
+            # --- Add soundwave overlay processing ---
+            if use_soundwave_overlay and soundwave_idx is not None:
+                # Process soundwave overlay with transparency support (MOV format)
+                filter_graph += f";[{soundwave_idx}:v]format=yuva420p,scale={ow_soundwave}:{oh_soundwave}[soundwave]"
+                # Overlay soundwave on the video
+                filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[vout]"
+                last_label = "[vout]"
+            elif not filter_chains:
                 filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout]"
         else:
             # Use configurable background scale if enabled, otherwise use default 103%
