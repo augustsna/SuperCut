@@ -928,8 +928,8 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             
             # --- Add soundwave overlay processing ---
             if use_soundwave_overlay and soundwave_idx is not None:
-                # Process soundwave overlay with transparency support (MOV format)
-                filter_graph += f";[{soundwave_idx}:v]format=yuva420p,scale={ow_soundwave}:{oh_soundwave}[soundwave]"
+                # Process soundwave overlay with transparency support (MOV format) - no scaling needed
+                filter_graph += f";[{soundwave_idx}:v]format=yuva420p[soundwave]"
                 # Overlay soundwave on the video
                 filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[vout]"
                 last_label = "[vout]"
