@@ -3,11 +3,13 @@ import os
 import random
 import shutil
 from PyQt6.QtCore import QObject, pyqtSignal
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from src.ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg
 from src.utils import set_low_priority, create_temp_file
 import time
 from src.logger import logger
+# --- Add layer processing wrapper import ---
+from src.layer_processing_wrapper import create_ordered_overlay_params 
 
 class VideoWorker(QObject):
     """Worker class for processing video creation in background thread. Supports GIF, PNG, and MP4 overlay for Overlay 1. Optionally supports a name list for output naming."""
@@ -88,13 +90,17 @@ class VideoWorker(QObject):
                  bg_crop_position: str = "center",
                  bg_effect: str = "none",
                  bg_intensity: int = 50,
+                 # --- Add layer render order parameter ---
+                 layer_render_order: Optional[List[int]] = None,
                  # --- Add soundwave overlay parameters ---
                  use_soundwave_overlay: bool = False,
                  soundwave_method: str = "bars",
                  soundwave_color: str = "hue_rotate",
                  soundwave_size_percent: int = 50,
                  soundwave_x_percent: int = 50,
-                 soundwave_y_percent: int = 50):
+                 soundwave_y_percent: int = 50,
+                 layer_order: Optional[List[int]] = None,
+                 active_layers: Optional[List[Dict[str, Any]]] = None):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -287,6 +293,10 @@ class VideoWorker(QObject):
         self.bg_crop_position = bg_crop_position
         self.bg_effect = bg_effect
         self.bg_intensity = bg_intensity
+        # --- Add layer render order attribute ---
+        self.layer_render_order = layer_render_order
+        # --- Add active layers attribute ---
+        self.active_layers = active_layers if active_layers is not None else []
         # --- Soundwave overlay parameters ---
         self.use_soundwave_overlay = use_soundwave_overlay
         self.soundwave_method = soundwave_method
@@ -302,6 +312,10 @@ class VideoWorker(QObject):
         print(f"   - Color: {self.soundwave_color}")
         print(f"   - Size: {self.soundwave_size_percent}%")
         print(f"   - Position: ({self.soundwave_x_percent}%, {self.soundwave_y_percent}%)")
+        
+        # Layer order attributes
+        self.layer_order = layer_order if layer_order is not None else []
+        self.active_layers = active_layers if active_layers is not None else []
 
     def stop(self):
         """Stop the video processing"""
@@ -857,63 +871,141 @@ class VideoWorker(QObject):
             # Create video (Overlay 1: GIF/PNG, with size)
             # Call create_video_with_ffmpeg, but if overlay10_multi_song, set use_overlay10=False so it is not added as a static overlay
             ffmpeg_use_overlay10 = self.use_overlay10 and not overlay10_multi_song
+            
+            # --- Apply layer order processing before creating video ---
+            print("🎬 Applying layer order processing...")
+            overlay_params = {
+                'use_overlay': self.use_overlay,
+                'overlay1_path': self.overlay1_path,
+                'overlay1_size_percent': self.overlay1_size_percent,
+                'overlay1_x_percent': self.overlay1_x_percent,
+                'overlay1_y_percent': self.overlay1_y_percent,
+                'use_overlay2': self.use_overlay2,
+                'overlay2_path': self.overlay2_path,
+                'overlay2_size_percent': self.overlay2_size_percent,
+                'overlay2_x_percent': self.overlay2_x_percent,
+                'overlay2_y_percent': self.overlay2_y_percent,
+                'use_overlay3': self.use_overlay3,
+                'overlay3_path': self.overlay3_path,
+                'overlay3_size_percent': self.overlay3_size_percent,
+                'overlay3_x_percent': self.overlay3_x_percent,
+                'overlay3_y_percent': self.overlay3_y_percent,
+                'use_overlay4': self.use_overlay4,
+                'overlay4_path': self.overlay4_path,
+                'overlay4_size_percent': self.overlay4_size_percent,
+                'overlay4_x_percent': self.overlay4_x_percent,
+                'overlay4_y_percent': self.overlay4_y_percent,
+                'use_overlay5': self.use_overlay5,
+                'overlay5_path': self.overlay5_path,
+                'overlay5_size_percent': self.overlay5_size_percent,
+                'overlay5_x_percent': self.overlay5_x_percent,
+                'overlay5_y_percent': self.overlay5_y_percent,
+                'use_overlay6': self.use_overlay6,
+                'overlay6_path': self.overlay6_path,
+                'overlay6_size_percent': self.overlay6_size_percent,
+                'overlay6_x_percent': self.overlay6_x_percent,
+                'overlay6_y_percent': self.overlay6_y_percent,
+                'use_overlay7': self.use_overlay7,
+                'overlay7_path': self.overlay7_path,
+                'overlay7_size_percent': self.overlay7_size_percent,
+                'overlay7_x_percent': self.overlay7_x_percent,
+                'overlay7_y_percent': self.overlay7_y_percent,
+                'use_overlay8': self.use_overlay8,
+                'overlay8_path': self.overlay8_path,
+                'overlay8_size_percent': self.overlay8_size_percent,
+                'overlay8_x_percent': self.overlay8_x_percent,
+                'overlay8_y_percent': self.overlay8_y_percent,
+                'use_overlay9': self.use_overlay9,
+                'overlay9_path': self.overlay9_path,
+                'overlay9_size_percent': self.overlay9_size_percent,
+                'overlay9_x_percent': self.overlay9_x_percent,
+                'overlay9_y_percent': self.overlay9_y_percent,
+                'use_overlay10': ffmpeg_use_overlay10,
+                'overlay10_path': self.overlay10_path,
+                'overlay10_size_percent': self.overlay10_size_percent,
+                'overlay10_x_percent': self.overlay10_x_percent,
+                'overlay10_y_percent': self.overlay10_y_percent,
+                'use_intro': self.use_intro,
+                'intro_path': self.intro_path,
+                'intro_size_percent': self.intro_size_percent,
+                'intro_x_percent': self.intro_x_percent,
+                'intro_y_percent': self.intro_y_percent,
+                'use_frame_box': self.use_frame_box,
+                'frame_box_path': self.frame_box_path,
+                'frame_box_size_percent': self.frame_box_size_percent,
+                'frame_box_x_percent': self.frame_box_x_percent,
+                'frame_box_y_percent': self.frame_box_y_percent,
+                'use_frame_mp3cover': self.use_frame_mp3cover,
+                'frame_mp3cover_path': self.frame_mp3cover_path,
+                'frame_mp3cover_size_percent': self.frame_mp3cover_size_percent,
+                'frame_mp3cover_x_percent': self.frame_mp3cover_x_percent,
+                'frame_mp3cover_y_percent': self.frame_mp3cover_y_percent,
+                'use_mp3_cover_overlay': self.use_mp3_cover_overlay,
+                'use_soundwave_overlay': self.use_soundwave_overlay,
+                'use_song_title_overlay': self.use_song_title_overlay,
+                'use_bg_layer': self.use_bg_layer
+            }
+            
+            # Process layers with custom order
+            processed_params = create_ordered_overlay_params(overlay_params, self.layer_order, self.active_layers)
+            
             success, err = create_video_with_ffmpeg(
                 selected_image, merged_audio_path, output_path, self.resolution, self.fps, self.codec,
-                use_overlay=self.use_overlay,
-                overlay1_path=self.overlay1_path,
-                overlay1_size_percent=self.overlay1_size_percent,
-                overlay1_x_percent=self.overlay1_x_percent,
-                overlay1_y_percent=self.overlay1_y_percent,
-                use_overlay2=self.use_overlay2,
-                overlay2_path=self.overlay2_path,
-                overlay2_size_percent=self.overlay2_size_percent,
-                overlay2_x_percent=self.overlay2_x_percent,
-                overlay2_y_percent=self.overlay2_y_percent,
-                use_overlay3=self.use_overlay3,
-                overlay3_path=self.overlay3_path,
-                overlay3_size_percent=self.overlay3_size_percent,
-                overlay3_x_percent=self.overlay3_x_percent,
-                overlay3_y_percent=self.overlay3_y_percent,
-                use_overlay4=self.use_overlay4,
-                overlay4_path=self.overlay4_path,
-                overlay4_size_percent=self.overlay4_size_percent,
-                overlay4_x_percent=self.overlay4_x_percent,
-                overlay4_y_percent=self.overlay4_y_percent,
-                use_overlay5=self.use_overlay5,
-                overlay5_path=self.overlay5_path,
-                overlay5_size_percent=self.overlay5_size_percent,
-                overlay5_x_percent=self.overlay5_x_percent,
-                overlay5_y_percent=self.overlay5_y_percent,
-                use_overlay6=self.use_overlay6,
-                overlay6_path=self.overlay6_path,
-                overlay6_size_percent=self.overlay6_size_percent,
-                overlay6_x_percent=self.overlay6_x_percent,
-                overlay6_y_percent=self.overlay6_y_percent,
-                use_overlay7=self.use_overlay7,
-                overlay7_path=self.overlay7_path,
-                overlay7_size_percent=self.overlay7_size_percent,
-                overlay7_x_percent=self.overlay7_x_percent,
-                overlay7_y_percent=self.overlay7_y_percent,
-                use_overlay8=self.use_overlay8,
-                overlay8_path=self.overlay8_path,
-                overlay8_size_percent=self.overlay8_size_percent,
-                overlay8_x_percent=self.overlay8_x_percent,
-                overlay8_y_percent=self.overlay8_y_percent,
-                use_overlay9=self.use_overlay9,
-                overlay9_path=self.overlay9_path,
-                overlay9_size_percent=self.overlay9_size_percent,
-                overlay9_x_percent=self.overlay9_x_percent,
-                overlay9_y_percent=self.overlay9_y_percent,
-                use_overlay10=ffmpeg_use_overlay10,
-                overlay10_path=self.overlay10_path,
-                overlay10_size_percent=self.overlay10_size_percent,
-                overlay10_x_percent=self.overlay10_x_percent,
-                overlay10_y_percent=self.overlay10_y_percent,
-                use_intro=self.use_intro,
-                intro_path=self.intro_path,
-                intro_size_percent=self.intro_size_percent,
-                intro_x_percent=self.intro_x_percent,
-                intro_y_percent=self.intro_y_percent,
+                use_overlay=processed_params.get('use_overlay', self.use_overlay),
+                overlay1_path=processed_params.get('overlay1_path', self.overlay1_path),
+                overlay1_size_percent=processed_params.get('overlay1_size_percent', self.overlay1_size_percent),
+                overlay1_x_percent=processed_params.get('overlay1_x_percent', self.overlay1_x_percent),
+                overlay1_y_percent=processed_params.get('overlay1_y_percent', self.overlay1_y_percent),
+                use_overlay2=processed_params.get('use_overlay2', self.use_overlay2),
+                overlay2_path=processed_params.get('overlay2_path', self.overlay2_path),
+                overlay2_size_percent=processed_params.get('overlay2_size_percent', self.overlay2_size_percent),
+                overlay2_x_percent=processed_params.get('overlay2_x_percent', self.overlay2_x_percent),
+                overlay2_y_percent=processed_params.get('overlay2_y_percent', self.overlay2_y_percent),
+                use_overlay3=processed_params.get('use_overlay3', self.use_overlay3),
+                overlay3_path=processed_params.get('overlay3_path', self.overlay3_path),
+                overlay3_size_percent=processed_params.get('overlay3_size_percent', self.overlay3_size_percent),
+                overlay3_x_percent=processed_params.get('overlay3_x_percent', self.overlay3_x_percent),
+                overlay3_y_percent=processed_params.get('overlay3_y_percent', self.overlay3_y_percent),
+                use_overlay4=processed_params.get('use_overlay4', self.use_overlay4),
+                overlay4_path=processed_params.get('overlay4_path', self.overlay4_path),
+                overlay4_size_percent=processed_params.get('overlay4_size_percent', self.overlay4_size_percent),
+                overlay4_x_percent=processed_params.get('overlay4_x_percent', self.overlay4_x_percent),
+                overlay4_y_percent=processed_params.get('overlay4_y_percent', self.overlay4_y_percent),
+                use_overlay5=processed_params.get('use_overlay5', self.use_overlay5),
+                overlay5_path=processed_params.get('overlay5_path', self.overlay5_path),
+                overlay5_size_percent=processed_params.get('overlay5_size_percent', self.overlay5_size_percent),
+                overlay5_x_percent=processed_params.get('overlay5_x_percent', self.overlay5_x_percent),
+                overlay5_y_percent=processed_params.get('overlay5_y_percent', self.overlay5_y_percent),
+                use_overlay6=processed_params.get('use_overlay6', self.use_overlay6),
+                overlay6_path=processed_params.get('overlay6_path', self.overlay6_path),
+                overlay6_size_percent=processed_params.get('overlay6_size_percent', self.overlay6_size_percent),
+                overlay6_x_percent=processed_params.get('overlay6_x_percent', self.overlay6_x_percent),
+                overlay6_y_percent=processed_params.get('overlay6_y_percent', self.overlay6_y_percent),
+                use_overlay7=processed_params.get('use_overlay7', self.use_overlay7),
+                overlay7_path=processed_params.get('overlay7_path', self.overlay7_path),
+                overlay7_size_percent=processed_params.get('overlay7_size_percent', self.overlay7_size_percent),
+                overlay7_x_percent=processed_params.get('overlay7_x_percent', self.overlay7_x_percent),
+                overlay7_y_percent=processed_params.get('overlay7_y_percent', self.overlay7_y_percent),
+                use_overlay8=processed_params.get('use_overlay8', self.use_overlay8),
+                overlay8_path=processed_params.get('overlay8_path', self.overlay8_path),
+                overlay8_size_percent=processed_params.get('overlay8_size_percent', self.overlay8_size_percent),
+                overlay8_x_percent=processed_params.get('overlay8_x_percent', self.overlay8_x_percent),
+                overlay8_y_percent=processed_params.get('overlay8_y_percent', self.overlay8_y_percent),
+                use_overlay9=processed_params.get('use_overlay9', self.use_overlay9),
+                overlay9_path=processed_params.get('overlay9_path', self.overlay9_path),
+                overlay9_size_percent=processed_params.get('overlay9_size_percent', self.overlay9_size_percent),
+                overlay9_x_percent=processed_params.get('overlay9_x_percent', self.overlay9_x_percent),
+                overlay9_y_percent=processed_params.get('overlay9_y_percent', self.overlay9_y_percent),
+                use_overlay10=processed_params.get('use_overlay10', ffmpeg_use_overlay10),
+                overlay10_path=processed_params.get('overlay10_path', self.overlay10_path),
+                overlay10_size_percent=processed_params.get('overlay10_size_percent', self.overlay10_size_percent),
+                overlay10_x_percent=processed_params.get('overlay10_x_percent', self.overlay10_x_percent),
+                overlay10_y_percent=processed_params.get('overlay10_y_percent', self.overlay10_y_percent),
+                use_intro=processed_params.get('use_intro', self.use_intro),
+                intro_path=processed_params.get('intro_path', self.intro_path),
+                intro_size_percent=processed_params.get('intro_size_percent', self.intro_size_percent),
+                intro_x_percent=processed_params.get('intro_x_percent', self.intro_x_percent),
+                intro_y_percent=processed_params.get('intro_y_percent', self.intro_y_percent),
                 overlay1_2_effect=self.overlay1_2_effect,
                 overlay1_2_start_time=actual_overlay1_start_at,
                 overlay1_2_duration=self.overlay1_2_duration,
@@ -970,11 +1062,11 @@ class VideoWorker(QObject):
                 overlay10_duration=self.overlay10_duration,
                 overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox_checked,
                 # --- Add frame box parameters ---
-                use_frame_box=self.use_frame_box,
-                frame_box_path=self.frame_box_path,
-                frame_box_size_percent=self.frame_box_size_percent,
-                frame_box_x_percent=self.frame_box_x_percent,
-                frame_box_y_percent=self.frame_box_y_percent,
+                use_frame_box=processed_params.get('use_frame_box', self.use_frame_box),
+                frame_box_path=processed_params.get('frame_box_path', self.frame_box_path),
+                frame_box_size_percent=processed_params.get('frame_box_size_percent', self.frame_box_size_percent),
+                frame_box_x_percent=processed_params.get('frame_box_x_percent', self.frame_box_x_percent),
+                frame_box_y_percent=processed_params.get('frame_box_y_percent', self.frame_box_y_percent),
                 frame_box_effect=self.frame_box_effect,
                 frame_box_start_time=self.frame_box_start_time,
                 frame_box_duration=self.frame_box_duration,
@@ -984,23 +1076,23 @@ class VideoWorker(QObject):
                 frame_box_pad_top=self.frame_box_pad_top,
                 frame_box_pad_bottom=self.frame_box_pad_bottom,
                 # --- Add frame mp3cover parameters ---
-                use_frame_mp3cover=self.use_frame_mp3cover,
-                frame_mp3cover_path=self.frame_mp3cover_path,
-                frame_mp3cover_size_percent=self.frame_mp3cover_size_percent,
-                frame_mp3cover_x_percent=self.frame_mp3cover_x_percent,
-                frame_mp3cover_y_percent=self.frame_mp3cover_y_percent,
+                use_frame_mp3cover=processed_params.get('use_frame_mp3cover', self.use_frame_mp3cover),
+                frame_mp3cover_path=processed_params.get('frame_mp3cover_path', self.frame_mp3cover_path),
+                frame_mp3cover_size_percent=processed_params.get('frame_mp3cover_size_percent', self.frame_mp3cover_size_percent),
+                frame_mp3cover_x_percent=processed_params.get('frame_mp3cover_x_percent', self.frame_mp3cover_x_percent),
+                frame_mp3cover_y_percent=processed_params.get('frame_mp3cover_y_percent', self.frame_mp3cover_y_percent),
                 frame_mp3cover_effect=self.frame_mp3cover_effect,
                 frame_mp3cover_start_time=self.frame_mp3cover_start_time,
                 frame_mp3cover_duration=self.frame_mp3cover_duration,
                 frame_mp3cover_duration_full_checkbox_checked=self.frame_mp3cover_duration_full_checkbox_checked,
                 # --- Add background layer parameters ---
-                use_bg_layer=self.use_bg_layer,
+                use_bg_layer=processed_params.get('use_bg_layer', self.use_bg_layer),
                 bg_scale_percent=self.bg_scale_percent,
                 bg_crop_position=self.bg_crop_position,
                 bg_effect=self.bg_effect,
                 bg_intensity=self.bg_intensity,
                 # --- Add soundwave overlay parameters ---
-                use_soundwave_overlay=self.use_soundwave_overlay,
+                use_soundwave_overlay=processed_params.get('use_soundwave_overlay', self.use_soundwave_overlay),
                 soundwave_overlay_path=soundwave_overlay_path or "",
                 soundwave_size_percent=self.soundwave_size_percent,
                 soundwave_x_percent=self.soundwave_x_percent,
