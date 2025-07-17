@@ -8039,14 +8039,11 @@ class SuperCutUI(QWidget):
             self.apply_settings()
 
     def show_layer_manager(self):
-        """Show or toggle layer order manager dialog"""
-        # Check if layer manager dialog is already open - if so, close it
-        if hasattr(self, 'layer_manager_dialog') and self.layer_manager_dialog is not None:
+        """Toggle layer order manager dialog: open if closed, close if open."""
+        if hasattr(self, 'layer_manager_dialog') and self.layer_manager_dialog is not None and self.layer_manager_dialog.isVisible():
             self.layer_manager_dialog.close()
             self.layer_manager_dialog = None
             return
-        
-        # Get current layer states from UI
         layer_states = {
             'background': True,  # Always enabled
             'overlay1': hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked(),
@@ -8065,22 +8062,12 @@ class SuperCutUI(QWidget):
             'song_titles': hasattr(self, 'song_title_checkbox') and self.song_title_checkbox.isChecked(),
             'soundwave': hasattr(self, 'soundwave_checkbox') and self.soundwave_checkbox.isChecked(),
         }
-        
-        # Create layer manager dialog
         self.layer_manager_dialog = LayerManagerDialog(self, self.layer_order)
         self.layer_manager_dialog.update_layer_states(layer_states)
-        
-        # Show the dialog first to get its actual size
         self.layer_manager_dialog.show()
-        
-        # Position dialog intelligently based on main window position (after showing)
         self.position_layer_manager_dialog()
-        
-        # Raise and activate the dialog
         self.layer_manager_dialog.raise_()
         self.layer_manager_dialog.activateWindow()
-        
-        # Layer order will be updated when "Save & Apply" is clicked
 
     def apply_settings(self):
         # Apply window size settings only if window is already shown (i.e., settings were changed)

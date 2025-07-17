@@ -580,6 +580,16 @@ class LayerManagerWidget(QWidget):
             self.layer_list.setCurrentRow(second_from_bottom_index)
 
 class LayerManagerDialog(QWidget):
+    def showEvent(self, event):
+        """Ensure the layer list is scrolled to the bottom and up/down buttons are enabled when the dialog is shown"""
+        super().showEvent(event)
+        if hasattr(self.layer_manager, 'layer_list'):
+            self.layer_manager.layer_list.scrollToBottom()
+        # Always enable up/down buttons when dialog is shown
+        if hasattr(self.layer_manager, 'move_up_btn'):
+            self.layer_manager.move_up_btn.setEnabled(True)
+        if hasattr(self.layer_manager, 'move_down_btn'):
+            self.layer_manager.move_down_btn.setEnabled(True)
     """Window for managing layer order"""
     
     def __init__(self, parent=None, saved_order=None):
@@ -917,10 +927,14 @@ class LayerManagerDialog(QWidget):
         painter.drawRoundedRect(self.rect().toRectF(), 10, 10)
     
     def show_and_raise(self):
-        """Show the dialog and bring it to front"""
-        self.show()
-        self.raise_()
-        self.activateWindow()
+        """Scroll to bottom, then show the dialog and bring it to front"""
+        def show_dialog():
+            self.show()
+            self.raise_()
+            self.activateWindow()
+        # Scroll to bottom, then show dialog after a short delay
+        self.layer_manager.layer_list.scrollToBottom()
+        QTimer.singleShot(500, show_dialog)
 
 
 class DraggableHeader(QWidget):
