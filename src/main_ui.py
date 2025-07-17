@@ -8290,17 +8290,12 @@ class SuperCutUI(QWidget):
         
         return (media_sources, export_name, number, folder, codec, resolution, fps, mp3_files, image_files, min_mp3_count)
 
-    def show_preview_dialog(self):
-        # Check if preview dialog is already open - if so, close it
-        if hasattr(self, '_preview_dialog') and self._preview_dialog is not None:
-            self._preview_dialog.close()
-            self._preview_dialog = None
-            return
-        
+    def generate_settings_preview(self):
+        """Generate a preview string of all current settings for live updates"""
         # Gather all FFmpeg settings as would be passed to video creation (without validation)
         inputs = self._gather_preview_inputs()
         if not inputs:
-            return  # Don't show dialog when there are warnings/errors
+            return ""  # Return empty string when there are warnings/errors
         (
             media_sources, export_name, number, folder, codec, resolution, fps, mp3_files, image_files, min_mp3_count
         ) = inputs
@@ -8387,15 +8382,32 @@ BG Opacity: {self.song_title_opacity}
 Scale: {self.song_title_scale_percent}%
 X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self.song_title_start_at}
 """
+        return settings_str
+
+    def show_preview_dialog(self):
+        # Check if preview dialog is already open - if so, close it
+        if hasattr(self, '_preview_dialog') and self._preview_dialog is not None:
+            self._preview_dialog.close()
+            self._preview_dialog = None
+            return
+        
+        # Generate settings string for initial display
+        settings_str = self.generate_settings_preview()
+        if not settings_str:
+            return  # Don't show dialog when there are warnings/errors
+        
         # Show in a scrollable dialog
 
         
         class RoundedDialog(QtWidgets.QDialog):
-            def __init__(self, parent=None):
-                super().__init__(parent)
+            def __init__(self, main_window=None):
+                super().__init__(None)  # No parent - standalone dialog
                 self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
                 self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
                 self.setModal(False)  # Make dialog non-modal - allows interaction with main UI
+                self.main_window = main_window  # Store main window reference for live updates
+                self.update_timer = None
+                self.text_edit = None
                 
             def paintEvent(self, event):
                 from PyQt6.QtGui import QPainter, QBrush, QColor
@@ -8406,8 +8418,31 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 painter.setPen(Qt.PenStyle.NoPen)
                 rect = self.rect()
                 painter.drawRoundedRect(rect, 8, 8)  # 12px radius to match stylesheet
+            
+            def setup_live_updates(self, text_edit):
+                """Set up timer for live updates"""
+                self.text_edit = text_edit
+                self.update_timer = QTimer()
+                self.update_timer.timeout.connect(self.update_preview_content)
+                self.update_timer.start(200)  # Update every 500ms
+            
+            def update_preview_content(self):
+                """Update preview content based on main UI state"""
+                if not self.main_window or not self.text_edit:
+                    return
+                
+                # Generate updated settings string
+                settings_str = self.main_window.generate_settings_preview()
+                if settings_str:
+                    self.text_edit.setPlainText(settings_str.lstrip())
+            
+            def closeEvent(self, event):
+                """Clean up timer when dialog is closed"""
+                if self.update_timer:
+                    self.update_timer.stop()
+                super().closeEvent(event)
         
-        dlg = RoundedDialog()
+        dlg = RoundedDialog(self)  # Pass self as main window reference for live updates
         dlg.setWindowTitle("⚡ SuperCut Preview")
         dlg.setMinimumSize(500, 520)
         dlg.resize(500, 520)  # Set fixed size
@@ -8698,6 +8733,9 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         
         text_edit.setPlainText(settings_str.lstrip())
         content_layout.addWidget(text_edit)
+        
+        # Set up live updates for the dialog
+        dlg.setup_live_updates(text_edit)
         
         # Add header and content to main layout
         layout.addWidget(header_widget)

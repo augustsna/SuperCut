@@ -820,7 +820,7 @@ class LayerManagerDialog(QWidget):
         """Set up timer for live checkbox updates"""
         self.update_timer = QTimer()
         self.update_timer.timeout.connect(self.update_checkbox_states)
-        self.update_timer.start(100)  # Update every 500ms
+        self.update_timer.start(200)  # Update every 500ms
     
     def update_checkbox_states(self):
         """Update checkbox states based on main UI state"""
