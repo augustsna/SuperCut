@@ -8399,7 +8399,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         # Show in a scrollable dialog
 
         
-        class RoundedDialog(QtWidgets.QDialog):
+        class SuperCutPreviewDialog(QtWidgets.QDialog):
             def __init__(self, main_window=None):
                 super().__init__(None)  # No parent - standalone dialog
                 self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
@@ -8424,7 +8424,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 self.text_edit = text_edit
                 self.update_timer = QTimer()
                 self.update_timer.timeout.connect(self.update_preview_content)
-                self.update_timer.start(200)  # Update every 500ms
+                self.update_timer.start(100)  # Update every 500ms
             
             def update_preview_content(self):
                 """Update preview content based on main UI state"""
@@ -8442,7 +8442,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                     self.update_timer.stop()
                 super().closeEvent(event)
         
-        dlg = RoundedDialog(self)  # Pass self as main window reference for live updates
+        dlg = SuperCutPreviewDialog(self)  # Pass self as main window reference for live updates
         dlg.setWindowTitle("⚡ SuperCut Preview")
         dlg.setMinimumSize(500, 520)
         dlg.resize(500, 520)  # Set fixed size
