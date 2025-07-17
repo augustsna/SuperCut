@@ -619,11 +619,11 @@ class LayerManagerDialog(QWidget):
             {'id': 'overlay7', 'name': 'Overlay 7', 'enabled': False},
             {'id': 'overlay8', 'name': 'Overlay 8', 'enabled': False},
             {'id': 'overlay9', 'name': 'Overlay 9', 'enabled': False},
-            {'id': 'overlay10', 'name': 'Overlay 10', 'enabled': False},
-            {'id': 'mp3_cover_overlay', 'name': 'MP3 Cover Overlay', 'enabled': False},
+            {'id': 'overlay10', 'name': 'Overlay 10', 'enabled': False},            
             {'id': 'intro', 'name': 'Intro', 'enabled': False},
             {'id': 'frame_box', 'name': 'Frame Box', 'enabled': False},
             {'id': 'frame_mp3cover', 'name': 'Frame MP3 Cover', 'enabled': False},
+            {'id': 'mp3_cover_overlay', 'name': 'MP3 Cover Overlay', 'enabled': False},
             {'id': 'song_titles', 'name': 'Song Titles', 'enabled': False},
             {'id': 'soundwave', 'name': 'Soundwave', 'enabled': False},
         ]
