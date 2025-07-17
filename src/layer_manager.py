@@ -18,17 +18,36 @@ class SafeListWidget(QListWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent_widget: Optional['LayerManagerWidget'] = cast('LayerManagerWidget', parent) if parent else None
+    
+    def paintEvent(self, event):
+        """Custom paint event to ensure rounded corners are properly clipped"""
+        from PyQt6.QtGui import QPainter, QPainterPath
+        
+        painter = QPainter(self.viewport())
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Create rounded rectangle path for clipping
+        path = QPainterPath()
+        path.addRoundedRect(self.rect().toRectF(), 12, 12)
+        painter.setClipPath(path)
+        
+        # Call the parent paint event
+        super().paintEvent(event)
 
 class LayerItem(QListWidgetItem):
     """Custom list item for layers with metadata"""
-    def __init__(self, layer_id, display_name, enabled=True, icon_path=None):
+    def __init__(self, layer_id, display_name, enabled=True, icon_path=None, order_number=None):
         super().__init__()
         self.layer_id = layer_id
         self.display_name = display_name
         self.enabled = enabled
+        self.order_number = order_number
         
-        # Set display text
-        self.setText(display_name)
+        # Set display text with order number
+        if order_number is not None:
+            self.setText(f"{order_number}. {display_name}")
+        else:
+            self.setText(display_name)
         
         # Set icon if provided
         if icon_path and os.path.exists(icon_path):
@@ -41,6 +60,14 @@ class LayerItem(QListWidgetItem):
         
         # Set check state for display only (read-only)
         self.setCheckState(Qt.CheckState.Checked if enabled else Qt.CheckState.Unchecked)
+    
+    def update_order_number(self, new_order_number):
+        """Update the order number and display text"""
+        self.order_number = new_order_number
+        if new_order_number is not None:
+            self.setText(f"{new_order_number}. {self.display_name}")
+        else:
+            self.setText(self.display_name)
 
 class LayerManagerWidget(QWidget):
     """Widget for managing layer order with drag-and-drop"""
@@ -56,7 +83,7 @@ class LayerManagerWidget(QWidget):
     def init_ui(self):
         """Initialize the user interface"""
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 0, 12, 12)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         
 
@@ -65,66 +92,62 @@ class LayerManagerWidget(QWidget):
         scroll_area.setWidgetResizable(True)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        scroll_area.setMinimumHeight(200)
-        scroll_area.setMaximumHeight(300)  # Increased to give more space
+        scroll_area.setMinimumHeight(250)
+        scroll_area.setMaximumHeight(400)  # Increased to give more space
+        scroll_area.setMinimumWidth(350)  # Ensure minimum width for proper layout
         scroll_area.setStyleSheet("""
             QScrollArea {
                 border: none;
                 background: transparent;
-                margin-right: 8px;
-                padding-right: 8px;
+                margin: 0px;
+                padding: 0px;
+                border-radius: 8px;
             }
             QScrollBar:vertical {
-                background: transparent;
-                width: 8px;
-                margin: 2px 0 2px 0;
-                border-radius: 4px;
+                background: rgba(240, 240, 240, 0.8);
+                width: 12px;
+                border-radius: 8px;
+                margin-left: 4px;
+                position: absolute;
+                right: 0px;
             }
             QScrollBar::handle:vertical {
-                background: #43464d;
-                min-height: 24px;
-                border-radius: 4px;
-                border: none;
-                opacity: 0.7;
+                background: rgba(192, 192, 192, 0.8);
+                border-radius: 6px;
+                min-height: 20px;
+                margin: 0px;
             }
             QScrollBar::handle:vertical:hover {
-                background: #595d66;
-                opacity: 1.0;
-            }
-            QScrollBar::add-line:vertical,
-            QScrollBar::sub-line:vertical {
-                height: 0px;
-                background: none;
-                border: none;
-            }
-            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
-                background: none;
+                background: rgba(160, 160, 160, 0.9);
             }
             QScrollBar:horizontal {
-                background: transparent;
-                height: 8px;
-                margin: 0 2px 0 2px;
-                border-radius: 4px;
+                background: rgba(240, 240, 240, 0.8);
+                height: 12px;
+                border-radius: 6px;
+                margin: 0px;
+                position: absolute;
+                bottom: 0px;
             }
             QScrollBar::handle:horizontal {
-                background: #43464d;
-                min-width: 24px;
-                border-radius: 4px;
-                border: none;
-                opacity: 0.7;
+                background: rgba(192, 192, 192, 0.8);
+                border-radius: 6px;
+                min-width: 20px;
+                margin: 0px;
             }
             QScrollBar::handle:horizontal:hover {
-                background: #595d66;
-                opacity: 1.0;
+                background: rgba(160, 160, 160, 0.9);
             }
-            QScrollBar::add-line:horizontal,
-            QScrollBar::sub-line:horizontal {
+            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
                 width: 0px;
-                background: none;
-                border: none;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
             }
             QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
                 background: none;
+            }
+            QScrollBar:sub-control:corner {
+                background: transparent;
             }
         """)
         
@@ -132,35 +155,48 @@ class LayerManagerWidget(QWidget):
         self.layer_list = SafeListWidget(self)
         self.layer_list.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         self.layer_list.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.layer_list.setContentsMargins(0, 0, 0, 0)
+        self.layer_list.setViewportMargins(0, 0, 0, 0)
+        self.layer_list.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.layer_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.layer_list.setStyleSheet("""
             QListWidget {
-                background-color: #1e1e1e;
-                border: 1px solid #404040;
-                border-radius: 8px;
-                padding: 8px;
-                outline: none;
-                color: #cccccc;
-                font-family: 'Cascadia Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+                background-color: #ffffff;
+                border: none;
+                padding: 6px;
+                border: 1px solid #e0e0e0;
+                border-radius: 2px;
+                color: #333;
+                font-family: 'Segoe UI', sans-serif;
                 font-size: 13px;
             }
             QListWidget::item {
                 padding: 8px;
-                border: 1px solid #404040;
+                border: 1px solid #e0e0e0;
                 border-radius: 4px;
                 margin: 2px;
-                background-color: #2e2e2e;
+                background-color: #ffffff;
                 outline: none;
-                color: #cccccc;
+                color: #333;
+            }
+            QListWidget::item:first-child {
+                margin-top: 8px;
+            }
+            QListWidget::item:last-child {
+                margin-bottom: 4px;
+                margin-top: 2px;
             }
             QListWidget::item:selected {
-                background-color: #58a6ff;
-                border-color: #58a6ff;
-                color: #ffffff;
+                background-color: #4a90e2;
+                background-color: #f8f8f8;
+                border-color: #e0e0e0;
+                color: #000000;
                 outline: none;
             }
             QListWidget::item:hover {
-                background-color: #404040;
-                border-color: #505050;
+                background-color: #f8f8f8;
+                border-color: #a0a0a0;
+                color: #000000;
             }
             QListWidget::item:focus {
                 outline: none;
@@ -171,14 +207,14 @@ class LayerManagerWidget(QWidget):
             }
             QListWidget::indicator:unchecked {
                 image: none;
-                border: 1px solid #505050;
+                border: 1px solid #ccc;
                 background-color: transparent;
                 border-radius: 4px;
             }
             QListWidget::indicator:checked {
                 background: transparent;
                 border-radius: 4px;
-                border: 1px solid #58a6ff;
+                border: 1px solid #ccc;
                 image: url(src/sources/black_tick.svg);
             }
         """)
@@ -188,7 +224,7 @@ class LayerManagerWidget(QWidget):
         layout.addWidget(scroll_area)
         
         # Add spacing between scroll area and buttons
-        layout.addSpacing(8)  # Reduced spacing to give more room for the list
+        layout.addSpacing(10)  # Increased spacing to give more room between scroll and buttons
         
         # Buttons - all on same line with reset on right edge
         button_layout = QHBoxLayout()
@@ -196,23 +232,23 @@ class LayerManagerWidget(QWidget):
         self.move_up_btn = QPushButton("↑ Up")
         self.move_up_btn.setStyleSheet("""
             QPushButton {
-                background-color: #404040;
-                border: 1px solid #505050;
-                border-radius: 4px;
+                background-color: #4a90e2;
+                border: 1px solid #4a90e2;
+                border-radius: 6px;
                 padding: 6px 12px;
                 color: #ffffff;
                 font-weight: 500;
-                font-family: 'Cascadia Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-family: 'Segoe UI', sans-serif;
                 font-size: 13px;
             }
             QPushButton:hover {
-                background-color: #505050;
-                border-color: #58a6ff;
+                background-color: #357ABD;
+                border-color: #357ABD;
             }
             QPushButton:disabled {
-                background-color: #2e2e2e;
-                border-color: #404040;
-                color: #666666;
+                background-color: #e0e0e0;
+                border-color: #e0e0e0;
+                color: #999999;
             }
         """)
         self.move_up_btn.clicked.connect(self.move_selected_up)
@@ -220,23 +256,23 @@ class LayerManagerWidget(QWidget):
         self.move_down_btn = QPushButton("↓ Down")
         self.move_down_btn.setStyleSheet("""
             QPushButton {
-                background-color: #404040;
-                border: 1px solid #505050;
-                border-radius: 4px;
+                background-color: #4a90e2;
+                border: 1px solid #4a90e2;
+                border-radius: 6px;
                 padding: 6px 12px;
                 color: #ffffff;
                 font-weight: 500;
-                font-family: 'Cascadia Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-family: 'Segoe UI', sans-serif;
                 font-size: 13px;
             }
             QPushButton:hover {
-                background-color: #505050;
-                border-color: #58a6ff;
+                background-color: #357ABD;
+                border-color: #357ABD;
             }
             QPushButton:disabled {
-                background-color: #2e2e2e;
-                border-color: #404040;
-                color: #666666;
+                background-color: #e0e0e0;
+                border-color: #e0e0e0;
+                color: #999999;
             }
         """)
         self.move_down_btn.clicked.connect(self.move_selected_down)
@@ -244,24 +280,25 @@ class LayerManagerWidget(QWidget):
         self.reset_btn = QPushButton("Reset")
         self.reset_btn.setStyleSheet("""
             QPushButton {
-                background-color: #404040;
-                border: 1px solid #505050;
-                border-radius: 4px;
+                background-color: #ffffff;
+                border: 1px solid #4a90e2;
+                border-color: #ccc;
+                border-radius: 6px;
                 padding: 6px 12px;
-                color: #ffffff;
+                color: #000000;
                 font-weight: 500;
-                font-family: 'Cascadia Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-family: 'Segoe UI', sans-serif;
                 font-size: 13px;
             }
             QPushButton:hover {
-                background-color: #505050;
-                border-color: #58a6ff;
+                background-color: #f5f5f5;
+                border-color: #ccc;
             }
         """)
         self.reset_btn.clicked.connect(self.reset_to_default)
         
         button_layout.addWidget(self.move_up_btn)
-        button_layout.addSpacing(8)
+        button_layout.addSpacing(12)  # Increased spacing between buttons
         button_layout.addWidget(self.move_down_btn)
         button_layout.addStretch()
         button_layout.addWidget(self.reset_btn)
@@ -300,7 +337,8 @@ class LayerManagerWidget(QWidget):
                         layer_id=config['id'],
                         display_name=config['name'],
                         enabled=config.get('enabled', True),
-                        icon_path=config.get('icon_path')
+                        icon_path=config.get('icon_path'),
+                        order_number=len(self.layer_list) + 1
                     )
                     self.layer_list.insertItem(0, item)  # Insert at top (reverse order)
             
@@ -312,7 +350,8 @@ class LayerManagerWidget(QWidget):
                         layer_id=config['id'],
                         display_name=config['name'],
                         enabled=config.get('enabled', True),
-                        icon_path=config.get('icon_path')
+                        icon_path=config.get('icon_path'),
+                        order_number=len(self.layer_list) + 1
                     )
                     self.layer_list.insertItem(0, item)  # Insert at top (reverse order)
         else:
@@ -323,9 +362,23 @@ class LayerManagerWidget(QWidget):
                     layer_id=config['id'],
                     display_name=config['name'],
                     enabled=config.get('enabled', True),
-                    icon_path=config.get('icon_path')
+                    icon_path=config.get('icon_path'),
+                    order_number=len(self.layer_list) + 1
                 )
                 self.layer_list.insertItem(0, item)  # Insert at top (reverse order)
+        
+        # Update order numbers after all items are added
+        self.update_order_numbers()
+
+    def update_order_numbers(self):
+        """Update the order numbers of all items in the layer list."""
+        total_items = self.layer_list.count()
+        for i in range(total_items):
+            item = self.layer_list.item(i)
+            if isinstance(item, LayerItem):
+                # Reverse numbering: background (bottom) = 0, top item = highest number
+                order_number = total_items - 1 - i
+                item.update_order_number(order_number)
 
     def get_layer_order(self):
         """Get current layer order as list of layer IDs"""
@@ -380,6 +433,8 @@ class LayerManagerWidget(QWidget):
             self.layer_list.insertItem(current_row - 1, current_item)
             # Select the moved item
             self.layer_list.setCurrentRow(current_row - 1)
+            # Update order numbers
+            self.update_order_numbers()
             # Update button states
             self.update_move_buttons()
             # Notify of reorder
@@ -401,6 +456,8 @@ class LayerManagerWidget(QWidget):
             self.layer_list.insertItem(current_row + 1, current_item)
             # Select the moved item
             self.layer_list.setCurrentRow(current_row + 1)
+            # Update order numbers
+            self.update_order_numbers()
             # Update button states
             self.update_move_buttons()
             # Notify of reorder
@@ -481,9 +538,13 @@ class LayerManagerWidget(QWidget):
                     layer_id=config['id'],
                     display_name=config['name'],
                     enabled=False,  # Start unchecked, let live sync set the correct state
-                    icon_path=config.get('icon_path')
+                    icon_path=config.get('icon_path'),
+                    order_number=len(self.layer_list) + 1
                 )
                 self.layer_list.insertItem(0, item)  # Insert at top (reverse order)
+        
+        # Update order numbers after reset
+        self.update_order_numbers()
         
         # Clear the saved order when resetting to default
         self.last_applied_order = None
@@ -526,7 +587,7 @@ class LayerManagerDialog(QWidget):
         self.setWindowTitle("Layer Order Manager")
         # Make it frameless for headless appearance
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
-        self.setMinimumSize(400, 550)  # Increased height to give more space for the list
+        self.setMinimumSize(500, 520)  # Increased height to give more space for the list
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)  # Enable rounded corners
         self.saved_order = saved_order
         self.main_window = parent  # Store parent reference for live updates
@@ -566,13 +627,13 @@ class LayerManagerDialog(QWidget):
         header_layout.setSpacing(8)
         
         # Header title
-        title_label = QLabel("Layer Order")
+        title_label = QLabel("📚 Layer Order")
         title_label.setStyleSheet("""
             QLabel {
-                color: #f2f2f2;
-                font-size: 12px;
+                color: #333;
+                font-size: 13px;
                 font-weight: 500;
-                font-family: 'Cascadia Mono';
+                font-family: 'Segoe UI', sans-serif;
                 margin: 0px;
                 padding: 0px;
                 background: transparent;
@@ -582,28 +643,28 @@ class LayerManagerDialog(QWidget):
         header_layout.addWidget(title_label)
         
         # Close button in header
-        close_btn = QPushButton("×")
+        close_btn = QPushButton("X")
         close_btn.setObjectName("exitButton")
         close_btn.setFixedSize(14, 14)
         close_btn.setStyleSheet("""
             #exitButton {
-                background-color: #6e7681 !important;
-                border: 1px solid #6e7681 !important;
-                border-radius: 7px !important;
-                padding: 0px !important;
-                font-size: 11px !important;
-                font-weight: 700 !important;
-                min-width: 14px !important;
-                max-width: 14px !important;
-                min-height: 14px !important;
-                max-height: 14px !important;
-                color: white !important;
-                text-align: center !important;
-                line-height: 14px !important;
+                background-color: #8d8d8d;
+                border: 1px solid #8d8d8d;
+                border-radius: 7px;
+                padding: 0px;
+                font-size: 10px;
+                font-weight: 700;
+                min-width: 16px;
+                max-width: 16px;
+                min-height: 14px;
+                max-height: 14px;
+                color: white;
+                text-align: center;
+                line-height: 14px;
             }
             #exitButton:hover {
-                background-color: #da3633 !important;
-                border-color: #da3633 !important;
+                background-color: #f23321;
+                border-color: #f23321;
             }
         """)
         close_btn.clicked.connect(self.close)
@@ -612,10 +673,10 @@ class LayerManagerDialog(QWidget):
         
         self.header.setStyleSheet("""
             QWidget {
-                background-color: #2e2e2e;
-                border-top-left-radius: 12px;
-                border-top-right-radius: 12px;
-                border-bottom: 1px solid #404040;
+                background-color: #eff4f9 !important;
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+                border-bottom: 1px solid #ccc;
             }
         """)
         self.header.setFixedHeight(36)
@@ -624,8 +685,8 @@ class LayerManagerDialog(QWidget):
         # Main content container
         content_widget = QWidget()
         content_layout = QVBoxLayout(content_widget)
-        content_layout.setContentsMargins(12, 12, 12, 12)
-        content_layout.setSpacing(6)  # Reduced spacing to give more room for the list
+        content_layout.setContentsMargins(12, 0, 12, 12)
+        content_layout.setSpacing(0)  # Reduced spacing to give more room for the list
         
         # Layer manager widget
         self.layer_manager = LayerManagerWidget()
@@ -640,13 +701,16 @@ class LayerManagerDialog(QWidget):
         save_btn.setStyleSheet("""
             QPushButton {
                 padding: 6px 12px;
-                border: 1px solid #4a90e2;
-                border-radius: 4px;
-                background-color: #4a90e2;
-                color: white;                
+                border: 1px solid #4caf50;
+                border-radius: 6px;
+                background-color: #4caf50;
+                color: white;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 13px;
             }
             QPushButton:hover {
-                background-color: #1976d2;
+                background-color: #45a249;
+                border-color: #45a249;
             }
         """)
         save_btn.clicked.connect(self.apply_and_close)
@@ -657,31 +721,34 @@ class LayerManagerDialog(QWidget):
             QPushButton {
                 padding: 6px 12px;
                 border: 1px solid #4a90e2;
-                border-radius: 4px;
+                border-radius: 6px;
                 background-color: #4a90e2;
                 color: white;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 13px;
             }
             QPushButton:hover {
-                background-color: #1976d2;
+                background-color: #357ABD;
+                border-color: #357ABD;
             }
         """)
         cancel_btn.clicked.connect(self.close)
         
-        content_layout.addSpacing(30)
+        content_layout.addSpacing(32)
         button_layout.addStretch()
         button_layout.addWidget(save_btn)
         button_layout.addSpacing(10)
         button_layout.addWidget(cancel_btn)
         button_layout.addStretch()
         content_layout.addLayout(button_layout)
-        content_layout.addSpacing(5)
+        content_layout.addSpacing(0)
         
         # Style the content widget
         content_widget.setStyleSheet("""
             QWidget {
-                background-color: #2e2e2e;
-                border-bottom-left-radius: 12px;
-                border-bottom-right-radius: 12px;
+                background-color: transparent;
+                border-bottom-left-radius: 10px;
+                border-bottom-right-radius: 10px;
             }
         """)
         
@@ -819,16 +886,35 @@ class LayerManagerDialog(QWidget):
     
     def paintEvent(self, event):
         """Custom paint event to draw rounded corners and background"""
-        from PyQt6.QtGui import QPainter, QBrush, QColor
+        from PyQt6.QtGui import QPainter, QBrush, QColor, QPainterPath
         
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         
-        # Create rounded rectangle path
-        rect = self.rect()
-        painter.setBrush(QBrush(QColor("#2e2e2e")))
+        # Create rounded rectangle path for clipping
+        path = QPainterPath()
+        path.addRoundedRect(self.rect().toRectF(), 10, 10)
+        painter.setClipPath(path)
+        
+        # Paint header area with header color
+        header_height = 36
+        painter.setBrush(QBrush(QColor("#eff4f9")))
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRoundedRect(rect, 12, 12)
+        header_rect = self.rect()
+        header_rect.setHeight(header_height)
+        painter.drawRect(header_rect)
+        
+        # Paint content area with main color
+        painter.setBrush(QBrush(QColor("#f5f7fa")))
+        content_rect = self.rect()
+        content_rect.setTop(header_height)
+        painter.drawRect(content_rect)
+        
+        # Draw border
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.setPen(Qt.PenStyle.SolidLine)
+        painter.setPen(QColor("#a0a0a4"))
+        painter.drawRoundedRect(self.rect().toRectF(), 10, 10)
     
     def show_and_raise(self):
         """Show the dialog and bring it to front"""
