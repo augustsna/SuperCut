@@ -7534,7 +7534,7 @@ class SuperCutUI(QWidget):
                         frame_box_path = frame_box_temp_path
         # Fallback if not set
         if not frame_box_path:
-            frame_box_path = "src/sources/icon.png"
+            frame_box_path = "src/sources/frame_box.png"
         self._worker = VideoWorker(
             media_sources=media_sources, export_name=export_name, number=number, folder=folder, codec=codec, resolution=resolution, fps=fps,
             use_overlay=self.overlay_checkbox.isChecked(), min_mp3_count=min_mp3_count, overlay1_path=self.overlay1_path, overlay1_size_percent=self.overlay1_size_percent, overlay1_x_percent=self.overlay1_x_percent, overlay1_y_percent=self.overlay1_y_percent,
