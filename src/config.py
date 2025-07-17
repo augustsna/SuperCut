@@ -155,8 +155,7 @@ STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.pa
 
 # Video Configuration
 DEFAULT_CODECS = [
-    ("H.264 NVENC", "h264_nvenc"),
-    ("H.264 libx264", "libx264")
+    ("H.264 NVENC", "h264_nvenc")
 ]
 
 DEFAULT_RESOLUTIONS = [
@@ -194,7 +193,7 @@ VIDEO_SETTINGS = {
     "video_bitrate": "12M",
     "max_bitrate": "16M",
     "buffer_size": "24M",
-    "pixel_format": "yuv420p",
+    "pixel_format": "yuv420p", # yuv420p is the default pixel format for most videos #nv12 is the pixel format for GPU processing
     "gop_size": "120",
     "bframes": "2",
     "preset": "slow",
