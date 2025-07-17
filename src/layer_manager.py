@@ -529,7 +529,7 @@ class LayerManagerWidget(QWidget):
             'background',
             'overlay1', 'overlay2', 'overlay3', 'overlay4', 'overlay5',
             'overlay6', 'overlay7', 'overlay8', 'overlay9', 'overlay10',
-            'intro', 'frame_box', 'frame_mp3cover', 'song_titles', 'soundwave'
+            'intro', 'frame_box', 'frame_mp3cover', 'mp3_cover_overlay', 'song_titles', 'soundwave'
         ]
         
         # Clear and rebuild with default order (display in reverse)
@@ -612,7 +612,7 @@ class LayerManagerDialog(QWidget):
             {'id': 'background', 'name': 'Background Image', 'enabled': True},
             {'id': 'overlay1', 'name': 'Overlay 1', 'enabled': False},
             {'id': 'overlay2', 'name': 'Overlay 2', 'enabled': False},
-            {'id': 'overlay3', 'name': 'Overlay 3 (Soundwave)', 'enabled': False},
+            {'id': 'overlay3', 'name': 'Overlay 3', 'enabled': False},
             {'id': 'overlay4', 'name': 'Overlay 4', 'enabled': False},
             {'id': 'overlay5', 'name': 'Overlay 5', 'enabled': False},
             {'id': 'overlay6', 'name': 'Overlay 6', 'enabled': False},
@@ -620,10 +620,11 @@ class LayerManagerDialog(QWidget):
             {'id': 'overlay8', 'name': 'Overlay 8', 'enabled': False},
             {'id': 'overlay9', 'name': 'Overlay 9', 'enabled': False},
             {'id': 'overlay10', 'name': 'Overlay 10', 'enabled': False},
+            {'id': 'mp3_cover_overlay', 'name': 'MP3 Cover Overlay', 'enabled': False},
             {'id': 'intro', 'name': 'Intro', 'enabled': False},
             {'id': 'frame_box', 'name': 'Frame Box', 'enabled': False},
             {'id': 'frame_mp3cover', 'name': 'Frame MP3 Cover', 'enabled': False},
-            {'id': 'song_titles', 'name': 'Song Titles', 'enabled': True},
+            {'id': 'song_titles', 'name': 'Song Titles', 'enabled': False},
             {'id': 'soundwave', 'name': 'Soundwave', 'enabled': False},
         ]
         
@@ -850,6 +851,8 @@ class LayerManagerDialog(QWidget):
             layer_states['frame_box'] = self.main_window.frame_box_checkbox.isChecked()
         if hasattr(self.main_window, 'frame_mp3cover_checkbox'):
             layer_states['frame_mp3cover'] = self.main_window.frame_mp3cover_checkbox.isChecked()
+        if hasattr(self.main_window, 'mp3_cover_overlay_checkbox'):
+            layer_states['mp3_cover_overlay'] = self.main_window.mp3_cover_overlay_checkbox.isChecked()
         
         # Song titles
         if hasattr(self.main_window, 'song_title_checkbox'):

@@ -868,6 +868,13 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     'start_time': overlay10_start_time,
                     'duration': overlay10_duration
                 },
+                'mp3_cover_overlay': {
+                    'filter': filter_frame_mp3cover,
+                    'overlay': f"[ol_frame_mp3cover]overlay={ox_frame_mp3cover}:{oy_frame_mp3cover}",
+                    'duration_control': frame_mp3cover_duration_full_checkbox_checked,
+                    'start_time': frame_mp3cover_start_time,
+                    'duration': frame_mp3cover_duration
+                },
                 'frame_box': {
                     'filter': filter_frame_box,
                     'overlay': f"[ol_frame_box]overlay={ox_frame_box}:{oy_frame_box}",
@@ -912,12 +919,14 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 # Add any missing layers at the end in default order
                 default_order = ['background', 'overlay1', 'overlay2', 'overlay3', 'overlay4', 'overlay5',
                                'overlay6', 'overlay7', 'overlay8', 'overlay9', 'overlay10',
+                               'mp3_cover_overlay',
                                'intro', 'frame_box', 'frame_mp3cover', 'song_titles', 'soundwave']
                 missing_layers = [layer for layer in default_order if layer not in valid_layers]
                 final_order = valid_layers + missing_layers
             else:
                 final_order = ['background', 'overlay1', 'overlay2', 'overlay3', 'overlay4', 'overlay5',
                              'overlay6', 'overlay7', 'overlay8', 'overlay9', 'overlay10',
+                             'mp3_cover_overlay',
                              'intro', 'frame_box', 'frame_mp3cover', 'song_titles', 'soundwave']
             
             # Build filter graph based on final order
