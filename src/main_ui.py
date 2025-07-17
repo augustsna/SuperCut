@@ -6540,11 +6540,6 @@ class SuperCutUI(QWidget):
         if dialog_x < 0:
             dialog_x = 10
         
-        # Position the layer manager dialog
-        self.layer_manager_dialog.move(dialog_x, dialog_y)
-        
-        # Update dialog title to show positioning
-        self.layer_manager_dialog.setWindowTitle(f"Layer Order Manager [{position_side}]")
 
     def on_terminal_closed(self):
         """Handle terminal widget closed signal"""
@@ -8065,9 +8060,6 @@ class SuperCutUI(QWidget):
         self.layer_manager_dialog = LayerManagerDialog(self, self.layer_order)
         self.layer_manager_dialog.update_layer_states(layer_states)
         self.layer_manager_dialog.show()
-        self.position_layer_manager_dialog()
-        self.layer_manager_dialog.raise_()
-        self.layer_manager_dialog.activateWindow()
 
     def apply_settings(self):
         # Apply window size settings only if window is already shown (i.e., settings were changed)
@@ -8401,7 +8393,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         class RoundedDialog(QtWidgets.QDialog):
             def __init__(self, parent=None):
                 super().__init__(parent)
-                self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+                self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
                 self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
                 self.setModal(False)  # Make dialog non-modal - allows interaction with main UI
                 
@@ -8562,7 +8554,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 self.drag_position = QPoint()
                 
             def mousePressEvent(self, event):
-                if event.button() == Qt.MouseButton.LeftButton and self.parent_window:
+                # Only allow dragging if parent is the preview dialog itself
+                if event.button() == Qt.MouseButton.LeftButton and isinstance(self.parent_window, QtWidgets.QDialog) and self.parent_window.windowTitle() == "⚡ SuperCut Preview":
                     self.dragging = True
                     self.drag_position = event.globalPosition().toPoint() - self.parent_window.frameGeometry().topLeft()
                     event.accept()
@@ -8570,7 +8563,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                     super().mousePressEvent(event)
                     
             def mouseMoveEvent(self, event):
-                if event.buttons() == Qt.MouseButton.LeftButton and self.dragging and self.parent_window:
+                if event.buttons() == Qt.MouseButton.LeftButton and self.dragging and isinstance(self.parent_window, QtWidgets.QDialog) and self.parent_window.windowTitle() == "⚡ SuperCut Preview":
                     self.parent_window.move(event.globalPosition().toPoint() - self.drag_position)
                     event.accept()
                 else:

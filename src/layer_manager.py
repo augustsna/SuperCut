@@ -340,8 +340,7 @@ class LayerManagerWidget(QWidget):
                         icon_path=config.get('icon_path'),
                         order_number=len(self.layer_list) + 1
                     )
-                    self.layer_list.insertItem(0, item)  # Insert at top (reverse order)
-            
+                    self.layer_list.addItem(item)  # Append to end
             # Add any remaining layers that weren't in the saved order
             for config in layer_configs:
                 if config['id'] not in used_ids:
@@ -353,10 +352,10 @@ class LayerManagerWidget(QWidget):
                         icon_path=config.get('icon_path'),
                         order_number=len(self.layer_list) + 1
                     )
-                    self.layer_list.insertItem(0, item)  # Insert at top (reverse order)
+                    self.layer_list.addItem(item)  # Append to end
         else:
-            # Use default order (original behavior) - but display in reverse
-            for config in layer_configs:
+            # Use default order (original behavior)
+            for config in reversed(layer_configs):
                 self.layer_items[config['id']] = config
                 item = LayerItem(
                     layer_id=config['id'],
@@ -365,7 +364,7 @@ class LayerManagerWidget(QWidget):
                     icon_path=config.get('icon_path'),
                     order_number=len(self.layer_list) + 1
                 )
-                self.layer_list.insertItem(0, item)  # Insert at top (reverse order)
+                self.layer_list.addItem(item)  # Append to end
         
         # Update order numbers after all items are added
         self.update_order_numbers()
@@ -448,8 +447,9 @@ class LayerManagerWidget(QWidget):
             # Check if the item below is background (prevent moving past background)
             next_item = self.layer_list.item(current_row + 1)
             if isinstance(next_item, LayerItem) and next_item.layer_id == 'background':
+                # Scroll to bottom to show background layer
+                self.layer_list.scrollToBottom()
                 return  # Don't allow moving past background
-            
             # Get the current item
             current_item = self.layer_list.takeItem(current_row)
             # Insert it one position down
@@ -462,6 +462,9 @@ class LayerManagerWidget(QWidget):
             self.update_move_buttons()
             # Notify of reorder
             self.on_layers_reordered()
+            # If moved to last position before background, scroll to bottom
+            if current_row + 1 == total_items - 2:
+                self.layer_list.scrollToBottom()
     
 
     
@@ -491,7 +494,7 @@ class LayerManagerWidget(QWidget):
                     enabled=config.get('enabled', True),
                     icon_path=config.get('icon_path')
                 )
-                self.layer_list.insertItem(0, item)  # Insert at top (reverse order)
+                self.layer_list.addItem(item)  # Append to end
         # Add any missing items that weren't in the target order
         for layer_id, config in self.layer_items.items():
             if layer_id not in target_order:
@@ -501,7 +504,7 @@ class LayerManagerWidget(QWidget):
                     enabled=config.get('enabled', True),
                     icon_path=config.get('icon_path')
                 )
-                self.layer_list.insertItem(0, item)  # Insert at top (reverse order)
+                self.layer_list.addItem(item)  # Append to end
     
     def verify_layer_integrity(self):
         """Verify that all layer items are present in the list"""
@@ -531,7 +534,7 @@ class LayerManagerWidget(QWidget):
         
         # Clear and rebuild with default order (display in reverse)
         self.layer_list.clear()
-        for layer_id in default_order:
+        for layer_id in reversed(default_order):
             if layer_id in self.layer_items:
                 config = self.layer_items[layer_id]
                 item = LayerItem(
@@ -541,7 +544,7 @@ class LayerManagerWidget(QWidget):
                     icon_path=config.get('icon_path'),
                     order_number=len(self.layer_list) + 1
                 )
-                self.layer_list.insertItem(0, item)  # Insert at top (reverse order)
+                self.layer_list.addItem(item)  # Append to end
         
         # Update order numbers after reset
         self.update_order_numbers()
@@ -581,11 +584,13 @@ class LayerManagerWidget(QWidget):
 
 class LayerManagerDialog(QWidget):
     def showEvent(self, event):
-        """Ensure the layer list is scrolled to the bottom and up/down buttons are enabled when the dialog is shown"""
+        """Ensure the layer list is scrolled to the bottom and up/down buttons are enabled when the dialog is shown. Also position dialog left/right of main UI."""
         super().showEvent(event)
+        # Position dialog left/right of main window (not center)
+        self.show_and_raise()
+        # Scroll to bottom and enable buttons
         if hasattr(self.layer_manager, 'layer_list'):
             self.layer_manager.layer_list.scrollToBottom()
-        # Always enable up/down buttons when dialog is shown
         if hasattr(self.layer_manager, 'move_up_btn'):
             self.layer_manager.move_up_btn.setEnabled(True)
         if hasattr(self.layer_manager, 'move_down_btn'):
@@ -666,11 +671,11 @@ class LayerManagerDialog(QWidget):
                 font-weight: 700;
                 min-width: 16px;
                 max-width: 16px;
-                min-height: 14px;
-                max-height: 14px;
+                min-height: 16px;
+                max-height: 16px;
                 color: white;
                 text-align: center;
-                line-height: 14px;
+                line-height: 16px;
             }
             #exitButton:hover {
                 background-color: #f23321;
@@ -927,14 +932,53 @@ class LayerManagerDialog(QWidget):
         painter.drawRoundedRect(self.rect().toRectF(), 10, 10)
     
     def show_and_raise(self):
-        """Scroll to bottom, then show the dialog and bring it to front"""
-        def show_dialog():
-            self.show()
-            self.raise_()
-            self.activateWindow()
-        # Scroll to bottom, then show dialog after a short delay
-        self.layer_manager.layer_list.scrollToBottom()
-        QTimer.singleShot(500, show_dialog)
+        """Show the dialog and bring it to front, positioned like SuperCut Preview dialog."""
+        # Position dialog next to main window, similar to SuperCut Preview logic
+        if self.main_window:
+            main_geometry = self.main_window.geometry()
+            dialog_width = self.width() if self.width() > 0 else 500
+            dialog_height = self.height() if self.height() > 0 else 520
+            # Get screen geometry
+            screen = self.main_window.screen() if hasattr(self.main_window, 'screen') and self.main_window.screen() else self.main_window.window().screen() if hasattr(self.main_window, 'window') and hasattr(self.main_window.window(), 'screen') else None
+            if screen is not None:
+                screen_geometry = screen.geometry()
+                screen_width = screen_geometry.width()
+                screen_height = screen_geometry.height()
+            else:
+                screen_width = 1920
+                screen_height = 1080
+            title_bar_height = 30
+            space_on_right = screen_width - (main_geometry.x() + main_geometry.width())
+            space_on_left = main_geometry.x()
+            available_height = screen_height - title_bar_height
+            # Determine optimal position
+            if space_on_right >= dialog_width + 10:
+                dialog_x = main_geometry.x() + main_geometry.width() + 10
+                dialog_y = main_geometry.y() - title_bar_height
+            elif space_on_left >= dialog_width + 10:
+                dialog_x = main_geometry.x() - dialog_width - 10
+                dialog_y = main_geometry.y() - title_bar_height
+            else:
+                if space_on_right > space_on_left:
+                    dialog_x = main_geometry.x() + main_geometry.width() + 5
+                    dialog_y = main_geometry.y() - title_bar_height
+                else:
+                    dialog_x = main_geometry.x() - dialog_width - 5
+                    dialog_y = main_geometry.y() - title_bar_height
+            # Ensure dialog doesn't go off-screen vertically
+            if dialog_y + dialog_height > available_height:
+                dialog_y = available_height - dialog_height - 10
+            if dialog_y < title_bar_height:
+                dialog_y = title_bar_height + 10
+            # Ensure dialog doesn't go off-screen horizontally
+            if dialog_x + dialog_width > screen_width:
+                dialog_x = screen_width - dialog_width - 10
+            if dialog_x < 0:
+                dialog_x = 10
+            self.move(dialog_x, dialog_y)
+        self.show()
+        self.raise_()
+        self.activateWindow()
 
 
 class DraggableHeader(QWidget):
@@ -948,7 +992,8 @@ class DraggableHeader(QWidget):
         
     def mousePressEvent(self, event: QMouseEvent):
         """Handle mouse press for window dragging"""
-        if event.button() == Qt.MouseButton.LeftButton and self.parent_window:
+        # Only allow dragging if parent is the layer dialog itself
+        if event.button() == Qt.MouseButton.LeftButton and isinstance(self.parent_window, QWidget) and self.parent_window.windowTitle() == "Layer Order Manager":
             self.dragging = True
             self.drag_position = event.globalPosition().toPoint() - self.parent_window.frameGeometry().topLeft()
             event.accept()
@@ -957,7 +1002,7 @@ class DraggableHeader(QWidget):
             
     def mouseMoveEvent(self, event: QMouseEvent):
         """Handle mouse move for window dragging"""
-        if event.buttons() == Qt.MouseButton.LeftButton and self.dragging and self.parent_window:
+        if event.buttons() == Qt.MouseButton.LeftButton and self.dragging and isinstance(self.parent_window, QWidget) and self.parent_window.windowTitle() == "Layer Order Manager":
             self.parent_window.move(event.globalPosition().toPoint() - self.drag_position)
             event.accept()
         else:
