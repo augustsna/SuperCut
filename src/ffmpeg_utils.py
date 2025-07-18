@@ -554,8 +554,18 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             oy_frame_box = f"({base_y})+{frame_box_pad_top}"
             ox_frame_mp3cover = f"(W-w)*{frame_mp3cover_x_percent}/100" if frame_mp3cover_x_percent != 0 else "0"
             oy_frame_mp3cover = f"(H-h)*(1-({frame_mp3cover_y_percent}/100))" if frame_mp3cover_y_percent != 100 else "0"
-            # All background processing is now done in advance - use simple scaling to target resolution
-            filter_bg = f"[0:v]scale={width}:{height}[bg]"
+            
+            # Check if background is preprocessed (already correct size)
+            # Background is always PNG, so no need to check for GIF
+            bg_filename = os.path.basename(image_path_for_ffmpeg)
+            is_bg_preprocessed = bg_filename.startswith("supercut_")
+            
+            if is_bg_preprocessed:
+                # Background is preprocessed PNG - no scaling needed
+                filter_bg = f"[0:v]null[bg]"
+            else:
+                # Background needs scaling to target resolution
+                filter_bg = f"[0:v]scale={width}:{height}[bg]"
 
             # Effect logic for overlays
             def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext, duration=None):
@@ -1020,8 +1030,17 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             if not filter_chains and not (use_soundwave_overlay and soundwave_idx is not None):
                 filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout]"
         else:
-            # All background processing is now done in advance - use simple scaling to target resolution
-            filter_graph = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            # Check if background is preprocessed (already correct size)
+            # Background is always PNG, so no need to check for GIF
+            bg_filename = os.path.basename(image_path_for_ffmpeg)
+            is_bg_preprocessed = bg_filename.startswith("supercut_")
+            
+            if is_bg_preprocessed:
+                # Background is preprocessed PNG - no scaling needed
+                filter_graph = f"[0:v]format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            else:
+                # Background needs scaling to target resolution
+                filter_graph = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
         cmd.extend(["-filter_complex", filter_graph, "-map", "[vout]", "-map", "1:a"])
 
         cmd.extend(["-c:v", codec, "-preset", preset])       
