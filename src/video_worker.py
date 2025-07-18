@@ -296,20 +296,12 @@ class VideoWorker(QObject):
         self.soundwave_x_percent = soundwave_x_percent
         self.soundwave_y_percent = soundwave_y_percent
         self.layer_order = layer_order
-        
-        # Debug soundwave parameters
-        print(f"🎵 Soundwave parameters:")
-        print(f"   - Enabled: {self.use_soundwave_overlay}")
-        print(f"   - Method: {self.soundwave_method}")
-        print(f"   - Color: {self.soundwave_color}")
-        print(f"   - Size: {self.soundwave_size_percent}%")
-        print(f"   - Position: ({self.soundwave_x_percent}%, {self.soundwave_y_percent}%)")
-        
+                
         # Debug layer order
         if self.layer_order:
-            print(f"🎨 Layer order: {self.layer_order}")
+            print(f"🎨 Layer order: {self.layer_order}\n")
         else:
-            print(f"🎨 Using default layer order")
+            print(f"🎨 Using default layer order\n")
 
     def stop(self):
         """Stop the video processing"""

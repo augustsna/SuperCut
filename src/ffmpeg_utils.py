@@ -553,14 +553,33 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         hold_duration = 5  # Fallback to 5 seconds if no duration provided
                     fadein_end = effect_time + fadein_duration
                     fadeout_start = fadein_end + hold_duration
-                    chain += f"fade=t=in:st={effect_time}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=in:st={effect_time}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
+                    else:
+                        chain += f"fade=t=in:st={effect_time}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha}"
                 elif effect == "fadein":
-                    chain += f"fade=t=in:st={effect_time}:d=1{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=in:st={effect_time}:d=1{fade_alpha},"
+                    else:
+                        chain += f"fade=t=in:st={effect_time}:d=1{fade_alpha}"
                 elif effect == "fadeout":
-                    chain += f"fade=t=out:st={effect_time}:d=1{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=out:st={effect_time}:d=1{fade_alpha},"
+                    else:
+                        chain += f"fade=t=out:st={effect_time}:d=1{fade_alpha}"
                 elif effect == "zoompan":
-                    chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
-                chain += f"scale={scale_expr}[{label}]"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                    else:
+                        chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+                # Add scale operation only if necessary
+                if scale_expr != "iw:ih":
+                    chain += f"scale={scale_expr}"
+                chain += f"[{label}]"
                 return chain
 
             def intro_effect_chain(idx, scale_expr, label, effect, duration, start_at, ext):
@@ -572,24 +591,43 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 chain += "format=rgba,"
                 fade_alpha = ":alpha=1" if ext == ".png" else ""
                 if effect == "fadein":
-                    chain += f"fade=t=in:st={start_at}:d=1{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=in:st={start_at}:d=1{fade_alpha},"
+                    else:
+                        chain += f"fade=t=in:st={start_at}:d=1{fade_alpha}"
                 elif effect == "fadeout":
                     # Use duration if provided, otherwise use default calculation
                     if duration is not None:
                         fadeout_start = start_at + duration - 1.5
                     else:
                         fadeout_start = start_at + 6 - 1.5  # Default 6 seconds
-                    chain += f"fade=t=out:st={fadeout_start}:d=1.5{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=out:st={fadeout_start}:d=1.5{fade_alpha},"
+                    else:
+                        chain += f"fade=t=out:st={fadeout_start}:d=1.5{fade_alpha}"
                 elif effect == "fadeinout":
                     # Use duration if provided, otherwise use default calculation
                     if duration is not None:
                         fadeout_start = start_at + duration - 1.5
                     else:
                         fadeout_start = start_at + 6 - 1.5  # Default 6 seconds
-                    chain += f"fade=t=in:st={start_at}:d=1.5{fade_alpha},fade=t=out:st={fadeout_start}:d=1.5{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=in:st={start_at}:d=1.5{fade_alpha},fade=t=out:st={fadeout_start}:d=1.5{fade_alpha},"
+                    else:
+                        chain += f"fade=t=in:st={start_at}:d=1.5{fade_alpha},fade=t=out:st={fadeout_start}:d=1.5{fade_alpha}"
                 elif effect == "zoompan":
-                    chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
-                chain += f"scale={scale_expr}[{label}]"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                    else:
+                        chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+                # Add scale operation only if necessary
+                if scale_expr != "iw:ih":
+                    chain += f"scale={scale_expr}"
+                chain += f"[{label}]"
                 return chain
 
             # Calculate duration for intro based on full duration checkbox
@@ -631,17 +669,11 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             if not overlay8_duration_full_checkbox_checked:
                 overlay8_actual_duration = overlay8_duration
             
-            # Debug overlay8 parameters
-            print(f"FFmpeg Debug - Overlay8: start_time={overlay8_start_time}, duration={overlay8_duration}, effect={overlay8_effect}")
-            
             filter_overlay8 = overlay_effect_chain(overlay8_idx, f"{ow8}:{oh8}", "ol8", overlay8_effect, overlay8_start_time, ext8, overlay8_actual_duration) if overlay8_idx is not None else ""
             # Calculate duration for overlay9 based on full duration checkbox
             overlay9_actual_duration = None
             if not overlay9_duration_full_checkbox_checked:
                 overlay9_actual_duration = overlay9_duration
-            
-            # Debug overlay9 parameters
-            print(f"FFmpeg Debug - Overlay9: start_time={overlay9_start_time}, duration={overlay9_duration}, effect={overlay9_effect}")
             
             filter_overlay9 = overlay_effect_chain(overlay9_idx, f"{ow9}:{oh9}", "ol9", overlay9_effect, overlay9_start_time, ext9, overlay9_actual_duration) if overlay9_idx is not None else ""
             filter_overlay10 = overlay_effect_chain(overlay10_idx, f"{ow10}:{oh10}", "ol10", overlay10_effect, overlay10_start_time, ext10, overlay10_duration) if overlay10_idx is not None else ""
@@ -700,15 +732,34 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                             hold_duration = max(0, duration - fadein_duration - fadeout_duration)
                             fadein_end = start + fadein_duration
                             fadeout_start = fadein_end + hold_duration
-                            chain += f"fade=t=in:st={start}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
+                            # Add comma only if scale operation will follow
+                            if scale_expr != "iw:ih":
+                                chain += f"fade=t=in:st={start}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
+                            else:
+                                chain += f"fade=t=in:st={start}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha}"
                         elif effect == "fadein":
-                            chain += f"fade=t=in:st={start}:d=1{fade_alpha},"
+                            # Add comma only if scale operation will follow
+                            if scale_expr != "iw:ih":
+                                chain += f"fade=t=in:st={start}:d=1{fade_alpha},"
+                            else:
+                                chain += f"fade=t=in:st={start}:d=1{fade_alpha}"
                         elif effect == "fadeout":
-                            chain += f"fade=t=out:st={start}:d=1{fade_alpha},"
+                            # Add comma only if scale operation will follow
+                            if scale_expr != "iw:ih":
+                                chain += f"fade=t=out:st={start}:d=1{fade_alpha},"
+                            else:
+                                chain += f"fade=t=out:st={start}:d=1{fade_alpha}"
                         elif effect == "zoompan":
-                            chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                            # Add comma only if scale operation will follow
+                            if scale_expr != "iw:ih":
+                                chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                            else:
+                                chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
                         
-                        chain += f"scale={scale_expr}[{label}]"
+                        # Add scale operation only if necessary
+                        if scale_expr != "iw:ih":
+                            chain += f"scale={scale_expr}"
+                        chain += f"[{label}]"
                         filter_chains.append(chain)
                         overlay_labels.append((label, start, duration, x_expr, y_expr))
                         
