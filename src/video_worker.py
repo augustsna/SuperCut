@@ -455,14 +455,23 @@ class VideoWorker(QObject):
                 intensity=50  # Default intensity
             )
         
-        # Preprocess overlay2 image (always done in advance)
+        # Preprocess overlay2 image (only for images, not videos)
         processed_overlay2_path = self.overlay2_path
         if self.use_overlay2 and self.overlay2_path:
-            from src.utils import preprocess_overlay2_image
-            processed_overlay2_path = preprocess_overlay2_image(
-                image_path=self.overlay2_path,
-                size_percent=self.overlay2_size_percent
-            )
+            file_ext = os.path.splitext(self.overlay2_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay2_image
+                processed_overlay2_path = preprocess_overlay2_image(
+                    image_path=self.overlay2_path,
+                    size_percent=self.overlay2_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay2_path = self.overlay2_path
         
         # Create output filename
         if self.name_list and batch_count < len(self.name_list):

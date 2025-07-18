@@ -311,11 +311,14 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 cmd.extend(["-i", overlay1_path])
             overlay1_idx = input_idx
             input_idx += 1
-        if use_overlay2 and overlay2_path and ext2 in ['.gif', '.png']:
+        if use_overlay2 and overlay2_path and ext2 in ['.gif', '.png', '.mp4', '.mov']:
             if ext2 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay2_path])
             elif ext2 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay2_path])
+            elif ext2 in ['.mp4', '.mov']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", overlay2_path])
             else:
                 cmd.extend(["-i", overlay2_path])
             overlay2_idx = input_idx
@@ -434,16 +437,24 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             scale_factor1 = overlay1_size_percent / 100.0
             ow1 = f"iw*{scale_factor1:.3f}"
             oh1 = f"ih*{scale_factor1:.3f}"
-            # Check if overlay2 is preprocessed (has supercut_ prefix)
+            # Check if overlay2 is preprocessed (only for non-GIF images)
             overlay2_filename = os.path.basename(overlay2_path) if overlay2_path else ""
             is_overlay2_preprocessed = overlay2_filename.startswith("supercut_")
+            overlay2_ext = os.path.splitext(overlay2_path)[1].lower() if overlay2_path else ""
+            is_overlay2_gif = overlay2_ext == '.gif'
+            is_overlay2_video = overlay2_path and overlay2_ext in ['.mp4', '.mov']
             
-            if is_overlay2_preprocessed:
-                # Overlay2 is preprocessed - use original size
+            if is_overlay2_preprocessed and not is_overlay2_gif:
+                # Overlay2 is preprocessed non-GIF image - use original size
                 ow2 = "iw"
                 oh2 = "ih"
+            elif is_overlay2_gif or is_overlay2_video:
+                # Overlay2 is GIF or video - apply scaling in FFmpeg
+                scale_factor2 = overlay2_size_percent / 100.0
+                ow2 = f"iw*{scale_factor2:.3f}"
+                oh2 = f"ih*{scale_factor2:.3f}"
             else:
-                # Overlay2 is not preprocessed - apply scaling
+                # Overlay2 is non-preprocessed image - apply scaling in FFmpeg
                 scale_factor2 = overlay2_size_percent / 100.0
                 ow2 = f"iw*{scale_factor2:.3f}"
                 oh2 = f"ih*{scale_factor2:.3f}"

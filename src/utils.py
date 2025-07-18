@@ -731,73 +731,44 @@ def preprocess_background_image(image_path: str, resolution: str, scale_percent:
 
 def preprocess_overlay2_image(image_path: str, size_percent: int = 10) -> str:
     """
-    Preprocess overlay2 image with advanced scaling.
-    For GIF files: 2-step approach to preserve transparency.
+    Preprocess overlay2 image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
     
     Args:
-        image_path: Path to the original overlay2 image
+        image_path: Path to the original overlay2 file
         size_percent: Scale percentage (default 10 for 10%)
     
     Returns:
-        Path to the processed temporary image file
+        Path to the processed temporary file or original path if no preprocessing
     """
     try:
         import subprocess
         from src.config import FFMPEG_BINARY
         from src.logger import logger
         
-        # Create temporary file for processed image
-        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
-        
         # Calculate scale factor
         scale_factor = size_percent / 100.0
         
-        # Check if input is a GIF file
+        # Check file type
         file_ext = os.path.splitext(image_path)[1].lower()
         is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Overlay2 video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
         
         if is_gif:
-            # 2-step approach for GIF with transparency preservation
-            # Step 1: Generate palette from original transparent GIF
-            palette_temp = create_temp_file(suffix='.png', prefix='supercut_palette_')
-            
-            # Extract palette from original GIF
-            palette_cmd = [
-                FFMPEG_BINARY,
-                '-y',
-                '-i', image_path,
-                '-vf', 'palettegen=reserve_transparent=1',
-                palette_temp
-            ]
-            
-            result = subprocess.run(palette_cmd, capture_output=True, text=True)
-            if result.returncode != 0:
-                logger.error(f"FFmpeg palette generation failed: {result.stderr}")
-                # Fallback to original image
-                return image_path
-            
-            # Step 2: Apply scaling with transparency preserved using the generated palette
-            scale_cmd = [
-                FFMPEG_BINARY,
-                '-y',
-                '-i', image_path,
-                '-i', palette_temp,
-                '-lavfi', f'scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos [x]; [x][1:v] paletteuse=alpha_threshold=128',
-                temp_processed_path
-            ]
-            
-            result = subprocess.run(scale_cmd, capture_output=True, text=True)
-            
-            # Clean up palette temp file
-            try:
-                os.remove(palette_temp)
-            except:
-                pass
-                
-            if result.returncode != 0:
-                logger.error(f"FFmpeg GIF scaling failed: {result.stderr}")
-                # Fallback to original image
-                return image_path
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
         else:
             # Regular scaling for PNG/JPG files
             filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"

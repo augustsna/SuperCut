@@ -1744,8 +1744,8 @@ class SuperCutUI(QWidget):
         overlay2_layout = QHBoxLayout()
         overlay2_layout.setSpacing(4)
         self.overlay2_edit = ImageDropLineEdit()
-        self.overlay2_edit.setPlaceholderText("Overlay 2 image path (*.gif, *.png)")
-        self.overlay2_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay2_edit.setPlaceholderText("Overlay 2 file path (*.gif, *.png, *.mp4, *.mov)")
+        self.overlay2_edit.setToolTip("Drag and drop a GIF, PNG, MP4, or MOV file here or click 'Select File'")
         self.overlay2_edit.setFixedWidth(125)
         self.overlay2_path = ""
         def on_overlay2_changed():
@@ -1758,7 +1758,7 @@ class SuperCutUI(QWidget):
         overlay2_btn = QPushButton("Select")
         overlay2_btn.setFixedWidth(60)
         def select_overlay2_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 2 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 2 File", "", "Overlay Files (*.gif *.png *.mp4 *.mov)")
             if file_path:
                 self.overlay2_edit.setText(file_path)
         overlay2_btn.clicked.connect(select_overlay2_image)
@@ -6609,8 +6609,8 @@ class SuperCutUI(QWidget):
         # Overlay 2 validation
         if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
             overlay2_path = self.overlay2_edit.text().strip()
-            if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 2.", QMessageBox.StandardButton.Ok)
+            if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png', '.mp4', '.mov']:
+                QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF, PNG, MP4, or MOV file (*.gif, *.png, *.mp4, *.mov) for Overlay 2.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 3 validation
         if hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked():
