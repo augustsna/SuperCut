@@ -473,6 +473,24 @@ class VideoWorker(QObject):
                 # For GIFs and videos, use original path - FFmpeg will handle scaling
                 processed_overlay2_path = self.overlay2_path
         
+        # Preprocess intro image (only for images, not videos)
+        processed_intro_path = self.intro_path
+        if self.use_intro and self.intro_path:
+            file_ext = os.path.splitext(self.intro_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_intro_image
+                processed_intro_path = preprocess_intro_image(
+                    image_path=self.intro_path,
+                    size_percent=self.intro_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_intro_path = self.intro_path
+        
         # Create output filename
         if self.name_list and batch_count < len(self.name_list):
             from src.utils import sanitize_filename
@@ -587,8 +605,8 @@ class VideoWorker(QObject):
             actual_intro_duration = self.intro_duration
             
             if self.use_intro:
-                if self.intro_start_checkbox_checked:
-                    # Use start from logic: total_duration - start_from_value
+                if not self.intro_start_checkbox_checked:
+                    # Use start from logic: countdown from end
                     actual_intro_start_at = int(max(0, total_duration - self.intro_start_from))
                 else:
                     # Use start at value directly
@@ -903,8 +921,8 @@ class VideoWorker(QObject):
                 overlay10_x_percent=self.overlay10_x_percent,
                 overlay10_y_percent=self.overlay10_y_percent,
                 use_intro=self.use_intro,
-                intro_path=self.intro_path,
-                intro_size_percent=self.intro_size_percent,
+                 intro_path=processed_intro_path,  # Use preprocessed intro
+                intro_size_percent=self.intro_size_percent,  # Pass original size percent for detection
                 intro_x_percent=self.intro_x_percent,
                 intro_y_percent=self.intro_y_percent,
                 overlay1_2_effect=self.overlay1_2_effect,
@@ -1023,6 +1041,12 @@ class VideoWorker(QObject):
             if 'processed_overlay2_path' in locals() and processed_overlay2_path != self.overlay2_path and os.path.exists(processed_overlay2_path):
                 try:
                     os.remove(processed_overlay2_path)
+                except:
+                    pass
+            # Clean up processed intro image if it was created
+            if 'processed_intro_path' in locals() and processed_intro_path != self.intro_path and os.path.exists(processed_intro_path):
+                try:
+                    os.remove(processed_intro_path)
                 except:
                     pass
             

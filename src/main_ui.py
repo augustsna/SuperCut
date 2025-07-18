@@ -305,7 +305,7 @@ class SettingsDialog(QDialog):
         self.default_intro_path_btn = QPushButton('...')
         self.default_intro_path_btn.setFixedWidth(32)
         def pick_intro_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Intro Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Intro Media", "", "Media Files (*.gif *.png *.mp4 *.mov)")
             if file_path:
                 self.default_intro_path_edit.setText(file_path)
         self.default_intro_path_btn.clicked.connect(pick_intro_path)
@@ -1287,8 +1287,8 @@ class SuperCutUI(QWidget):
         intro_layout = QHBoxLayout()
         intro_layout.setSpacing(4)
         self.intro_edit = ImageDropLineEdit()
-        self.intro_edit.setPlaceholderText("Intro image path (*.gif, *.png)")
-        self.intro_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.intro_edit.setPlaceholderText("Intro media path (*.gif, *.png, *.mp4, *.mov)")
+        self.intro_edit.setToolTip("Drag and drop a GIF, PNG, MP4, or MOV file here or click 'Select Media'")
         self.intro_edit.setFixedWidth(125)
         self.intro_path = ""
         def on_intro_changed():
@@ -1301,7 +1301,7 @@ class SuperCutUI(QWidget):
         intro_btn = QPushButton("Select")
         intro_btn.setFixedWidth(60)
         def select_intro_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Intro Image", "", "Image Files (*.gif *.png *.jpg *.jpeg)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Intro Media", "", "Media Files (*.gif *.png *.mp4 *.mov *.jpg *.jpeg)")
             if file_path:
                 self.intro_edit.setText(file_path)
         intro_btn.clicked.connect(select_intro_image)
@@ -6597,8 +6597,8 @@ class SuperCutUI(QWidget):
         # Intro validation
         if self.intro_checkbox.isChecked():
             intro_path = self.intro_edit.text().strip()
-            if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Intro.", QMessageBox.StandardButton.Ok)
+            if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png', '.mp4', '.mov']:
+                QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF, PNG, MP4, or MOV file (*.gif, *.png, *.mp4, *.mov) for Intro.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 1 validation
         if self.overlay_checkbox.isChecked():
@@ -8759,8 +8759,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
             # Intro validation
             if self.intro_checkbox.isChecked():
                 intro_path = self.intro_edit.text().strip()
-                if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Intro.", QMessageBox.StandardButton.Ok)
+                if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png', '.mp4', '.mov']:
+                    QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF, PNG, MP4, or MOV file (*.gif, *.png, *.mp4, *.mov) for Intro.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 1 validation
             if self.overlay_checkbox.isChecked():
@@ -8971,8 +8971,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         total_duration = get_audio_duration(dry_mp3)
                         
                         actual_intro_start_at = 0
-                        if intro_start_checkbox_checked:
-                            # Use start from logic: total_duration - start_from_value
+                        if not intro_start_checkbox_checked:
+                            # Use start from logic: countdown from end
                             actual_intro_start_at = int(max(0, total_duration - intro_start_from))
                         else:
                             # Use start at value directly

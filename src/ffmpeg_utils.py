@@ -289,11 +289,14 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         frame_box_idx = None
         frame_mp3cover_idx = None
         input_idx = 2
-        if use_intro and intro_path and ext_intro in ['.gif', '.png']:
+        if use_intro and intro_path and ext_intro in ['.gif', '.png', '.mp4', '.mov']:
             if ext_intro == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", intro_path])
             elif ext_intro == '.png':
                 cmd.extend(["-loop", "1", "-i", intro_path])
+            elif ext_intro in ['.mp4', '.mov']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", intro_path])
             else:
                 cmd.extend(["-i", intro_path])
             intro_idx = input_idx
@@ -431,9 +434,28 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         # Build filter graph with correct indices
         overlays_present = use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5 or use_overlay6 or use_overlay7 or use_overlay8 or use_overlay9 or use_overlay10 or use_frame_box or use_frame_mp3cover or bool(extra_overlays) or use_soundwave_overlay
         if overlays_present:
-            scale_factor_intro = intro_size_percent / 100.0
-            owi = f"iw*{scale_factor_intro:.3f}"
-            ohi = f"ih*{scale_factor_intro:.3f}"
+            # Check if intro is preprocessed (only for non-GIF images)
+            intro_filename = os.path.basename(intro_path) if intro_path else ""
+            is_intro_preprocessed = intro_filename.startswith("supercut_")
+            intro_ext = os.path.splitext(intro_path)[1].lower() if intro_path else ""
+            is_intro_gif = intro_ext == '.gif'
+            is_intro_video = intro_path and intro_ext in ['.mp4', '.mov']
+            
+            if is_intro_preprocessed and not is_intro_gif:
+                # Intro is preprocessed non-GIF image - use original size
+                owi = "iw"
+                ohi = "ih"
+            elif is_intro_gif or is_intro_video:
+                # Intro is GIF or video - apply scaling in FFmpeg
+                scale_factor_intro = intro_size_percent / 100.0
+                owi = f"iw*{scale_factor_intro:.3f}"
+                ohi = f"ih*{scale_factor_intro:.3f}"
+            else:
+                # Intro is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor_intro = intro_size_percent / 100.0
+                owi = f"iw*{scale_factor_intro:.3f}"
+                ohi = f"ih*{scale_factor_intro:.3f}"
+            
             scale_factor1 = overlay1_size_percent / 100.0
             ow1 = f"iw*{scale_factor1:.3f}"
             oh1 = f"ih*{scale_factor1:.3f}"
@@ -547,10 +569,10 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 chain = f"[{idx}:v]"
                 if ext == ".gif":
                     chain += "fps=30,"
-                elif ext == ".mp4":
+                elif ext in [".mp4", ".mov"]:
                     # For video overlays, we need to handle them differently
                     # Videos already have their own fps, so we don't force fps=30
-                    # MP4 files are now looped infinitely like GIFs
+                    # Video files are now looped infinitely like GIFs
                     pass
                 chain += "format=rgba,"
                 fade_alpha = ":alpha=1" if ext == ".png" else ""
@@ -599,6 +621,11 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 chain = f"[{idx}:v]"
                 if ext == ".gif":
                     chain += "fps=30,"
+                elif ext in [".mp4", ".mov"]:
+                    # For video overlays, we need to handle them differently
+                    # Videos already have their own fps, so we don't force fps=30
+                    # Video files are now looped infinitely like GIFs
+                    pass
                 chain += "format=rgba,"
                 fade_alpha = ":alpha=1" if ext == ".png" else ""
                 if effect == "fadein":
