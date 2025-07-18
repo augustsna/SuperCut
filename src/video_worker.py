@@ -440,6 +440,29 @@ class VideoWorker(QObject):
         used_images.add(selected_image)  # Store full path
         self._used_images.add(selected_image)
         
+        # Preprocess background image (always done in advance)
+        from src.utils import preprocess_background_image
+        if self.use_bg_layer:
+            # Use custom background layer settings
+            processed_image_path = preprocess_background_image(
+                image_path=selected_image,
+                resolution=self.resolution,
+                scale_percent=self.bg_scale_percent,
+                crop_position=self.bg_crop_position,
+                effect=self.bg_effect,
+                intensity=self.bg_intensity
+            )
+        else:
+            # Use default 103% scale + center crop
+            processed_image_path = preprocess_background_image(
+                image_path=selected_image,
+                resolution=self.resolution,
+                scale_percent=103,  # Default 103%
+                crop_position="center",  # Default center crop
+                effect="none",  # No effects
+                intensity=50  # Default intensity
+            )
+        
         # Create output filename
         if self.name_list and batch_count < len(self.name_list):
             from src.utils import sanitize_filename
@@ -866,7 +889,7 @@ class VideoWorker(QObject):
             # Call create_video_with_ffmpeg, but if overlay10_multi_song, set use_overlay10=False so it is not added as a static overlay
             ffmpeg_use_overlay10 = self.use_overlay10 and not overlay10_multi_song
             success, err = create_video_with_ffmpeg(
-                selected_image, merged_audio_path, output_path, self.resolution, self.fps, self.codec,
+                processed_image_path, merged_audio_path, output_path, self.resolution, self.fps, self.codec,
                 use_overlay=self.use_overlay,
                 overlay1_path=self.overlay1_path,
                 overlay1_size_percent=self.overlay1_size_percent,
@@ -1001,12 +1024,7 @@ class VideoWorker(QObject):
                 frame_mp3cover_start_time=self.frame_mp3cover_start_time,
                 frame_mp3cover_duration=self.frame_mp3cover_duration,
                 frame_mp3cover_duration_full_checkbox_checked=self.frame_mp3cover_duration_full_checkbox_checked,
-                # --- Add background layer parameters ---
-                use_bg_layer=self.use_bg_layer,
-                bg_scale_percent=self.bg_scale_percent,
-                bg_crop_position=self.bg_crop_position,
-                bg_effect=self.bg_effect,
-                bg_intensity=self.bg_intensity,
+                # --- Background layer parameters are now handled in advance during image preprocessing ---
                 # --- Add soundwave overlay parameters ---
                 use_soundwave_overlay=self.use_soundwave_overlay,
                 soundwave_overlay_path=soundwave_overlay_path or "",
@@ -1031,6 +1049,12 @@ class VideoWorker(QObject):
             if 'soundwave_overlay_path' in locals() and soundwave_overlay_path and os.path.exists(soundwave_overlay_path):
                 try:
                     os.remove(soundwave_overlay_path)
+                except:
+                    pass
+            # Clean up processed background image if it was created
+            if 'processed_image_path' in locals() and processed_image_path != selected_image and os.path.exists(processed_image_path):
+                try:
+                    os.remove(processed_image_path)
                 except:
                     pass
             

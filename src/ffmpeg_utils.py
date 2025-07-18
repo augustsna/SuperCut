@@ -210,12 +210,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     frame_mp3cover_duration_full_checkbox_checked: bool = True,
     overlay1_start_at: int = 0,
     overlay2_start_at: int = 0,
-    # --- Add background layer parameters ---
-    use_bg_layer: bool = False,
-    bg_scale_percent: int = 103,
-    bg_crop_position: str = "center",
-    bg_effect: str = "none",
-    bg_intensity: int = 50,
+    # --- Background layer parameters are now handled in advance during image preprocessing ---
     # --- Add soundwave overlay parameters ---
     use_soundwave_overlay: bool = False,
     soundwave_overlay_path: str = "",
@@ -515,59 +510,8 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             oy_frame_box = f"({base_y})+{frame_box_pad_top}"
             ox_frame_mp3cover = f"(W-w)*{frame_mp3cover_x_percent}/100" if frame_mp3cover_x_percent != 0 else "0"
             oy_frame_mp3cover = f"(H-h)*(1-({frame_mp3cover_y_percent}/100))" if frame_mp3cover_y_percent != 100 else "0"
-            # Use configurable background scale if enabled, otherwise use default 103%
-            bg_scale = bg_scale_percent / 100.0 if use_bg_layer else 1.03
-            # Calculate crop x/y offsets based on position
-            crop_x = crop_y = 0
-            if use_bg_layer:
-                if bg_crop_position == "center":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "left":
-                    crop_x = 0
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "top":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = 0
-                elif bg_crop_position == "bottom":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"in_h-out_h"
-                elif bg_crop_position == "top_left":
-                    crop_x = 0
-                    crop_y = 0
-                elif bg_crop_position == "top_right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = 0
-                elif bg_crop_position == "bottom_left":
-                    crop_x = 0
-                    crop_y = f"in_h-out_h"
-                elif bg_crop_position == "bottom_right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = f"in_h-out_h"
-                else:
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"(in_h-out_h)/2"
-            else:
-                crop_x = f"(in_w-out_w)/2"
-                crop_y = f"(in_h-out_h)/2"
-            # Apply background effects if enabled
-            effect_filter = ""
-            if use_bg_layer and bg_effect != "none":
-                intensity_factor = bg_intensity / 100.0
-                if bg_effect == "gaussian_blur":
-                    sigma = intensity_factor * 10  # 0-10 range
-                    effect_filter = f",gblur=sigma={sigma:.2f}"
-                elif bg_effect == "sharpen":
-                    amount = intensity_factor * 2  # 0-2 range
-                    effect_filter = f",unsharp=3:3:1.5:3:3:{amount:.2f}"
-                elif bg_effect == "vignette":
-                    # Use simple vignette intensity
-                    effect_filter = f",vignette={intensity_factor:.2f}"
-            
-            filter_bg = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}:{crop_x}:{crop_y}{effect_filter}[bg]"
+            # All background processing is now done in advance - use simple scaling to target resolution
+            filter_bg = f"[0:v]scale={width}:{height}[bg]"
 
             # Effect logic for overlays
             def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext, duration=None):
@@ -797,7 +741,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             
             # Define layer configurations for custom ordering
             layer_configs = {
-                'background': {'filter': None, 'label': '[bg]'},  # Background is always first
+                'background': {'filter': None, 'label': '[bg]'},  # Background is handled in advance
                 'overlay1': {
                     'filter': filter_overlay1,
                     'overlay': f"[ol1]overlay={ox1}:{oy1}",
@@ -976,59 +920,8 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             if not filter_chains and not (use_soundwave_overlay and soundwave_idx is not None):
                 filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout]"
         else:
-            # Use configurable background scale if enabled, otherwise use default 103%
-            bg_scale = bg_scale_percent / 100.0 if use_bg_layer else 1.03
-            # Calculate crop x/y offsets based on position
-            crop_x = crop_y = 0
-            if use_bg_layer:
-                if bg_crop_position == "center":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "left":
-                    crop_x = 0
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "top":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = 0
-                elif bg_crop_position == "bottom":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"in_h-out_h"
-                elif bg_crop_position == "top_left":
-                    crop_x = 0
-                    crop_y = 0
-                elif bg_crop_position == "top_right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = 0
-                elif bg_crop_position == "bottom_left":
-                    crop_x = 0
-                    crop_y = f"in_h-out_h"
-                elif bg_crop_position == "bottom_right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = f"in_h-out_h"
-                else:
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"(in_h-out_h)/2"
-            else:
-                crop_x = f"(in_w-out_w)/2"
-                crop_y = f"(in_h-out_h)/2"
-            # Apply background effects if enabled
-            effect_filter = ""
-            if use_bg_layer and bg_effect != "none":
-                intensity_factor = bg_intensity / 100.0
-                if bg_effect == "gaussian_blur":
-                    sigma = intensity_factor * 10  # 0-10 range
-                    effect_filter = f",gblur=sigma={sigma:.2f}"
-                elif bg_effect == "sharpen":
-                    amount = intensity_factor * 2  # 0-2 range
-                    effect_filter = f",unsharp=3:3:1.5:3:3:{amount:.2f}"
-                elif bg_effect == "vignette":
-                    # Use simple vignette intensity
-                    effect_filter = f",vignette={intensity_factor:.2f}"
-            
-            filter_graph = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}:{crop_x}:{crop_y}{effect_filter},format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            # All background processing is now done in advance - use simple scaling to target resolution
+            filter_graph = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
         cmd.extend(["-filter_complex", filter_graph, "-map", "[vout]", "-map", "1:a"])
 
         cmd.extend(["-c:v", codec, "-preset", preset])       

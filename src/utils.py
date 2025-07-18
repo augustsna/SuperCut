@@ -624,3 +624,107 @@ def extract_and_frame_mp3_cover(mp3_path, output_path, default_cover_path="src/s
         else:
             logger.warning(f"No cover found in MP3 and default cover not found at {default_cover_path}")
             return False
+
+def preprocess_background_image(image_path: str, resolution: str, scale_percent: int = 103, crop_position: str = "center", effect: str = "none", intensity: int = 50) -> str:
+    """
+    Preprocess background image with advanced scaling and cropping.
+    
+    Args:
+        image_path: Path to the original background image
+        resolution: Target resolution (e.g., "1920x1080")
+        scale_percent: Scale percentage (default 103 for 103%)
+        crop_position: Crop position ("center", "left", "right", "top", "bottom", "top_left", "top_right", "bottom_left", "bottom_right")
+        effect: Background effect ("none", "gaussian_blur", "sharpen", "vignette")
+        intensity: Effect intensity (0-100)
+    
+    Returns:
+        Path to the processed temporary image file
+    """
+    try:
+        from PIL import Image, ImageFilter, ImageEnhance
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Parse target resolution
+        target_width, target_height = map(int, resolution.split('x'))
+        
+        # Calculate scaled dimensions
+        scale_factor = scale_percent / 100.0
+        scaled_width = int(target_width * scale_factor)
+        scaled_height = int(target_height * scale_factor)
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        # Calculate crop x/y offsets based on position
+        if crop_position == "center":
+            crop_x = f"(in_w-out_w)/2"
+            crop_y = f"(in_h-out_h)/2"
+        elif crop_position == "left":
+            crop_x = "0"
+            crop_y = f"(in_h-out_h)/2"
+        elif crop_position == "right":
+            crop_x = f"in_w-out_w"
+            crop_y = f"(in_h-out_h)/2"
+        elif crop_position == "top":
+            crop_x = f"(in_w-out_w)/2"
+            crop_y = "0"
+        elif crop_position == "bottom":
+            crop_x = f"(in_w-out_w)/2"
+            crop_y = f"in_h-out_h"
+        elif crop_position == "top_left":
+            crop_x = "0"
+            crop_y = "0"
+        elif crop_position == "top_right":
+            crop_x = f"in_w-out_w"
+            crop_y = "0"
+        elif crop_position == "bottom_left":
+            crop_x = "0"
+            crop_y = f"in_h-out_h"
+        elif crop_position == "bottom_right":
+            crop_x = f"in_w-out_w"
+            crop_y = f"in_h-out_h"
+        else:
+            # Default to center
+            crop_x = f"(in_w-out_w)/2"
+            crop_y = f"(in_h-out_h)/2"
+        
+        # Build filter string
+        filter_str = f"scale={scaled_width}:{scaled_height},crop={target_width}:{target_height}:{crop_x}:{crop_y}"
+        
+        # Add effect filters if specified
+        if effect != "none":
+            intensity_factor = intensity / 100.0
+            if effect == "gaussian_blur":
+                sigma = intensity_factor * 10  # 0-10 range
+                filter_str += f",gblur=sigma={sigma:.2f}"
+            elif effect == "sharpen":
+                amount = intensity_factor * 2  # 0-2 range
+                filter_str += f",unsharp=3:3:1.5:3:3:{amount:.2f}"
+            elif effect == "vignette":
+                filter_str += f",vignette={intensity_factor:.2f}"
+        
+        # Use FFmpeg for scaling, cropping, and effects
+        cmd = [
+            FFMPEG_BINARY,
+            '-y',  # Overwrite output file
+            '-i', image_path,
+            '-vf', filter_str,
+            temp_processed_path
+        ]
+        
+        # Execute FFmpeg command
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f"FFmpeg preprocessing failed: {result.stderr}")
+            # Fallback to original image
+            return image_path
+        
+        logger.info(f"Background image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing background image: {e}")
+        # Fallback to original image
+        return image_path
