@@ -498,38 +498,27 @@ class VideoWorker(QObject):
             self.error.emit(f"Failed to merge MP3 files or get duration")
             return False, []
 
+        # --- Calculate song durations ONCE for all overlays ---
+        from src.ffmpeg_utils import get_audio_duration
+        song_durations = []
+        cumulative_time = 0.0
+        for mp3_path in selected_mp3s:
+            duration = get_audio_duration(mp3_path)
+            song_durations.append((cumulative_time, duration))
+            cumulative_time += duration
+        
+        # Get total duration from merged audio
+        total_duration = get_audio_duration(merged_audio_path)
+
         # --- Generate soundwave overlay if enabled ---
         soundwave_overlay_path = None
         try:
             # Calculate timing for each overlay with proper song durations
             overlay_count = len(song_title_pngs) + len(mp3_cover_pngs) # Count both song titles and MP3 covers
             extra_overlays = []
-            
-            if overlay_count > 0:
-                # Get individual song durations
-                from src.ffmpeg_utils import get_audio_duration
-                song_durations = []
-                cumulative_time = 0.0
-                for mp3_path in selected_mp3s:
-                    duration = get_audio_duration(mp3_path)
-                    song_durations.append((cumulative_time, duration))
-                    cumulative_time += duration
-                
-                if overlay_count == 1:
-                    # REMOVE this block: Single song - use overlay start time or default to 5s
-                    pass
-                else:
-                    # REMOVE this block: Multiple songs - each song title starts when its MP3 starts
-                    pass
             if self.use_song_title_overlay and len(song_title_pngs) > 0:
                 # Multiple overlays: first starts at user input, others at song boundaries
-                from src.ffmpeg_utils import get_audio_duration
-                song_durations = []
-                cumulative_time = 0.0
-                for mp3_path in selected_mp3s:
-                    duration = get_audio_duration(mp3_path)
-                    song_durations.append((cumulative_time, duration))
-                    cumulative_time += duration
+                # Use pre-calculated song_durations
                 for i, (song_start, song_duration) in enumerate(song_durations):
                     if i == 0:
                         # First overlay: start at user input, duration shortened if start_at > 0
@@ -551,14 +540,7 @@ class VideoWorker(QObject):
             # --- Add MP3 Cover overlays to extra_overlays ---
             if self.use_mp3_cover_overlay and len(mp3_cover_pngs) > 0:
                 # MP3 covers work like song titles: each cover appears during its corresponding song
-                from src.ffmpeg_utils import get_audio_duration
-                song_durations = []
-                cumulative_time = 0.0
-                for mp3_path in selected_mp3s:
-                    duration = get_audio_duration(mp3_path)
-                    song_durations.append((cumulative_time, duration))
-                    cumulative_time += duration
-                
+                # Use pre-calculated song_durations
                 for i, (song_start, song_duration) in enumerate(song_durations):
                     if i < len(mp3_cover_pngs):  # Make sure we have a cover for this song
                         if i == 0:
@@ -593,8 +575,7 @@ class VideoWorker(QObject):
             # --- End soundwave overlay ---
             
             # Calculate actual intro start time and duration based on checkbox states
-            from src.ffmpeg_utils import get_audio_duration
-            total_duration = get_audio_duration(merged_audio_path)
+            # Use pre-calculated total_duration
             
             actual_intro_start_at = 0
             if self.intro_start_checkbox_checked:
@@ -704,11 +685,9 @@ class VideoWorker(QObject):
                 actual_overlay8_start_at = max(0, actual_overlay8_start_at)           
             
             # Additional validation for overlay8 parameters
-            if not self.overlay8_popup_checkbox_checked and actual_overlay8_start_at < 0:
-                print(f"Warning: Overlay8 start time is negative: {actual_overlay8_start_at}, setting to 0")
+            if not self.overlay8_popup_checkbox_checked and actual_overlay8_start_at < 0:                
                 actual_overlay8_start_at = 0
-            if self.overlay8_duration < 0:
-                print(f"Warning: Overlay8 duration is negative: {self.overlay8_duration}, setting to 1")
+            if self.overlay8_duration < 0:                
                 self.overlay8_duration = 1
             
             # Calculate actual overlay9 start time based on checkbox state
@@ -782,11 +761,9 @@ class VideoWorker(QObject):
                 actual_overlay9_start_at = max(0, actual_overlay9_start_at)
                        
             # Additional validation for overlay9 parameters
-            if not self.overlay9_popup_checkbox_checked and actual_overlay9_start_at < 0:
-                print(f"Warning: Overlay9 start time is negative: {actual_overlay9_start_at}, setting to 0")
+            if not self.overlay9_popup_checkbox_checked and actual_overlay9_start_at < 0:                
                 actual_overlay9_start_at = 0
-            if self.overlay9_duration < 0:
-                print(f"Warning: Overlay9 duration is negative: {self.overlay9_duration}, setting to 1")
+            if self.overlay9_duration < 0:                
                 self.overlay9_duration = 1
             
             # --- Overlay 10: When Song Start/End Logic ---
@@ -795,14 +772,7 @@ class VideoWorker(QObject):
                 (self.overlay10_start_end_value == "start" or self.overlay10_start_end_value == "end")
             )
             if overlay10_multi_song:
-                # Get individual song durations and cumulative times
-                from src.ffmpeg_utils import get_audio_duration
-                song_durations = []
-                cumulative_time = 0.0
-                for mp3_path in selected_mp3s:
-                    duration = get_audio_duration(mp3_path)
-                    song_durations.append((cumulative_time, duration))
-                    cumulative_time += duration
+                # Use pre-calculated song durations
                 for i, (song_start, song_duration) in enumerate(song_durations):
                     if self.overlay10_start_end_value == "start":
                         # Start logic: first song uses user start time, others start at song beginning
@@ -847,11 +817,9 @@ class VideoWorker(QObject):
             actual_overlay10_start_at = max(0, actual_overlay10_start_at)            
             
             # Additional validation for overlay10 parameters
-            if actual_overlay10_start_at < 0:
-                print(f"Warning: Overlay10 start time is negative: {actual_overlay10_start_at}, setting to 0")
+            if actual_overlay10_start_at < 0:                
                 actual_overlay10_start_at = 0
-            if self.overlay10_duration < 0:
-                print(f"Warning: Overlay10 duration is negative: {self.overlay10_duration}, setting to 1")
+            if self.overlay10_duration < 0:                
                 self.overlay10_duration = 1
             
             

@@ -4879,12 +4879,12 @@ class SuperCutUI(QWidget):
         self.frame_box_start_edit.setFixedWidth(60)
         self.frame_box_start_edit.setValidator(QIntValidator(1, 999, self))
         self.frame_box_start_edit.setPlaceholderText("5")
-        self.frame_box_start_percent = 5
+        self.frame_box_start_time = 5
         def on_frame_box_start_changed():
             try:
-                self.frame_box_start_percent = int(self.frame_box_start_edit.text())
+                self.frame_box_start_time = int(self.frame_box_start_edit.text())
             except Exception:
-                self.frame_box_start_percent = 5
+                self.frame_box_start_time = 5
         self.frame_box_start_edit.textChanged.connect(on_frame_box_start_changed)
         on_frame_box_start_changed()
 
@@ -5986,12 +5986,12 @@ class SuperCutUI(QWidget):
         self.frame_mp3cover_start_edit.setFixedWidth(60)
         self.frame_mp3cover_start_edit.setValidator(QIntValidator(1, 999, self))
         self.frame_mp3cover_start_edit.setPlaceholderText("5")
-        self.frame_mp3cover_start_percent = 5
+        self.frame_mp3cover_start_time = 5
         def on_frame_mp3cover_start_changed():
             try:
-                self.frame_mp3cover_start_percent = int(self.frame_mp3cover_start_edit.text())
+                self.frame_mp3cover_start_time = int(self.frame_mp3cover_start_edit.text())
             except Exception:
-                self.frame_mp3cover_start_percent = 5
+                self.frame_mp3cover_start_time = 5
         self.frame_mp3cover_start_edit.textChanged.connect(on_frame_mp3cover_start_changed)
         on_frame_mp3cover_start_changed()
 
@@ -7637,7 +7637,7 @@ class SuperCutUI(QWidget):
             frame_box_x_percent=self.frame_box_x_percent,
             frame_box_y_percent=self.frame_box_y_percent,
             frame_box_effect=self.selected_frame_box_effect,
-            frame_box_start_time=self.frame_box_start_percent,
+            frame_box_start_time=self.frame_box_start_time,
             frame_box_duration=self.frame_box_duration,
             frame_box_duration_full_checkbox_checked=self.frame_box_duration_full_checkbox.isChecked(),
             frame_box_pad_left=self.frame_box_pad_left,
@@ -7651,7 +7651,7 @@ class SuperCutUI(QWidget):
             frame_mp3cover_x_percent=self.frame_mp3cover_x_percent,
             frame_mp3cover_y_percent=self.frame_mp3cover_y_percent,
             frame_mp3cover_effect=self.selected_frame_mp3cover_effect,
-            frame_mp3cover_start_time=self.frame_mp3cover_start_percent,
+            frame_mp3cover_start_time=self.frame_mp3cover_start_time,
             frame_mp3cover_duration=self.frame_mp3cover_duration,
             frame_mp3cover_duration_full_checkbox_checked=self.frame_mp3cover_duration_full_checkbox.isChecked(),
             # --- Add MP3 cover overlay parameters ---
