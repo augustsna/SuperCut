@@ -463,6 +463,15 @@ class VideoWorker(QObject):
                 intensity=50  # Default intensity
             )
         
+        # Preprocess overlay2 image (always done in advance)
+        processed_overlay2_path = self.overlay2_path
+        if self.use_overlay2 and self.overlay2_path:
+            from src.utils import preprocess_overlay2_image
+            processed_overlay2_path = preprocess_overlay2_image(
+                image_path=self.overlay2_path,
+                size_percent=self.overlay2_size_percent
+            )
+        
         # Create output filename
         if self.name_list and batch_count < len(self.name_list):
             from src.utils import sanitize_filename
@@ -491,24 +500,6 @@ class VideoWorker(QObject):
 
         # --- Generate soundwave overlay if enabled ---
         soundwave_overlay_path = None
-        print(f"🔍 Soundwave overlay enabled: {self.use_soundwave_overlay}")
-        if self.use_soundwave_overlay:
-            try:
-                from src.soundwave_generator import create_soundwave_from_merged_audio
-                print(f"🎵 Generating soundwave overlay with method: {self.soundwave_method}")
-                soundwave_overlay_path = create_soundwave_from_merged_audio(
-                    merged_audio_path,
-                    method=self.soundwave_method,
-                    color=self.soundwave_color
-                )
-                if soundwave_overlay_path:
-                    print(f"✅ Soundwave overlay created: {os.path.basename(soundwave_overlay_path)}")
-                else:
-                    print("⚠️ Failed to create soundwave overlay")
-            except Exception as e:
-                logger.warning(f"Error creating soundwave overlay: {e}")
-                print(f"⚠️ Soundwave overlay error: {e}")
-
         try:
             # Calculate timing for each overlay with proper song durations
             overlay_count = len(song_title_pngs) + len(mp3_cover_pngs) # Count both song titles and MP3 covers
@@ -710,15 +701,7 @@ class VideoWorker(QObject):
             
             # Final validation to ensure start time is valid (only for non-popup mode)
             if not self.overlay8_popup_checkbox_checked:
-                actual_overlay8_start_at = max(0, actual_overlay8_start_at)
-            
-            # Debug output for overlay8 timing
-            if self.overlay8_popup_checkbox_checked:
-                first_popup_time = int((self.overlay8_popup_start_at / 100.0) * total_duration)
-                print(f"Overlay8 Popup Debug - Total duration: {total_duration}s, First popup at: {first_popup_time}s, Duration: {self.overlay8_duration}s, Interval: {self.overlay8_popup_interval}s")
-            else:
-                print(f"Overlay8 Debug - Total duration: {total_duration}s, Start time: {actual_overlay8_start_at}s, Duration: {self.overlay8_duration}s")
-            print(f"Overlay8 Debug - Start from percent: {self.overlay8_start_from}, Start time percent: {self.overlay8_start_time}, Popup start at percent: {self.overlay8_popup_start_at}, Popup interval: {self.overlay8_popup_interval}, Popup checked: {self.overlay8_popup_checkbox_checked}")
+                actual_overlay8_start_at = max(0, actual_overlay8_start_at)           
             
             # Additional validation for overlay8 parameters
             if not self.overlay8_popup_checkbox_checked and actual_overlay8_start_at < 0:
@@ -797,15 +780,7 @@ class VideoWorker(QObject):
             # Final validation to ensure start time is valid (only for non-popup mode)
             if not self.overlay9_popup_checkbox_checked:
                 actual_overlay9_start_at = max(0, actual_overlay9_start_at)
-            
-            # Debug output for overlay9 timing
-            if self.overlay9_popup_checkbox_checked:
-                first_popup_time = int((self.overlay9_popup_start_at / 100.0) * total_duration)
-                print(f"Overlay9 Popup Debug - Total duration: {total_duration}s, First popup at: {first_popup_time}s, Duration: {self.overlay9_duration}s, Interval: {self.overlay9_popup_interval}s")
-            else:
-                print(f"Overlay9 Debug - Total duration: {total_duration}s, Start time: {actual_overlay9_start_at}s, Duration: {self.overlay9_duration}s")
-            print(f"Overlay9 Debug - Start from percent: {self.overlay9_start_from}, Start time percent: {self.overlay9_start_time}, Popup start at percent: {self.overlay9_popup_start_at}, Popup interval: {self.overlay9_popup_interval}, Popup checked: {self.overlay9_popup_checkbox_checked}")
-            
+                       
             # Additional validation for overlay9 parameters
             if not self.overlay9_popup_checkbox_checked and actual_overlay9_start_at < 0:
                 print(f"Warning: Overlay9 start time is negative: {actual_overlay9_start_at}, setting to 0")
@@ -869,11 +844,7 @@ class VideoWorker(QObject):
                 actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
             
             # Final validation to ensure start time is valid
-            actual_overlay10_start_at = max(0, actual_overlay10_start_at)
-            
-            # Debug output for overlay10 timing
-            print(f"Overlay10 Debug - Total duration: {total_duration}s, Start time: {actual_overlay10_start_at}s, Duration: {self.overlay10_duration}s")
-            print(f"Overlay10 Debug - Start from percent: {self.overlay10_start_from}, Start time percent: {self.overlay10_start_time}")
+            actual_overlay10_start_at = max(0, actual_overlay10_start_at)            
             
             # Additional validation for overlay10 parameters
             if actual_overlay10_start_at < 0:
@@ -896,8 +867,8 @@ class VideoWorker(QObject):
                 overlay1_x_percent=self.overlay1_x_percent,
                 overlay1_y_percent=self.overlay1_y_percent,
                 use_overlay2=self.use_overlay2,
-                overlay2_path=self.overlay2_path,
-                overlay2_size_percent=self.overlay2_size_percent,
+                overlay2_path=processed_overlay2_path,  # Use preprocessed overlay2
+                overlay2_size_percent=self.overlay2_size_percent,  # Pass original size percent for detection
                 overlay2_x_percent=self.overlay2_x_percent,
                 overlay2_y_percent=self.overlay2_y_percent,
                 use_overlay3=self.use_overlay3,
@@ -1055,6 +1026,12 @@ class VideoWorker(QObject):
             if 'processed_image_path' in locals() and processed_image_path != selected_image and os.path.exists(processed_image_path):
                 try:
                     os.remove(processed_image_path)
+                except:
+                    pass
+            # Clean up processed overlay2 image if it was created
+            if 'processed_overlay2_path' in locals() and processed_overlay2_path != self.overlay2_path and os.path.exists(processed_overlay2_path):
+                try:
+                    os.remove(processed_overlay2_path)
                 except:
                     pass
             

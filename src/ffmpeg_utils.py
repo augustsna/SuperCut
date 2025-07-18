@@ -434,9 +434,20 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             scale_factor1 = overlay1_size_percent / 100.0
             ow1 = f"iw*{scale_factor1:.3f}"
             oh1 = f"ih*{scale_factor1:.3f}"
-            scale_factor2 = overlay2_size_percent / 100.0
-            ow2 = f"iw*{scale_factor2:.3f}"
-            oh2 = f"ih*{scale_factor2:.3f}"
+            # Check if overlay2 is preprocessed (has supercut_ prefix)
+            overlay2_filename = os.path.basename(overlay2_path) if overlay2_path else ""
+            is_overlay2_preprocessed = overlay2_filename.startswith("supercut_")
+            
+            if is_overlay2_preprocessed:
+                # Overlay2 is preprocessed - use original size
+                ow2 = "iw"
+                oh2 = "ih"
+            else:
+                # Overlay2 is not preprocessed - apply scaling
+                scale_factor2 = overlay2_size_percent / 100.0
+                ow2 = f"iw*{scale_factor2:.3f}"
+                oh2 = f"ih*{scale_factor2:.3f}"
+            
             scale_factor3 = overlay3_size_percent / 100.0
             ow3 = f"iw*{scale_factor3:.3f}"
             oh3 = f"ih*{scale_factor3:.3f}"

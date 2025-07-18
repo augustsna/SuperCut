@@ -691,7 +691,7 @@ def preprocess_background_image(image_path: str, resolution: str, scale_percent:
             crop_y = f"(in_h-out_h)/2"
         
         # Build filter string
-        filter_str = f"scale={scaled_width}:{scaled_height},crop={target_width}:{target_height}:{crop_x}:{crop_y}"
+        filter_str = f"scale={scaled_width}:{scaled_height}:flags=lanczos,crop={target_width}:{target_height}:{crop_x}:{crop_y}"
         
         # Add effect filters if specified
         if effect != "none":
@@ -726,5 +726,100 @@ def preprocess_background_image(image_path: str, resolution: str, scale_percent:
         
     except Exception as e:
         logger.error(f"Error preprocessing background image: {e}")
+        # Fallback to original image
+        return image_path
+
+def preprocess_overlay2_image(image_path: str, size_percent: int = 10) -> str:
+    """
+    Preprocess overlay2 image with advanced scaling.
+    For GIF files: 2-step approach to preserve transparency.
+    
+    Args:
+        image_path: Path to the original overlay2 image
+        size_percent: Scale percentage (default 10 for 10%)
+    
+    Returns:
+        Path to the processed temporary image file
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check if input is a GIF file
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        
+        if is_gif:
+            # 2-step approach for GIF with transparency preservation
+            # Step 1: Generate palette from original transparent GIF
+            palette_temp = create_temp_file(suffix='.png', prefix='supercut_palette_')
+            
+            # Extract palette from original GIF
+            palette_cmd = [
+                FFMPEG_BINARY,
+                '-y',
+                '-i', image_path,
+                '-vf', 'palettegen=reserve_transparent=1',
+                palette_temp
+            ]
+            
+            result = subprocess.run(palette_cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg palette generation failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+            
+            # Step 2: Apply scaling with transparency preserved using the generated palette
+            scale_cmd = [
+                FFMPEG_BINARY,
+                '-y',
+                '-i', image_path,
+                '-i', palette_temp,
+                '-lavfi', f'scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos [x]; [x][1:v] paletteuse=alpha_threshold=128',
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(scale_cmd, capture_output=True, text=True)
+            
+            # Clean up palette temp file
+            try:
+                os.remove(palette_temp)
+            except:
+                pass
+                
+            if result.returncode != 0:
+                logger.error(f"FFmpeg GIF scaling failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg overlay2 preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Overlay2 image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing overlay2 image: {e}")
         # Fallback to original image
         return image_path
