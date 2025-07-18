@@ -4620,12 +4620,12 @@ class SuperCutUI(QWidget):
         self.overlay10_start_edit.setFixedWidth(60)
         self.overlay10_start_edit.setValidator(QIntValidator(1, 999, self))
         self.overlay10_start_edit.setPlaceholderText("5")
-        self.overlay10_start_percent = 5
+        self.overlay10_start_time = 5
         def on_overlay10_start_changed():
             try:
-                self.overlay10_start_percent = int(self.overlay10_start_edit.text())
+                self.overlay10_start_time = int(self.overlay10_start_edit.text())
             except Exception:
-                self.overlay10_start_percent = 5
+                self.overlay10_start_time = 5
         self.overlay10_start_edit.textChanged.connect(on_overlay10_start_changed)
         on_overlay10_start_changed()
 
@@ -7620,7 +7620,7 @@ class SuperCutUI(QWidget):
                 overlay10_effect=self.selected_overlay10_effect,
                                             overlay9_start_time=self.overlay9_start_percent,
                 overlay9_start_from=self.overlay9_start_from_percent,
-                                                                overlay10_start_time=self.overlay10_start_percent,
+                                                                overlay10_start_time=self.overlay10_start_time,
                                 overlay9_duration=self.overlay9_duration,
                                 overlay10_duration=self.overlay10_duration,
                                 overlay10_song_start_end_checked=self.overlay10_song_start_end.isChecked(),
@@ -9155,7 +9155,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay10_x_percent=self.overlay10_x_percent,
                 overlay10_y_percent=self.overlay10_y_percent,
                 overlay10_effect=self.selected_overlay10_effect,
-                overlay10_start_time=self.overlay10_start_percent,
+                overlay10_start_time=self.overlay10_start_time,
                 overlay10_start_from=0,  # Overlay10 doesn't have start_from UI, use default 0
                 overlay10_duration=self.overlay10_duration,
                 overlay10_start_at_checkbox_checked=True,  # Overlay10 doesn't have start_at checkbox UI, use default True

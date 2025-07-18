@@ -498,25 +498,33 @@ class VideoWorker(QObject):
             self.error.emit(f"Failed to merge MP3 files or get duration")
             return False, []
 
-        # --- Calculate song durations ONCE for all overlays ---
-        from src.ffmpeg_utils import get_audio_duration
-        song_durations = []
-        cumulative_time = 0.0
-        for mp3_path in selected_mp3s:
-            duration = get_audio_duration(mp3_path)
-            song_durations.append((cumulative_time, duration))
-            cumulative_time += duration
-        
         # Get total duration from merged audio
+        from src.ffmpeg_utils import get_audio_duration
         total_duration = get_audio_duration(merged_audio_path)
+        
+        # --- Calculate song durations only if needed by overlays ---
+        song_durations = []
+        needs_song_durations = (
+            self.use_song_title_overlay or 
+            self.use_mp3_cover_overlay or 
+            (self.use_overlay10 and self.overlay10_song_start_end_checked)
+        )
+        
+        if needs_song_durations:
+            cumulative_time = 0.0
+            for mp3_path in selected_mp3s:
+                duration = get_audio_duration(mp3_path)
+                song_durations.append((cumulative_time, duration))
+                cumulative_time += duration
 
         # --- Generate soundwave overlay if enabled ---
         soundwave_overlay_path = None
         try:
-            # Calculate timing for each overlay with proper song durations
-            overlay_count = len(song_title_pngs) + len(mp3_cover_pngs) # Count both song titles and MP3 covers
+            # Initialize extra overlays list
             extra_overlays = []
-            if self.use_song_title_overlay and len(song_title_pngs) > 0:
+            
+            # Process Song Title overlays independently (only if song titles are enabled)
+            if self.use_song_title_overlay and len(song_title_pngs) > 0 and song_durations:
                 # Multiple overlays: first starts at user input, others at song boundaries
                 # Use pre-calculated song_durations
                 for i, (song_start, song_duration) in enumerate(song_durations):
@@ -537,8 +545,8 @@ class VideoWorker(QObject):
                         'y_percent': song_title_pngs[i]['y_percent']
                     })
 
-            # --- Add MP3 Cover overlays to extra_overlays ---
-            if self.use_mp3_cover_overlay and len(mp3_cover_pngs) > 0:
+            # Process MP3 Cover overlays independently (only if MP3 covers are enabled)
+            if self.use_mp3_cover_overlay and len(mp3_cover_pngs) > 0 and song_durations:
                 # MP3 covers work like song titles: each cover appears during its corresponding song
                 # Use pre-calculated song_durations
                 for i, (song_start, song_duration) in enumerate(song_durations):
@@ -568,203 +576,214 @@ class VideoWorker(QObject):
                             'size_percent': mp3_cover_pngs[i]['size_percent'],
                             'effect': mp3_cover_pngs[i]['effect']
                         })
-            # --- End MP3 Cover overlays ---
             
             # --- Add soundwave overlay to extra_overlays ---
             # REMOVED: Soundwave overlay is now handled independently in FFmpeg utils
             # --- End soundwave overlay ---
             
-            # Calculate actual intro start time and duration based on checkbox states
-            # Use pre-calculated total_duration
-            
+            # Calculate actual intro start time and duration based on checkbox states (only if intro is enabled)
             actual_intro_start_at = 0
-            if self.intro_start_checkbox_checked:
-                # Use start from logic: total_duration - start_from_value
-                actual_intro_start_at = int(max(0, total_duration - self.intro_start_from))
-            else:
-                # Use start at value directly
-                actual_intro_start_at = self.intro_start_at
-            
             actual_intro_duration = self.intro_duration
-            if self.intro_duration_full_checkbox_checked:
-                # Use full remaining duration: total_duration - start_at
-                actual_intro_duration = int(max(1, total_duration - actual_intro_start_at))
             
-            # Calculate actual overlay1_2 start times based on checkbox state
+            if self.use_intro:
+                if self.intro_start_checkbox_checked:
+                    # Use start from logic: total_duration - start_from_value
+                    actual_intro_start_at = int(max(0, total_duration - self.intro_start_from))
+                else:
+                    # Use start at value directly
+                    actual_intro_start_at = self.intro_start_at
+                
+                if self.intro_duration_full_checkbox_checked:
+                    # Use full remaining duration: total_duration - start_at
+                    actual_intro_duration = int(max(1, total_duration - actual_intro_start_at))
+            
+            # Calculate actual overlay1_2 start times based on checkbox state (only if overlays are enabled)
             actual_overlay1_start_at = self.overlay1_start_at
             actual_overlay2_start_at = self.overlay2_start_at
-            if not self.overlay1_2_start_at_checkbox_checked:
-                # Use start from logic: countdown from end
-                actual_overlay1_start_at = int(max(0, total_duration - self.overlay1_2_start_from))
-                actual_overlay2_start_at = int(max(0, total_duration - self.overlay1_2_start_from))
             
-            # Calculate actual overlay4_5 start times based on checkbox state
+            if self.use_overlay or self.use_overlay2:
+                if not self.overlay1_2_start_at_checkbox_checked:
+                    # Use start from logic: countdown from end
+                    actual_overlay1_start_at = int(max(0, total_duration - self.overlay1_2_start_from))
+                    actual_overlay2_start_at = int(max(0, total_duration - self.overlay1_2_start_from))
+            
+            # Calculate actual overlay4_5 start times based on checkbox state (only if overlays are enabled)
             actual_overlay4_start_at = self.overlay4_start_time
             actual_overlay5_start_at = self.overlay5_start_time
-            if not self.overlay4_5_start_at_checkbox_checked:
-                # Use start from logic: countdown from end
-                actual_overlay4_start_at = int(max(0, total_duration - self.overlay4_5_start_from))
-                actual_overlay5_start_at = int(max(0, total_duration - self.overlay4_5_start_from))
             
-            # Calculate actual overlay6_7 start times based on checkbox state
+            if self.use_overlay4 or self.use_overlay5:
+                if not self.overlay4_5_start_at_checkbox_checked:
+                    # Use start from logic: countdown from end
+                    actual_overlay4_start_at = int(max(0, total_duration - self.overlay4_5_start_from))
+                    actual_overlay5_start_at = int(max(0, total_duration - self.overlay4_5_start_from))
+            
+            # Calculate actual overlay6_7 start times based on checkbox state (only if overlays are enabled)
             actual_overlay6_start_at = self.overlay6_start_time
             actual_overlay7_start_at = self.overlay7_start_time
-            if not self.overlay6_7_start_at_checkbox_checked:
-                # Use start from logic: countdown from end
-                actual_overlay6_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
-                actual_overlay7_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
             
-            # Calculate actual overlay8 start time based on checkbox state
-            if self.overlay8_popup_checkbox_checked:
-                # Popup mode: calculate multiple overlay instances based on interval count
-                # First popup at the specified start time
-                first_popup_start = int((self.overlay8_popup_start_at / 100.0) * total_duration)
-                
-                # Calculate how many additional popups based on interval count (not percentage)
-                additional_popups = self.overlay8_popup_interval  # This is the count
-                
-                if additional_popups > 0:
-                    # Calculate the time span for additional popups
-                    remaining_time = total_duration - first_popup_start  # NOT subtracting duration
-                    if remaining_time > 0:
-                        interval_seconds = remaining_time / additional_popups
-                    else:
-                        interval_seconds = 0
+            if self.use_overlay6 or self.use_overlay7:
+                if not self.overlay6_7_start_at_checkbox_checked:
+                    # Use start from logic: countdown from end
+                    actual_overlay6_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
+                    actual_overlay7_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
+            
+            # Calculate actual overlay8 start time based on checkbox state (only if overlay8 is enabled)
+            actual_overlay8_start_at = 0  # Default value
+            
+            if self.use_overlay8:
+                if self.overlay8_popup_checkbox_checked:
+                    # Popup mode: calculate multiple overlay instances based on interval count
+                    # First popup at the specified start time
+                    first_popup_start = int((self.overlay8_popup_start_at / 100.0) * total_duration)
                     
-                    # Create multiple overlay instances for popup mode
-                    for i in range(additional_popups + 1):  # +1 to include the first popup
-                        if i == 0:
-                            # First popup at specified start time
-                            popup_start = first_popup_start
+                    # Calculate how many additional popups based on interval count (not percentage)
+                    additional_popups = self.overlay8_popup_interval  # This is the count
+                    
+                    if additional_popups > 0:
+                        # Calculate the time span for additional popups
+                        remaining_time = total_duration - first_popup_start  # NOT subtracting duration
+                        if remaining_time > 0:
+                            interval_seconds = remaining_time / additional_popups
                         else:
-                            # Subsequent popups: first_popup + (interval_seconds * i) - duration
-                            popup_start = first_popup_start + (interval_seconds * i) - self.overlay8_duration
+                            interval_seconds = 0
                         
-                        # Ensure popup doesn't start before 0 or after video ends
-                        popup_start = max(0, min(popup_start, int(total_duration - self.overlay8_duration)))
+                        # Create multiple overlay instances for popup mode
+                        for i in range(additional_popups + 1):  # +1 to include the first popup
+                            if i == 0:
+                                # First popup at specified start time
+                                popup_start = first_popup_start
+                            else:
+                                # Subsequent popups: first_popup + (interval_seconds * i) - duration
+                                popup_start = first_popup_start + (interval_seconds * i) - self.overlay8_duration
+                            
+                            # Ensure popup doesn't start before 0 or after video ends
+                            popup_start = max(0, min(popup_start, int(total_duration - self.overlay8_duration)))
+                            
+                            # Add to extra_overlays for FFmpeg processing
+                            extra_overlays.append({
+                                'path': self.overlay8_path,
+                                'start': popup_start,
+                                'duration': self.overlay8_duration,
+                                'x_percent': self.overlay8_x_percent,
+                                'y_percent': self.overlay8_y_percent,
+                                'size_percent': self.overlay8_size_percent,
+                                'effect': self.overlay8_effect
+                            })
+                            
+                            print(f"Overlay8 Popup {i+1}: Start at {popup_start}s, Duration {self.overlay8_duration}s")
                         
-                        # Add to extra_overlays for FFmpeg processing
-                        extra_overlays.append({
-                            'path': self.overlay8_path,
-                            'start': popup_start,
-                            'duration': self.overlay8_duration,
-                            'x_percent': self.overlay8_x_percent,
-                            'y_percent': self.overlay8_y_percent,
-                            'size_percent': self.overlay8_size_percent,
-                            'effect': self.overlay8_effect
-                        })
-                        
-                        print(f"Overlay8 Popup {i+1}: Start at {popup_start}s, Duration {self.overlay8_duration}s")
-                    
-                    # Set overlay8 to not be used since we're using extra_overlays
-                    actual_overlay8_start_at = -1  # Signal to not use single overlay8
-                else:
-                    # No additional popups, just use first popup
-                    actual_overlay8_start_at = first_popup_start
+                        # Set overlay8 to not be used since we're using extra_overlays
+                        actual_overlay8_start_at = -1  # Signal to not use single overlay8
+                    else:
+                        # No additional popups, just use first popup
+                        actual_overlay8_start_at = first_popup_start
+                        actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
+                elif not self.overlay8_start_at_checkbox_checked:
+                    # Use start from logic
+                    if self.overlay8_duration_full_checkbox_checked:
+                        # Full duration: simple percentage of total duration
+                        actual_overlay8_start_at = int((self.overlay8_start_from / 100.0) * total_duration)
+                    else:
+                        # Limited duration: (total_duration * percentage) - effect_duration
+                        effect_duration = self.overlay8_duration
+                        percentage_time = (self.overlay8_start_from / 100.0) * total_duration
+                        actual_overlay8_start_at = int(max(0, percentage_time - effect_duration))
+                    # Ensure the start time doesn't exceed the video duration
                     actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
-            elif not self.overlay8_start_at_checkbox_checked:
-                # Use start from logic
-                if self.overlay8_duration_full_checkbox_checked:
-                    # Full duration: simple percentage of total duration
-                    actual_overlay8_start_at = int((self.overlay8_start_from / 100.0) * total_duration)
                 else:
-                    # Limited duration: (total_duration * percentage) - effect_duration
-                    effect_duration = self.overlay8_duration
-                    percentage_time = (self.overlay8_start_from / 100.0) * total_duration
-                    actual_overlay8_start_at = int(max(0, percentage_time - effect_duration))
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
-            else:
-                # Use start at logic: simple percentage of total duration (NO duration subtraction)
-                actual_overlay8_start_at = int((self.overlay8_start_time / 100.0) * total_duration)
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
-            
-            # Final validation to ensure start time is valid (only for non-popup mode)
-            if not self.overlay8_popup_checkbox_checked:
-                actual_overlay8_start_at = max(0, actual_overlay8_start_at)           
-            
-            # Additional validation for overlay8 parameters
-            if not self.overlay8_popup_checkbox_checked and actual_overlay8_start_at < 0:                
-                actual_overlay8_start_at = 0
-            if self.overlay8_duration < 0:                
-                self.overlay8_duration = 1
-            
-            # Calculate actual overlay9 start time based on checkbox state
-            if self.overlay9_popup_checkbox_checked:
-                # Popup mode: calculate multiple overlay instances based on interval count
-                # First popup at the specified start time
-                first_popup_start = int((self.overlay9_popup_start_at / 100.0) * total_duration)
+                    # Use start at logic: simple percentage of total duration (NO duration subtraction)
+                    actual_overlay8_start_at = int((self.overlay8_start_time / 100.0) * total_duration)
+                    # Ensure the start time doesn't exceed the video duration
+                    actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
                 
-                # Calculate how many additional popups based on interval count (not percentage)
-                additional_popups = self.overlay9_popup_interval  # This is the count
+                # Final validation to ensure start time is valid (only for non-popup mode)
+                if not self.overlay8_popup_checkbox_checked:
+                    actual_overlay8_start_at = max(0, actual_overlay8_start_at)           
                 
-                if additional_popups > 0:
-                    # Calculate the time span for additional popups
-                    remaining_time = total_duration - first_popup_start  # NOT subtracting duration
-                    if remaining_time > 0:
-                        interval_seconds = remaining_time / additional_popups
-                    else:
-                        interval_seconds = 0
+                # Additional validation for overlay8 parameters
+                if not self.overlay8_popup_checkbox_checked and actual_overlay8_start_at < 0:                
+                    actual_overlay8_start_at = 0
+                if self.overlay8_duration < 0:                
+                    self.overlay8_duration = 1
+            
+            # Calculate actual overlay9 start time based on checkbox state (only if overlay9 is enabled)
+            actual_overlay9_start_at = 0  # Default value
+            
+            if self.use_overlay9:
+                if self.overlay9_popup_checkbox_checked:
+                    # Popup mode: calculate multiple overlay instances based on interval count
+                    # First popup at the specified start time
+                    first_popup_start = int((self.overlay9_popup_start_at / 100.0) * total_duration)
                     
-                    # Create multiple overlay instances for popup mode
-                    for i in range(additional_popups + 1):  # +1 to include the first popup
-                        if i == 0:
-                            # First popup at specified start time
-                            popup_start = first_popup_start
+                    # Calculate how many additional popups based on interval count (not percentage)
+                    additional_popups = self.overlay9_popup_interval  # This is the count
+                    
+                    if additional_popups > 0:
+                        # Calculate the time span for additional popups
+                        remaining_time = total_duration - first_popup_start  # NOT subtracting duration
+                        if remaining_time > 0:
+                            interval_seconds = remaining_time / additional_popups
                         else:
-                            # Subsequent popups: first_popup + (interval_seconds * i) - duration
-                            popup_start = first_popup_start + (interval_seconds * i) - self.overlay9_duration
+                            interval_seconds = 0
                         
-                        # Ensure popup doesn't start before 0 or after video ends
-                        popup_start = max(0, min(popup_start, int(total_duration - self.overlay9_duration)))
+                        # Create multiple overlay instances for popup mode
+                        for i in range(additional_popups + 1):  # +1 to include the first popup
+                            if i == 0:
+                                # First popup at specified start time
+                                popup_start = first_popup_start
+                            else:
+                                # Subsequent popups: first_popup + (interval_seconds * i) - duration
+                                popup_start = first_popup_start + (interval_seconds * i) - self.overlay9_duration
+                            
+                            # Ensure popup doesn't start before 0 or after video ends
+                            popup_start = max(0, min(popup_start, int(total_duration - self.overlay9_duration)))
+                            
+                            # Add to extra_overlays for FFmpeg processing
+                            extra_overlays.append({
+                                'path': self.overlay9_path,
+                                'start': popup_start,
+                                'duration': self.overlay9_duration,
+                                'x_percent': self.overlay9_x_percent,
+                                'y_percent': self.overlay9_y_percent,
+                                'size_percent': self.overlay9_size_percent,
+                                'effect': self.overlay9_effect
+                            })
+                            
+                            print(f"Overlay9 Popup {i+1}: Start at {popup_start}s, Duration {self.overlay9_duration}s")
                         
-                        # Add to extra_overlays for FFmpeg processing
-                        extra_overlays.append({
-                            'path': self.overlay9_path,
-                            'start': popup_start,
-                            'duration': self.overlay9_duration,
-                            'x_percent': self.overlay9_x_percent,
-                            'y_percent': self.overlay9_y_percent,
-                            'size_percent': self.overlay9_size_percent,
-                            'effect': self.overlay9_effect
-                        })
-                        
-                        print(f"Overlay9 Popup {i+1}: Start at {popup_start}s, Duration {self.overlay9_duration}s")
-                    
-                    # Set overlay9 to not be used since we're using extra_overlays
-                    actual_overlay9_start_at = -1  # Signal to not use single overlay9
-                else:
-                    # No additional popups, just use first popup
-                    actual_overlay9_start_at = first_popup_start
+                        # Set overlay9 to not be used since we're using extra_overlays
+                        actual_overlay9_start_at = -1  # Signal to not use single overlay9
+                    else:
+                        # No additional popups, just use first popup
+                        actual_overlay9_start_at = first_popup_start
+                        actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
+                elif not self.overlay9_start_at_checkbox_checked:
+                    # Use start from logic
+                    if self.overlay9_duration_full_checkbox_checked:
+                        # Full duration: simple percentage of total duration
+                        actual_overlay9_start_at = int((self.overlay9_start_from / 100.0) * total_duration)
+                    else:
+                        # Limited duration: (total_duration * percentage) - effect_duration
+                        effect_duration = self.overlay9_duration
+                        percentage_time = (self.overlay9_start_from / 100.0) * total_duration
+                        actual_overlay9_start_at = int(max(0, percentage_time - effect_duration))
+                    # Ensure the start time doesn't exceed the video duration
                     actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
-            elif not self.overlay9_start_at_checkbox_checked:
-                # Use start from logic
-                if self.overlay9_duration_full_checkbox_checked:
-                    # Full duration: simple percentage of total duration
-                    actual_overlay9_start_at = int((self.overlay9_start_from / 100.0) * total_duration)
                 else:
-                    # Limited duration: (total_duration * percentage) - effect_duration
-                    effect_duration = self.overlay9_duration
-                    percentage_time = (self.overlay9_start_from / 100.0) * total_duration
-                    actual_overlay9_start_at = int(max(0, percentage_time - effect_duration))
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
-            else:
-                # Use start at logic: simple percentage of total duration (NO duration subtraction)
-                actual_overlay9_start_at = int((self.overlay9_start_time / 100.0) * total_duration)
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
-            
-            # Final validation to ensure start time is valid (only for non-popup mode)
-            if not self.overlay9_popup_checkbox_checked:
-                actual_overlay9_start_at = max(0, actual_overlay9_start_at)
-                       
-            # Additional validation for overlay9 parameters
-            if not self.overlay9_popup_checkbox_checked and actual_overlay9_start_at < 0:                
-                actual_overlay9_start_at = 0
-            if self.overlay9_duration < 0:                
-                self.overlay9_duration = 1
+                    # Use start at logic: simple percentage of total duration (NO duration subtraction)
+                    actual_overlay9_start_at = int((self.overlay9_start_time / 100.0) * total_duration)
+                    # Ensure the start time doesn't exceed the video duration
+                    actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
+                
+                # Final validation to ensure start time is valid (only for non-popup mode)
+                if not self.overlay9_popup_checkbox_checked:
+                    actual_overlay9_start_at = max(0, actual_overlay9_start_at)
+                           
+                # Additional validation for overlay9 parameters
+                if not self.overlay9_popup_checkbox_checked and actual_overlay9_start_at < 0:                
+                    actual_overlay9_start_at = 0
+                if self.overlay9_duration < 0:                
+                    self.overlay9_duration = 1
             
             # --- Overlay 10: When Song Start/End Logic ---
             overlay10_multi_song = (
@@ -799,28 +818,31 @@ class VideoWorker(QObject):
 
             # --- End Overlay 10: When Song Start/End Logic ---
 
-            # Calculate actual overlay10 start time based on checkbox state
-            if not self.overlay10_start_at_checkbox_checked:
-                # Use start from logic: (total_duration * percentage) - effect_duration
-                effect_duration = self.overlay10_duration
-                percentage_time = (self.overlay10_start_from / 100.0) * total_duration
-                actual_overlay10_start_at = int(max(0, percentage_time - effect_duration))
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
-            else:
-                # Use start at logic: simple percentage of total duration (NO duration subtraction)
-                actual_overlay10_start_at = int((self.overlay10_start_time / 100.0) * total_duration)
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+            # Calculate actual overlay10 start time based on checkbox state (only if overlay10 is enabled and not multi-song)
+            actual_overlay10_start_at = 0  # Default value
             
-            # Final validation to ensure start time is valid
-            actual_overlay10_start_at = max(0, actual_overlay10_start_at)            
-            
-            # Additional validation for overlay10 parameters
-            if actual_overlay10_start_at < 0:                
-                actual_overlay10_start_at = 0
-            if self.overlay10_duration < 0:                
-                self.overlay10_duration = 1
+            if self.use_overlay10 and not overlay10_multi_song:
+                if not self.overlay10_start_at_checkbox_checked:
+                    # Use start from logic: (total_duration * percentage) - effect_duration
+                    effect_duration = self.overlay10_duration
+                    percentage_time = (self.overlay10_start_from / 100.0) * total_duration
+                    actual_overlay10_start_at = int(max(0, percentage_time - effect_duration))
+                    # Ensure the start time doesn't exceed the video duration
+                    actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+                else:
+                    # Use start at logic: simple percentage of total duration (NO duration subtraction)
+                    actual_overlay10_start_at = int((self.overlay10_start_time / 100.0) * total_duration)
+                    # Ensure the start time doesn't exceed the video duration
+                    actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+                
+                # Final validation to ensure start time is valid
+                actual_overlay10_start_at = max(0, actual_overlay10_start_at)            
+                
+                # Additional validation for overlay10 parameters
+                if actual_overlay10_start_at < 0:                
+                    actual_overlay10_start_at = 0
+                if self.overlay10_duration < 0:                
+                    self.overlay10_duration = 1
             
             
 
