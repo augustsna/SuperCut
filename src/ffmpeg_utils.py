@@ -326,11 +326,14 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 cmd.extend(["-i", overlay2_path])
             overlay2_idx = input_idx
             input_idx += 1
-        if use_overlay3 and overlay3_path and ext3 in ['.gif', '.png']:
+        if use_overlay3 and overlay3_path and ext3 in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
             if ext3 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay3_path])
             elif ext3 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay3_path])
+            elif ext3 in ['.mp4', '.mov', '.mkv']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", overlay3_path])
             else:
                 cmd.extend(["-i", overlay3_path])
             overlay3_idx = input_idx
@@ -500,9 +503,27 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 ow2 = f"iw*{scale_factor2:.3f}"
                 oh2 = f"ih*{scale_factor2:.3f}"
             
-            scale_factor3 = overlay3_size_percent / 100.0
-            ow3 = f"iw*{scale_factor3:.3f}"
-            oh3 = f"ih*{scale_factor3:.3f}"
+            # Check if overlay3 is preprocessed (only for non-GIF images)
+            overlay3_filename = os.path.basename(overlay3_path) if overlay3_path else ""
+            is_overlay3_preprocessed = overlay3_filename.startswith("supercut_")
+            overlay3_ext = os.path.splitext(overlay3_path)[1].lower() if overlay3_path else ""
+            is_overlay3_gif = overlay3_ext == '.gif'
+            is_overlay3_video = overlay3_path and overlay3_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay3_preprocessed and not is_overlay3_gif:
+                # Overlay3 is preprocessed non-GIF image - use original size
+                ow3 = "iw"
+                oh3 = "ih"
+            elif is_overlay3_gif or is_overlay3_video:
+                # Overlay3 is GIF or video - apply scaling in FFmpeg
+                scale_factor3 = overlay3_size_percent / 100.0
+                ow3 = f"iw*{scale_factor3:.3f}"
+                oh3 = f"ih*{scale_factor3:.3f}"
+            else:
+                # Overlay3 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor3 = overlay3_size_percent / 100.0
+                ow3 = f"iw*{scale_factor3:.3f}"
+                oh3 = f"ih*{scale_factor3:.3f}"
             
             # Check if overlay4 is preprocessed (only for non-GIF images)
             overlay4_filename = os.path.basename(overlay4_path) if overlay4_path else ""
@@ -674,7 +695,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 chain = f"[{idx}:v]"
                 if ext == ".gif":
                     chain += "fps=30,"
-                elif ext in [".mp4", ".mov"]:
+                elif ext in [".mp4", ".mov", ".mkv"]:
                     # For video overlays, we need to handle them differently
                     # Videos already have their own fps, so we don't force fps=30
                     # Video files are now looped infinitely like GIFs
@@ -726,7 +747,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 chain = f"[{idx}:v]"
                 if ext == ".gif":
                     chain += "fps=30,"
-                elif ext in [".mp4", ".mov"]:
+                elif ext in [".mp4", ".mov", ".mkv"]:
                     # For video overlays, we need to handle them differently
                     # Videos already have their own fps, so we don't force fps=30
                     # Video files are now looped infinitely like GIFs

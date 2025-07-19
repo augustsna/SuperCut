@@ -491,6 +491,24 @@ class VideoWorker(QObject):
                 # For GIFs and videos, use original path - FFmpeg will handle scaling
                 processed_overlay2_path = self.overlay2_path
         
+        # Preprocess overlay3 image (only for images, not videos)
+        processed_overlay3_path = self.overlay3_path
+        if self.use_overlay3 and self.overlay3_path:
+            file_ext = os.path.splitext(self.overlay3_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay3_image
+                processed_overlay3_path = preprocess_overlay3_image(
+                    image_path=self.overlay3_path,
+                    size_percent=self.overlay3_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay3_path = self.overlay3_path
+        
         # Preprocess intro image (only for images, not videos)
         processed_intro_path = self.intro_path
         if self.use_intro and self.intro_path:
@@ -971,8 +989,8 @@ class VideoWorker(QObject):
                 overlay2_x_percent=self.overlay2_x_percent,
                 overlay2_y_percent=self.overlay2_y_percent,
                 use_overlay3=self.use_overlay3,
-                overlay3_path=self.overlay3_path,
-                overlay3_size_percent=self.overlay3_size_percent,
+                overlay3_path=processed_overlay3_path,  # Use preprocessed overlay3
+                overlay3_size_percent=self.overlay3_size_percent,  # Pass original size percent for detection
                 overlay3_x_percent=self.overlay3_x_percent,
                 overlay3_y_percent=self.overlay3_y_percent,
                 use_overlay4=self.use_overlay4,
@@ -1137,6 +1155,12 @@ class VideoWorker(QObject):
             if 'processed_overlay2_path' in locals() and processed_overlay2_path != self.overlay2_path and os.path.exists(processed_overlay2_path):
                 try:
                     os.remove(processed_overlay2_path)
+                except:
+                    pass
+            # Clean up processed overlay3 image if it was created
+            if 'processed_overlay3_path' in locals() and processed_overlay3_path != self.overlay3_path and os.path.exists(processed_overlay3_path):
+                try:
+                    os.remove(processed_overlay3_path)
                 except:
                     pass
             # Clean up processed intro image if it was created
