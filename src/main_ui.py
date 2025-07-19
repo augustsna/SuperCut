@@ -43,6 +43,7 @@ from src.utils import (
 from src.ui_components import FolderDropLineEdit, PleaseWaitDialog, StoppedDialog, SuccessDialog, DryRunSuccessDialog, ScrollableErrorDialog, ImageDropLineEdit, NoWheelComboBox, KhmerSupportLineEdit, KhmerSupportPlainTextEdit
 from src.video_worker import VideoWorker
 from src.terminal_widget import TerminalWidget
+from src.layer_manager import LayerManagerDialog
 
 import time
 import threading
@@ -304,7 +305,7 @@ class SettingsDialog(QDialog):
         self.default_intro_path_btn = QPushButton('...')
         self.default_intro_path_btn.setFixedWidth(32)
         def pick_intro_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Intro Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Intro Media", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.default_intro_path_edit.setText(file_path)
         self.default_intro_path_btn.clicked.connect(pick_intro_path)
@@ -361,7 +362,7 @@ class SettingsDialog(QDialog):
         self.default_overlay1_path_btn = QPushButton('...')
         self.default_overlay1_path_btn.setFixedWidth(32)
         def pick_overlay1_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 1 File", "", "Video Files (*.mp4 *.avi *.mov *.mkv) or Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 1 File", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.default_overlay1_path_edit.setText(file_path)
         self.default_overlay1_path_btn.clicked.connect(pick_overlay1_path)
@@ -421,7 +422,7 @@ class SettingsDialog(QDialog):
         self.default_overlay2_path_btn = QPushButton('...')
         self.default_overlay2_path_btn.setFixedWidth(32)
         def pick_overlay2_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 2 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 2 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.default_overlay2_path_edit.setText(file_path)
         self.default_overlay2_path_btn.clicked.connect(pick_overlay2_path)
@@ -502,6 +503,10 @@ class SettingsDialog(QDialog):
         self.save_btn.setDefault(True)
         self.save_btn.setAutoDefault(True)
         self.setFixedSize(640, 640)
+        
+        # Add Ctrl+W shortcut to close dialog
+        self.shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
+        self.shortcut.activated.connect(self.reject)
 
         # --- Add to SettingsDialog: Show Placeholder Controls Checkbox ---
         self.show_placeholder_checkbox = QtWidgets.QCheckBox("Show Placeholder")
@@ -645,6 +650,10 @@ class NameListDialog(QDialog):
         self.ok_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
         self.preview_btn.clicked.connect(self.open_preview_dialog)
+        
+        # Add Ctrl+W shortcut to close dialog
+        self.shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
+        self.shortcut.activated.connect(self.reject)
     def set_names(self, names):
         # Show indicators
         lines = [f"{i+1}. {name}" for i, name in enumerate(names)]
@@ -858,6 +867,8 @@ class SuperCutUI(QWidget):
         self.is_dry_run_mode = False  # Track dry run state
         self._preview_dialog = None  # Track preview dialog for toggle functionality
         self.frame_box_caption_png_path = None
+        self.layer_order = None  # Initialize layer order to None (uses default)
+        self.layer_manager_dialog = None  # Track layer manager dialog for toggle functionality
         
         self.init_ui()
         self.restore_window_position()
@@ -1276,8 +1287,8 @@ class SuperCutUI(QWidget):
         intro_layout = QHBoxLayout()
         intro_layout.setSpacing(4)
         self.intro_edit = ImageDropLineEdit()
-        self.intro_edit.setPlaceholderText("Intro image path (*.gif, *.png)")
-        self.intro_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.intro_edit.setPlaceholderText("*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv")
+        self.intro_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select Media'")
         self.intro_edit.setFixedWidth(125)
         self.intro_path = ""
         def on_intro_changed():
@@ -1290,7 +1301,7 @@ class SuperCutUI(QWidget):
         intro_btn = QPushButton("Select")
         intro_btn.setFixedWidth(60)
         def select_intro_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Intro Image", "", "Image Files (*.gif *.png *.jpg *.jpeg)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Intro Media", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.intro_edit.setText(file_path)
         intro_btn.clicked.connect(select_intro_image)
@@ -1614,8 +1625,8 @@ class SuperCutUI(QWidget):
         overlay1_layout = QHBoxLayout()
         overlay1_layout.setSpacing(4)  # Reduce spacing between widgets
         self.overlay1_edit = ImageDropLineEdit()
-        self.overlay1_edit.setPlaceholderText("Overlay 1 file path (*.mp4, *.gif, *.png)")
-        self.overlay1_edit.setToolTip("Drag and drop a video or image file here or click 'Select File'")
+        self.overlay1_edit.setPlaceholderText("Overlay 1 file path (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv)")
+        self.overlay1_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select File'")
         self.overlay1_edit.setFixedWidth(125)  # Make the text box shorter
         self.overlay1_path = ""
         def on_overlay1_changed():
@@ -1628,7 +1639,7 @@ class SuperCutUI(QWidget):
         overlay1_btn = QPushButton("Select")
         overlay1_btn.setFixedWidth(60)
         def select_overlay1_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 1 File", "", "Video Files (*.mp4 *.avi *.mov *.mkv) or Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 1 File", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay1_edit.setText(file_path)
         overlay1_btn.clicked.connect(select_overlay1_image)
@@ -1733,8 +1744,8 @@ class SuperCutUI(QWidget):
         overlay2_layout = QHBoxLayout()
         overlay2_layout.setSpacing(4)
         self.overlay2_edit = ImageDropLineEdit()
-        self.overlay2_edit.setPlaceholderText("Overlay 2 image path (*.gif, *.png)")
-        self.overlay2_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay2_edit.setPlaceholderText("Overlay 2 file path (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv)")
+        self.overlay2_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select File'")
         self.overlay2_edit.setFixedWidth(125)
         self.overlay2_path = ""
         def on_overlay2_changed():
@@ -1747,7 +1758,7 @@ class SuperCutUI(QWidget):
         overlay2_btn = QPushButton("Select")
         overlay2_btn.setFixedWidth(60)
         def select_overlay2_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 2 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 2 File", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay2_edit.setText(file_path)
         overlay2_btn.clicked.connect(select_overlay2_image)
@@ -2044,8 +2055,8 @@ class SuperCutUI(QWidget):
         overlay4_layout = QHBoxLayout()
         overlay4_layout.setSpacing(4)
         self.overlay4_edit = ImageDropLineEdit()
-        self.overlay4_edit.setPlaceholderText("Overlay 4 image path (*.gif, *.png)")
-        self.overlay4_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay4_edit.setPlaceholderText("Overlay 4 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
+        self.overlay4_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay4_edit.setFixedWidth(125)
         self.overlay4_path = ""
         def on_overlay4_changed():
@@ -2058,7 +2069,7 @@ class SuperCutUI(QWidget):
         overlay4_btn = QPushButton("Select")
         overlay4_btn.setFixedWidth(60)
         def select_overlay4_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 4 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 4 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay4_edit.setText(file_path)
         overlay4_btn.clicked.connect(select_overlay4_image)
@@ -2155,8 +2166,8 @@ class SuperCutUI(QWidget):
         overlay5_layout = QHBoxLayout()
         overlay5_layout.setSpacing(4)
         self.overlay5_edit = ImageDropLineEdit()
-        self.overlay5_edit.setPlaceholderText("Overlay 5 image path (*.gif, *.png)")
-        self.overlay5_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay5_edit.setPlaceholderText("Overlay 5 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
+        self.overlay5_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay5_edit.setFixedWidth(125)
         self.overlay5_path = ""
         def on_overlay5_changed():
@@ -2169,7 +2180,7 @@ class SuperCutUI(QWidget):
         overlay5_btn = QPushButton("Select")
         overlay5_btn.setFixedWidth(60)
         def select_overlay5_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 5 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 5 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay5_edit.setText(file_path)
         overlay5_btn.clicked.connect(select_overlay5_image)
@@ -2448,8 +2459,8 @@ class SuperCutUI(QWidget):
         overlay6_layout = QHBoxLayout()
         overlay6_layout.setSpacing(4)
         self.overlay6_edit = ImageDropLineEdit()
-        self.overlay6_edit.setPlaceholderText("Overlay 6 image path (*.gif, *.png)")
-        self.overlay6_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay6_edit.setPlaceholderText("Overlay 6 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
+        self.overlay6_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay6_edit.setFixedWidth(125)
         self.overlay6_path = ""
         def on_overlay6_changed():
@@ -2462,7 +2473,7 @@ class SuperCutUI(QWidget):
         overlay6_btn = QPushButton("Select")
         overlay6_btn.setFixedWidth(60)
         def select_overlay6_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 6 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 6 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay6_edit.setText(file_path)
         overlay6_btn.clicked.connect(select_overlay6_image)
@@ -2564,8 +2575,8 @@ class SuperCutUI(QWidget):
         overlay7_layout = QHBoxLayout()
         overlay7_layout.setSpacing(4)
         self.overlay7_edit = ImageDropLineEdit()
-        self.overlay7_edit.setPlaceholderText("Overlay 7 image path (*.gif, *.png)")
-        self.overlay7_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay7_edit.setPlaceholderText("Overlay 7 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
+        self.overlay7_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay7_edit.setFixedWidth(125)
         self.overlay7_path = ""
         def on_overlay7_changed():
@@ -2578,7 +2589,7 @@ class SuperCutUI(QWidget):
         overlay7_btn = QPushButton("Select")
         overlay7_btn.setFixedWidth(60)
         def select_overlay7_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 7 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 7 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay7_edit.setText(file_path)
         overlay7_btn.clicked.connect(select_overlay7_image)
@@ -2874,8 +2885,8 @@ class SuperCutUI(QWidget):
         overlay3_layout = QHBoxLayout()
         overlay3_layout.setSpacing(4)
         self.overlay3_edit = ImageDropLineEdit()
-        self.overlay3_edit.setPlaceholderText("Overlay 3 image path (*.gif, *.png)")
-        self.overlay3_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay3_edit.setPlaceholderText("Overlay 3 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
+        self.overlay3_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay3_edit.setFixedWidth(125)
         self.overlay3_path = ""
         def on_overlay3_changed():
@@ -2888,7 +2899,7 @@ class SuperCutUI(QWidget):
         overlay3_btn = QPushButton("Select")
         overlay3_btn.setFixedWidth(60)
         def select_overlay3_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 3 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 3 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay3_edit.setText(file_path)
         overlay3_btn.clicked.connect(select_overlay3_image)
@@ -3589,8 +3600,8 @@ class SuperCutUI(QWidget):
         overlay8_layout = QHBoxLayout()
         overlay8_layout.setSpacing(4)
         self.overlay8_edit = ImageDropLineEdit()
-        self.overlay8_edit.setPlaceholderText("Overlay 8 image path (*.gif, *.png)")
-        self.overlay8_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay8_edit.setPlaceholderText("Overlay 8 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv)")
+        self.overlay8_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay8_edit.setFixedWidth(125)
         self.overlay8_path = ""
         def on_overlay8_changed():
@@ -3603,7 +3614,7 @@ class SuperCutUI(QWidget):
         overlay8_btn = QPushButton("Select")
         overlay8_btn.setFixedWidth(60)
         def select_overlay8_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 8 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 8 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay8_edit.setText(file_path)
         overlay8_btn.clicked.connect(select_overlay8_image)
@@ -4016,8 +4027,8 @@ class SuperCutUI(QWidget):
         overlay9_layout = QHBoxLayout()
         overlay9_layout.setSpacing(4)
         self.overlay9_edit = ImageDropLineEdit()
-        self.overlay9_edit.setPlaceholderText("Overlay 9 image path (*.gif, *.png)")
-        self.overlay9_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay9_edit.setPlaceholderText("Overlay 9 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv")
+        self.overlay9_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay9_edit.setFixedWidth(125)
         self.overlay9_path = ""
         def on_overlay9_changed():
@@ -4030,7 +4041,7 @@ class SuperCutUI(QWidget):
         overlay9_btn = QPushButton("Select")
         overlay9_btn.setFixedWidth(60)
         def select_overlay9_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 9 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 9 Image", "", "Image Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay9_edit.setText(file_path)
         overlay9_btn.clicked.connect(select_overlay9_image)
@@ -4445,8 +4456,8 @@ class SuperCutUI(QWidget):
         overlay10_layout = QHBoxLayout()
         overlay10_layout.setSpacing(4)
         self.overlay10_edit = ImageDropLineEdit()
-        self.overlay10_edit.setPlaceholderText("Overlay 10 image path (*.gif, *.png)")
-        self.overlay10_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay10_edit.setPlaceholderText("Overlay 10 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv")
+        self.overlay10_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image")
         self.overlay10_edit.setFixedWidth(125)
         self.overlay10_path = ""
         def on_overlay10_changed():
@@ -4459,7 +4470,7 @@ class SuperCutUI(QWidget):
         overlay10_btn = QPushButton("Select")
         overlay10_btn.setFixedWidth(60)
         def select_overlay10_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 10 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 10 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay10_edit.setText(file_path)
         overlay10_btn.clicked.connect(select_overlay10_image)
@@ -4609,12 +4620,12 @@ class SuperCutUI(QWidget):
         self.overlay10_start_edit.setFixedWidth(60)
         self.overlay10_start_edit.setValidator(QIntValidator(1, 999, self))
         self.overlay10_start_edit.setPlaceholderText("5")
-        self.overlay10_start_percent = 5
+        self.overlay10_start_time = 5
         def on_overlay10_start_changed():
             try:
-                self.overlay10_start_percent = int(self.overlay10_start_edit.text())
+                self.overlay10_start_time = int(self.overlay10_start_edit.text())
             except Exception:
-                self.overlay10_start_percent = 5
+                self.overlay10_start_time = 5
         self.overlay10_start_edit.textChanged.connect(on_overlay10_start_changed)
         on_overlay10_start_changed()
 
@@ -4747,6 +4758,39 @@ class SuperCutUI(QWidget):
         self.frame_box_checkbox.stateChanged.connect(update_frame_box_checkbox_style)
         update_frame_box_checkbox_style(self.frame_box_checkbox.checkState())
 
+        # Custom image checkbox for framebox
+        self.frame_box_custom_image_checkbox = QtWidgets.QCheckBox("Custom Image:")
+        self.frame_box_custom_image_checkbox.setFixedWidth(100)
+        self.frame_box_custom_image_checkbox.setChecked(False)
+        def update_frame_box_custom_image_checkbox_style(state):
+            self.frame_box_custom_image_checkbox.setStyleSheet("")  # Always default color
+        self.frame_box_custom_image_checkbox.stateChanged.connect(update_frame_box_custom_image_checkbox_style)
+        update_frame_box_custom_image_checkbox_style(self.frame_box_custom_image_checkbox.checkState())
+
+        # Custom image file selection
+        self.frame_box_custom_image_edit = ImageDropLineEdit()
+        self.frame_box_custom_image_edit.setFixedWidth(120)
+        self.frame_box_custom_image_edit.setPlaceholderText("Select custom image...")
+        self.frame_box_custom_image_path = None
+        
+        def select_frame_box_custom_image():
+            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self, "Select Custom Image for Frame Box", "", 
+                "Image Files (*.png *.jpg *.jpeg *.gif *.bmp *.tiff)"
+            )
+            if file_path:
+                self.frame_box_custom_image_edit.setText(file_path)
+                self.frame_box_custom_image_path = file_path
+        
+        self.frame_box_custom_image_btn = QPushButton("Browse")
+        self.frame_box_custom_image_btn.setFixedWidth(50)
+        self.frame_box_custom_image_btn.clicked.connect(select_frame_box_custom_image)
+        
+        def on_frame_box_custom_image_changed():
+            self.frame_box_custom_image_path = self.frame_box_custom_image_edit.text()
+        
+        self.frame_box_custom_image_edit.textChanged.connect(on_frame_box_custom_image_changed)
+
         frame_box_layout = QHBoxLayout()
         frame_box_layout.setSpacing(4)
         
@@ -4793,10 +4837,11 @@ class SuperCutUI(QWidget):
         self.frame_box_y_combo.currentIndexChanged.connect(on_frame_box_y_changed)
         on_frame_box_y_changed(self.frame_box_y_combo.currentIndex())
 
-        
-        
         frame_box_layout.addWidget(self.frame_box_checkbox)
-        frame_box_layout.addSpacing(188)
+        frame_box_layout.addWidget(self.frame_box_custom_image_checkbox)
+        frame_box_layout.addWidget(self.frame_box_custom_image_edit)
+        frame_box_layout.addWidget(self.frame_box_custom_image_btn)
+        frame_box_layout.addSpacing(20)
         frame_box_layout.addWidget(frame_box_size_label)
         frame_box_layout.addWidget(self.frame_box_size_combo)
         frame_box_layout.addSpacing(4)
@@ -4868,12 +4913,12 @@ class SuperCutUI(QWidget):
         self.frame_box_start_edit.setFixedWidth(60)
         self.frame_box_start_edit.setValidator(QIntValidator(1, 999, self))
         self.frame_box_start_edit.setPlaceholderText("5")
-        self.frame_box_start_percent = 5
+        self.frame_box_start_time = 5
         def on_frame_box_start_changed():
             try:
-                self.frame_box_start_percent = int(self.frame_box_start_edit.text())
+                self.frame_box_start_time = int(self.frame_box_start_edit.text())
             except Exception:
-                self.frame_box_start_percent = 5
+                self.frame_box_start_time = 5
         self.frame_box_start_edit.textChanged.connect(on_frame_box_start_changed)
         on_frame_box_start_changed()
 
@@ -5143,6 +5188,28 @@ class SuperCutUI(QWidget):
         # Add styling controls layout
         layout.addLayout(frame_box_caption_styling_layout)
         
+        # Function to update custom image controls state
+        def update_custom_image_controls_state():
+            # Check if both frame box and custom image are enabled
+            frame_box_enabled = self.frame_box_checkbox.isChecked()
+            custom_image_enabled = self.frame_box_custom_image_checkbox.isChecked()
+            both_enabled = frame_box_enabled and custom_image_enabled
+            
+            # Enable/disable custom image controls
+            self.frame_box_custom_image_edit.setEnabled(both_enabled)
+            self.frame_box_custom_image_btn.setEnabled(both_enabled)
+            
+            # Update styling based on state
+            if both_enabled:
+                # Custom image controls are enabled
+                self.frame_box_custom_image_edit.setStyleSheet("")
+                self.frame_box_custom_image_btn.setStyleSheet("")
+            else:
+                # Custom image controls are disabled
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.frame_box_custom_image_edit.setStyleSheet(grey_btn_style)
+                self.frame_box_custom_image_btn.setStyleSheet(grey_btn_style)
+        
         # Function to update caption controls state
         def update_caption_controls_state():
             # Check if both frame box and caption are enabled
@@ -5324,6 +5391,12 @@ class SuperCutUI(QWidget):
         # Initial state
         update_caption_controls_state()
 
+        # --- Frame box custom image checkbox handler ---
+        def on_frame_box_custom_image_checked(state):
+            # Update custom image controls state
+            update_custom_image_controls_state()
+        self.frame_box_custom_image_checkbox.stateChanged.connect(on_frame_box_custom_image_checked)
+        
         # --- Frame box caption checkbox handler ---
         def on_frame_box_caption_checked(state):
             # Update caption controls state
@@ -5519,9 +5592,11 @@ class SuperCutUI(QWidget):
                 
 
         self.frame_box_checkbox.stateChanged.connect(lambda _: set_frame_box_enabled(self.frame_box_checkbox.checkState()))
+        self.frame_box_checkbox.stateChanged.connect(lambda _: update_custom_image_controls_state())
         
          # Initialize frame box enabled state after all controls are created
         set_frame_box_enabled(self.frame_box_checkbox.checkState())
+        update_custom_image_controls_state()
 
         # --- Frame box effect greying logic ---
         def update_frame_box_effect_label_style():
@@ -5551,230 +5626,11 @@ class SuperCutUI(QWidget):
                 # Don't manage caption checkbox here - let the caption system handle it
                 set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
         self.frame_box_checkbox.stateChanged.connect(lambda _: update_frame_box_effect_label_style())
+        self.frame_box_checkbox.stateChanged.connect(lambda _: update_custom_image_controls_state())
         self.frame_box_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState()))
         update_frame_box_effect_label_style()
         set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
-
-        # --- FRAME MP3COVER OVERLAY ---
-        self.frame_mp3cover_checkbox = QtWidgets.QCheckBox("Frame_mp3cover:")
-        self.frame_mp3cover_checkbox.setFixedWidth(82)
-        self.frame_mp3cover_checkbox.setChecked(False)
-        def update_frame_mp3cover_checkbox_style(state):
-            self.frame_mp3cover_checkbox.setStyleSheet("")  # Always default color
-        self.frame_mp3cover_checkbox.stateChanged.connect(update_frame_mp3cover_checkbox_style)
-        update_frame_mp3cover_checkbox_style(self.frame_mp3cover_checkbox.checkState())
-
-        frame_mp3cover_layout = QHBoxLayout()
-        frame_mp3cover_layout.setSpacing(4)
-        
-        # Frame mp3cover size option (5% to 100%)
-        frame_mp3cover_size_label = QLabel("S:")
-        frame_mp3cover_size_label.setFixedWidth(18)
-        self.frame_mp3cover_size_combo = NoWheelComboBox()
-        self.frame_mp3cover_size_combo.setFixedWidth(90)
-        for percent in range(5, 101, 5):
-            self.frame_mp3cover_size_combo.addItem(f"{percent}%", percent)
-        self.frame_mp3cover_size_combo.setCurrentIndex(9)  # Default 50%
-        self.frame_mp3cover_size_percent = 50
-        def on_frame_mp3cover_size_changed(idx):
-            self.frame_mp3cover_size_percent = self.frame_mp3cover_size_combo.itemData(idx)
-        self.frame_mp3cover_size_combo.setEditable(False)
-        self.frame_mp3cover_size_combo.currentIndexChanged.connect(on_frame_mp3cover_size_changed)
-        on_frame_mp3cover_size_changed(self.frame_mp3cover_size_combo.currentIndex())
-
-        # Frame mp3cover X coordinate
-        frame_mp3cover_x_label = QLabel("X:")
-        frame_mp3cover_x_label.setFixedWidth(18)
-        self.frame_mp3cover_x_combo = NoWheelComboBox()
-        self.frame_mp3cover_x_combo.setFixedWidth(80)
-        for percent in range(0, 101, 1):
-            self.frame_mp3cover_x_combo.addItem(f"{percent}%", percent)
-        self.frame_mp3cover_x_combo.setCurrentIndex(0)  # Default 0%
-        self.frame_mp3cover_x_percent = 0
-        def on_frame_mp3cover_x_changed(idx):
-            self.frame_mp3cover_x_percent = self.frame_mp3cover_x_combo.itemData(idx)
-        self.frame_mp3cover_x_combo.currentIndexChanged.connect(on_frame_mp3cover_x_changed)
-        on_frame_mp3cover_x_changed(self.frame_mp3cover_x_combo.currentIndex())
-
-        # Frame mp3cover Y coordinate
-        frame_mp3cover_y_label = QLabel("Y:")
-        frame_mp3cover_y_label.setFixedWidth(18)
-        self.frame_mp3cover_y_combo = NoWheelComboBox()
-        self.frame_mp3cover_y_combo.setFixedWidth(80)
-        for percent in range(0, 101, 1):
-            self.frame_mp3cover_y_combo.addItem(f"{percent}%", percent)
-        self.frame_mp3cover_y_combo.setCurrentIndex(0)  # Default 0%
-        self.frame_mp3cover_y_percent = 0
-        def on_frame_mp3cover_y_changed(idx):
-            self.frame_mp3cover_y_percent = self.frame_mp3cover_y_combo.itemData(idx)
-        self.frame_mp3cover_y_combo.currentIndexChanged.connect(on_frame_mp3cover_y_changed)
-        on_frame_mp3cover_y_changed(self.frame_mp3cover_y_combo.currentIndex())
-
-        def set_frame_mp3cover_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            self.frame_mp3cover_size_combo.setEnabled(enabled)
-            self.frame_mp3cover_x_combo.setEnabled(enabled)
-            self.frame_mp3cover_y_combo.setEnabled(enabled)
-            self.frame_mp3cover_duration_edit.setEnabled(enabled)
-            frame_mp3cover_duration_label.setEnabled(enabled)
-            self.frame_mp3cover_start_edit.setEnabled(enabled)
-            frame_mp3cover_start_label.setEnabled(enabled)
-            if enabled:
-                self.frame_mp3cover_size_combo.setStyleSheet("")
-                self.frame_mp3cover_x_combo.setStyleSheet("")
-                self.frame_mp3cover_y_combo.setStyleSheet("")
-                self.frame_mp3cover_duration_edit.setStyleSheet("")
-                self.frame_mp3cover_start_edit.setStyleSheet("")
-                frame_mp3cover_size_label.setStyleSheet("")
-                frame_mp3cover_x_label.setStyleSheet("")
-                frame_mp3cover_y_label.setStyleSheet("")
-                frame_mp3cover_duration_label.setStyleSheet("")
-                frame_mp3cover_start_label.setStyleSheet("")
-            else:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.frame_mp3cover_size_combo.setStyleSheet(grey_btn_style)
-                self.frame_mp3cover_x_combo.setStyleSheet(grey_btn_style)
-                self.frame_mp3cover_y_combo.setStyleSheet(grey_btn_style)
-                self.frame_mp3cover_duration_edit.setStyleSheet(grey_btn_style)
-                self.frame_mp3cover_start_edit.setStyleSheet(grey_btn_style)
-                frame_mp3cover_size_label.setStyleSheet("color: grey;")
-                frame_mp3cover_x_label.setStyleSheet("color: grey;")
-                frame_mp3cover_y_label.setStyleSheet("color: grey;")
-                frame_mp3cover_duration_label.setStyleSheet("color: grey;")
-                frame_mp3cover_start_label.setStyleSheet("color: grey;")
-        self.frame_mp3cover_checkbox.stateChanged.connect(lambda _: set_frame_mp3cover_enabled(self.frame_mp3cover_checkbox.checkState()))
-        
-        frame_mp3cover_layout.addWidget(self.frame_mp3cover_checkbox)
-        frame_mp3cover_layout.addSpacing(188)
-        frame_mp3cover_layout.addWidget(frame_mp3cover_size_label)
-        frame_mp3cover_layout.addWidget(self.frame_mp3cover_size_combo)
-        frame_mp3cover_layout.addSpacing(4)
-        frame_mp3cover_layout.addWidget(frame_mp3cover_x_label)
-        frame_mp3cover_layout.addWidget(self.frame_mp3cover_x_combo)
-        frame_mp3cover_layout.addSpacing(4)
-        frame_mp3cover_layout.addWidget(frame_mp3cover_y_label)
-        frame_mp3cover_layout.addWidget(self.frame_mp3cover_y_combo)
-        layout.addLayout(frame_mp3cover_layout)
-
-        # --- EFFECT CONTROL FOR FRAME MP3COVER ---
-        frame_mp3cover_label = QLabel("Frame_mp3cover:")
-        frame_mp3cover_label.setFixedWidth(80)
-        self.frame_mp3cover_effect_combo = NoWheelComboBox()
-        self.frame_mp3cover_effect_combo.setFixedWidth(combo_width)
-        for label, value in effect_options:
-            self.frame_mp3cover_effect_combo.addItem(label, value)
-        self.frame_mp3cover_effect_combo.setCurrentIndex(1)
-        self.selected_frame_mp3cover_effect = "fadein"
-        def on_frame_mp3cover_effect_changed(idx):
-            self.selected_frame_mp3cover_effect = self.frame_mp3cover_effect_combo.itemData(idx)
-        self.frame_mp3cover_effect_combo.currentIndexChanged.connect(on_frame_mp3cover_effect_changed)
-        on_frame_mp3cover_effect_changed(self.frame_mp3cover_effect_combo.currentIndex())
-
-        # Frame mp3cover duration controls
-        frame_mp3cover_duration_label = QLabel("Duration:")
-        frame_mp3cover_duration_label.setFixedWidth(80)
-        self.frame_mp3cover_duration_edit = QLineEdit("6")
-        self.frame_mp3cover_duration_edit.setFixedWidth(40)
-        self.frame_mp3cover_duration_edit.setValidator(QIntValidator(1, 999, self))
-        self.frame_mp3cover_duration_edit.setPlaceholderText("6")
-        self.frame_mp3cover_duration = 6
-        def on_frame_mp3cover_duration_changed():
-            try:
-                self.frame_mp3cover_duration = int(self.frame_mp3cover_duration_edit.text())
-            except Exception:
-                self.frame_mp3cover_duration = 6
-        self.frame_mp3cover_duration_edit.textChanged.connect(on_frame_mp3cover_duration_changed)
-        on_frame_mp3cover_duration_changed()
-
-        # Frame mp3cover full duration checkbox
-        self.frame_mp3cover_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
-        self.frame_mp3cover_duration_full_checkbox.setFixedWidth(100)
-        self.frame_mp3cover_duration_full_checkbox.setChecked(True)
-        def update_frame_mp3cover_duration_full_checkbox_style(state):
-            self.frame_mp3cover_duration_full_checkbox.setStyleSheet("")  # Always default color
-        self.frame_mp3cover_duration_full_checkbox.stateChanged.connect(update_frame_mp3cover_duration_full_checkbox_style)
-        update_frame_mp3cover_duration_full_checkbox_style(self.frame_mp3cover_duration_full_checkbox.checkState())
-
-        # Function to control frame mp3cover duration field based on duration full checkbox
-        def set_frame_mp3cover_duration_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            # When duration full checkbox is checked, disable duration input field
-            self.frame_mp3cover_duration_edit.setEnabled(not enabled)
-            frame_mp3cover_duration_label.setEnabled(not enabled)
-            
-            if enabled:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.frame_mp3cover_duration_edit.setStyleSheet(grey_btn_style)
-                frame_mp3cover_duration_label.setStyleSheet("color: grey;")
-            else:
-                self.frame_mp3cover_duration_edit.setStyleSheet("")
-                frame_mp3cover_duration_label.setStyleSheet("")
-
-        # Frame mp3cover start at control
-        frame_mp3cover_start_label = QLabel("Start at:")
-        frame_mp3cover_start_label.setFixedWidth(80)
-        self.frame_mp3cover_start_edit = QLineEdit("5")
-        self.frame_mp3cover_start_edit.setFixedWidth(60)
-        self.frame_mp3cover_start_edit.setValidator(QIntValidator(1, 999, self))
-        self.frame_mp3cover_start_edit.setPlaceholderText("5")
-        self.frame_mp3cover_start_percent = 5
-        def on_frame_mp3cover_start_changed():
-            try:
-                self.frame_mp3cover_start_percent = int(self.frame_mp3cover_start_edit.text())
-            except Exception:
-                self.frame_mp3cover_start_percent = 5
-        self.frame_mp3cover_start_edit.textChanged.connect(on_frame_mp3cover_start_changed)
-        on_frame_mp3cover_start_changed()
-
-        frame_mp3cover_effect_layout = QHBoxLayout()
-        frame_mp3cover_effect_layout.setContentsMargins(0, 0, 0, 0)
-        frame_mp3cover_effect_layout.addSpacing(-80)
-        frame_mp3cover_effect_layout.addWidget(frame_mp3cover_label)
-        frame_mp3cover_effect_layout.addSpacing(-3)
-        frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_effect_combo)
-        frame_mp3cover_effect_layout.addSpacing(-6)
-        frame_mp3cover_effect_layout.addWidget(frame_mp3cover_duration_label)
-        frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_duration_edit)
-        frame_mp3cover_effect_layout.addSpacing(-6)
-        frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_duration_full_checkbox)
-        frame_mp3cover_effect_layout.addSpacing(-6)
-        frame_mp3cover_effect_layout.addWidget(frame_mp3cover_start_label)
-        frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_start_edit)
-        frame_mp3cover_effect_layout.addStretch()
-        layout.addLayout(frame_mp3cover_effect_layout)
-        
-        # Initialize frame mp3cover enabled state after all controls are created
-        set_frame_mp3cover_enabled(self.frame_mp3cover_checkbox.checkState())
-
-        # --- Frame mp3cover effect greying logic ---
-        def update_frame_mp3cover_effect_label_style():
-            if not self.frame_mp3cover_checkbox.isChecked():
-                frame_mp3cover_label.setStyleSheet("color: grey;")
-                self.frame_mp3cover_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.frame_mp3cover_effect_combo.setEnabled(False)
-                frame_mp3cover_start_label.setStyleSheet("color: grey;")
-                self.frame_mp3cover_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.frame_mp3cover_start_edit.setEnabled(False)
-                frame_mp3cover_duration_label.setStyleSheet("color: grey;")
-                self.frame_mp3cover_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.frame_mp3cover_duration_edit.setEnabled(False)
-                self.frame_mp3cover_duration_full_checkbox.setStyleSheet("color: grey;")
-                self.frame_mp3cover_duration_full_checkbox.setEnabled(False)
-            else:
-                frame_mp3cover_label.setStyleSheet("")
-                self.frame_mp3cover_effect_combo.setStyleSheet("")
-                self.frame_mp3cover_effect_combo.setEnabled(True)
-                frame_mp3cover_start_label.setStyleSheet("")
-                self.frame_mp3cover_start_edit.setStyleSheet("")
-                self.frame_mp3cover_start_edit.setEnabled(True)
-                # Re-enable the full duration checkbox and let it control the duration field styling
-                self.frame_mp3cover_duration_full_checkbox.setStyleSheet("")
-                self.frame_mp3cover_duration_full_checkbox.setEnabled(True)
-                set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState())
-        self.frame_mp3cover_checkbox.stateChanged.connect(lambda _: update_frame_mp3cover_effect_label_style())
-        self.frame_mp3cover_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState()))
-        update_frame_mp3cover_effect_label_style()
-        set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState())
+        update_custom_image_controls_state()
 
         # --- DYNAMIC MP3 COVER OVERLAY ---
         self.mp3_cover_overlay_checkbox = QtWidgets.QCheckBox("MP3 Cover Overlay:")
@@ -6034,6 +5890,227 @@ class SuperCutUI(QWidget):
         set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState())
         # --- END DYNAMIC MP3 COVER OVERLAY ---
 
+        # --- FRAME MP3COVER OVERLAY ---
+        self.frame_mp3cover_checkbox = QtWidgets.QCheckBox("Frame_mp3cover:")
+        self.frame_mp3cover_checkbox.setFixedWidth(82)
+        self.frame_mp3cover_checkbox.setChecked(False)
+        def update_frame_mp3cover_checkbox_style(state):
+            self.frame_mp3cover_checkbox.setStyleSheet("")  # Always default color
+        self.frame_mp3cover_checkbox.stateChanged.connect(update_frame_mp3cover_checkbox_style)
+        update_frame_mp3cover_checkbox_style(self.frame_mp3cover_checkbox.checkState())
+
+        frame_mp3cover_layout = QHBoxLayout()
+        frame_mp3cover_layout.setSpacing(4)
+        
+        # Frame mp3cover size option (5% to 100%)
+        frame_mp3cover_size_label = QLabel("S:")
+        frame_mp3cover_size_label.setFixedWidth(18)
+        self.frame_mp3cover_size_combo = NoWheelComboBox()
+        self.frame_mp3cover_size_combo.setFixedWidth(90)
+        for percent in range(5, 101, 5):
+            self.frame_mp3cover_size_combo.addItem(f"{percent}%", percent)
+        self.frame_mp3cover_size_combo.setCurrentIndex(9)  # Default 50%
+        self.frame_mp3cover_size_percent = 50
+        def on_frame_mp3cover_size_changed(idx):
+            self.frame_mp3cover_size_percent = self.frame_mp3cover_size_combo.itemData(idx)
+        self.frame_mp3cover_size_combo.setEditable(False)
+        self.frame_mp3cover_size_combo.currentIndexChanged.connect(on_frame_mp3cover_size_changed)
+        on_frame_mp3cover_size_changed(self.frame_mp3cover_size_combo.currentIndex())
+
+        # Frame mp3cover X coordinate
+        frame_mp3cover_x_label = QLabel("X:")
+        frame_mp3cover_x_label.setFixedWidth(18)
+        self.frame_mp3cover_x_combo = NoWheelComboBox()
+        self.frame_mp3cover_x_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.frame_mp3cover_x_combo.addItem(f"{percent}%", percent)
+        self.frame_mp3cover_x_combo.setCurrentIndex(0)  # Default 0%
+        self.frame_mp3cover_x_percent = 0
+        def on_frame_mp3cover_x_changed(idx):
+            self.frame_mp3cover_x_percent = self.frame_mp3cover_x_combo.itemData(idx)
+        self.frame_mp3cover_x_combo.currentIndexChanged.connect(on_frame_mp3cover_x_changed)
+        on_frame_mp3cover_x_changed(self.frame_mp3cover_x_combo.currentIndex())
+
+        # Frame mp3cover Y coordinate
+        frame_mp3cover_y_label = QLabel("Y:")
+        frame_mp3cover_y_label.setFixedWidth(18)
+        self.frame_mp3cover_y_combo = NoWheelComboBox()
+        self.frame_mp3cover_y_combo.setFixedWidth(80)
+        for percent in range(0, 101, 1):
+            self.frame_mp3cover_y_combo.addItem(f"{percent}%", percent)
+        self.frame_mp3cover_y_combo.setCurrentIndex(0)  # Default 0%
+        self.frame_mp3cover_y_percent = 0
+        def on_frame_mp3cover_y_changed(idx):
+            self.frame_mp3cover_y_percent = self.frame_mp3cover_y_combo.itemData(idx)
+        self.frame_mp3cover_y_combo.currentIndexChanged.connect(on_frame_mp3cover_y_changed)
+        on_frame_mp3cover_y_changed(self.frame_mp3cover_y_combo.currentIndex())
+
+        def set_frame_mp3cover_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.frame_mp3cover_size_combo.setEnabled(enabled)
+            self.frame_mp3cover_x_combo.setEnabled(enabled)
+            self.frame_mp3cover_y_combo.setEnabled(enabled)
+            self.frame_mp3cover_duration_edit.setEnabled(enabled)
+            frame_mp3cover_duration_label.setEnabled(enabled)
+            self.frame_mp3cover_start_edit.setEnabled(enabled)
+            frame_mp3cover_start_label.setEnabled(enabled)
+            if enabled:
+                self.frame_mp3cover_size_combo.setStyleSheet("")
+                self.frame_mp3cover_x_combo.setStyleSheet("")
+                self.frame_mp3cover_y_combo.setStyleSheet("")
+                self.frame_mp3cover_duration_edit.setStyleSheet("")
+                self.frame_mp3cover_start_edit.setStyleSheet("")
+                frame_mp3cover_size_label.setStyleSheet("")
+                frame_mp3cover_x_label.setStyleSheet("")
+                frame_mp3cover_y_label.setStyleSheet("")
+                frame_mp3cover_duration_label.setStyleSheet("")
+                frame_mp3cover_start_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.frame_mp3cover_size_combo.setStyleSheet(grey_btn_style)
+                self.frame_mp3cover_x_combo.setStyleSheet(grey_btn_style)
+                self.frame_mp3cover_y_combo.setStyleSheet(grey_btn_style)
+                self.frame_mp3cover_duration_edit.setStyleSheet(grey_btn_style)
+                self.frame_mp3cover_start_edit.setStyleSheet(grey_btn_style)
+                frame_mp3cover_size_label.setStyleSheet("color: grey;")
+                frame_mp3cover_x_label.setStyleSheet("color: grey;")
+                frame_mp3cover_y_label.setStyleSheet("color: grey;")
+                frame_mp3cover_duration_label.setStyleSheet("color: grey;")
+                frame_mp3cover_start_label.setStyleSheet("color: grey;")
+        self.frame_mp3cover_checkbox.stateChanged.connect(lambda _: set_frame_mp3cover_enabled(self.frame_mp3cover_checkbox.checkState()))
+        
+        frame_mp3cover_layout.addWidget(self.frame_mp3cover_checkbox)
+        frame_mp3cover_layout.addSpacing(188)
+        frame_mp3cover_layout.addWidget(frame_mp3cover_size_label)
+        frame_mp3cover_layout.addWidget(self.frame_mp3cover_size_combo)
+        frame_mp3cover_layout.addSpacing(4)
+        frame_mp3cover_layout.addWidget(frame_mp3cover_x_label)
+        frame_mp3cover_layout.addWidget(self.frame_mp3cover_x_combo)
+        frame_mp3cover_layout.addSpacing(4)
+        frame_mp3cover_layout.addWidget(frame_mp3cover_y_label)
+        frame_mp3cover_layout.addWidget(self.frame_mp3cover_y_combo)
+        layout.addLayout(frame_mp3cover_layout)
+
+        # --- EFFECT CONTROL FOR FRAME MP3COVER ---
+        frame_mp3cover_label = QLabel("Frame_mp3cover:")
+        frame_mp3cover_label.setFixedWidth(80)
+        self.frame_mp3cover_effect_combo = NoWheelComboBox()
+        self.frame_mp3cover_effect_combo.setFixedWidth(combo_width)
+        for label, value in effect_options:
+            self.frame_mp3cover_effect_combo.addItem(label, value)
+        self.frame_mp3cover_effect_combo.setCurrentIndex(1)
+        self.selected_frame_mp3cover_effect = "fadein"
+        def on_frame_mp3cover_effect_changed(idx):
+            self.selected_frame_mp3cover_effect = self.frame_mp3cover_effect_combo.itemData(idx)
+        self.frame_mp3cover_effect_combo.currentIndexChanged.connect(on_frame_mp3cover_effect_changed)
+        on_frame_mp3cover_effect_changed(self.frame_mp3cover_effect_combo.currentIndex())
+
+        # Frame mp3cover duration controls
+        frame_mp3cover_duration_label = QLabel("Duration:")
+        frame_mp3cover_duration_label.setFixedWidth(80)
+        self.frame_mp3cover_duration_edit = QLineEdit("6")
+        self.frame_mp3cover_duration_edit.setFixedWidth(40)
+        self.frame_mp3cover_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.frame_mp3cover_duration_edit.setPlaceholderText("6")
+        self.frame_mp3cover_duration = 6
+        def on_frame_mp3cover_duration_changed():
+            try:
+                self.frame_mp3cover_duration = int(self.frame_mp3cover_duration_edit.text())
+            except Exception:
+                self.frame_mp3cover_duration = 6
+        self.frame_mp3cover_duration_edit.textChanged.connect(on_frame_mp3cover_duration_changed)
+        on_frame_mp3cover_duration_changed()
+
+        # Frame mp3cover full duration checkbox
+        self.frame_mp3cover_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
+        self.frame_mp3cover_duration_full_checkbox.setFixedWidth(100)
+        self.frame_mp3cover_duration_full_checkbox.setChecked(True)
+        def update_frame_mp3cover_duration_full_checkbox_style(state):
+            self.frame_mp3cover_duration_full_checkbox.setStyleSheet("")  # Always default color
+        self.frame_mp3cover_duration_full_checkbox.stateChanged.connect(update_frame_mp3cover_duration_full_checkbox_style)
+        update_frame_mp3cover_duration_full_checkbox_style(self.frame_mp3cover_duration_full_checkbox.checkState())
+
+        # Function to control frame mp3cover duration field based on duration full checkbox
+        def set_frame_mp3cover_duration_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When duration full checkbox is checked, disable duration input field
+            self.frame_mp3cover_duration_edit.setEnabled(not enabled)
+            frame_mp3cover_duration_label.setEnabled(not enabled)
+            
+            if enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.frame_mp3cover_duration_edit.setStyleSheet(grey_btn_style)
+                frame_mp3cover_duration_label.setStyleSheet("color: grey;")
+            else:
+                self.frame_mp3cover_duration_edit.setStyleSheet("")
+                frame_mp3cover_duration_label.setStyleSheet("")
+
+        # Frame mp3cover start at control
+        frame_mp3cover_start_label = QLabel("Start at:")
+        frame_mp3cover_start_label.setFixedWidth(80)
+        self.frame_mp3cover_start_edit = QLineEdit("5")
+        self.frame_mp3cover_start_edit.setFixedWidth(60)
+        self.frame_mp3cover_start_edit.setValidator(QIntValidator(1, 999, self))
+        self.frame_mp3cover_start_edit.setPlaceholderText("5")
+        self.frame_mp3cover_start_time = 5
+        def on_frame_mp3cover_start_changed():
+            try:
+                self.frame_mp3cover_start_time = int(self.frame_mp3cover_start_edit.text())
+            except Exception:
+                self.frame_mp3cover_start_time = 5
+        self.frame_mp3cover_start_edit.textChanged.connect(on_frame_mp3cover_start_changed)
+        on_frame_mp3cover_start_changed()
+
+        frame_mp3cover_effect_layout = QHBoxLayout()
+        frame_mp3cover_effect_layout.setContentsMargins(0, 0, 0, 0)
+        frame_mp3cover_effect_layout.addSpacing(-80)
+        frame_mp3cover_effect_layout.addWidget(frame_mp3cover_label)
+        frame_mp3cover_effect_layout.addSpacing(-3)
+        frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_effect_combo)
+        frame_mp3cover_effect_layout.addSpacing(-6)
+        frame_mp3cover_effect_layout.addWidget(frame_mp3cover_duration_label)
+        frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_duration_edit)
+        frame_mp3cover_effect_layout.addSpacing(-6)
+        frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_duration_full_checkbox)
+        frame_mp3cover_effect_layout.addSpacing(-6)
+        frame_mp3cover_effect_layout.addWidget(frame_mp3cover_start_label)
+        frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_start_edit)
+        frame_mp3cover_effect_layout.addStretch()
+        layout.addLayout(frame_mp3cover_effect_layout)
+        
+        # Initialize frame mp3cover enabled state after all controls are created
+        set_frame_mp3cover_enabled(self.frame_mp3cover_checkbox.checkState())
+
+        # --- Frame mp3cover effect greying logic ---
+        def update_frame_mp3cover_effect_label_style():
+            if not self.frame_mp3cover_checkbox.isChecked():
+                frame_mp3cover_label.setStyleSheet("color: grey;")
+                self.frame_mp3cover_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.frame_mp3cover_effect_combo.setEnabled(False)
+                frame_mp3cover_start_label.setStyleSheet("color: grey;")
+                self.frame_mp3cover_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.frame_mp3cover_start_edit.setEnabled(False)
+                frame_mp3cover_duration_label.setStyleSheet("color: grey;")
+                self.frame_mp3cover_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.frame_mp3cover_duration_edit.setEnabled(False)
+                self.frame_mp3cover_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.frame_mp3cover_duration_full_checkbox.setEnabled(False)
+            else:
+                frame_mp3cover_label.setStyleSheet("")
+                self.frame_mp3cover_effect_combo.setStyleSheet("")
+                self.frame_mp3cover_effect_combo.setEnabled(True)
+                frame_mp3cover_start_label.setStyleSheet("")
+                self.frame_mp3cover_start_edit.setStyleSheet("")
+                self.frame_mp3cover_start_edit.setEnabled(True)
+                # Re-enable the full duration checkbox and let it control the duration field styling
+                self.frame_mp3cover_duration_full_checkbox.setStyleSheet("")
+                self.frame_mp3cover_duration_full_checkbox.setEnabled(True)
+                set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState())
+        self.frame_mp3cover_checkbox.stateChanged.connect(lambda _: update_frame_mp3cover_effect_label_style())
+        self.frame_mp3cover_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState()))
+        update_frame_mp3cover_effect_label_style()
+        set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState())
+
         # --- BACKGROUND LAYER SCALE CONTROL ---
         self.bg_layer_checkbox = QtWidgets.QCheckBox("BG Layer:")
         self.bg_layer_checkbox.setFixedWidth(80)
@@ -6237,6 +6314,18 @@ class SuperCutUI(QWidget):
         self.settings_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         self.settings_btn.clicked.connect(self.show_settings_dialog)
         button_layout.addWidget(self.settings_btn)
+
+        # Add layer manager button
+        button_layout.addSpacing(10)
+        self.layer_manager_btn = QPushButton()
+        layer_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "logo", "icons8-program-100.png")
+        self.layer_manager_btn.setIcon(QIcon(layer_icon_path))
+        self.layer_manager_btn.setFixedSize(32, 32)
+        self.layer_manager_btn.setIconSize(self.layer_manager_btn.size())
+        self.layer_manager_btn.setToolTip("Layer Order Manager")
+        self.layer_manager_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
+        self.layer_manager_btn.clicked.connect(self.show_layer_manager)
+        button_layout.addWidget(self.layer_manager_btn)
 
         # Add terminal button next
         button_layout.addSpacing(10)
@@ -6447,6 +6536,77 @@ class SuperCutUI(QWidget):
         # Update terminal title to show positioning
         self.terminal_widget.setWindowTitle(f"SuperCut Terminal [{position_side}]")
 
+    def position_layer_manager_dialog(self):
+        """Position the layer manager dialog intelligently based on main window position and screen space"""
+        if not self.layer_manager_dialog:
+            return
+            
+        # Get main window geometry
+        main_geometry = self.geometry()
+        
+        # Get layer manager dialog size (use default if not yet shown)
+        dialog_width = self.layer_manager_dialog.width() if self.layer_manager_dialog.width() > 0 else 400
+        dialog_height = self.layer_manager_dialog.height() if self.layer_manager_dialog.height() > 0 else 500
+        
+        # Get screen geometry
+        screen = self.screen() if hasattr(self, 'screen') and self.screen() else QApplication.primaryScreen()
+        if screen is not None:
+            screen_geometry = screen.geometry()
+            screen_width = screen_geometry.width()
+            screen_height = screen_geometry.height()
+        else:
+            screen_width = 1920
+            screen_height = 1080
+        
+        # Calculate title bar height offset (typical Windows title bar is ~30px)
+        title_bar_height = 30
+        
+        # Calculate available space on left and right, accounting for title bar
+        space_on_right = screen_width - (main_geometry.x() + main_geometry.width())
+        space_on_left = main_geometry.x()
+        
+        # Adjust for title bar in vertical positioning
+        available_height = screen_height - title_bar_height
+        
+        # Determine optimal position
+        if space_on_right >= dialog_width + 10:
+            # Enough space on the right - position there
+            dialog_x = main_geometry.x() + main_geometry.width() + 10
+            dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+            position_side = "right"
+        elif space_on_left >= dialog_width + 10:
+            # Enough space on the left - position there
+            dialog_x = main_geometry.x() - dialog_width - 10
+            dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+            position_side = "left"
+        else:
+            # Not enough space on either side, try to fit it
+            if space_on_right > space_on_left:
+                # More space on right, try to fit there
+                dialog_x = main_geometry.x() + main_geometry.width() + 5
+                dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+                position_side = "right (tight)"
+            else:
+                # More space on left, try to fit there
+                dialog_x = main_geometry.x() - dialog_width - 5
+                dialog_y = main_geometry.y() - title_bar_height  # Move up to account for frameless dialog
+                position_side = "left (tight)"
+        
+        # Ensure dialog doesn't go off-screen vertically (accounting for title bar)
+        if dialog_y + dialog_height > available_height:
+            dialog_y = available_height - dialog_height - 10
+        
+        if dialog_y < title_bar_height:
+            dialog_y = title_bar_height + 10
+        
+        # Ensure dialog doesn't go off-screen horizontally
+        if dialog_x + dialog_width > screen_width:
+            dialog_x = screen_width - dialog_width - 10
+        
+        if dialog_x < 0:
+            dialog_x = 10
+        
+
     def on_terminal_closed(self):
         """Handle terminal widget closed signal"""
         self.terminal_widget = None
@@ -6503,68 +6663,68 @@ class SuperCutUI(QWidget):
         # Intro validation
         if self.intro_checkbox.isChecked():
             intro_path = self.intro_edit.text().strip()
-            if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Intro.", QMessageBox.StandardButton.Ok)
+            if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png','.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Intro.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 1 validation
         if self.overlay_checkbox.isChecked():
             overlay_path = self.overlay1_edit.text().strip()
-            if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png', '.mp4']:
-                QMessageBox.warning(self, "⚠️ Overlay File Required", "Please provide a valid GIF, PNG, or MP4 file (*.gif, *.png, *.mp4) for Overlay 1.", QMessageBox.StandardButton.Ok)
+            if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay File Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 1.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 2 validation
         if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
             overlay2_path = self.overlay2_edit.text().strip()
-            if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 2.", QMessageBox.StandardButton.Ok)
+            if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 2.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 3 validation
         if hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked():
             overlay3_path = self.overlay3_edit.text().strip()
-            if not overlay3_path or not os.path.isfile(overlay3_path) or os.path.splitext(overlay3_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay 3 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 3.", QMessageBox.StandardButton.Ok)
+            if not overlay3_path or not os.path.isfile(overlay3_path) or os.path.splitext(overlay3_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 3 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 3.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 4 validation
         if hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked():
             overlay4_path = self.overlay4_edit.text().strip()
-            if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 4.", QMessageBox.StandardButton.Ok)
+            if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 4.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 5 validation
         if hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked():
             overlay5_path = self.overlay5_edit.text().strip()
-            if not overlay5_path or not os.path.isfile(overlay5_path) or os.path.splitext(overlay5_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay 5 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 5.", QMessageBox.StandardButton.Ok)
+            if not overlay5_path or not os.path.isfile(overlay5_path) or os.path.splitext(overlay5_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv ']:
+                QMessageBox.warning(self, "⚠️ Overlay 5 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 5.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 6 validation
         if hasattr(self, 'overlay6_checkbox') and self.overlay6_checkbox.isChecked():
             overlay6_path = self.overlay6_edit.text().strip()
-            if not overlay6_path or not os.path.isfile(overlay6_path) or os.path.splitext(overlay6_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay 6 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 6.", QMessageBox.StandardButton.Ok)
+            if not overlay6_path or not os.path.isfile(overlay6_path) or os.path.splitext(overlay6_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 6 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 6.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 7 validation
         if hasattr(self, 'overlay7_checkbox') and self.overlay7_checkbox.isChecked():
             overlay7_path = self.overlay7_edit.text().strip()
-            if not overlay7_path or not os.path.isfile(overlay7_path) or os.path.splitext(overlay7_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay 7 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 7.", QMessageBox.StandardButton.Ok)
+            if not overlay7_path or not os.path.isfile(overlay7_path) or os.path.splitext(overlay7_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 7 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 7.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 8 validation
         if hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked():
             overlay8_path = self.overlay8_edit.text().strip()
-            if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 8.", QMessageBox.StandardButton.Ok)
+            if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 8.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 9 validation
         if hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked():
             overlay9_path = self.overlay9_edit.text().strip()
-            if not overlay9_path or not os.path.isfile(overlay9_path) or os.path.splitext(overlay9_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay 9 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 9.", QMessageBox.StandardButton.Ok)
+            if not overlay9_path or not os.path.isfile(overlay9_path) or os.path.splitext(overlay9_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 9 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 9.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 10 validation
         if hasattr(self, 'overlay10_checkbox') and self.overlay10_checkbox.isChecked():
             overlay10_path = self.overlay10_edit.text().strip()
-            if not overlay10_path or not os.path.isfile(overlay10_path) or os.path.splitext(overlay10_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay 10 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 10.", QMessageBox.StandardButton.Ok)
+            if not overlay10_path or not os.path.isfile(overlay10_path) or os.path.splitext(overlay10_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 10 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 10.", QMessageBox.StandardButton.Ok)
                 return
         
         # --- Frame Box Caption validation ---
@@ -7326,9 +7486,29 @@ class SuperCutUI(QWidget):
             from PIL import Image, ImageDraw
             import os
             
-            # Use the first image from original_image_files as the main image
-            if original_image_files:
+            # Determine which image to use for framebox
+            if (hasattr(self, 'frame_box_custom_image_checkbox') and 
+                self.frame_box_custom_image_checkbox.isChecked() and 
+                hasattr(self, 'frame_box_custom_image_path') and 
+                self.frame_box_custom_image_path and 
+                os.path.exists(self.frame_box_custom_image_path)):
+                # Validate file type for custom image
+                file_ext = os.path.splitext(self.frame_box_custom_image_path)[1].lower()
+                if file_ext in ['.gif', '.png', '.jpg', '.jpeg']:
+                    # Use custom image if enabled, file exists, and has valid extension
+                    main_img_path = self.frame_box_custom_image_path
+                else:
+                    # Invalid file type, fall back to background image
+                    main_img_path = list(original_image_files)[0] if original_image_files else None
+            elif original_image_files:
+                # Use the first image from original_image_files as the main image
                 main_img_path = list(original_image_files)[0]
+            else:
+                # No valid image available
+                main_img_path = None
+            
+            # Process framebox only if we have a valid image
+            if main_img_path:
                 with Image.open(main_img_path) as img:
                     w, h = img.size
                     # Crop to square using height, center horizontally
@@ -7438,9 +7618,10 @@ class SuperCutUI(QWidget):
                     else:
                         # No caption, use frame box without caption
                         frame_box_path = frame_box_temp_path
+            # End of framebox processing if main_img_path exists
         # Fallback if not set
         if not frame_box_path:
-            frame_box_path = "src/sources/icon.png"
+            frame_box_path = "src/sources/frame_box.png"
         self._worker = VideoWorker(
             media_sources=media_sources, export_name=export_name, number=number, folder=folder, codec=codec, resolution=resolution, fps=fps,
             use_overlay=self.overlay_checkbox.isChecked(), min_mp3_count=min_mp3_count, overlay1_path=self.overlay1_path, overlay1_size_percent=self.overlay1_size_percent, overlay1_x_percent=self.overlay1_x_percent, overlay1_y_percent=self.overlay1_y_percent,
@@ -7526,7 +7707,7 @@ class SuperCutUI(QWidget):
                 overlay10_effect=self.selected_overlay10_effect,
                                             overlay9_start_time=self.overlay9_start_percent,
                 overlay9_start_from=self.overlay9_start_from_percent,
-                                                                overlay10_start_time=self.overlay10_start_percent,
+                                                                overlay10_start_time=self.overlay10_start_time,
                                 overlay9_duration=self.overlay9_duration,
                                 overlay10_duration=self.overlay10_duration,
                                 overlay10_song_start_end_checked=self.overlay10_song_start_end.isChecked(),
@@ -7543,13 +7724,16 @@ class SuperCutUI(QWidget):
             frame_box_x_percent=self.frame_box_x_percent,
             frame_box_y_percent=self.frame_box_y_percent,
             frame_box_effect=self.selected_frame_box_effect,
-            frame_box_start_time=self.frame_box_start_percent,
+            frame_box_start_time=self.frame_box_start_time,
             frame_box_duration=self.frame_box_duration,
             frame_box_duration_full_checkbox_checked=self.frame_box_duration_full_checkbox.isChecked(),
             frame_box_pad_left=self.frame_box_pad_left,
             frame_box_pad_right=self.frame_box_pad_right,
             frame_box_pad_top=self.frame_box_pad_top,
             frame_box_pad_bottom=self.frame_box_pad_bottom,
+            # --- Add frame box custom image parameters ---
+            use_frame_box_custom_image=self.frame_box_custom_image_checkbox.isChecked() if hasattr(self, 'frame_box_custom_image_checkbox') else False,
+            frame_box_custom_image_path=self.frame_box_custom_image_path if hasattr(self, 'frame_box_custom_image_path') and self.frame_box_custom_image_path else "",
             # --- Add frame mp3cover parameters ---
             use_frame_mp3cover=self.frame_mp3cover_checkbox.isChecked(),
             frame_mp3cover_path="src/sources/icon.png",  # Hardcoded path for now
@@ -7557,7 +7741,7 @@ class SuperCutUI(QWidget):
             frame_mp3cover_x_percent=self.frame_mp3cover_x_percent,
             frame_mp3cover_y_percent=self.frame_mp3cover_y_percent,
             frame_mp3cover_effect=self.selected_frame_mp3cover_effect,
-            frame_mp3cover_start_time=self.frame_mp3cover_start_percent,
+            frame_mp3cover_start_time=self.frame_mp3cover_start_time,
             frame_mp3cover_duration=self.frame_mp3cover_duration,
             frame_mp3cover_duration_full_checkbox_checked=self.frame_mp3cover_duration_full_checkbox.isChecked(),
             # --- Add MP3 cover overlay parameters ---
@@ -7584,6 +7768,8 @@ class SuperCutUI(QWidget):
             soundwave_size_percent=self.soundwave_size_percent if hasattr(self, 'soundwave_size_percent') else 50,
             soundwave_x_percent=self.soundwave_x_percent if hasattr(self, 'soundwave_x_percent') else 50,
             soundwave_y_percent=self.soundwave_y_percent if hasattr(self, 'soundwave_y_percent') else 50,
+            # --- Add layer order parameter ---
+            layer_order=getattr(self, 'layer_order', None),
 
         )
         self._worker.moveToThread(self._thread)
@@ -7800,6 +7986,16 @@ class SuperCutUI(QWidget):
         if hasattr(self, 'terminal_widget') and self.terminal_widget is not None:
             self.terminal_widget.close()
             self.terminal_widget = None
+        
+        # Close preview dialog if it exists
+        if hasattr(self, '_preview_dialog') and self._preview_dialog is not None:
+            self._preview_dialog.close()
+            self._preview_dialog = None
+        
+        # Close layer manager dialog if it exists
+        if hasattr(self, 'layer_manager_dialog') and self.layer_manager_dialog is not None:
+            self.layer_manager_dialog.close()
+            self.layer_manager_dialog = None
         # If a video creation thread is running, warn the user
         if hasattr(self, '_thread') and self._thread is not None and self._thread.isRunning():
             if self.quit_dialog is not None:
@@ -7887,15 +8083,27 @@ class SuperCutUI(QWidget):
             self.terminal_widget is not None and 
             self.terminal_widget.isVisible()):
             self.position_terminal_widget()
+        
+        # Reposition layer manager dialog if it exists and is visible
+        if (hasattr(self, 'layer_manager_dialog') and 
+            self.layer_manager_dialog is not None and 
+            self.layer_manager_dialog.isVisible()):
+            self.position_layer_manager_dialog()
 
     def moveEvent(self, event):
-        """Handle window move event to reposition terminal widget"""
+        """Handle window move event to reposition terminal widget and layer manager dialog"""
         super().moveEvent(event)
         # Reposition terminal widget if it exists and is visible
         if (hasattr(self, 'terminal_widget') and 
             self.terminal_widget is not None and 
             self.terminal_widget.isVisible()):
             self.position_terminal_widget()
+        
+        # Reposition layer manager dialog if it exists and is visible
+        if (hasattr(self, 'layer_manager_dialog') and 
+            self.layer_manager_dialog is not None and 
+            self.layer_manager_dialog.isVisible()):
+            self.position_layer_manager_dialog()
 
     def on_media_folder_changed(self):
         """When media folder is changed, set output folder to same only if output folder is empty"""
@@ -7914,6 +8122,34 @@ class SuperCutUI(QWidget):
         dlg = SettingsDialog(self, settings=self.settings, fps_options=DEFAULT_FPS_OPTIONS)
         if dlg.exec() == QDialog.DialogCode.Accepted:
             self.apply_settings()
+
+    def show_layer_manager(self):
+        """Toggle layer order manager dialog: open if closed, close if open."""
+        if hasattr(self, 'layer_manager_dialog') and self.layer_manager_dialog is not None and self.layer_manager_dialog.isVisible():
+            self.layer_manager_dialog.close()
+            self.layer_manager_dialog = None
+            return
+        layer_states = {
+            'background': True,  # Always enabled
+            'overlay1': hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked(),
+            'overlay2': hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked(),
+            'overlay3': hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked(),
+            'overlay4': hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked(),
+            'overlay5': hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked(),
+            'overlay6': hasattr(self, 'overlay6_checkbox') and self.overlay6_checkbox.isChecked(),
+            'overlay7': hasattr(self, 'overlay7_checkbox') and self.overlay7_checkbox.isChecked(),
+            'overlay8': hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked(),
+            'overlay9': hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked(),
+            'overlay10': hasattr(self, 'overlay10_checkbox') and self.overlay10_checkbox.isChecked(),
+            'intro': hasattr(self, 'intro_checkbox') and self.intro_checkbox.isChecked(),
+            'frame_box': hasattr(self, 'frame_box_checkbox') and self.frame_box_checkbox.isChecked(),
+            'frame_mp3cover': hasattr(self, 'frame_mp3cover_checkbox') and self.frame_mp3cover_checkbox.isChecked(),
+            'song_titles': hasattr(self, 'song_title_checkbox') and self.song_title_checkbox.isChecked(),
+            'soundwave': hasattr(self, 'soundwave_checkbox') and self.soundwave_checkbox.isChecked(),
+        }
+        self.layer_manager_dialog = LayerManagerDialog(self, self.layer_order)
+        self.layer_manager_dialog.update_layer_states(layer_states)
+        self.layer_manager_dialog.show()
 
     def apply_settings(self):
         # Apply window size settings only if window is already shown (i.e., settings were changed)
@@ -8144,17 +8380,12 @@ class SuperCutUI(QWidget):
         
         return (media_sources, export_name, number, folder, codec, resolution, fps, mp3_files, image_files, min_mp3_count)
 
-    def show_preview_dialog(self):
-        # Check if preview dialog is already open - if so, close it
-        if hasattr(self, '_preview_dialog') and self._preview_dialog is not None:
-            self._preview_dialog.close()
-            self._preview_dialog = None
-            return
-        
+    def generate_settings_preview(self):
+        """Generate a preview string of all current settings for live updates"""
         # Gather all FFmpeg settings as would be passed to video creation (without validation)
         inputs = self._gather_preview_inputs()
         if not inputs:
-            return  # Don't show dialog when there are warnings/errors
+            return ""  # Return empty string when there are warnings/errors
         (
             media_sources, export_name, number, folder, codec, resolution, fps, mp3_files, image_files, min_mp3_count
         ) = inputs
@@ -8241,15 +8472,32 @@ BG Opacity: {self.song_title_opacity}
 Scale: {self.song_title_scale_percent}%
 X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self.song_title_start_at}
 """
+        return settings_str
+
+    def show_preview_dialog(self):
+        # Check if preview dialog is already open - if so, close it
+        if hasattr(self, '_preview_dialog') and self._preview_dialog is not None:
+            self._preview_dialog.close()
+            self._preview_dialog = None
+            return
+        
+        # Generate settings string for initial display
+        settings_str = self.generate_settings_preview()
+        if not settings_str:
+            return  # Don't show dialog when there are warnings/errors
+        
         # Show in a scrollable dialog
 
         
-        class RoundedDialog(QtWidgets.QDialog):
-            def __init__(self, parent=None):
-                super().__init__(parent)
-                self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        class SuperCutPreviewDialog(QtWidgets.QDialog):
+            def __init__(self, main_window=None):
+                super().__init__(None)  # No parent - standalone dialog
+                self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
                 self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
                 self.setModal(False)  # Make dialog non-modal - allows interaction with main UI
+                self.main_window = main_window  # Store main window reference for live updates
+                self.update_timer = None
+                self.text_edit = None
                 
             def paintEvent(self, event):
                 from PyQt6.QtGui import QPainter, QBrush, QColor
@@ -8260,8 +8508,31 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 painter.setPen(Qt.PenStyle.NoPen)
                 rect = self.rect()
                 painter.drawRoundedRect(rect, 8, 8)  # 12px radius to match stylesheet
+            
+            def setup_live_updates(self, text_edit):
+                """Set up timer for live updates"""
+                self.text_edit = text_edit
+                self.update_timer = QTimer()
+                self.update_timer.timeout.connect(self.update_preview_content)
+                self.update_timer.start(100)  # Update every 500ms
+            
+            def update_preview_content(self):
+                """Update preview content based on main UI state"""
+                if not self.main_window or not self.text_edit:
+                    return
+                
+                # Generate updated settings string
+                settings_str = self.main_window.generate_settings_preview()
+                if settings_str:
+                    self.text_edit.setPlainText(settings_str.lstrip())
+            
+            def closeEvent(self, event):
+                """Clean up timer when dialog is closed"""
+                if self.update_timer:
+                    self.update_timer.stop()
+                super().closeEvent(event)
         
-        dlg = RoundedDialog()
+        dlg = SuperCutPreviewDialog(self)  # Pass self as main window reference for live updates
         dlg.setWindowTitle("⚡ SuperCut Preview")
         dlg.setMinimumSize(500, 520)
         dlg.resize(500, 520)  # Set fixed size
@@ -8273,6 +8544,10 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         def on_dialog_closed():
             self._preview_dialog = None
         dlg.finished.connect(on_dialog_closed)
+        
+        # Add Ctrl+W shortcut to close dialog
+        shortcut = QShortcut(QKeySequence("Ctrl+W"), dlg)
+        shortcut.activated.connect(dlg.close)
         dlg.setStyleSheet("""
             QWidget {
                 background-color: transparent;
@@ -8404,7 +8679,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 self.drag_position = QPoint()
                 
             def mousePressEvent(self, event):
-                if event.button() == Qt.MouseButton.LeftButton and self.parent_window:
+                # Only allow dragging if parent is the preview dialog itself
+                if event.button() == Qt.MouseButton.LeftButton and isinstance(self.parent_window, QtWidgets.QDialog) and self.parent_window.windowTitle() == "⚡ SuperCut Preview":
                     self.dragging = True
                     self.drag_position = event.globalPosition().toPoint() - self.parent_window.frameGeometry().topLeft()
                     event.accept()
@@ -8412,7 +8688,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                     super().mousePressEvent(event)
                     
             def mouseMoveEvent(self, event):
-                if event.buttons() == Qt.MouseButton.LeftButton and self.dragging and self.parent_window:
+                if event.buttons() == Qt.MouseButton.LeftButton and self.dragging and isinstance(self.parent_window, QtWidgets.QDialog) and self.parent_window.windowTitle() == "⚡ SuperCut Preview":
                     self.parent_window.move(event.globalPosition().toPoint() - self.drag_position)
                     event.accept()
                 else:
@@ -8548,6 +8824,9 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         text_edit.setPlainText(settings_str.lstrip())
         content_layout.addWidget(text_edit)
         
+        # Set up live updates for the dialog
+        dlg.setup_live_updates(text_edit)
+        
         # Add header and content to main layout
         layout.addWidget(header_widget)
         layout.addLayout(content_layout)
@@ -8570,62 +8849,62 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
             # Intro validation
             if self.intro_checkbox.isChecked():
                 intro_path = self.intro_edit.text().strip()
-                if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Intro.", QMessageBox.StandardButton.Ok)
+                if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF, PNG, jpg, jpeg, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Intro.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 1 validation
             if self.overlay_checkbox.isChecked():
                 overlay_path = self.overlay1_edit.text().strip()
-                if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png', '.mp4']:
-                    QMessageBox.warning(self, "⚠️ Overlay File Required", "Please provide a valid GIF, PNG, or MP4 file (*.gif, *.png, *.mp4) for Overlay 1.", QMessageBox.StandardButton.Ok)
+                if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png', '.mp4', '.jpg', '.jpeg', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay File Required", "Please provide a valid GIF, PNG, MP4, JPG, JPEG, MOV, or MKV file (*.gif, *.png, *.mp4, *.jpg, *.jpeg, *.mov, *.mkv) for Overlay 1.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 2 validation
             if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
                 overlay2_path = self.overlay2_edit.text().strip()
-                if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 2.", QMessageBox.StandardButton.Ok)
+                if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 2.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 3 validation
             if hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked():
                 overlay3_path = self.overlay3_edit.text().strip()
-                if not overlay3_path or not os.path.isfile(overlay3_path) or os.path.splitext(overlay3_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 3 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 3.", QMessageBox.StandardButton.Ok)
+                if not overlay3_path or not os.path.isfile(overlay3_path) or os.path.splitext(overlay3_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 3 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 3.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 4 validation
             if hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked():
                 overlay4_path = self.overlay4_edit.text().strip()
-                if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 4.", QMessageBox.StandardButton.Ok)
+                if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv  ']:
+                    QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 4.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 5 validation
             if hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked():
                 overlay5_path = self.overlay5_edit.text().strip()
-                if not overlay5_path or not os.path.isfile(overlay5_path) or os.path.splitext(overlay5_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 5 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 5.", QMessageBox.StandardButton.Ok)
+                if not overlay5_path or not os.path.isfile(overlay5_path) or os.path.splitext(overlay5_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 5 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 5.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 6 validation
             if hasattr(self, 'overlay6_checkbox') and self.overlay6_checkbox.isChecked():
                 overlay6_path = self.overlay6_edit.text().strip()
-                if not overlay6_path or not os.path.isfile(overlay6_path) or os.path.splitext(overlay6_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 6 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 6.", QMessageBox.StandardButton.Ok)
+                if not overlay6_path or not os.path.isfile(overlay6_path) or os.path.splitext(overlay6_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 6 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 6.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 7 validation
             if hasattr(self, 'overlay7_checkbox') and self.overlay7_checkbox.isChecked():
                 overlay7_path = self.overlay7_edit.text().strip()
-                if not overlay7_path or not os.path.isfile(overlay7_path) or os.path.splitext(overlay7_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 7 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 7.", QMessageBox.StandardButton.Ok)
+                if not overlay7_path or not os.path.isfile(overlay7_path) or os.path.splitext(overlay7_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 7 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 7.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 8 validation
             if hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked():
                 overlay8_path = self.overlay8_edit.text().strip()
-                if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 8.", QMessageBox.StandardButton.Ok)
+                if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 8.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 9 validation
             if hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked():
                 overlay9_path = self.overlay9_edit.text().strip()
-                if not overlay9_path or not os.path.isfile(overlay9_path) or os.path.splitext(overlay9_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 9 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 9.", QMessageBox.StandardButton.Ok)
+                if not overlay9_path or not os.path.isfile(overlay9_path) or os.path.splitext(overlay9_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 9 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 9.", QMessageBox.StandardButton.Ok)
                     return
             
             # Disable preview button during dry run
@@ -8762,6 +9041,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         song_title_text_effect = self.params['song_title_text_effect']
                         song_title_text_effect_color = self.params['song_title_text_effect_color']
                         song_title_text_effect_intensity = self.params['song_title_text_effect_intensity']
+                        # --- Add layer order parameter ---
+                        layer_order = self.params.get('layer_order', None)
                         extra_overlays = None
                         if use_song_title_overlay:
                             title = extract_mp3_title(dry_mp3)
@@ -8780,8 +9061,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         total_duration = get_audio_duration(dry_mp3)
                         
                         actual_intro_start_at = 0
-                        if intro_start_checkbox_checked:
-                            # Use start from logic: total_duration - start_from_value
+                        if not intro_start_checkbox_checked:
+                            # Use start from logic: countdown from end
                             actual_intro_start_at = int(max(0, total_duration - intro_start_from))
                         else:
                             # Use start at value directly
@@ -8857,7 +9138,9 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             overlay9_duration=overlay9_duration,
                             overlay9_duration_full_checkbox_checked=overlay9_duration_full_checkbox_checked,
                             overlay1_start_at=overlay1_start_at,
-                            overlay2_start_at=overlay2_start_at
+                            overlay2_start_at=overlay2_start_at,
+                            # --- Add layer order parameter ---
+                            layer_order=layer_order
                         )
                         self.finished.emit(success, err if not success else dry_out)
                     except Exception as e:
@@ -8962,7 +9245,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay10_x_percent=self.overlay10_x_percent,
                 overlay10_y_percent=self.overlay10_y_percent,
                 overlay10_effect=self.selected_overlay10_effect,
-                overlay10_start_time=self.overlay10_start_percent,
+                overlay10_start_time=self.overlay10_start_time,
                 overlay10_start_from=0,  # Overlay10 doesn't have start_from UI, use default 0
                 overlay10_duration=self.overlay10_duration,
                 overlay10_start_at_checkbox_checked=True,  # Overlay10 doesn't have start_at checkbox UI, use default True
@@ -9002,7 +9285,9 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 # --- Add song title text effect parameters ---
                 song_title_text_effect=self.song_title_text_effect,
                 song_title_text_effect_color=self.song_title_text_effect_color,
-                song_title_text_effect_intensity=self.song_title_text_effect_intensity
+                song_title_text_effect_intensity=self.song_title_text_effect_intensity,
+                # --- Add layer order parameter ---
+                layer_order=getattr(self, 'layer_order', None)
             )
             worker = DryRunWorker(params)
             thread = QThread()
@@ -9047,6 +9332,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         video_path=msg,
                         open_folder=open_dry_run_folder
                     )
+                    
                     # If pending close, auto-close after 3 seconds
                     if hasattr(self, '_pending_close') and self._pending_close:
                         timer = QTimer(self)

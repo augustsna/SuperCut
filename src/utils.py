@@ -624,3 +624,908 @@ def extract_and_frame_mp3_cover(mp3_path, output_path, default_cover_path="src/s
         else:
             logger.warning(f"No cover found in MP3 and default cover not found at {default_cover_path}")
             return False
+
+def preprocess_background_image(image_path: str, resolution: str, scale_percent: int = 103, crop_position: str = "center", effect: str = "none", intensity: int = 50) -> str:
+    """
+    Preprocess background image with advanced scaling and cropping.
+    
+    Args:
+        image_path: Path to the original background image
+        resolution: Target resolution (e.g., "1920x1080")
+        scale_percent: Scale percentage (default 103 for 103%)
+        crop_position: Crop position ("center", "left", "right", "top", "bottom", "top_left", "top_right", "bottom_left", "bottom_right")
+        effect: Background effect ("none", "gaussian_blur", "sharpen", "vignette")
+        intensity: Effect intensity (0-100)
+    
+    Returns:
+        Path to the processed temporary image file
+    """
+    try:
+        from PIL import Image, ImageFilter, ImageEnhance
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Parse target resolution
+        target_width, target_height = map(int, resolution.split('x'))
+        
+        # Calculate scaled dimensions
+        scale_factor = scale_percent / 100.0
+        scaled_width = int(target_width * scale_factor)
+        scaled_height = int(target_height * scale_factor)
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        # Calculate crop x/y offsets based on position
+        if crop_position == "center":
+            crop_x = f"(in_w-out_w)/2"
+            crop_y = f"(in_h-out_h)/2"
+        elif crop_position == "left":
+            crop_x = "0"
+            crop_y = f"(in_h-out_h)/2"
+        elif crop_position == "right":
+            crop_x = f"in_w-out_w"
+            crop_y = f"(in_h-out_h)/2"
+        elif crop_position == "top":
+            crop_x = f"(in_w-out_w)/2"
+            crop_y = "0"
+        elif crop_position == "bottom":
+            crop_x = f"(in_w-out_w)/2"
+            crop_y = f"in_h-out_h"
+        elif crop_position == "top_left":
+            crop_x = "0"
+            crop_y = "0"
+        elif crop_position == "top_right":
+            crop_x = f"in_w-out_w"
+            crop_y = "0"
+        elif crop_position == "bottom_left":
+            crop_x = "0"
+            crop_y = f"in_h-out_h"
+        elif crop_position == "bottom_right":
+            crop_x = f"in_w-out_w"
+            crop_y = f"in_h-out_h"
+        else:
+            # Default to center
+            crop_x = f"(in_w-out_w)/2"
+            crop_y = f"(in_h-out_h)/2"
+        
+        # Build filter string
+        filter_str = f"scale={scaled_width}:{scaled_height}:flags=lanczos,crop={target_width}:{target_height}:{crop_x}:{crop_y}"
+        
+        # Add effect filters if specified
+        if effect != "none":
+            intensity_factor = intensity / 100.0
+            if effect == "gaussian_blur":
+                sigma = intensity_factor * 10  # 0-10 range
+                filter_str += f",gblur=sigma={sigma:.2f}"
+            elif effect == "sharpen":
+                amount = intensity_factor * 2  # 0-2 range
+                filter_str += f",unsharp=3:3:1.5:3:3:{amount:.2f}"
+            elif effect == "vignette":
+                filter_str += f",vignette={intensity_factor:.2f}"
+        
+        # Use FFmpeg for scaling, cropping, and effects
+        cmd = [
+            FFMPEG_BINARY,
+            '-y',  # Overwrite output file
+            '-i', image_path,
+            '-vf', filter_str,
+            temp_processed_path
+        ]
+        
+        # Execute FFmpeg command
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f"FFmpeg preprocessing failed: {result.stderr}")
+            # Fallback to original image
+            return image_path
+        
+        logger.info(f"Background image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing background image: {e}")
+        # Fallback to original image
+        return image_path
+
+def preprocess_overlay1_image(image_path: str, size_percent: int = 100) -> str:
+    """
+    Preprocess overlay1 image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original overlay1 file
+        size_percent: Scale percentage (default 100 for 100%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Overlay1 video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg overlay1 preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Overlay1 image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing overlay1 image: {e}")
+        # Fallback to original image
+        return image_path
+
+def preprocess_overlay2_image(image_path: str, size_percent: int = 10) -> str:
+    """
+    Preprocess overlay2 image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original overlay2 file
+        size_percent: Scale percentage (default 10 for 10%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Overlay2 video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg overlay2 preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Overlay2 image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing overlay2 image: {e}")
+        # Fallback to original image
+        return image_path
+
+
+def preprocess_overlay3_image(image_path: str, size_percent: int = 10) -> str:
+    """
+    Preprocess overlay3 image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original overlay3 file
+        size_percent: Scale percentage (default 10 for 10%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Overlay3 video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg overlay3 preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Overlay3 image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing overlay3 image: {e}")
+        # Fallback to original image
+        return image_path
+
+
+def preprocess_overlay4_image(image_path: str, size_percent: int = 10) -> str:
+    """
+    Preprocess overlay4 image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original overlay4 file
+        size_percent: Scale percentage (default 10 for 10%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Overlay4 video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg overlay4 preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Overlay4 image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing overlay4 image: {e}")
+        # Fallback to original image
+        return image_path
+
+
+def preprocess_overlay5_image(image_path: str, size_percent: int = 10) -> str:
+    """
+    Preprocess overlay5 image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original overlay5 file
+        size_percent: Scale percentage (default 10 for 10%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Overlay5 video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg overlay5 preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Overlay5 image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing overlay5 image: {e}")
+        # Fallback to original image
+        return image_path
+
+
+def preprocess_overlay6_image(image_path: str, size_percent: int = 10) -> str:
+    """
+    Preprocess overlay6 image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original overlay6 file
+        size_percent: Scale percentage (default 10 for 10%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Overlay6 video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg overlay6 preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Overlay6 image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing overlay6 image: {e}")
+        # Fallback to original image
+        return image_path
+
+
+def preprocess_overlay7_image(image_path: str, size_percent: int = 10) -> str:
+    """
+    Preprocess overlay7 image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original overlay7 file
+        size_percent: Scale percentage (default 10 for 10%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Overlay7 video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg overlay7 preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Overlay7 image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing overlay7 image: {e}")
+        # Fallback to original image
+        return image_path
+
+
+def preprocess_intro_image(image_path: str, size_percent: int = 10) -> str:
+    """
+    Preprocess intro image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original intro file
+        size_percent: Scale percentage (default 10 for 10%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Intro video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg intro preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Intro image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing intro image: {e}")
+        # Fallback to original image
+        return image_path
+
+def preprocess_overlay8_image(image_path: str, size_percent: int = 10) -> str:
+    """
+    Preprocess overlay8 image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original overlay8 file
+        size_percent: Scale percentage (default 10 for 10%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Overlay8 video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg overlay8 preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Overlay8 image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing overlay8 image: {e}")
+        # Fallback to original image
+        return image_path
+
+
+def preprocess_overlay9_image(image_path: str, size_percent: int = 10) -> str:
+    """
+    Preprocess overlay9 image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original overlay9 file
+        size_percent: Scale percentage (default 10 for 10%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Overlay9 video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg overlay9 preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Overlay9 image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing overlay9 image: {e}")
+        # Fallback to original image
+        return image_path
+
+
+def preprocess_framebox_image(image_path: str, size_percent: int = 50) -> str:
+    """
+    Preprocess framebox image with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG/JPEG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original framebox file
+        size_percent: Scale percentage (default 50 for 50%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Framebox video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG/JPEG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg framebox preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Framebox image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing framebox image: {e}")
+        # Fallback to original image
+        return image_path
+
+
+def preprocess_overlay10_image(image_path: str, size_percent: int = 10) -> str:
+    """
+    Preprocess overlay10 image/video with advanced scaling.
+    For GIF files: No preprocessing, handled directly by FFmpeg.
+    For video files: No preprocessing, handled directly by FFmpeg.
+    For static images (PNG/JPG): Scale with high quality Lanczos filtering.
+    
+    Args:
+        image_path: Path to the original overlay10 file
+        size_percent: Scale percentage (default 10 for 10%)
+    
+    Returns:
+        Path to the processed temporary file or original path if no preprocessing
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = size_percent / 100.0
+        
+        # Check file type
+        file_ext = os.path.splitext(image_path)[1].lower()
+        is_gif = file_ext == '.gif'
+        is_video = file_ext in ['.mp4', '.mov', '.mkv']
+        is_image = file_ext in ['.png', '.jpg', '.jpeg']
+        
+        # For video files, don't preprocess - let FFmpeg handle scaling
+        if is_video:
+            logger.info(f"Overlay10 video file detected: {os.path.basename(image_path)} - using original path")
+            return image_path
+        
+        # Create temporary file for processed image
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        if is_gif:
+            # GIFs are no longer preprocessed - return original path for FFmpeg to handle directly
+            logger.info(f"GIF file detected: {os.path.basename(image_path)} - skipping preprocessing, will be handled directly by FFmpeg")
+            return image_path
+        else:
+            # Regular scaling for PNG/JPG files
+            filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+            
+            cmd = [
+                FFMPEG_BINARY,
+                '-y',  # Overwrite output file
+                '-i', image_path,
+                '-vf', filter_str,
+                temp_processed_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                logger.error(f"FFmpeg overlay10 preprocessing failed: {result.stderr}")
+                # Fallback to original image
+                return image_path
+        
+        logger.info(f"Overlay10 image preprocessed: {os.path.basename(image_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing overlay10 image: {e}")
+        # Fallback to original image
+        return image_path

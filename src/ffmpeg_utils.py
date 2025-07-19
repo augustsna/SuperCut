@@ -198,6 +198,9 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     frame_box_pad_right: int = 12,
     frame_box_pad_top: int = 12,
     frame_box_pad_bottom: int = 12,
+    # --- Add frame box custom image parameters ---
+    use_frame_box_custom_image: bool = False,
+    frame_box_custom_image_path: str = "",
     # --- Add frame mp3cover parameters ---
     use_frame_mp3cover: bool = False,
     frame_mp3cover_path: str = "",
@@ -210,18 +213,15 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     frame_mp3cover_duration_full_checkbox_checked: bool = True,
     overlay1_start_at: int = 0,
     overlay2_start_at: int = 0,
-    # --- Add background layer parameters ---
-    use_bg_layer: bool = False,
-    bg_scale_percent: int = 103,
-    bg_crop_position: str = "center",
-    bg_effect: str = "none",
-    bg_intensity: int = 50,
+    # --- Background layer parameters are now handled in advance during image preprocessing ---
     # --- Add soundwave overlay parameters ---
     use_soundwave_overlay: bool = False,
     soundwave_overlay_path: str = "",
     soundwave_size_percent: int = 50,
     soundwave_x_percent: int = 50,
-    soundwave_y_percent: int = 50
+    soundwave_y_percent: int = 50,
+    # --- Add layer order parameter ---
+    layer_order: Optional[List[str]] = None
 ) -> Tuple[bool, Optional[str]]:
     temp_png_path = None
     try:
@@ -292,21 +292,24 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         frame_box_idx = None
         frame_mp3cover_idx = None
         input_idx = 2
-        if use_intro and intro_path and ext_intro in ['.gif', '.png']:
+        if use_intro and intro_path and ext_intro in ['.gif', '.png', '.mp4', '.mov', '.mkv']:
             if ext_intro == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", intro_path])
             elif ext_intro == '.png':
                 cmd.extend(["-loop", "1", "-i", intro_path])
+            elif ext_intro in ['.mp4', '.mov', '.mkv']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", intro_path])
             else:
                 cmd.extend(["-i", intro_path])
             intro_idx = input_idx
             input_idx += 1
-        if use_overlay and overlay1_path and ext1 in ['.gif', '.png', '.mp4']:
+        if use_overlay and overlay1_path and ext1 in ['.gif', '.png', '.mp4', '.mov', '.mkv']:
             if ext1 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay1_path])
             elif ext1 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay1_path])
-            elif ext1 == '.mp4':
+            elif ext1 in ['.mp4', '.mov', '.mkv']:
                 # For MP4 overlays, start from the beginning at the overlay1_start_at time
                 # Use -itsoffset to delay the overlay input
                 cmd.extend(["-itsoffset", str(overlay1_start_at), "-stream_loop", "-1", "-i", overlay1_path])
@@ -314,20 +317,26 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 cmd.extend(["-i", overlay1_path])
             overlay1_idx = input_idx
             input_idx += 1
-        if use_overlay2 and overlay2_path and ext2 in ['.gif', '.png']:
+        if use_overlay2 and overlay2_path and ext2 in ['.gif', '.png', '.mp4', '.mov', '.mkv']:
             if ext2 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay2_path])
             elif ext2 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay2_path])
+            elif ext2 in ['.mp4', '.mov', '.mkv']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", overlay2_path])
             else:
                 cmd.extend(["-i", overlay2_path])
             overlay2_idx = input_idx
             input_idx += 1
-        if use_overlay3 and overlay3_path and ext3 in ['.gif', '.png']:
+        if use_overlay3 and overlay3_path and ext3 in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
             if ext3 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay3_path])
             elif ext3 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay3_path])
+            elif ext3 in ['.mp4', '.mov', '.mkv']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", overlay3_path])
             else:
                 cmd.extend(["-i", overlay3_path])
             overlay3_idx = input_idx
@@ -368,29 +377,38 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 cmd.extend(["-i", overlay7_path])
             overlay7_idx = input_idx
             input_idx += 1
-        if use_overlay8 and overlay8_path and ext8 in ['.gif', '.png']:
+        if use_overlay8 and overlay8_path and ext8 in ['.gif', '.png', '.mp4', '.mov', '.mkv']:
             if ext8 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay8_path])
             elif ext8 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay8_path])
+            elif ext8 in ['.mp4', '.mov', '.mkv']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", overlay8_path])
             else:
                 cmd.extend(["-i", overlay8_path])
             overlay8_idx = input_idx
             input_idx += 1
-        if use_overlay9 and overlay9_path and ext9 in ['.gif', '.png']:
+        if use_overlay9 and overlay9_path and ext9 in ['.gif', '.png', '.mp4', '.mov', '.mkv']:
             if ext9 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay9_path])
             elif ext9 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay9_path])
+            elif ext9 in ['.mp4', '.mov', '.mkv']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", overlay9_path])
             else:
                 cmd.extend(["-i", overlay9_path])
             overlay9_idx = input_idx
             input_idx += 1
-        if use_overlay10 and overlay10_path and ext10 in ['.gif', '.png']:
+        if use_overlay10 and overlay10_path and ext10 in ['.gif', '.png', '.mp4', '.mov', '.mkv']:
             if ext10 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay10_path])
             elif ext10 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay10_path])
+            elif ext10 in ['.mp4', '.mov', '.mkv']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", overlay10_path])
             else:
                 cmd.extend(["-i", overlay10_path])
             overlay10_idx = input_idx
@@ -431,42 +449,249 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         # Build filter graph with correct indices
         overlays_present = use_intro or use_overlay or use_overlay2 or use_overlay3 or use_overlay4 or use_overlay5 or use_overlay6 or use_overlay7 or use_overlay8 or use_overlay9 or use_overlay10 or use_frame_box or use_frame_mp3cover or bool(extra_overlays) or use_soundwave_overlay
         if overlays_present:
-            scale_factor_intro = intro_size_percent / 100.0
-            owi = f"iw*{scale_factor_intro:.3f}"
-            ohi = f"ih*{scale_factor_intro:.3f}"
-            scale_factor1 = overlay1_size_percent / 100.0
-            ow1 = f"iw*{scale_factor1:.3f}"
-            oh1 = f"ih*{scale_factor1:.3f}"
-            scale_factor2 = overlay2_size_percent / 100.0
-            ow2 = f"iw*{scale_factor2:.3f}"
-            oh2 = f"ih*{scale_factor2:.3f}"
-            scale_factor3 = overlay3_size_percent / 100.0
-            ow3 = f"iw*{scale_factor3:.3f}"
-            oh3 = f"ih*{scale_factor3:.3f}"
-            scale_factor4 = overlay4_size_percent / 100.0
-            ow4 = f"iw*{scale_factor4:.3f}"
-            oh4 = f"ih*{scale_factor4:.3f}"
-            scale_factor5 = overlay5_size_percent / 100.0
-            ow5 = f"iw*{scale_factor5:.3f}"
-            oh5 = f"ih*{scale_factor5:.3f}"
-            scale_factor6 = overlay6_size_percent / 100.0
-            ow6 = f"iw*{scale_factor6:.3f}"
-            oh6 = f"ih*{scale_factor6:.3f}"
-            scale_factor7 = overlay7_size_percent / 100.0
-            ow7 = f"iw*{scale_factor7:.3f}"
-            oh7 = f"ih*{scale_factor7:.3f}"
-            scale_factor8 = overlay8_size_percent / 100.0
-            ow8 = f"iw*{scale_factor8:.3f}"
-            oh8 = f"ih*{scale_factor8:.3f}"
-            scale_factor9 = overlay9_size_percent / 100.0
-            ow9 = f"iw*{scale_factor9:.3f}"
-            oh9 = f"ih*{scale_factor9:.3f}"
-            scale_factor10 = overlay10_size_percent / 100.0
-            ow10 = f"iw*{scale_factor10:.3f}"
-            oh10 = f"ih*{scale_factor10:.3f}"
-            scale_factor_frame_box = frame_box_size_percent / 100.0
-            ow_frame_box = f"iw*{scale_factor_frame_box:.3f}"
-            oh_frame_box = f"ih*{scale_factor_frame_box:.3f}"
+            # Check if intro is preprocessed (only for non-GIF images)
+            intro_filename = os.path.basename(intro_path) if intro_path else ""
+            is_intro_preprocessed = intro_filename.startswith("supercut_")
+            intro_ext = os.path.splitext(intro_path)[1].lower() if intro_path else ""
+            is_intro_gif = intro_ext == '.gif'
+            is_intro_video = intro_path and intro_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_intro_preprocessed and not is_intro_gif:
+                # Intro is preprocessed non-GIF image - use original size
+                owi = "iw"
+                ohi = "ih"
+            elif is_intro_gif or is_intro_video:
+                # Intro is GIF or video - apply scaling in FFmpeg
+                scale_factor_intro = intro_size_percent / 100.0
+                owi = f"iw*{scale_factor_intro:.3f}"
+                ohi = f"ih*{scale_factor_intro:.3f}"
+            else:
+                # Intro is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor_intro = intro_size_percent / 100.0
+                owi = f"iw*{scale_factor_intro:.3f}"
+                ohi = f"ih*{scale_factor_intro:.3f}"
+            
+            # Check if overlay1 is preprocessed (only for non-GIF images)
+            overlay1_filename = os.path.basename(overlay1_path) if overlay1_path else ""
+            is_overlay1_preprocessed = overlay1_filename.startswith("supercut_")
+            overlay1_ext = os.path.splitext(overlay1_path)[1].lower() if overlay1_path else ""
+            is_overlay1_gif = overlay1_ext == '.gif'
+            is_overlay1_video = overlay1_path and overlay1_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay1_preprocessed and not is_overlay1_gif:
+                # Overlay1 is preprocessed non-GIF image - use original size
+                ow1 = "iw"
+                oh1 = "ih"
+            elif is_overlay1_gif or is_overlay1_video:
+                # Overlay1 is GIF or video - apply scaling in FFmpeg
+                scale_factor1 = overlay1_size_percent / 100.0
+                ow1 = f"iw*{scale_factor1:.3f}"
+                oh1 = f"ih*{scale_factor1:.3f}"
+            else:
+                # Overlay1 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor1 = overlay1_size_percent / 100.0
+                ow1 = f"iw*{scale_factor1:.3f}"
+                oh1 = f"ih*{scale_factor1:.3f}"
+            
+            # Check if overlay2 is preprocessed (only for non-GIF images)
+            overlay2_filename = os.path.basename(overlay2_path) if overlay2_path else ""
+            is_overlay2_preprocessed = overlay2_filename.startswith("supercut_")
+            overlay2_ext = os.path.splitext(overlay2_path)[1].lower() if overlay2_path else ""
+            is_overlay2_gif = overlay2_ext == '.gif'
+            is_overlay2_video = overlay2_path and overlay2_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay2_preprocessed and not is_overlay2_gif:
+                # Overlay2 is preprocessed non-GIF image - use original size
+                ow2 = "iw"
+                oh2 = "ih"
+            elif is_overlay2_gif or is_overlay2_video:
+                # Overlay2 is GIF or video - apply scaling in FFmpeg
+                scale_factor2 = overlay2_size_percent / 100.0
+                ow2 = f"iw*{scale_factor2:.3f}"
+                oh2 = f"ih*{scale_factor2:.3f}"
+            else:
+                # Overlay2 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor2 = overlay2_size_percent / 100.0
+                ow2 = f"iw*{scale_factor2:.3f}"
+                oh2 = f"ih*{scale_factor2:.3f}"
+            
+            # Check if overlay3 is preprocessed (only for non-GIF images)
+            overlay3_filename = os.path.basename(overlay3_path) if overlay3_path else ""
+            is_overlay3_preprocessed = overlay3_filename.startswith("supercut_")
+            overlay3_ext = os.path.splitext(overlay3_path)[1].lower() if overlay3_path else ""
+            is_overlay3_gif = overlay3_ext == '.gif'
+            is_overlay3_video = overlay3_path and overlay3_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay3_preprocessed and not is_overlay3_gif:
+                # Overlay3 is preprocessed non-GIF image - use original size
+                ow3 = "iw"
+                oh3 = "ih"
+            elif is_overlay3_gif or is_overlay3_video:
+                # Overlay3 is GIF or video - apply scaling in FFmpeg
+                scale_factor3 = overlay3_size_percent / 100.0
+                ow3 = f"iw*{scale_factor3:.3f}"
+                oh3 = f"ih*{scale_factor3:.3f}"
+            else:
+                # Overlay3 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor3 = overlay3_size_percent / 100.0
+                ow3 = f"iw*{scale_factor3:.3f}"
+                oh3 = f"ih*{scale_factor3:.3f}"
+            
+            # Check if overlay4 is preprocessed (only for non-GIF images)
+            overlay4_filename = os.path.basename(overlay4_path) if overlay4_path else ""
+            is_overlay4_preprocessed = overlay4_filename.startswith("supercut_")
+            overlay4_ext = os.path.splitext(overlay4_path)[1].lower() if overlay4_path else ""
+            is_overlay4_gif = overlay4_ext == '.gif'
+            is_overlay4_video = overlay4_path and overlay4_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay4_preprocessed and not is_overlay4_gif:
+                # Overlay4 is preprocessed non-GIF image - use original size
+                ow4 = "iw"
+                oh4 = "ih"
+            elif is_overlay4_gif or is_overlay4_video:
+                # Overlay4 is GIF or video - apply scaling in FFmpeg
+                scale_factor4 = overlay4_size_percent / 100.0
+                ow4 = f"iw*{scale_factor4:.3f}"
+                oh4 = f"ih*{scale_factor4:.3f}"
+            else:
+                # Overlay4 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor4 = overlay4_size_percent / 100.0
+                ow4 = f"iw*{scale_factor4:.3f}"
+                oh4 = f"ih*{scale_factor4:.3f}"
+            
+            # Check if overlay5 is preprocessed (only for non-GIF images)
+            overlay5_filename = os.path.basename(overlay5_path) if overlay5_path else ""
+            is_overlay5_preprocessed = overlay5_filename.startswith("supercut_")
+            overlay5_ext = os.path.splitext(overlay5_path)[1].lower() if overlay5_path else ""
+            is_overlay5_gif = overlay5_ext == '.gif'
+            is_overlay5_video = overlay5_path and overlay5_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay5_preprocessed and not is_overlay5_gif:
+                # Overlay5 is preprocessed non-GIF image - use original size
+                ow5 = "iw"
+                oh5 = "ih"
+            elif is_overlay5_gif or is_overlay5_video:
+                # Overlay5 is GIF or video - apply scaling in FFmpeg
+                scale_factor5 = overlay5_size_percent / 100.0
+                ow5 = f"iw*{scale_factor5:.3f}"
+                oh5 = f"ih*{scale_factor5:.3f}"
+            else:
+                # Overlay5 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor5 = overlay5_size_percent / 100.0
+                ow5 = f"iw*{scale_factor5:.3f}"
+                oh5 = f"ih*{scale_factor5:.3f}"
+            
+            # Check if overlay6 is preprocessed (only for non-GIF images)
+            overlay6_filename = os.path.basename(overlay6_path) if overlay6_path else ""
+            is_overlay6_preprocessed = overlay6_filename.startswith("supercut_")
+            overlay6_ext = os.path.splitext(overlay6_path)[1].lower() if overlay6_path else ""
+            is_overlay6_gif = overlay6_ext == '.gif'
+            is_overlay6_video = overlay6_path and overlay6_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay6_preprocessed and not is_overlay6_gif:
+                # Overlay6 is preprocessed non-GIF image - use original size
+                ow6 = "iw"
+                oh6 = "ih"
+            elif is_overlay6_gif or is_overlay6_video:
+                # Overlay6 is GIF or video - apply scaling in FFmpeg
+                scale_factor6 = overlay6_size_percent / 100.0
+                ow6 = f"iw*{scale_factor6:.3f}"
+                oh6 = f"ih*{scale_factor6:.3f}"
+            else:
+                # Overlay6 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor6 = overlay6_size_percent / 100.0
+                ow6 = f"iw*{scale_factor6:.3f}"
+                oh6 = f"ih*{scale_factor6:.3f}"
+            
+            # Check if overlay7 is preprocessed (only for non-GIF images)
+            overlay7_filename = os.path.basename(overlay7_path) if overlay7_path else ""
+            is_overlay7_preprocessed = overlay7_filename.startswith("supercut_")
+            overlay7_ext = os.path.splitext(overlay7_path)[1].lower() if overlay7_path else ""
+            is_overlay7_gif = overlay7_ext == '.gif'
+            is_overlay7_video = overlay7_path and overlay7_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay7_preprocessed and not is_overlay7_gif:
+                # Overlay7 is preprocessed non-GIF image - use original size
+                ow7 = "iw"
+                oh7 = "ih"
+            elif is_overlay7_gif or is_overlay7_video:
+                # Overlay7 is GIF or video - apply scaling in FFmpeg
+                scale_factor7 = overlay7_size_percent / 100.0
+                ow7 = f"iw*{scale_factor7:.3f}"
+                oh7 = f"ih*{scale_factor7:.3f}"
+            else:
+                # Overlay7 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor7 = overlay7_size_percent / 100.0
+                ow7 = f"iw*{scale_factor7:.3f}"
+                oh7 = f"ih*{scale_factor7:.3f}"
+            
+            # Check if overlay8 is preprocessed (only for non-GIF images)
+            overlay8_filename = os.path.basename(overlay8_path) if overlay8_path else ""
+            is_overlay8_preprocessed = overlay8_filename.startswith("supercut_")
+            overlay8_ext = os.path.splitext(overlay8_path)[1].lower() if overlay8_path else ""
+            is_overlay8_gif = overlay8_ext == '.gif'
+            is_overlay8_video = overlay8_path and overlay8_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay8_preprocessed and not is_overlay8_gif:
+                # Overlay8 is preprocessed non-GIF image - use original size
+                ow8 = "iw"
+                oh8 = "ih"
+            elif is_overlay8_gif or is_overlay8_video:
+                # Overlay8 is GIF or video - apply scaling in FFmpeg
+                scale_factor8 = overlay8_size_percent / 100.0
+                ow8 = f"iw*{scale_factor8:.3f}"
+                oh8 = f"ih*{scale_factor8:.3f}"
+            else:
+                # Overlay8 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor8 = overlay8_size_percent / 100.0
+                ow8 = f"iw*{scale_factor8:.3f}"
+                oh8 = f"ih*{scale_factor8:.3f}"
+            
+            # Check if overlay9 is preprocessed (only for non-GIF images)
+            overlay9_filename = os.path.basename(overlay9_path) if overlay9_path else ""
+            is_overlay9_preprocessed = overlay9_filename.startswith("supercut_")
+            overlay9_ext = os.path.splitext(overlay9_path)[1].lower() if overlay9_path else ""
+            is_overlay9_gif = overlay9_ext == '.gif'
+            is_overlay9_video = overlay9_path and overlay9_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay9_preprocessed and not is_overlay9_gif:
+                # Overlay9 is preprocessed non-GIF image - use original size
+                ow9 = "iw"
+                oh9 = "ih"
+            elif is_overlay9_gif or is_overlay9_video:
+                # Overlay9 is GIF or video - apply scaling in FFmpeg
+                scale_factor9 = overlay9_size_percent / 100.0
+                ow9 = f"iw*{scale_factor9:.3f}"
+                oh9 = f"ih*{scale_factor9:.3f}"
+            else:
+                # Overlay9 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor9 = overlay9_size_percent / 100.0
+                ow9 = f"iw*{scale_factor9:.3f}"
+                oh9 = f"ih*{scale_factor9:.3f}"
+            # Check if overlay10 is preprocessed (only for non-GIF images)
+            overlay10_filename = os.path.basename(overlay10_path) if overlay10_path else ""
+            is_overlay10_preprocessed = overlay10_filename.startswith("supercut_")
+            overlay10_ext = os.path.splitext(overlay10_path)[1].lower() if overlay10_path else ""
+            is_overlay10_gif = overlay10_ext == '.gif'
+            is_overlay10_video = overlay10_path and overlay10_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay10_preprocessed and not is_overlay10_gif:
+                # Overlay10 is preprocessed non-GIF image - use original size
+                ow10 = "iw"
+                oh10 = "ih"
+            elif is_overlay10_gif or is_overlay10_video:
+                # Overlay10 is GIF or video - apply scaling in FFmpeg
+                scale_factor10 = overlay10_size_percent / 100.0
+                ow10 = f"iw*{scale_factor10:.3f}"
+                oh10 = f"ih*{scale_factor10:.3f}"
+            else:
+                # Overlay10 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor10 = overlay10_size_percent / 100.0
+                ow10 = f"iw*{scale_factor10:.3f}"
+                oh10 = f"ih*{scale_factor10:.3f}"
+            # Framebox is pre-scaled, use original dimensions
+            ow_frame_box = "iw"
+            oh_frame_box = "ih"
             scale_factor_frame_mp3cover = frame_mp3cover_size_percent / 100.0
             ow_frame_mp3cover = f"iw*{scale_factor_frame_mp3cover:.3f}"
             oh_frame_mp3cover = f"ih*{scale_factor_frame_mp3cover:.3f}"
@@ -513,59 +738,18 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             oy_frame_box = f"({base_y})+{frame_box_pad_top}"
             ox_frame_mp3cover = f"(W-w)*{frame_mp3cover_x_percent}/100" if frame_mp3cover_x_percent != 0 else "0"
             oy_frame_mp3cover = f"(H-h)*(1-({frame_mp3cover_y_percent}/100))" if frame_mp3cover_y_percent != 100 else "0"
-            # Use configurable background scale if enabled, otherwise use default 103%
-            bg_scale = bg_scale_percent / 100.0 if use_bg_layer else 1.03
-            # Calculate crop x/y offsets based on position
-            crop_x = crop_y = 0
-            if use_bg_layer:
-                if bg_crop_position == "center":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "left":
-                    crop_x = 0
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "top":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = 0
-                elif bg_crop_position == "bottom":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"in_h-out_h"
-                elif bg_crop_position == "top_left":
-                    crop_x = 0
-                    crop_y = 0
-                elif bg_crop_position == "top_right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = 0
-                elif bg_crop_position == "bottom_left":
-                    crop_x = 0
-                    crop_y = f"in_h-out_h"
-                elif bg_crop_position == "bottom_right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = f"in_h-out_h"
-                else:
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"(in_h-out_h)/2"
-            else:
-                crop_x = f"(in_w-out_w)/2"
-                crop_y = f"(in_h-out_h)/2"
-            # Apply background effects if enabled
-            effect_filter = ""
-            if use_bg_layer and bg_effect != "none":
-                intensity_factor = bg_intensity / 100.0
-                if bg_effect == "gaussian_blur":
-                    sigma = intensity_factor * 10  # 0-10 range
-                    effect_filter = f",gblur=sigma={sigma:.2f}"
-                elif bg_effect == "sharpen":
-                    amount = intensity_factor * 2  # 0-2 range
-                    effect_filter = f",unsharp=3:3:1.5:3:3:{amount:.2f}"
-                elif bg_effect == "vignette":
-                    # Use simple vignette intensity
-                    effect_filter = f",vignette={intensity_factor:.2f}"
             
-            filter_bg = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}:{crop_x}:{crop_y}{effect_filter}[bg]"
+            # Check if background is preprocessed (already correct size)
+            # Background is always PNG, so no need to check for GIF
+            bg_filename = os.path.basename(image_path_for_ffmpeg)
+            is_bg_preprocessed = bg_filename.startswith("supercut_")
+            
+            if is_bg_preprocessed:
+                # Background is preprocessed PNG - no scaling needed
+                filter_bg = f"[0:v]null[bg]"
+            else:
+                # Background needs scaling to target resolution
+                filter_bg = f"[0:v]scale={width}:{height}[bg]"
 
             # Effect logic for overlays
             def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext, duration=None):
@@ -579,10 +763,10 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 chain = f"[{idx}:v]"
                 if ext == ".gif":
                     chain += "fps=30,"
-                elif ext == ".mp4":
+                elif ext in [".mp4", ".mov", ".mkv"]:
                     # For video overlays, we need to handle them differently
                     # Videos already have their own fps, so we don't force fps=30
-                    # MP4 files are now looped infinitely like GIFs
+                    # Video files are now looped infinitely like GIFs
                     pass
                 chain += "format=rgba,"
                 fade_alpha = ":alpha=1" if ext == ".png" else ""
@@ -596,14 +780,33 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         hold_duration = 5  # Fallback to 5 seconds if no duration provided
                     fadein_end = effect_time + fadein_duration
                     fadeout_start = fadein_end + hold_duration
-                    chain += f"fade=t=in:st={effect_time}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=in:st={effect_time}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
+                    else:
+                        chain += f"fade=t=in:st={effect_time}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha}"
                 elif effect == "fadein":
-                    chain += f"fade=t=in:st={effect_time}:d=1{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=in:st={effect_time}:d=1{fade_alpha},"
+                    else:
+                        chain += f"fade=t=in:st={effect_time}:d=1{fade_alpha}"
                 elif effect == "fadeout":
-                    chain += f"fade=t=out:st={effect_time}:d=1{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=out:st={effect_time}:d=1{fade_alpha},"
+                    else:
+                        chain += f"fade=t=out:st={effect_time}:d=1{fade_alpha}"
                 elif effect == "zoompan":
-                    chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
-                chain += f"scale={scale_expr}[{label}]"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                    else:
+                        chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+                # Add scale operation only if necessary
+                if scale_expr != "iw:ih":
+                    chain += f"scale={scale_expr}"
+                chain += f"[{label}]"
                 return chain
 
             def intro_effect_chain(idx, scale_expr, label, effect, duration, start_at, ext):
@@ -612,27 +815,51 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 chain = f"[{idx}:v]"
                 if ext == ".gif":
                     chain += "fps=30,"
+                elif ext in [".mp4", ".mov", ".mkv"]:
+                    # For video overlays, we need to handle them differently
+                    # Videos already have their own fps, so we don't force fps=30
+                    # Video files are now looped infinitely like GIFs
+                    pass
                 chain += "format=rgba,"
                 fade_alpha = ":alpha=1" if ext == ".png" else ""
                 if effect == "fadein":
-                    chain += f"fade=t=in:st={start_at}:d=1{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=in:st={start_at}:d=1{fade_alpha},"
+                    else:
+                        chain += f"fade=t=in:st={start_at}:d=1{fade_alpha}"
                 elif effect == "fadeout":
                     # Use duration if provided, otherwise use default calculation
                     if duration is not None:
                         fadeout_start = start_at + duration - 1.5
                     else:
                         fadeout_start = start_at + 6 - 1.5  # Default 6 seconds
-                    chain += f"fade=t=out:st={fadeout_start}:d=1.5{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=out:st={fadeout_start}:d=1.5{fade_alpha},"
+                    else:
+                        chain += f"fade=t=out:st={fadeout_start}:d=1.5{fade_alpha}"
                 elif effect == "fadeinout":
                     # Use duration if provided, otherwise use default calculation
                     if duration is not None:
                         fadeout_start = start_at + duration - 1.5
                     else:
                         fadeout_start = start_at + 6 - 1.5  # Default 6 seconds
-                    chain += f"fade=t=in:st={start_at}:d=1.5{fade_alpha},fade=t=out:st={fadeout_start}:d=1.5{fade_alpha},"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"fade=t=in:st={start_at}:d=1.5{fade_alpha},fade=t=out:st={fadeout_start}:d=1.5{fade_alpha},"
+                    else:
+                        chain += f"fade=t=in:st={start_at}:d=1.5{fade_alpha},fade=t=out:st={fadeout_start}:d=1.5{fade_alpha}"
                 elif effect == "zoompan":
-                    chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
-                chain += f"scale={scale_expr}[{label}]"
+                    # Add comma only if scale operation will follow
+                    if scale_expr != "iw:ih":
+                        chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                    else:
+                        chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+                # Add scale operation only if necessary
+                if scale_expr != "iw:ih":
+                    chain += f"scale={scale_expr}"
+                chain += f"[{label}]"
                 return chain
 
             # Calculate duration for intro based on full duration checkbox
@@ -674,17 +901,11 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             if not overlay8_duration_full_checkbox_checked:
                 overlay8_actual_duration = overlay8_duration
             
-            # Debug overlay8 parameters
-            print(f"FFmpeg Debug - Overlay8: start_time={overlay8_start_time}, duration={overlay8_duration}, effect={overlay8_effect}")
-            
             filter_overlay8 = overlay_effect_chain(overlay8_idx, f"{ow8}:{oh8}", "ol8", overlay8_effect, overlay8_start_time, ext8, overlay8_actual_duration) if overlay8_idx is not None else ""
             # Calculate duration for overlay9 based on full duration checkbox
             overlay9_actual_duration = None
             if not overlay9_duration_full_checkbox_checked:
                 overlay9_actual_duration = overlay9_duration
-            
-            # Debug overlay9 parameters
-            print(f"FFmpeg Debug - Overlay9: start_time={overlay9_start_time}, duration={overlay9_duration}, effect={overlay9_effect}")
             
             filter_overlay9 = overlay_effect_chain(overlay9_idx, f"{ow9}:{oh9}", "ol9", overlay9_effect, overlay9_start_time, ext9, overlay9_actual_duration) if overlay9_idx is not None else ""
             filter_overlay10 = overlay_effect_chain(overlay10_idx, f"{ow10}:{oh10}", "ol10", overlay10_effect, overlay10_start_time, ext10, overlay10_duration) if overlay10_idx is not None else ""
@@ -693,7 +914,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             if not frame_box_duration_full_checkbox_checked:
                 frame_box_actual_duration = frame_box_duration
             
-            filter_frame_box = overlay_effect_chain(frame_box_idx, f"{ow_frame_box}:{oh_frame_box}", "ol_frame_box", frame_box_effect, frame_box_start_time, ext_frame_box, frame_box_actual_duration) if frame_box_idx is not None else ""
+            filter_frame_box = overlay_effect_chain(frame_box_idx, "iw:ih", "ol_frame_box", frame_box_effect, frame_box_start_time, ext_frame_box, frame_box_actual_duration) if frame_box_idx is not None else ""
             # Calculate duration for frame mp3cover based on full duration checkbox
             frame_mp3cover_actual_duration = None
             if not frame_mp3cover_duration_full_checkbox_checked:
@@ -743,15 +964,34 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                             hold_duration = max(0, duration - fadein_duration - fadeout_duration)
                             fadein_end = start + fadein_duration
                             fadeout_start = fadein_end + hold_duration
-                            chain += f"fade=t=in:st={start}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
+                            # Add comma only if scale operation will follow
+                            if scale_expr != "iw:ih":
+                                chain += f"fade=t=in:st={start}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
+                            else:
+                                chain += f"fade=t=in:st={start}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha}"
                         elif effect == "fadein":
-                            chain += f"fade=t=in:st={start}:d=1{fade_alpha},"
+                            # Add comma only if scale operation will follow
+                            if scale_expr != "iw:ih":
+                                chain += f"fade=t=in:st={start}:d=1{fade_alpha},"
+                            else:
+                                chain += f"fade=t=in:st={start}:d=1{fade_alpha}"
                         elif effect == "fadeout":
-                            chain += f"fade=t=out:st={start}:d=1{fade_alpha},"
+                            # Add comma only if scale operation will follow
+                            if scale_expr != "iw:ih":
+                                chain += f"fade=t=out:st={start}:d=1{fade_alpha},"
+                            else:
+                                chain += f"fade=t=out:st={start}:d=1{fade_alpha}"
                         elif effect == "zoompan":
-                            chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                            # Add comma only if scale operation will follow
+                            if scale_expr != "iw:ih":
+                                chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                            else:
+                                chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
                         
-                        chain += f"scale={scale_expr}[{label}]"
+                        # Add scale operation only if necessary
+                        if scale_expr != "iw:ih":
+                            chain += f"scale={scale_expr}"
+                        chain += f"[{label}]"
                         filter_chains.append(chain)
                         overlay_labels.append((label, start, duration, x_expr, y_expr))
                         
@@ -783,212 +1023,208 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         filter_chains.append(chain)
                         overlay_labels.append((label, start, duration, x_expr, y_expr))
             # --- End Song Title Overlay Filter Graph ---
+            # Print layer order information for debugging
+            if layer_order:
+                print(f"🎨 Custom layer order: {layer_order}")
+            else:
+                print(f"🎨 Using default layer order")
+            
+            # Build filter graph based on layer order
             filter_graph = filter_bg
             last_label = "[bg]"
-            # Overlay 1
-            if filter_overlay1:
-                filter_graph += f";{filter_overlay1}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay1_2_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";[bg][ol1]overlay={ox1}:{oy1}:enable='gte(t,{overlay1_start_at})'[tmp1]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";[bg][ol1]overlay={ox1}:{oy1}:enable='between(t,{overlay1_start_at},{overlay1_start_at+overlay1_2_duration})'[tmp1]"
-                last_label = "[tmp1]"
-            # Overlay 2
-            if filter_overlay2:
-                filter_graph += f";{filter_overlay2}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay1_2_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol2]overlay={ox2}:{oy2}:enable='gte(t,{overlay2_start_at})'[tmp2]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol2]overlay={ox2}:{oy2}:enable='between(t,{overlay2_start_at},{overlay2_start_at+overlay1_2_duration})'[tmp2]"
-                last_label = "[tmp2]"
-            # Overlay 3
-            if filter_overlay3:
-                filter_graph += f";{filter_overlay3}"
-                filter_graph += f";{last_label}[ol3]overlay={ox3}:{oy3}[tmp3]"
-                last_label = "[tmp3]"
-            # Overlay 4
-            if filter_overlay4:
-                filter_graph += f";{filter_overlay4}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay4_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}:enable='gte(t,{overlay4_start_time})'[tmp4]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol4]overlay={ox4}:{oy4}:enable='between(t,{overlay4_start_time},{overlay4_start_time+overlay4_duration})'[tmp4]"
-                last_label = "[tmp4]"
-            # Overlay 5
-            if filter_overlay5:
-                filter_graph += f";{filter_overlay5}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay5_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}:enable='gte(t,{overlay5_start_time})'[tmp5]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol5]overlay={ox5}:{oy5}:enable='between(t,{overlay5_start_time},{overlay5_start_time+overlay5_duration})'[tmp5]"
-                last_label = "[tmp5]"
-            # Overlay 6
-            if filter_overlay6:
-                filter_graph += f";{filter_overlay6}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay6_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol6]overlay={ox6}:{oy6}:enable='gte(t,{overlay6_start_time})'[tmp6]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol6]overlay={ox6}:{oy6}:enable='between(t,{overlay6_start_time},{overlay6_start_time+overlay6_duration})'[tmp6]"
-                last_label = "[tmp6]"
-            # Overlay 7
-            if filter_overlay7:
-                filter_graph += f";{filter_overlay7}"
-                # Use duration control like overlay8 if duration full checkbox is not checked
-                if overlay7_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol7]overlay={ox7}:{oy7}:enable='gte(t,{overlay7_start_time})'[tmp7]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol7]overlay={ox7}:{oy7}:enable='between(t,{overlay7_start_time},{overlay7_start_time+overlay7_duration})'[tmp7]"
-                last_label = "[tmp7]"
-            # Overlay 8
-            if filter_overlay8:
-                filter_graph += f";{filter_overlay8}"
-                # Use duration control like intro if duration full checkbox is not checked
-                if overlay8_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol8]overlay={ox8}:{oy8}:enable='gte(t,{overlay8_start_time})'[tmp8]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol8]overlay={ox8}:{oy8}:enable='between(t,{overlay8_start_time},{overlay8_start_time+overlay8_duration})'[tmp8]"
-                last_label = "[tmp8]"
-            # Overlay 9
-            if filter_overlay9:
-                filter_graph += f";{filter_overlay9}"
-                # Use duration control like intro if duration full checkbox is not checked
-                if overlay9_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol9]overlay={ox9}:{oy9}:enable='gte(t,{overlay9_start_time})'[tmp9]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol9]overlay={ox9}:{oy9}:enable='between(t,{overlay9_start_time},{overlay9_start_time+overlay9_duration})'[tmp9]"
-                last_label = "[tmp9]"
-            # Overlay 10
-            if filter_overlay10:
-                filter_graph += f";{filter_overlay10}"
-                # Limited duration - show for specified duration (no full duration option for overlay10)
-                filter_graph += f";{last_label}[ol10]overlay={ox10}:{oy10}:enable='between(t,{overlay10_start_time},{overlay10_start_time+overlay10_duration})'[tmp10]"
-                last_label = "[tmp10]"
-            # Frame Box
-            if filter_frame_box:
-                filter_graph += f";{filter_frame_box}"
-                # Use duration control like other overlays
-                if frame_box_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol_frame_box]overlay={ox_frame_box}:{oy_frame_box}:enable='gte(t,{frame_box_start_time})'[tmp_frame_box]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol_frame_box]overlay={ox_frame_box}:{oy_frame_box}:enable='between(t,{frame_box_start_time},{frame_box_start_time+frame_box_duration})'[tmp_frame_box]"
-                last_label = "[tmp_frame_box]"
-            # Frame MP3Cover
-            if filter_frame_mp3cover:
-                filter_graph += f";{filter_frame_mp3cover}"
-                # Use duration control like other overlays
-                if frame_mp3cover_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[ol_frame_mp3cover]overlay={ox_frame_mp3cover}:{oy_frame_mp3cover}:enable='gte(t,{frame_mp3cover_start_time})'[tmp_frame_mp3cover]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[ol_frame_mp3cover]overlay={ox_frame_mp3cover}:{oy_frame_mp3cover}:enable='between(t,{frame_mp3cover_start_time},{frame_mp3cover_start_time+frame_mp3cover_duration})'[tmp_frame_mp3cover]"
-                last_label = "[tmp_frame_mp3cover]"
-            # Intro
-            if filter_intro:
-                filter_graph += f";{filter_intro}"
-                # Use duration control like overlays if duration full checkbox is not checked
-                if intro_duration_full_checkbox_checked:
-                    # Full duration - show for entire video
-                    filter_graph += f";{last_label}[oi]overlay={ox_intro}:{oy_intro}:enable='gte(t,{intro_start_at})'[v1]"
-                else:
-                    # Limited duration - show for specified duration
-                    filter_graph += f";{last_label}[oi]overlay={ox_intro}:{oy_intro}:enable='between(t,{intro_start_at},{intro_start_at+intro_duration})'[v1]"
-                last_label = "[v1]"
-            # Extra overlays
-            if filter_chains:
-                filter_graph += ";" + ";".join(filter_chains)
-                for i, (label, start, duration, x_expr, y_expr) in enumerate(overlay_labels):
-                    enable_expr = f"between(t,{start},{start+duration})"
-                    out_label = f"songtmp{i+1}" if i < len(overlay_labels)-1 else "vout"
-                    filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
-                    last_label = f"[{out_label}]"
             
-            # --- Add soundwave overlay processing ---
-            if use_soundwave_overlay and soundwave_idx is not None:
-                # Process soundwave overlay with transparency support (MOV format) - no scaling needed
-                filter_graph += f";[{soundwave_idx}:v]format=yuva420p[soundwave]"
-                # Overlay soundwave on the video
-                filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[vout]"
-                last_label = "[vout]"
-            elif not filter_chains:
+            # Define layer configurations for custom ordering
+            layer_configs = {
+                'background': {'filter': None, 'label': '[bg]'},  # Background is handled in advance
+                'overlay1': {
+                    'filter': filter_overlay1,
+                    'overlay': f"[ol1]overlay={ox1}:{oy1}",
+                    'duration_control': overlay1_2_duration_full_checkbox_checked,
+                    'start_time': overlay1_start_at,
+                    'duration': overlay1_2_duration
+                },
+                'overlay2': {
+                    'filter': filter_overlay2,
+                    'overlay': f"[ol2]overlay={ox2}:{oy2}",
+                    'duration_control': overlay1_2_duration_full_checkbox_checked,
+                    'start_time': overlay2_start_at,
+                    'duration': overlay1_2_duration
+                },
+                'overlay3': {
+                    'filter': filter_overlay3,
+                    'overlay': f"[ol3]overlay={ox3}:{oy3}",
+                    'duration_control': None,
+                    'start_time': None,
+                    'duration': None
+                },
+                'overlay4': {
+                    'filter': filter_overlay4,
+                    'overlay': f"[ol4]overlay={ox4}:{oy4}",
+                    'duration_control': overlay4_duration_full_checkbox_checked,
+                    'start_time': overlay4_start_time,
+                    'duration': overlay4_duration
+                },
+                'overlay5': {
+                    'filter': filter_overlay5,
+                    'overlay': f"[ol5]overlay={ox5}:{oy5}",
+                    'duration_control': overlay5_duration_full_checkbox_checked,
+                    'start_time': overlay5_start_time,
+                    'duration': overlay5_duration
+                },
+                'overlay6': {
+                    'filter': filter_overlay6,
+                    'overlay': f"[ol6]overlay={ox6}:{oy6}",
+                    'duration_control': overlay6_duration_full_checkbox_checked,
+                    'start_time': overlay6_start_time,
+                    'duration': overlay6_duration
+                },
+                'overlay7': {
+                    'filter': filter_overlay7,
+                    'overlay': f"[ol7]overlay={ox7}:{oy7}",
+                    'duration_control': overlay7_duration_full_checkbox_checked,
+                    'start_time': overlay7_start_time,
+                    'duration': overlay7_duration
+                },
+                'overlay8': {
+                    'filter': filter_overlay8,
+                    'overlay': f"[ol8]overlay={ox8}:{oy8}",
+                    'duration_control': overlay8_duration_full_checkbox_checked,
+                    'start_time': overlay8_start_time,
+                    'duration': overlay8_duration
+                },
+                'overlay9': {
+                    'filter': filter_overlay9,
+                    'overlay': f"[ol9]overlay={ox9}:{oy9}",
+                    'duration_control': overlay9_duration_full_checkbox_checked,
+                    'start_time': overlay9_start_time,
+                    'duration': overlay9_duration
+                },
+                'overlay10': {
+                    'filter': filter_overlay10,
+                    'overlay': f"[ol10]overlay={ox10}:{oy10}",
+                    'duration_control': False,  # Always limited duration
+                    'start_time': overlay10_start_time,
+                    'duration': overlay10_duration
+                },
+                'mp3_cover_overlay': {
+                    'filter': filter_frame_mp3cover,
+                    'overlay': f"[ol_frame_mp3cover]overlay={ox_frame_mp3cover}:{oy_frame_mp3cover}",
+                    'duration_control': frame_mp3cover_duration_full_checkbox_checked,
+                    'start_time': frame_mp3cover_start_time,
+                    'duration': frame_mp3cover_duration
+                },
+                'frame_box': {
+                    'filter': filter_frame_box,
+                    'overlay': f"[ol_frame_box]overlay={ox_frame_box}:{oy_frame_box}",
+                    'duration_control': frame_box_duration_full_checkbox_checked,
+                    'start_time': frame_box_start_time,
+                    'duration': frame_box_duration
+                },
+                'frame_mp3cover': {
+                    'filter': filter_frame_mp3cover,
+                    'overlay': f"[ol_frame_mp3cover]overlay={ox_frame_mp3cover}:{oy_frame_mp3cover}",
+                    'duration_control': frame_mp3cover_duration_full_checkbox_checked,
+                    'start_time': frame_mp3cover_start_time,
+                    'duration': frame_mp3cover_duration
+                },
+                'intro': {
+                    'filter': filter_intro,
+                    'overlay': f"[oi]overlay={ox_intro}:{oy_intro}",
+                    'duration_control': intro_duration_full_checkbox_checked,
+                    'start_time': intro_start_at,
+                    'duration': intro_duration
+                },
+                'song_titles': {
+                    'filter': filter_chains,
+                    'overlay': None,  # Handled separately
+                    'duration_control': None,
+                    'start_time': None,
+                    'duration': None
+                },
+                'soundwave': {
+                    'filter': None,  # Handled separately
+                    'overlay': None,
+                    'duration_control': None,
+                    'start_time': None,
+                    'duration': None
+                }
+            }
+            
+            # Use custom layer order if provided, otherwise use default
+            if layer_order:
+                # Filter out layers that don't exist in our config
+                valid_layers = [layer for layer in layer_order if layer in layer_configs]
+                # Add any missing layers at the end in default order
+                default_order = ['background', 'overlay1', 'overlay2', 'overlay3', 'overlay4', 'overlay5',
+                               'overlay6', 'overlay7', 'overlay8', 'overlay9', 'overlay10',
+                               'mp3_cover_overlay',
+                               'intro', 'frame_box', 'frame_mp3cover', 'song_titles', 'soundwave']
+                missing_layers = [layer for layer in default_order if layer not in valid_layers]
+                final_order = valid_layers + missing_layers
+            else:
+                final_order = ['background', 'overlay1', 'overlay2', 'overlay3', 'overlay4', 'overlay5',
+                             'overlay6', 'overlay7', 'overlay8', 'overlay9', 'overlay10',
+                             'mp3_cover_overlay',
+                             'intro', 'frame_box', 'frame_mp3cover', 'song_titles', 'soundwave']
+            
+            # Build filter graph based on final order
+            for layer_id in final_order:
+                if layer_id == 'background':
+                    continue  # Background is already the base
+                
+                config = layer_configs.get(layer_id)
+                if not config:
+                    continue
+                
+                # Handle song titles (special case)
+                if layer_id == 'song_titles' and config['filter']:
+                    filter_graph += ";" + ";".join(config['filter'])
+                    for i, (label, start, duration, x_expr, y_expr) in enumerate(overlay_labels):
+                        enable_expr = f"between(t,{start},{start+duration})"
+                        out_label = f"songtmp{i+1}" if i < len(overlay_labels)-1 else "vout"
+                        filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
+                        last_label = f"[{out_label}]"
+                    continue
+                
+                # Handle soundwave (special case)
+                if layer_id == 'soundwave' and use_soundwave_overlay and soundwave_idx is not None:
+                    filter_graph += f";[{soundwave_idx}:v]format=yuva420p[soundwave]"
+                    filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[vout]"
+                    last_label = "[vout]"
+                    continue
+                
+                # Handle regular overlays
+                if config['filter']:
+                    filter_graph += f";{config['filter']}"
+                    
+                    # Apply overlay with duration control
+                    if config['duration_control'] is None:
+                        # No duration control (like overlay3)
+                        filter_graph += f";{last_label}{config['overlay']}[tmp_{layer_id}]"
+                    elif config['duration_control']:
+                        # Full duration
+                        filter_graph += f";{last_label}{config['overlay']}:enable='gte(t,{config['start_time']})'[tmp_{layer_id}]"
+                    else:
+                        # Limited duration
+                        filter_graph += f";{last_label}{config['overlay']}:enable='between(t,{config['start_time']},{config['start_time']+config['duration']})'[tmp_{layer_id}]"
+                    
+                    last_label = f"[tmp_{layer_id}]"
+            
+            # Handle final output if no song titles or soundwave were processed
+            if not filter_chains and not (use_soundwave_overlay and soundwave_idx is not None):
                 filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout]"
         else:
-            # Use configurable background scale if enabled, otherwise use default 103%
-            bg_scale = bg_scale_percent / 100.0 if use_bg_layer else 1.03
-            # Calculate crop x/y offsets based on position
-            crop_x = crop_y = 0
-            if use_bg_layer:
-                if bg_crop_position == "center":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "left":
-                    crop_x = 0
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = f"(in_h-out_h)/2"
-                elif bg_crop_position == "top":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = 0
-                elif bg_crop_position == "bottom":
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"in_h-out_h"
-                elif bg_crop_position == "top_left":
-                    crop_x = 0
-                    crop_y = 0
-                elif bg_crop_position == "top_right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = 0
-                elif bg_crop_position == "bottom_left":
-                    crop_x = 0
-                    crop_y = f"in_h-out_h"
-                elif bg_crop_position == "bottom_right":
-                    crop_x = f"in_w-out_w"
-                    crop_y = f"in_h-out_h"
-                else:
-                    crop_x = f"(in_w-out_w)/2"
-                    crop_y = f"(in_h-out_h)/2"
-            else:
-                crop_x = f"(in_w-out_w)/2"
-                crop_y = f"(in_h-out_h)/2"
-            # Apply background effects if enabled
-            effect_filter = ""
-            if use_bg_layer and bg_effect != "none":
-                intensity_factor = bg_intensity / 100.0
-                if bg_effect == "gaussian_blur":
-                    sigma = intensity_factor * 10  # 0-10 range
-                    effect_filter = f",gblur=sigma={sigma:.2f}"
-                elif bg_effect == "sharpen":
-                    amount = intensity_factor * 2  # 0-2 range
-                    effect_filter = f",unsharp=3:3:1.5:3:3:{amount:.2f}"
-                elif bg_effect == "vignette":
-                    # Use simple vignette intensity
-                    effect_filter = f",vignette={intensity_factor:.2f}"
+            # Check if background is preprocessed (already correct size)
+            # Background is always PNG, so no need to check for GIF
+            bg_filename = os.path.basename(image_path_for_ffmpeg)
+            is_bg_preprocessed = bg_filename.startswith("supercut_")
             
-            filter_graph = f"[0:v]scale={int(width*bg_scale)}:{int(height*bg_scale)},crop={width}:{height}:{crop_x}:{crop_y}{effect_filter},format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            if is_bg_preprocessed:
+                # Background is preprocessed PNG - no scaling needed
+                filter_graph = f"[0:v]format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            else:
+                # Background needs scaling to target resolution
+                filter_graph = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
         cmd.extend(["-filter_complex", filter_graph, "-map", "[vout]", "-map", "1:a"])
 
         cmd.extend(["-c:v", codec, "-preset", preset])       

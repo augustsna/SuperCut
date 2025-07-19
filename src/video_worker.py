@@ -68,6 +68,8 @@ class VideoWorker(QObject):
                  use_frame_box: bool = False, frame_box_path: str = "", frame_box_size_percent: int = 50, frame_box_x_percent: int = 0, frame_box_y_percent: int = 0,
                  frame_box_effect: str = "fadein", frame_box_start_time: int = 5, frame_box_duration: int = 6, frame_box_duration_full_checkbox_checked: bool = True,
                  frame_box_pad_left: int = 12, frame_box_pad_right: int = 12, frame_box_pad_top: int = 12, frame_box_pad_bottom: int = 12,
+                 # --- Add frame box custom image parameters ---
+                 use_frame_box_custom_image: bool = False, frame_box_custom_image_path: str = "",
                  # --- Add frame mp3cover parameters ---
                  use_frame_mp3cover: bool = False, frame_mp3cover_path: str = "", frame_mp3cover_size_percent: int = 50, frame_mp3cover_x_percent: int = 0, frame_mp3cover_y_percent: int = 0,
                  frame_mp3cover_effect: str = "fadein", frame_mp3cover_start_time: int = 5, frame_mp3cover_duration: int = 6, frame_mp3cover_duration_full_checkbox_checked: bool = True,
@@ -94,7 +96,8 @@ class VideoWorker(QObject):
                  soundwave_color: str = "hue_rotate",
                  soundwave_size_percent: int = 50,
                  soundwave_x_percent: int = 50,
-                 soundwave_y_percent: int = 50):
+                 soundwave_y_percent: int = 50,
+                 layer_order: Optional[List[str]] = None):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -259,6 +262,9 @@ class VideoWorker(QObject):
         self.frame_box_pad_right = frame_box_pad_right
         self.frame_box_pad_top = frame_box_pad_top
         self.frame_box_pad_bottom = frame_box_pad_bottom
+        # --- Add frame box custom image attributes ---
+        self.use_frame_box_custom_image = use_frame_box_custom_image
+        self.frame_box_custom_image_path = frame_box_custom_image_path
         # --- Add frame mp3cover attributes ---
         self.use_frame_mp3cover = use_frame_mp3cover
         self.frame_mp3cover_path = frame_mp3cover_path
@@ -294,14 +300,13 @@ class VideoWorker(QObject):
         self.soundwave_size_percent = soundwave_size_percent
         self.soundwave_x_percent = soundwave_x_percent
         self.soundwave_y_percent = soundwave_y_percent
-        
-        # Debug soundwave parameters
-        print(f"🎵 Soundwave parameters:")
-        print(f"   - Enabled: {self.use_soundwave_overlay}")
-        print(f"   - Method: {self.soundwave_method}")
-        print(f"   - Color: {self.soundwave_color}")
-        print(f"   - Size: {self.soundwave_size_percent}%")
-        print(f"   - Position: ({self.soundwave_x_percent}%, {self.soundwave_y_percent}%)")
+        self.layer_order = layer_order
+                
+        # Debug layer order
+        if self.layer_order:
+            print(f"🎨 Layer order: {self.layer_order}\n")
+        else:
+            print(f"🎨 Using default layer order\n")
 
     def stop(self):
         """Stop the video processing"""
@@ -432,6 +437,245 @@ class VideoWorker(QObject):
         used_images.add(selected_image)  # Store full path
         self._used_images.add(selected_image)
         
+        # Preprocess background image (always done in advance)
+        from src.utils import preprocess_background_image
+        if self.use_bg_layer:
+            # Use custom background layer settings
+            processed_image_path = preprocess_background_image(
+                image_path=selected_image,
+                resolution=self.resolution,
+                scale_percent=self.bg_scale_percent,
+                crop_position=self.bg_crop_position,
+                effect=self.bg_effect,
+                intensity=self.bg_intensity
+            )
+        else:
+            # Use default 103% scale + center crop
+            processed_image_path = preprocess_background_image(
+                image_path=selected_image,
+                resolution=self.resolution,
+                scale_percent=103,  # Default 103%
+                crop_position="center",  # Default center crop
+                effect="none",  # No effects
+                intensity=50  # Default intensity
+            )
+        
+        # Preprocess overlay1 image (only for images, not videos)
+        processed_overlay1_path = self.overlay1_path
+        if self.use_overlay and self.overlay1_path:
+            file_ext = os.path.splitext(self.overlay1_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay1_image
+                processed_overlay1_path = preprocess_overlay1_image(
+                    image_path=self.overlay1_path,
+                    size_percent=self.overlay1_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay1_path = self.overlay1_path
+        
+        # Preprocess overlay2 image (only for images, not videos)
+        processed_overlay2_path = self.overlay2_path
+        if self.use_overlay2 and self.overlay2_path:
+            file_ext = os.path.splitext(self.overlay2_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay2_image
+                processed_overlay2_path = preprocess_overlay2_image(
+                    image_path=self.overlay2_path,
+                    size_percent=self.overlay2_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay2_path = self.overlay2_path
+        
+        # Preprocess overlay3 image (only for images, not videos)
+        processed_overlay3_path = self.overlay3_path
+        if self.use_overlay3 and self.overlay3_path:
+            file_ext = os.path.splitext(self.overlay3_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay3_image
+                processed_overlay3_path = preprocess_overlay3_image(
+                    image_path=self.overlay3_path,
+                    size_percent=self.overlay3_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay3_path = self.overlay3_path
+        
+        # Preprocess intro image (only for images, not videos)
+        processed_intro_path = self.intro_path
+        if self.use_intro and self.intro_path:
+            file_ext = os.path.splitext(self.intro_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_intro_image
+                processed_intro_path = preprocess_intro_image(
+                    image_path=self.intro_path,
+                    size_percent=self.intro_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_intro_path = self.intro_path
+        
+        # Preprocess overlay4 image (only for images, not videos)
+        processed_overlay4_path = self.overlay4_path
+        if self.use_overlay4 and self.overlay4_path:
+            file_ext = os.path.splitext(self.overlay4_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay4_image
+                processed_overlay4_path = preprocess_overlay4_image(
+                    image_path=self.overlay4_path,
+                    size_percent=self.overlay4_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay4_path = self.overlay4_path
+        
+        # Preprocess overlay5 image (only for images, not videos)
+        processed_overlay5_path = self.overlay5_path
+        if self.use_overlay5 and self.overlay5_path:
+            file_ext = os.path.splitext(self.overlay5_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay5_image
+                processed_overlay5_path = preprocess_overlay5_image(
+                    image_path=self.overlay5_path,
+                    size_percent=self.overlay5_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay5_path = self.overlay5_path
+        
+        # Preprocess overlay6 image (only for images, not videos)
+        processed_overlay6_path = self.overlay6_path
+        if self.use_overlay6 and self.overlay6_path:
+            file_ext = os.path.splitext(self.overlay6_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay6_image
+                processed_overlay6_path = preprocess_overlay6_image(
+                    image_path=self.overlay6_path,
+                    size_percent=self.overlay6_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay6_path = self.overlay6_path
+        
+        # Preprocess overlay7 image (only for images, not videos)
+        processed_overlay7_path = self.overlay7_path
+        if self.use_overlay7 and self.overlay7_path:
+            file_ext = os.path.splitext(self.overlay7_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay7_image
+                processed_overlay7_path = preprocess_overlay7_image(
+                    image_path=self.overlay7_path,
+                    size_percent=self.overlay7_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay7_path = self.overlay7_path
+        
+        # Preprocess overlay8 image (only for images, not videos)
+        processed_overlay8_path = self.overlay8_path
+        if self.use_overlay8 and self.overlay8_path:
+            file_ext = os.path.splitext(self.overlay8_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay8_image
+                processed_overlay8_path = preprocess_overlay8_image(
+                    image_path=self.overlay8_path,
+                    size_percent=self.overlay8_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay8_path = self.overlay8_path
+        
+        # Preprocess overlay9 image (only for images, not videos)
+        processed_overlay9_path = self.overlay9_path
+        if self.use_overlay9 and self.overlay9_path:
+            file_ext = os.path.splitext(self.overlay9_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay9_image
+                processed_overlay9_path = preprocess_overlay9_image(
+                    image_path=self.overlay9_path,
+                    size_percent=self.overlay9_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay9_path = self.overlay9_path
+        
+        # Preprocess overlay10 image (only for images, not videos)
+        processed_overlay10_path = self.overlay10_path
+        if self.use_overlay10 and self.overlay10_path:
+            file_ext = os.path.splitext(self.overlay10_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay10_image
+                processed_overlay10_path = preprocess_overlay10_image(
+                    image_path=self.overlay10_path,
+                    size_percent=self.overlay10_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay10_path = self.overlay10_path
+        
+        # Preprocess framebox image (only for images, not videos)
+        processed_frame_box_path = self.frame_box_path
+        if self.use_frame_box and self.frame_box_path:
+            file_ext = os.path.splitext(self.frame_box_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_framebox_image
+                processed_frame_box_path = preprocess_framebox_image(
+                    image_path=self.frame_box_path,
+                    size_percent=self.frame_box_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_frame_box_path = self.frame_box_path
+        
         # Create output filename
         if self.name_list and batch_count < len(self.name_list):
             from src.utils import sanitize_filename
@@ -458,56 +702,35 @@ class VideoWorker(QObject):
             self.error.emit(f"Failed to merge MP3 files or get duration")
             return False, []
 
+        # Get total duration from merged audio
+        from src.ffmpeg_utils import get_audio_duration
+        total_duration = get_audio_duration(merged_audio_path)
+        
+        # --- Calculate song durations only if needed by overlays ---
+        song_durations = []
+        needs_song_durations = (
+            self.use_song_title_overlay or 
+            self.use_mp3_cover_overlay or 
+            (self.use_overlay10 and self.overlay10_song_start_end_checked)
+        )
+        
+        if needs_song_durations:
+            cumulative_time = 0.0
+            for mp3_path in selected_mp3s:
+                duration = get_audio_duration(mp3_path)
+                song_durations.append((cumulative_time, duration))
+                cumulative_time += duration
+
         # --- Generate soundwave overlay if enabled ---
         soundwave_overlay_path = None
-        print(f"🔍 Soundwave overlay enabled: {self.use_soundwave_overlay}")
-        if self.use_soundwave_overlay:
-            try:
-                from src.soundwave_generator import create_soundwave_from_merged_audio
-                print(f"🎵 Generating soundwave overlay with method: {self.soundwave_method}")
-                soundwave_overlay_path = create_soundwave_from_merged_audio(
-                    merged_audio_path,
-                    method=self.soundwave_method,
-                    color=self.soundwave_color
-                )
-                if soundwave_overlay_path:
-                    print(f"✅ Soundwave overlay created: {os.path.basename(soundwave_overlay_path)}")
-                else:
-                    print("⚠️ Failed to create soundwave overlay")
-            except Exception as e:
-                logger.warning(f"Error creating soundwave overlay: {e}")
-                print(f"⚠️ Soundwave overlay error: {e}")
-
         try:
-            # Calculate timing for each overlay with proper song durations
-            overlay_count = len(song_title_pngs) + len(mp3_cover_pngs) # Count both song titles and MP3 covers
+            # Initialize extra overlays list
             extra_overlays = []
             
-            if overlay_count > 0:
-                # Get individual song durations
-                from src.ffmpeg_utils import get_audio_duration
-                song_durations = []
-                cumulative_time = 0.0
-                for mp3_path in selected_mp3s:
-                    duration = get_audio_duration(mp3_path)
-                    song_durations.append((cumulative_time, duration))
-                    cumulative_time += duration
-                
-                if overlay_count == 1:
-                    # REMOVE this block: Single song - use overlay start time or default to 5s
-                    pass
-                else:
-                    # REMOVE this block: Multiple songs - each song title starts when its MP3 starts
-                    pass
-            if self.use_song_title_overlay and len(song_title_pngs) > 0:
+            # Process Song Title overlays independently (only if song titles are enabled)
+            if self.use_song_title_overlay and len(song_title_pngs) > 0 and song_durations:
                 # Multiple overlays: first starts at user input, others at song boundaries
-                from src.ffmpeg_utils import get_audio_duration
-                song_durations = []
-                cumulative_time = 0.0
-                for mp3_path in selected_mp3s:
-                    duration = get_audio_duration(mp3_path)
-                    song_durations.append((cumulative_time, duration))
-                    cumulative_time += duration
+                # Use pre-calculated song_durations
                 for i, (song_start, song_duration) in enumerate(song_durations):
                     if i == 0:
                         # First overlay: start at user input, duration shortened if start_at > 0
@@ -526,17 +749,10 @@ class VideoWorker(QObject):
                         'y_percent': song_title_pngs[i]['y_percent']
                     })
 
-            # --- Add MP3 Cover overlays to extra_overlays ---
-            if self.use_mp3_cover_overlay and len(mp3_cover_pngs) > 0:
+            # Process MP3 Cover overlays independently (only if MP3 covers are enabled)
+            if self.use_mp3_cover_overlay and len(mp3_cover_pngs) > 0 and song_durations:
                 # MP3 covers work like song titles: each cover appears during its corresponding song
-                from src.ffmpeg_utils import get_audio_duration
-                song_durations = []
-                cumulative_time = 0.0
-                for mp3_path in selected_mp3s:
-                    duration = get_audio_duration(mp3_path)
-                    song_durations.append((cumulative_time, duration))
-                    cumulative_time += duration
-                
+                # Use pre-calculated song_durations
                 for i, (song_start, song_duration) in enumerate(song_durations):
                     if i < len(mp3_cover_pngs):  # Make sure we have a cover for this song
                         if i == 0:
@@ -564,224 +780,214 @@ class VideoWorker(QObject):
                             'size_percent': mp3_cover_pngs[i]['size_percent'],
                             'effect': mp3_cover_pngs[i]['effect']
                         })
-            # --- End MP3 Cover overlays ---
             
             # --- Add soundwave overlay to extra_overlays ---
             # REMOVED: Soundwave overlay is now handled independently in FFmpeg utils
             # --- End soundwave overlay ---
             
-            # Calculate actual intro start time and duration based on checkbox states
-            from src.ffmpeg_utils import get_audio_duration
-            total_duration = get_audio_duration(merged_audio_path)
-            
+            # Calculate actual intro start time and duration based on checkbox states (only if intro is enabled)
             actual_intro_start_at = 0
-            if self.intro_start_checkbox_checked:
-                # Use start from logic: total_duration - start_from_value
-                actual_intro_start_at = int(max(0, total_duration - self.intro_start_from))
-            else:
-                # Use start at value directly
-                actual_intro_start_at = self.intro_start_at
-            
             actual_intro_duration = self.intro_duration
-            if self.intro_duration_full_checkbox_checked:
-                # Use full remaining duration: total_duration - start_at
-                actual_intro_duration = int(max(1, total_duration - actual_intro_start_at))
             
-            # Calculate actual overlay1_2 start times based on checkbox state
+            if self.use_intro:
+                if not self.intro_start_checkbox_checked:
+                    # Use start from logic: countdown from end
+                    actual_intro_start_at = int(max(0, total_duration - self.intro_start_from))
+                else:
+                    # Use start at value directly
+                    actual_intro_start_at = self.intro_start_at
+                
+                if self.intro_duration_full_checkbox_checked:
+                    # Use full remaining duration: total_duration - start_at
+                    actual_intro_duration = int(max(1, total_duration - actual_intro_start_at))
+            
+            # Calculate actual overlay1_2 start times based on checkbox state (only if overlays are enabled)
             actual_overlay1_start_at = self.overlay1_start_at
             actual_overlay2_start_at = self.overlay2_start_at
-            if not self.overlay1_2_start_at_checkbox_checked:
-                # Use start from logic: countdown from end
-                actual_overlay1_start_at = int(max(0, total_duration - self.overlay1_2_start_from))
-                actual_overlay2_start_at = int(max(0, total_duration - self.overlay1_2_start_from))
             
-            # Calculate actual overlay4_5 start times based on checkbox state
+            if self.use_overlay or self.use_overlay2:
+                if not self.overlay1_2_start_at_checkbox_checked:
+                    # Use start from logic: countdown from end
+                    actual_overlay1_start_at = int(max(0, total_duration - self.overlay1_2_start_from))
+                    actual_overlay2_start_at = int(max(0, total_duration - self.overlay1_2_start_from))
+            
+            # Calculate actual overlay4_5 start times based on checkbox state (only if overlays are enabled)
             actual_overlay4_start_at = self.overlay4_start_time
             actual_overlay5_start_at = self.overlay5_start_time
-            if not self.overlay4_5_start_at_checkbox_checked:
-                # Use start from logic: countdown from end
-                actual_overlay4_start_at = int(max(0, total_duration - self.overlay4_5_start_from))
-                actual_overlay5_start_at = int(max(0, total_duration - self.overlay4_5_start_from))
             
-            # Calculate actual overlay6_7 start times based on checkbox state
+            if self.use_overlay4 or self.use_overlay5:
+                if not self.overlay4_5_start_at_checkbox_checked:
+                    # Use start from logic: countdown from end
+                    actual_overlay4_start_at = int(max(0, total_duration - self.overlay4_5_start_from))
+                    actual_overlay5_start_at = int(max(0, total_duration - self.overlay4_5_start_from))
+            
+            # Calculate actual overlay6_7 start times based on checkbox state (only if overlays are enabled)
             actual_overlay6_start_at = self.overlay6_start_time
             actual_overlay7_start_at = self.overlay7_start_time
-            if not self.overlay6_7_start_at_checkbox_checked:
-                # Use start from logic: countdown from end
-                actual_overlay6_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
-                actual_overlay7_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
             
-            # Calculate actual overlay8 start time based on checkbox state
-            if self.overlay8_popup_checkbox_checked:
-                # Popup mode: calculate multiple overlay instances based on interval count
-                # First popup at the specified start time
-                first_popup_start = int((self.overlay8_popup_start_at / 100.0) * total_duration)
-                
-                # Calculate how many additional popups based on interval count (not percentage)
-                additional_popups = self.overlay8_popup_interval  # This is the count
-                
-                if additional_popups > 0:
-                    # Calculate the time span for additional popups
-                    remaining_time = total_duration - first_popup_start  # NOT subtracting duration
-                    if remaining_time > 0:
-                        interval_seconds = remaining_time / additional_popups
-                    else:
-                        interval_seconds = 0
+            if self.use_overlay6 or self.use_overlay7:
+                if not self.overlay6_7_start_at_checkbox_checked:
+                    # Use start from logic: countdown from end
+                    actual_overlay6_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
+                    actual_overlay7_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
+            
+            # Calculate actual overlay8 start time based on checkbox state (only if overlay8 is enabled)
+            actual_overlay8_start_at = 0  # Default value
+            
+            if self.use_overlay8:
+                if self.overlay8_popup_checkbox_checked:
+                    # Popup mode: calculate multiple overlay instances based on interval count
+                    # First popup at the specified start time
+                    first_popup_start = int((self.overlay8_popup_start_at / 100.0) * total_duration)
                     
-                    # Create multiple overlay instances for popup mode
-                    for i in range(additional_popups + 1):  # +1 to include the first popup
-                        if i == 0:
-                            # First popup at specified start time
-                            popup_start = first_popup_start
+                    # Calculate how many additional popups based on interval count (not percentage)
+                    additional_popups = self.overlay8_popup_interval  # This is the count
+                    
+                    if additional_popups > 0:
+                        # Calculate the time span for additional popups
+                        remaining_time = total_duration - first_popup_start  # NOT subtracting duration
+                        if remaining_time > 0:
+                            interval_seconds = remaining_time / additional_popups
                         else:
-                            # Subsequent popups: first_popup + (interval_seconds * i) - duration
-                            popup_start = first_popup_start + (interval_seconds * i) - self.overlay8_duration
+                            interval_seconds = 0
                         
-                        # Ensure popup doesn't start before 0 or after video ends
-                        popup_start = max(0, min(popup_start, int(total_duration - self.overlay8_duration)))
+                        # Create multiple overlay instances for popup mode
+                        for i in range(additional_popups + 1):  # +1 to include the first popup
+                            if i == 0:
+                                # First popup at specified start time
+                                popup_start = first_popup_start
+                            else:
+                                # Subsequent popups: first_popup + (interval_seconds * i) - duration
+                                popup_start = first_popup_start + (interval_seconds * i) - self.overlay8_duration
+                            
+                            # Ensure popup doesn't start before 0 or after video ends
+                            popup_start = max(0, min(popup_start, int(total_duration - self.overlay8_duration)))
+                            
+                            # Add to extra_overlays for FFmpeg processing
+                            extra_overlays.append({
+                                'path': processed_overlay8_path,  # Use preprocessed overlay8
+                                'start': popup_start,
+                                'duration': self.overlay8_duration,
+                                'x_percent': self.overlay8_x_percent,
+                                'y_percent': self.overlay8_y_percent,
+                                'size_percent': self.overlay8_size_percent,
+                                'effect': self.overlay8_effect
+                            })
+                            
+                            print(f"Overlay8 Popup {i+1}: Start at {popup_start}s, Duration {self.overlay8_duration}s")
                         
-                        # Add to extra_overlays for FFmpeg processing
-                        extra_overlays.append({
-                            'path': self.overlay8_path,
-                            'start': popup_start,
-                            'duration': self.overlay8_duration,
-                            'x_percent': self.overlay8_x_percent,
-                            'y_percent': self.overlay8_y_percent,
-                            'size_percent': self.overlay8_size_percent,
-                            'effect': self.overlay8_effect
-                        })
-                        
-                        print(f"Overlay8 Popup {i+1}: Start at {popup_start}s, Duration {self.overlay8_duration}s")
-                    
-                    # Set overlay8 to not be used since we're using extra_overlays
-                    actual_overlay8_start_at = -1  # Signal to not use single overlay8
-                else:
-                    # No additional popups, just use first popup
-                    actual_overlay8_start_at = first_popup_start
+                        # Set overlay8 to not be used since we're using extra_overlays
+                        actual_overlay8_start_at = -1  # Signal to not use single overlay8
+                    else:
+                        # No additional popups, just use first popup
+                        actual_overlay8_start_at = first_popup_start
+                        actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
+                elif not self.overlay8_start_at_checkbox_checked:
+                    # Use start from logic
+                    if self.overlay8_duration_full_checkbox_checked:
+                        # Full duration: simple percentage of total duration
+                        actual_overlay8_start_at = int((self.overlay8_start_from / 100.0) * total_duration)
+                    else:
+                        # Limited duration: (total_duration * percentage) - effect_duration
+                        effect_duration = self.overlay8_duration
+                        percentage_time = (self.overlay8_start_from / 100.0) * total_duration
+                        actual_overlay8_start_at = int(max(0, percentage_time - effect_duration))
+                    # Ensure the start time doesn't exceed the video duration
                     actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
-            elif not self.overlay8_start_at_checkbox_checked:
-                # Use start from logic
-                if self.overlay8_duration_full_checkbox_checked:
-                    # Full duration: simple percentage of total duration
-                    actual_overlay8_start_at = int((self.overlay8_start_from / 100.0) * total_duration)
                 else:
-                    # Limited duration: (total_duration * percentage) - effect_duration
-                    effect_duration = self.overlay8_duration
-                    percentage_time = (self.overlay8_start_from / 100.0) * total_duration
-                    actual_overlay8_start_at = int(max(0, percentage_time - effect_duration))
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
-            else:
-                # Use start at logic: simple percentage of total duration (NO duration subtraction)
-                actual_overlay8_start_at = int((self.overlay8_start_time / 100.0) * total_duration)
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
-            
-            # Final validation to ensure start time is valid (only for non-popup mode)
-            if not self.overlay8_popup_checkbox_checked:
-                actual_overlay8_start_at = max(0, actual_overlay8_start_at)
-            
-            # Debug output for overlay8 timing
-            if self.overlay8_popup_checkbox_checked:
-                first_popup_time = int((self.overlay8_popup_start_at / 100.0) * total_duration)
-                print(f"Overlay8 Popup Debug - Total duration: {total_duration}s, First popup at: {first_popup_time}s, Duration: {self.overlay8_duration}s, Interval: {self.overlay8_popup_interval}s")
-            else:
-                print(f"Overlay8 Debug - Total duration: {total_duration}s, Start time: {actual_overlay8_start_at}s, Duration: {self.overlay8_duration}s")
-            print(f"Overlay8 Debug - Start from percent: {self.overlay8_start_from}, Start time percent: {self.overlay8_start_time}, Popup start at percent: {self.overlay8_popup_start_at}, Popup interval: {self.overlay8_popup_interval}, Popup checked: {self.overlay8_popup_checkbox_checked}")
-            
-            # Additional validation for overlay8 parameters
-            if not self.overlay8_popup_checkbox_checked and actual_overlay8_start_at < 0:
-                print(f"Warning: Overlay8 start time is negative: {actual_overlay8_start_at}, setting to 0")
-                actual_overlay8_start_at = 0
-            if self.overlay8_duration < 0:
-                print(f"Warning: Overlay8 duration is negative: {self.overlay8_duration}, setting to 1")
-                self.overlay8_duration = 1
-            
-            # Calculate actual overlay9 start time based on checkbox state
-            if self.overlay9_popup_checkbox_checked:
-                # Popup mode: calculate multiple overlay instances based on interval count
-                # First popup at the specified start time
-                first_popup_start = int((self.overlay9_popup_start_at / 100.0) * total_duration)
+                    # Use start at logic: simple percentage of total duration (NO duration subtraction)
+                    actual_overlay8_start_at = int((self.overlay8_start_time / 100.0) * total_duration)
+                    # Ensure the start time doesn't exceed the video duration
+                    actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
                 
-                # Calculate how many additional popups based on interval count (not percentage)
-                additional_popups = self.overlay9_popup_interval  # This is the count
+                # Final validation to ensure start time is valid (only for non-popup mode)
+                if not self.overlay8_popup_checkbox_checked:
+                    actual_overlay8_start_at = max(0, actual_overlay8_start_at)           
                 
-                if additional_popups > 0:
-                    # Calculate the time span for additional popups
-                    remaining_time = total_duration - first_popup_start  # NOT subtracting duration
-                    if remaining_time > 0:
-                        interval_seconds = remaining_time / additional_popups
-                    else:
-                        interval_seconds = 0
+                # Additional validation for overlay8 parameters
+                if not self.overlay8_popup_checkbox_checked and actual_overlay8_start_at < 0:                
+                    actual_overlay8_start_at = 0
+                if self.overlay8_duration < 0:                
+                    self.overlay8_duration = 1
+            
+            # Calculate actual overlay9 start time based on checkbox state (only if overlay9 is enabled)
+            actual_overlay9_start_at = 0  # Default value
+            
+            if self.use_overlay9:
+                if self.overlay9_popup_checkbox_checked:
+                    # Popup mode: calculate multiple overlay instances based on interval count
+                    # First popup at the specified start time
+                    first_popup_start = int((self.overlay9_popup_start_at / 100.0) * total_duration)
                     
-                    # Create multiple overlay instances for popup mode
-                    for i in range(additional_popups + 1):  # +1 to include the first popup
-                        if i == 0:
-                            # First popup at specified start time
-                            popup_start = first_popup_start
+                    # Calculate how many additional popups based on interval count (not percentage)
+                    additional_popups = self.overlay9_popup_interval  # This is the count
+                    
+                    if additional_popups > 0:
+                        # Calculate the time span for additional popups
+                        remaining_time = total_duration - first_popup_start  # NOT subtracting duration
+                        if remaining_time > 0:
+                            interval_seconds = remaining_time / additional_popups
                         else:
-                            # Subsequent popups: first_popup + (interval_seconds * i) - duration
-                            popup_start = first_popup_start + (interval_seconds * i) - self.overlay9_duration
+                            interval_seconds = 0
                         
-                        # Ensure popup doesn't start before 0 or after video ends
-                        popup_start = max(0, min(popup_start, int(total_duration - self.overlay9_duration)))
+                        # Create multiple overlay instances for popup mode
+                        for i in range(additional_popups + 1):  # +1 to include the first popup
+                            if i == 0:
+                                # First popup at specified start time
+                                popup_start = first_popup_start
+                            else:
+                                # Subsequent popups: first_popup + (interval_seconds * i) - duration
+                                popup_start = first_popup_start + (interval_seconds * i) - self.overlay9_duration
+                            
+                            # Ensure popup doesn't start before 0 or after video ends
+                            popup_start = max(0, min(popup_start, int(total_duration - self.overlay9_duration)))
+                            
+                            # Add to extra_overlays for FFmpeg processing
+                            extra_overlays.append({
+                                'path': processed_overlay9_path,  # Use preprocessed overlay9
+                                'start': popup_start,
+                                'duration': self.overlay9_duration,
+                                'x_percent': self.overlay9_x_percent,
+                                'y_percent': self.overlay9_y_percent,
+                                'size_percent': self.overlay9_size_percent,
+                                'effect': self.overlay9_effect
+                            })
+                            
+                            print(f"Overlay9 Popup {i+1}: Start at {popup_start}s, Duration {self.overlay9_duration}s")
                         
-                        # Add to extra_overlays for FFmpeg processing
-                        extra_overlays.append({
-                            'path': self.overlay9_path,
-                            'start': popup_start,
-                            'duration': self.overlay9_duration,
-                            'x_percent': self.overlay9_x_percent,
-                            'y_percent': self.overlay9_y_percent,
-                            'size_percent': self.overlay9_size_percent,
-                            'effect': self.overlay9_effect
-                        })
-                        
-                        print(f"Overlay9 Popup {i+1}: Start at {popup_start}s, Duration {self.overlay9_duration}s")
-                    
-                    # Set overlay9 to not be used since we're using extra_overlays
-                    actual_overlay9_start_at = -1  # Signal to not use single overlay9
-                else:
-                    # No additional popups, just use first popup
-                    actual_overlay9_start_at = first_popup_start
+                        # Set overlay9 to not be used since we're using extra_overlays
+                        actual_overlay9_start_at = -1  # Signal to not use single overlay9
+                    else:
+                        # No additional popups, just use first popup
+                        actual_overlay9_start_at = first_popup_start
+                        actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
+                elif not self.overlay9_start_at_checkbox_checked:
+                    # Use start from logic
+                    if self.overlay9_duration_full_checkbox_checked:
+                        # Full duration: simple percentage of total duration
+                        actual_overlay9_start_at = int((self.overlay9_start_from / 100.0) * total_duration)
+                    else:
+                        # Limited duration: (total_duration * percentage) - effect_duration
+                        effect_duration = self.overlay9_duration
+                        percentage_time = (self.overlay9_start_from / 100.0) * total_duration
+                        actual_overlay9_start_at = int(max(0, percentage_time - effect_duration))
+                    # Ensure the start time doesn't exceed the video duration
                     actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
-            elif not self.overlay9_start_at_checkbox_checked:
-                # Use start from logic
-                if self.overlay9_duration_full_checkbox_checked:
-                    # Full duration: simple percentage of total duration
-                    actual_overlay9_start_at = int((self.overlay9_start_from / 100.0) * total_duration)
                 else:
-                    # Limited duration: (total_duration * percentage) - effect_duration
-                    effect_duration = self.overlay9_duration
-                    percentage_time = (self.overlay9_start_from / 100.0) * total_duration
-                    actual_overlay9_start_at = int(max(0, percentage_time - effect_duration))
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
-            else:
-                # Use start at logic: simple percentage of total duration (NO duration subtraction)
-                actual_overlay9_start_at = int((self.overlay9_start_time / 100.0) * total_duration)
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
-            
-            # Final validation to ensure start time is valid (only for non-popup mode)
-            if not self.overlay9_popup_checkbox_checked:
-                actual_overlay9_start_at = max(0, actual_overlay9_start_at)
-            
-            # Debug output for overlay9 timing
-            if self.overlay9_popup_checkbox_checked:
-                first_popup_time = int((self.overlay9_popup_start_at / 100.0) * total_duration)
-                print(f"Overlay9 Popup Debug - Total duration: {total_duration}s, First popup at: {first_popup_time}s, Duration: {self.overlay9_duration}s, Interval: {self.overlay9_popup_interval}s")
-            else:
-                print(f"Overlay9 Debug - Total duration: {total_duration}s, Start time: {actual_overlay9_start_at}s, Duration: {self.overlay9_duration}s")
-            print(f"Overlay9 Debug - Start from percent: {self.overlay9_start_from}, Start time percent: {self.overlay9_start_time}, Popup start at percent: {self.overlay9_popup_start_at}, Popup interval: {self.overlay9_popup_interval}, Popup checked: {self.overlay9_popup_checkbox_checked}")
-            
-            # Additional validation for overlay9 parameters
-            if not self.overlay9_popup_checkbox_checked and actual_overlay9_start_at < 0:
-                print(f"Warning: Overlay9 start time is negative: {actual_overlay9_start_at}, setting to 0")
-                actual_overlay9_start_at = 0
-            if self.overlay9_duration < 0:
-                print(f"Warning: Overlay9 duration is negative: {self.overlay9_duration}, setting to 1")
-                self.overlay9_duration = 1
+                    # Use start at logic: simple percentage of total duration (NO duration subtraction)
+                    actual_overlay9_start_at = int((self.overlay9_start_time / 100.0) * total_duration)
+                    # Ensure the start time doesn't exceed the video duration
+                    actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
+                
+                # Final validation to ensure start time is valid (only for non-popup mode)
+                if not self.overlay9_popup_checkbox_checked:
+                    actual_overlay9_start_at = max(0, actual_overlay9_start_at)
+                           
+                # Additional validation for overlay9 parameters
+                if not self.overlay9_popup_checkbox_checked and actual_overlay9_start_at < 0:                
+                    actual_overlay9_start_at = 0
+                if self.overlay9_duration < 0:                
+                    self.overlay9_duration = 1
             
             # --- Overlay 10: When Song Start/End Logic ---
             overlay10_multi_song = (
@@ -789,14 +995,7 @@ class VideoWorker(QObject):
                 (self.overlay10_start_end_value == "start" or self.overlay10_start_end_value == "end")
             )
             if overlay10_multi_song:
-                # Get individual song durations and cumulative times
-                from src.ffmpeg_utils import get_audio_duration
-                song_durations = []
-                cumulative_time = 0.0
-                for mp3_path in selected_mp3s:
-                    duration = get_audio_duration(mp3_path)
-                    song_durations.append((cumulative_time, duration))
-                    cumulative_time += duration
+                # Use pre-calculated song durations
                 for i, (song_start, song_duration) in enumerate(song_durations):
                     if self.overlay10_start_end_value == "start":
                         # Start logic: first song uses user start time, others start at song beginning
@@ -812,7 +1011,7 @@ class VideoWorker(QObject):
                     
                     overlay_duration = self.overlay10_duration
                     extra_overlays.append({
-                        'path': self.overlay10_path,
+                        'path': processed_overlay10_path,  # Use preprocessed overlay10
                         'start': overlay_start,
                         'duration': overlay_duration,
                         'x_percent': self.overlay10_x_percent,
@@ -823,34 +1022,31 @@ class VideoWorker(QObject):
 
             # --- End Overlay 10: When Song Start/End Logic ---
 
-            # Calculate actual overlay10 start time based on checkbox state
-            if not self.overlay10_start_at_checkbox_checked:
-                # Use start from logic: (total_duration * percentage) - effect_duration
-                effect_duration = self.overlay10_duration
-                percentage_time = (self.overlay10_start_from / 100.0) * total_duration
-                actual_overlay10_start_at = int(max(0, percentage_time - effect_duration))
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
-            else:
-                # Use start at logic: simple percentage of total duration (NO duration subtraction)
-                actual_overlay10_start_at = int((self.overlay10_start_time / 100.0) * total_duration)
-                # Ensure the start time doesn't exceed the video duration
-                actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+            # Calculate actual overlay10 start time based on checkbox state (only if overlay10 is enabled and not multi-song)
+            actual_overlay10_start_at = 0  # Default value
             
-            # Final validation to ensure start time is valid
-            actual_overlay10_start_at = max(0, actual_overlay10_start_at)
-            
-            # Debug output for overlay10 timing
-            print(f"Overlay10 Debug - Total duration: {total_duration}s, Start time: {actual_overlay10_start_at}s, Duration: {self.overlay10_duration}s")
-            print(f"Overlay10 Debug - Start from percent: {self.overlay10_start_from}, Start time percent: {self.overlay10_start_time}")
-            
-            # Additional validation for overlay10 parameters
-            if actual_overlay10_start_at < 0:
-                print(f"Warning: Overlay10 start time is negative: {actual_overlay10_start_at}, setting to 0")
-                actual_overlay10_start_at = 0
-            if self.overlay10_duration < 0:
-                print(f"Warning: Overlay10 duration is negative: {self.overlay10_duration}, setting to 1")
-                self.overlay10_duration = 1
+            if self.use_overlay10 and not overlay10_multi_song:
+                if not self.overlay10_start_at_checkbox_checked:
+                    # Use start from logic: (total_duration * percentage) - effect_duration
+                    effect_duration = self.overlay10_duration
+                    percentage_time = (self.overlay10_start_from / 100.0) * total_duration
+                    actual_overlay10_start_at = int(max(0, percentage_time - effect_duration))
+                    # Ensure the start time doesn't exceed the video duration
+                    actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+                else:
+                    # Use start at logic: simple percentage of total duration (NO duration subtraction)
+                    actual_overlay10_start_at = int((self.overlay10_start_time / 100.0) * total_duration)
+                    # Ensure the start time doesn't exceed the video duration
+                    actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+                
+                # Final validation to ensure start time is valid
+                actual_overlay10_start_at = max(0, actual_overlay10_start_at)            
+                
+                # Additional validation for overlay10 parameters
+                if actual_overlay10_start_at < 0:                
+                    actual_overlay10_start_at = 0
+                if self.overlay10_duration < 0:                
+                    self.overlay10_duration = 1
             
             
 
@@ -858,60 +1054,60 @@ class VideoWorker(QObject):
             # Call create_video_with_ffmpeg, but if overlay10_multi_song, set use_overlay10=False so it is not added as a static overlay
             ffmpeg_use_overlay10 = self.use_overlay10 and not overlay10_multi_song
             success, err = create_video_with_ffmpeg(
-                selected_image, merged_audio_path, output_path, self.resolution, self.fps, self.codec,
+                processed_image_path, merged_audio_path, output_path, self.resolution, self.fps, self.codec,
                 use_overlay=self.use_overlay,
-                overlay1_path=self.overlay1_path,
-                overlay1_size_percent=self.overlay1_size_percent,
+                overlay1_path=processed_overlay1_path,  # Use preprocessed overlay1
+                overlay1_size_percent=self.overlay1_size_percent,  # Pass original size percent for detection
                 overlay1_x_percent=self.overlay1_x_percent,
                 overlay1_y_percent=self.overlay1_y_percent,
                 use_overlay2=self.use_overlay2,
-                overlay2_path=self.overlay2_path,
-                overlay2_size_percent=self.overlay2_size_percent,
+                overlay2_path=processed_overlay2_path,  # Use preprocessed overlay2
+                overlay2_size_percent=self.overlay2_size_percent,  # Pass original size percent for detection
                 overlay2_x_percent=self.overlay2_x_percent,
                 overlay2_y_percent=self.overlay2_y_percent,
                 use_overlay3=self.use_overlay3,
-                overlay3_path=self.overlay3_path,
-                overlay3_size_percent=self.overlay3_size_percent,
+                overlay3_path=processed_overlay3_path,  # Use preprocessed overlay3
+                overlay3_size_percent=self.overlay3_size_percent,  # Pass original size percent for detection
                 overlay3_x_percent=self.overlay3_x_percent,
                 overlay3_y_percent=self.overlay3_y_percent,
                 use_overlay4=self.use_overlay4,
-                overlay4_path=self.overlay4_path,
-                overlay4_size_percent=self.overlay4_size_percent,
+                overlay4_path=processed_overlay4_path,  # Use preprocessed overlay4
+                overlay4_size_percent=self.overlay4_size_percent,  # Pass original size percent for detection
                 overlay4_x_percent=self.overlay4_x_percent,
                 overlay4_y_percent=self.overlay4_y_percent,
                 use_overlay5=self.use_overlay5,
-                overlay5_path=self.overlay5_path,
-                overlay5_size_percent=self.overlay5_size_percent,
+                overlay5_path=processed_overlay5_path,  # Use preprocessed overlay5
+                overlay5_size_percent=self.overlay5_size_percent,  # Pass original size percent for detection
                 overlay5_x_percent=self.overlay5_x_percent,
                 overlay5_y_percent=self.overlay5_y_percent,
                 use_overlay6=self.use_overlay6,
-                overlay6_path=self.overlay6_path,
-                overlay6_size_percent=self.overlay6_size_percent,
+                overlay6_path=processed_overlay6_path,  # Use preprocessed overlay6
+                overlay6_size_percent=self.overlay6_size_percent,  # Pass original size percent for detection
                 overlay6_x_percent=self.overlay6_x_percent,
                 overlay6_y_percent=self.overlay6_y_percent,
                 use_overlay7=self.use_overlay7,
-                overlay7_path=self.overlay7_path,
-                overlay7_size_percent=self.overlay7_size_percent,
+                overlay7_path=processed_overlay7_path,  # Use preprocessed overlay7
+                overlay7_size_percent=self.overlay7_size_percent,  # Pass original size percent for detection
                 overlay7_x_percent=self.overlay7_x_percent,
                 overlay7_y_percent=self.overlay7_y_percent,
                 use_overlay8=self.use_overlay8,
-                overlay8_path=self.overlay8_path,
-                overlay8_size_percent=self.overlay8_size_percent,
+                overlay8_path=processed_overlay8_path,  # Use preprocessed overlay8
+                overlay8_size_percent=self.overlay8_size_percent,  # Pass original size percent for detection
                 overlay8_x_percent=self.overlay8_x_percent,
                 overlay8_y_percent=self.overlay8_y_percent,
                 use_overlay9=self.use_overlay9,
-                overlay9_path=self.overlay9_path,
-                overlay9_size_percent=self.overlay9_size_percent,
+                overlay9_path=processed_overlay9_path,  # Use preprocessed overlay9
+                overlay9_size_percent=self.overlay9_size_percent,  # Pass original size percent for detection
                 overlay9_x_percent=self.overlay9_x_percent,
                 overlay9_y_percent=self.overlay9_y_percent,
                 use_overlay10=ffmpeg_use_overlay10,
-                overlay10_path=self.overlay10_path,
-                overlay10_size_percent=self.overlay10_size_percent,
+                overlay10_path=processed_overlay10_path,  # Use preprocessed overlay10
+                overlay10_size_percent=self.overlay10_size_percent,  # Pass original size percent for detection
                 overlay10_x_percent=self.overlay10_x_percent,
                 overlay10_y_percent=self.overlay10_y_percent,
                 use_intro=self.use_intro,
-                intro_path=self.intro_path,
-                intro_size_percent=self.intro_size_percent,
+                 intro_path=processed_intro_path,  # Use preprocessed intro
+                intro_size_percent=self.intro_size_percent,  # Pass original size percent for detection
                 intro_x_percent=self.intro_x_percent,
                 intro_y_percent=self.intro_y_percent,
                 overlay1_2_effect=self.overlay1_2_effect,
@@ -971,7 +1167,7 @@ class VideoWorker(QObject):
                 overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox_checked,
                 # --- Add frame box parameters ---
                 use_frame_box=self.use_frame_box,
-                frame_box_path=self.frame_box_path,
+                frame_box_path=processed_frame_box_path,
                 frame_box_size_percent=self.frame_box_size_percent,
                 frame_box_x_percent=self.frame_box_x_percent,
                 frame_box_y_percent=self.frame_box_y_percent,
@@ -983,6 +1179,9 @@ class VideoWorker(QObject):
                 frame_box_pad_right=self.frame_box_pad_right,
                 frame_box_pad_top=self.frame_box_pad_top,
                 frame_box_pad_bottom=self.frame_box_pad_bottom,
+                # --- Add frame box custom image parameters ---
+                use_frame_box_custom_image=self.use_frame_box_custom_image,
+                frame_box_custom_image_path=self.frame_box_custom_image_path,
                 # --- Add frame mp3cover parameters ---
                 use_frame_mp3cover=self.use_frame_mp3cover,
                 frame_mp3cover_path=self.frame_mp3cover_path,
@@ -993,12 +1192,7 @@ class VideoWorker(QObject):
                 frame_mp3cover_start_time=self.frame_mp3cover_start_time,
                 frame_mp3cover_duration=self.frame_mp3cover_duration,
                 frame_mp3cover_duration_full_checkbox_checked=self.frame_mp3cover_duration_full_checkbox_checked,
-                # --- Add background layer parameters ---
-                use_bg_layer=self.use_bg_layer,
-                bg_scale_percent=self.bg_scale_percent,
-                bg_crop_position=self.bg_crop_position,
-                bg_effect=self.bg_effect,
-                bg_intensity=self.bg_intensity,
+                # --- Background layer parameters are now handled in advance during image preprocessing ---
                 # --- Add soundwave overlay parameters ---
                 use_soundwave_overlay=self.use_soundwave_overlay,
                 soundwave_overlay_path=soundwave_overlay_path or "",
@@ -1006,7 +1200,9 @@ class VideoWorker(QObject):
                 soundwave_x_percent=self.soundwave_x_percent,
                 soundwave_y_percent=self.soundwave_y_percent,
                 overlay1_start_at=actual_overlay1_start_at,
-                overlay2_start_at=actual_overlay2_start_at
+                overlay2_start_at=actual_overlay2_start_at,
+                # --- Add layer order parameter ---
+                layer_order=self.layer_order
             )
             if not success:
                 self.error.emit(err or f"Failed to create video: {output_filename}")
@@ -1021,6 +1217,84 @@ class VideoWorker(QObject):
             if 'soundwave_overlay_path' in locals() and soundwave_overlay_path and os.path.exists(soundwave_overlay_path):
                 try:
                     os.remove(soundwave_overlay_path)
+                except:
+                    pass
+            # Clean up processed background image if it was created
+            if 'processed_image_path' in locals() and processed_image_path != selected_image and os.path.exists(processed_image_path):
+                try:
+                    os.remove(processed_image_path)
+                except:
+                    pass
+            # Clean up processed overlay1 image if it was created
+            if 'processed_overlay1_path' in locals() and processed_overlay1_path != self.overlay1_path and os.path.exists(processed_overlay1_path):
+                try:
+                    os.remove(processed_overlay1_path)
+                except:
+                    pass
+            # Clean up processed overlay2 image if it was created
+            if 'processed_overlay2_path' in locals() and processed_overlay2_path != self.overlay2_path and os.path.exists(processed_overlay2_path):
+                try:
+                    os.remove(processed_overlay2_path)
+                except:
+                    pass
+            # Clean up processed overlay3 image if it was created
+            if 'processed_overlay3_path' in locals() and processed_overlay3_path != self.overlay3_path and os.path.exists(processed_overlay3_path):
+                try:
+                    os.remove(processed_overlay3_path)
+                except:
+                    pass
+            # Clean up processed intro image if it was created
+            if 'processed_intro_path' in locals() and processed_intro_path != self.intro_path and os.path.exists(processed_intro_path):
+                try:
+                    os.remove(processed_intro_path)
+                except:
+                    pass
+            # Clean up processed overlay4 image if it was created
+            if 'processed_overlay4_path' in locals() and processed_overlay4_path != self.overlay4_path and os.path.exists(processed_overlay4_path):
+                try:
+                    os.remove(processed_overlay4_path)
+                except:
+                    pass
+            # Clean up processed overlay5 image if it was created
+            if 'processed_overlay5_path' in locals() and processed_overlay5_path != self.overlay5_path and os.path.exists(processed_overlay5_path):
+                try:
+                    os.remove(processed_overlay5_path)
+                except:
+                    pass
+            # Clean up processed overlay6 image if it was created
+            if 'processed_overlay6_path' in locals() and processed_overlay6_path != self.overlay6_path and os.path.exists(processed_overlay6_path):
+                try:
+                    os.remove(processed_overlay6_path)
+                except:
+                    pass
+            # Clean up processed overlay7 image if it was created
+            if 'processed_overlay7_path' in locals() and processed_overlay7_path != self.overlay7_path and os.path.exists(processed_overlay7_path):
+                try:
+                    os.remove(processed_overlay7_path)
+                except:
+                    pass
+            # Clean up processed overlay8 image if it was created
+            if 'processed_overlay8_path' in locals() and processed_overlay8_path != self.overlay8_path and os.path.exists(processed_overlay8_path):
+                try:
+                    os.remove(processed_overlay8_path)
+                except:
+                    pass
+            # Clean up processed overlay9 image if it was created
+            if 'processed_overlay9_path' in locals() and processed_overlay9_path != self.overlay9_path and os.path.exists(processed_overlay9_path):
+                try:
+                    os.remove(processed_overlay9_path)
+                except:
+                    pass
+            # Clean up processed overlay10 image if it was created
+            if 'processed_overlay10_path' in locals() and processed_overlay10_path != self.overlay10_path and os.path.exists(processed_overlay10_path):
+                try:
+                    os.remove(processed_overlay10_path)
+                except:
+                    pass
+            # Clean up processed framebox image if it was created
+            if 'processed_frame_box_path' in locals() and processed_frame_box_path != self.frame_box_path and os.path.exists(processed_frame_box_path):
+                try:
+                    os.remove(processed_frame_box_path)
                 except:
                     pass
             

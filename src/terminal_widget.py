@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import (
     QTimer, pyqtSignal, QThread, pyqtSlot, QPoint, Qt
 )
-from PyQt6.QtGui import QFont, QTextCursor, QPalette, QColor, QIcon, QCursor, QMouseEvent, QKeySequence, QPainter, QBrush
+from PyQt6.QtGui import QFont, QTextCursor, QPalette, QColor, QIcon, QCursor, QMouseEvent, QKeySequence, QPainter, QBrush, QShortcut
 import queue
 import threading
 import time
@@ -107,6 +107,10 @@ class TerminalWidget(QWidget):
         
         self.init_ui()
         self.start_capture()
+        
+        # Add Ctrl+W shortcut to close terminal
+        self.shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
+        self.shortcut.activated.connect(self.close_terminal)
         
     def init_ui(self):
         """Initialize the terminal UI"""
