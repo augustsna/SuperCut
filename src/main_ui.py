@@ -305,7 +305,7 @@ class SettingsDialog(QDialog):
         self.default_intro_path_btn = QPushButton('...')
         self.default_intro_path_btn.setFixedWidth(32)
         def pick_intro_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Intro Media", "", "Media Files (*.gif *.png *.mp4 *.mov)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Intro Media", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.default_intro_path_edit.setText(file_path)
         self.default_intro_path_btn.clicked.connect(pick_intro_path)
@@ -362,7 +362,7 @@ class SettingsDialog(QDialog):
         self.default_overlay1_path_btn = QPushButton('...')
         self.default_overlay1_path_btn.setFixedWidth(32)
         def pick_overlay1_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 1 File", "", "Video Files (*.mp4 *.avi *.mov *.mkv) or Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 1 File", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.default_overlay1_path_edit.setText(file_path)
         self.default_overlay1_path_btn.clicked.connect(pick_overlay1_path)
@@ -422,7 +422,7 @@ class SettingsDialog(QDialog):
         self.default_overlay2_path_btn = QPushButton('...')
         self.default_overlay2_path_btn.setFixedWidth(32)
         def pick_overlay2_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 2 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 2 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.default_overlay2_path_edit.setText(file_path)
         self.default_overlay2_path_btn.clicked.connect(pick_overlay2_path)
@@ -1287,8 +1287,8 @@ class SuperCutUI(QWidget):
         intro_layout = QHBoxLayout()
         intro_layout.setSpacing(4)
         self.intro_edit = ImageDropLineEdit()
-        self.intro_edit.setPlaceholderText("Intro media path (*.gif, *.png, *.mp4, *.mov)")
-        self.intro_edit.setToolTip("Drag and drop a GIF, PNG, MP4, or MOV file here or click 'Select Media'")
+        self.intro_edit.setPlaceholderText("*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv")
+        self.intro_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select Media'")
         self.intro_edit.setFixedWidth(125)
         self.intro_path = ""
         def on_intro_changed():
@@ -1301,7 +1301,7 @@ class SuperCutUI(QWidget):
         intro_btn = QPushButton("Select")
         intro_btn.setFixedWidth(60)
         def select_intro_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Intro Media", "", "Media Files (*.gif *.png *.mp4 *.mov *.jpg *.jpeg)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Intro Media", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.intro_edit.setText(file_path)
         intro_btn.clicked.connect(select_intro_image)
@@ -1625,8 +1625,8 @@ class SuperCutUI(QWidget):
         overlay1_layout = QHBoxLayout()
         overlay1_layout.setSpacing(4)  # Reduce spacing between widgets
         self.overlay1_edit = ImageDropLineEdit()
-        self.overlay1_edit.setPlaceholderText("Overlay 1 file path (*.mp4, *.gif, *.png)")
-        self.overlay1_edit.setToolTip("Drag and drop a video or image file here or click 'Select File'")
+        self.overlay1_edit.setPlaceholderText("Overlay 1 file path (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv)")
+        self.overlay1_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select File'")
         self.overlay1_edit.setFixedWidth(125)  # Make the text box shorter
         self.overlay1_path = ""
         def on_overlay1_changed():
@@ -1639,7 +1639,7 @@ class SuperCutUI(QWidget):
         overlay1_btn = QPushButton("Select")
         overlay1_btn.setFixedWidth(60)
         def select_overlay1_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 1 File", "", "Video Files (*.mp4 *.avi *.mov *.mkv) or Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 1 File", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay1_edit.setText(file_path)
         overlay1_btn.clicked.connect(select_overlay1_image)
@@ -1744,8 +1744,8 @@ class SuperCutUI(QWidget):
         overlay2_layout = QHBoxLayout()
         overlay2_layout.setSpacing(4)
         self.overlay2_edit = ImageDropLineEdit()
-        self.overlay2_edit.setPlaceholderText("Overlay 2 file path (*.gif, *.png, *.mp4, *.mov)")
-        self.overlay2_edit.setToolTip("Drag and drop a GIF, PNG, MP4, or MOV file here or click 'Select File'")
+        self.overlay2_edit.setPlaceholderText("Overlay 2 file path (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv)")
+        self.overlay2_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select File'")
         self.overlay2_edit.setFixedWidth(125)
         self.overlay2_path = ""
         def on_overlay2_changed():
@@ -1758,7 +1758,7 @@ class SuperCutUI(QWidget):
         overlay2_btn = QPushButton("Select")
         overlay2_btn.setFixedWidth(60)
         def select_overlay2_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 2 File", "", "Overlay Files (*.gif *.png *.mp4 *.mov)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 2 File", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay2_edit.setText(file_path)
         overlay2_btn.clicked.connect(select_overlay2_image)
@@ -6597,20 +6597,20 @@ class SuperCutUI(QWidget):
         # Intro validation
         if self.intro_checkbox.isChecked():
             intro_path = self.intro_edit.text().strip()
-            if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png', '.mp4', '.mov']:
-                QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF, PNG, MP4, or MOV file (*.gif, *.png, *.mp4, *.mov) for Intro.", QMessageBox.StandardButton.Ok)
+            if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png','.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Intro.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 1 validation
         if self.overlay_checkbox.isChecked():
             overlay_path = self.overlay1_edit.text().strip()
-            if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png', '.mp4']:
-                QMessageBox.warning(self, "⚠️ Overlay File Required", "Please provide a valid GIF, PNG, or MP4 file (*.gif, *.png, *.mp4) for Overlay 1.", QMessageBox.StandardButton.Ok)
+            if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay File Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 1.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 2 validation
         if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
             overlay2_path = self.overlay2_edit.text().strip()
-            if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png', '.mp4', '.mov']:
-                QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF, PNG, MP4, or MOV file (*.gif, *.png, *.mp4, *.mov) for Overlay 2.", QMessageBox.StandardButton.Ok)
+            if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 2.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 3 validation
         if hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked():

@@ -455,12 +455,30 @@ class VideoWorker(QObject):
                 intensity=50  # Default intensity
             )
         
+        # Preprocess overlay1 image (only for images, not videos)
+        processed_overlay1_path = self.overlay1_path
+        if self.use_overlay and self.overlay1_path:
+            file_ext = os.path.splitext(self.overlay1_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay1_image
+                processed_overlay1_path = preprocess_overlay1_image(
+                    image_path=self.overlay1_path,
+                    size_percent=self.overlay1_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay1_path = self.overlay1_path
+        
         # Preprocess overlay2 image (only for images, not videos)
         processed_overlay2_path = self.overlay2_path
         if self.use_overlay2 and self.overlay2_path:
             file_ext = os.path.splitext(self.overlay2_path)[1].lower()
             is_gif = file_ext == '.gif'
-            is_video = file_ext in ['.mp4', '.mov']
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
             
             if not is_gif and not is_video:
                 # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
@@ -478,7 +496,7 @@ class VideoWorker(QObject):
         if self.use_intro and self.intro_path:
             file_ext = os.path.splitext(self.intro_path)[1].lower()
             is_gif = file_ext == '.gif'
-            is_video = file_ext in ['.mp4', '.mov']
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
             
             if not is_gif and not is_video:
                 # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
@@ -871,8 +889,8 @@ class VideoWorker(QObject):
             success, err = create_video_with_ffmpeg(
                 processed_image_path, merged_audio_path, output_path, self.resolution, self.fps, self.codec,
                 use_overlay=self.use_overlay,
-                overlay1_path=self.overlay1_path,
-                overlay1_size_percent=self.overlay1_size_percent,
+                overlay1_path=processed_overlay1_path,  # Use preprocessed overlay1
+                overlay1_size_percent=self.overlay1_size_percent,  # Pass original size percent for detection
                 overlay1_x_percent=self.overlay1_x_percent,
                 overlay1_y_percent=self.overlay1_y_percent,
                 use_overlay2=self.use_overlay2,
@@ -1035,6 +1053,12 @@ class VideoWorker(QObject):
             if 'processed_image_path' in locals() and processed_image_path != selected_image and os.path.exists(processed_image_path):
                 try:
                     os.remove(processed_image_path)
+                except:
+                    pass
+            # Clean up processed overlay1 image if it was created
+            if 'processed_overlay1_path' in locals() and processed_overlay1_path != self.overlay1_path and os.path.exists(processed_overlay1_path):
+                try:
+                    os.remove(processed_overlay1_path)
                 except:
                     pass
             # Clean up processed overlay2 image if it was created
