@@ -5188,6 +5188,28 @@ class SuperCutUI(QWidget):
         # Add styling controls layout
         layout.addLayout(frame_box_caption_styling_layout)
         
+        # Function to update custom image controls state
+        def update_custom_image_controls_state():
+            # Check if both frame box and custom image are enabled
+            frame_box_enabled = self.frame_box_checkbox.isChecked()
+            custom_image_enabled = self.frame_box_custom_image_checkbox.isChecked()
+            both_enabled = frame_box_enabled and custom_image_enabled
+            
+            # Enable/disable custom image controls
+            self.frame_box_custom_image_edit.setEnabled(both_enabled)
+            self.frame_box_custom_image_btn.setEnabled(both_enabled)
+            
+            # Update styling based on state
+            if both_enabled:
+                # Custom image controls are enabled
+                self.frame_box_custom_image_edit.setStyleSheet("")
+                self.frame_box_custom_image_btn.setStyleSheet("")
+            else:
+                # Custom image controls are disabled
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.frame_box_custom_image_edit.setStyleSheet(grey_btn_style)
+                self.frame_box_custom_image_btn.setStyleSheet(grey_btn_style)
+        
         # Function to update caption controls state
         def update_caption_controls_state():
             # Check if both frame box and caption are enabled
@@ -5369,6 +5391,12 @@ class SuperCutUI(QWidget):
         # Initial state
         update_caption_controls_state()
 
+        # --- Frame box custom image checkbox handler ---
+        def on_frame_box_custom_image_checked(state):
+            # Update custom image controls state
+            update_custom_image_controls_state()
+        self.frame_box_custom_image_checkbox.stateChanged.connect(on_frame_box_custom_image_checked)
+        
         # --- Frame box caption checkbox handler ---
         def on_frame_box_caption_checked(state):
             # Update caption controls state
@@ -5564,9 +5592,11 @@ class SuperCutUI(QWidget):
                 
 
         self.frame_box_checkbox.stateChanged.connect(lambda _: set_frame_box_enabled(self.frame_box_checkbox.checkState()))
+        self.frame_box_checkbox.stateChanged.connect(lambda _: update_custom_image_controls_state())
         
          # Initialize frame box enabled state after all controls are created
         set_frame_box_enabled(self.frame_box_checkbox.checkState())
+        update_custom_image_controls_state()
 
         # --- Frame box effect greying logic ---
         def update_frame_box_effect_label_style():
@@ -5596,9 +5626,11 @@ class SuperCutUI(QWidget):
                 # Don't manage caption checkbox here - let the caption system handle it
                 set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
         self.frame_box_checkbox.stateChanged.connect(lambda _: update_frame_box_effect_label_style())
+        self.frame_box_checkbox.stateChanged.connect(lambda _: update_custom_image_controls_state())
         self.frame_box_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState()))
         update_frame_box_effect_label_style()
         set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
+        update_custom_image_controls_state()
 
         # --- DYNAMIC MP3 COVER OVERLAY ---
         self.mp3_cover_overlay_checkbox = QtWidgets.QCheckBox("MP3 Cover Overlay:")
