@@ -689,9 +689,9 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 scale_factor10 = overlay10_size_percent / 100.0
                 ow10 = f"iw*{scale_factor10:.3f}"
                 oh10 = f"ih*{scale_factor10:.3f}"
-            scale_factor_frame_box = frame_box_size_percent / 100.0
-            ow_frame_box = f"iw*{scale_factor_frame_box:.3f}"
-            oh_frame_box = f"ih*{scale_factor_frame_box:.3f}"
+            # Framebox is pre-scaled, use original dimensions
+            ow_frame_box = "iw"
+            oh_frame_box = "ih"
             scale_factor_frame_mp3cover = frame_mp3cover_size_percent / 100.0
             ow_frame_mp3cover = f"iw*{scale_factor_frame_mp3cover:.3f}"
             oh_frame_mp3cover = f"ih*{scale_factor_frame_mp3cover:.3f}"
@@ -914,7 +914,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             if not frame_box_duration_full_checkbox_checked:
                 frame_box_actual_duration = frame_box_duration
             
-            filter_frame_box = overlay_effect_chain(frame_box_idx, f"{ow_frame_box}:{oh_frame_box}", "ol_frame_box", frame_box_effect, frame_box_start_time, ext_frame_box, frame_box_actual_duration) if frame_box_idx is not None else ""
+            filter_frame_box = overlay_effect_chain(frame_box_idx, "iw:ih", "ol_frame_box", frame_box_effect, frame_box_start_time, ext_frame_box, frame_box_actual_duration) if frame_box_idx is not None else ""
             # Calculate duration for frame mp3cover based on full duration checkbox
             frame_mp3cover_actual_duration = None
             if not frame_mp3cover_duration_full_checkbox_checked:

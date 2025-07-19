@@ -658,6 +658,24 @@ class VideoWorker(QObject):
                 # For GIFs and videos, use original path - FFmpeg will handle scaling
                 processed_overlay10_path = self.overlay10_path
         
+        # Preprocess framebox image (only for images, not videos)
+        processed_frame_box_path = self.frame_box_path
+        if self.use_frame_box and self.frame_box_path:
+            file_ext = os.path.splitext(self.frame_box_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_framebox_image
+                processed_frame_box_path = preprocess_framebox_image(
+                    image_path=self.frame_box_path,
+                    size_percent=self.frame_box_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_frame_box_path = self.frame_box_path
+        
         # Create output filename
         if self.name_list and batch_count < len(self.name_list):
             from src.utils import sanitize_filename
@@ -1149,7 +1167,7 @@ class VideoWorker(QObject):
                 overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox_checked,
                 # --- Add frame box parameters ---
                 use_frame_box=self.use_frame_box,
-                frame_box_path=self.frame_box_path,
+                frame_box_path=processed_frame_box_path,
                 frame_box_size_percent=self.frame_box_size_percent,
                 frame_box_x_percent=self.frame_box_x_percent,
                 frame_box_y_percent=self.frame_box_y_percent,
@@ -1271,6 +1289,12 @@ class VideoWorker(QObject):
             if 'processed_overlay10_path' in locals() and processed_overlay10_path != self.overlay10_path and os.path.exists(processed_overlay10_path):
                 try:
                     os.remove(processed_overlay10_path)
+                except:
+                    pass
+            # Clean up processed framebox image if it was created
+            if 'processed_frame_box_path' in locals() and processed_frame_box_path != self.frame_box_path and os.path.exists(processed_frame_box_path):
+                try:
+                    os.remove(processed_frame_box_path)
                 except:
                     pass
             
