@@ -547,9 +547,28 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 scale_factor5 = overlay5_size_percent / 100.0
                 ow5 = f"iw*{scale_factor5:.3f}"
                 oh5 = f"ih*{scale_factor5:.3f}"
-            scale_factor6 = overlay6_size_percent / 100.0
-            ow6 = f"iw*{scale_factor6:.3f}"
-            oh6 = f"ih*{scale_factor6:.3f}"
+            
+            # Check if overlay6 is preprocessed (only for non-GIF images)
+            overlay6_filename = os.path.basename(overlay6_path) if overlay6_path else ""
+            is_overlay6_preprocessed = overlay6_filename.startswith("supercut_")
+            overlay6_ext = os.path.splitext(overlay6_path)[1].lower() if overlay6_path else ""
+            is_overlay6_gif = overlay6_ext == '.gif'
+            is_overlay6_video = overlay6_path and overlay6_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay6_preprocessed and not is_overlay6_gif:
+                # Overlay6 is preprocessed non-GIF image - use original size
+                ow6 = "iw"
+                oh6 = "ih"
+            elif is_overlay6_gif or is_overlay6_video:
+                # Overlay6 is GIF or video - apply scaling in FFmpeg
+                scale_factor6 = overlay6_size_percent / 100.0
+                ow6 = f"iw*{scale_factor6:.3f}"
+                oh6 = f"ih*{scale_factor6:.3f}"
+            else:
+                # Overlay6 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor6 = overlay6_size_percent / 100.0
+                ow6 = f"iw*{scale_factor6:.3f}"
+                oh6 = f"ih*{scale_factor6:.3f}"
             scale_factor7 = overlay7_size_percent / 100.0
             ow7 = f"iw*{scale_factor7:.3f}"
             oh7 = f"ih*{scale_factor7:.3f}"
