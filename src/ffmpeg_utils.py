@@ -198,6 +198,9 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     frame_box_pad_right: int = 12,
     frame_box_pad_top: int = 12,
     frame_box_pad_bottom: int = 12,
+    # --- Add frame box custom image parameters ---
+    use_frame_box_custom_image: bool = False,
+    frame_box_custom_image_path: str = "",
     # --- Add frame mp3cover parameters ---
     use_frame_mp3cover: bool = False,
     frame_mp3cover_path: str = "",

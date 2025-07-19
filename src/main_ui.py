@@ -4758,6 +4758,39 @@ class SuperCutUI(QWidget):
         self.frame_box_checkbox.stateChanged.connect(update_frame_box_checkbox_style)
         update_frame_box_checkbox_style(self.frame_box_checkbox.checkState())
 
+        # Custom image checkbox for framebox
+        self.frame_box_custom_image_checkbox = QtWidgets.QCheckBox("Custom Image:")
+        self.frame_box_custom_image_checkbox.setFixedWidth(100)
+        self.frame_box_custom_image_checkbox.setChecked(False)
+        def update_frame_box_custom_image_checkbox_style(state):
+            self.frame_box_custom_image_checkbox.setStyleSheet("")  # Always default color
+        self.frame_box_custom_image_checkbox.stateChanged.connect(update_frame_box_custom_image_checkbox_style)
+        update_frame_box_custom_image_checkbox_style(self.frame_box_custom_image_checkbox.checkState())
+
+        # Custom image file selection
+        self.frame_box_custom_image_edit = ImageDropLineEdit()
+        self.frame_box_custom_image_edit.setFixedWidth(120)
+        self.frame_box_custom_image_edit.setPlaceholderText("Select custom image...")
+        self.frame_box_custom_image_path = None
+        
+        def select_frame_box_custom_image():
+            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self, "Select Custom Image for Frame Box", "", 
+                "Image Files (*.png *.jpg *.jpeg *.gif *.bmp *.tiff)"
+            )
+            if file_path:
+                self.frame_box_custom_image_edit.setText(file_path)
+                self.frame_box_custom_image_path = file_path
+        
+        self.frame_box_custom_image_btn = QPushButton("Browse")
+        self.frame_box_custom_image_btn.setFixedWidth(50)
+        self.frame_box_custom_image_btn.clicked.connect(select_frame_box_custom_image)
+        
+        def on_frame_box_custom_image_changed():
+            self.frame_box_custom_image_path = self.frame_box_custom_image_edit.text()
+        
+        self.frame_box_custom_image_edit.textChanged.connect(on_frame_box_custom_image_changed)
+
         frame_box_layout = QHBoxLayout()
         frame_box_layout.setSpacing(4)
         
@@ -4804,10 +4837,11 @@ class SuperCutUI(QWidget):
         self.frame_box_y_combo.currentIndexChanged.connect(on_frame_box_y_changed)
         on_frame_box_y_changed(self.frame_box_y_combo.currentIndex())
 
-        
-        
         frame_box_layout.addWidget(self.frame_box_checkbox)
-        frame_box_layout.addSpacing(188)
+        frame_box_layout.addWidget(self.frame_box_custom_image_checkbox)
+        frame_box_layout.addWidget(self.frame_box_custom_image_edit)
+        frame_box_layout.addWidget(self.frame_box_custom_image_btn)
+        frame_box_layout.addSpacing(20)
         frame_box_layout.addWidget(frame_box_size_label)
         frame_box_layout.addWidget(self.frame_box_size_combo)
         frame_box_layout.addSpacing(4)
@@ -7420,9 +7454,29 @@ class SuperCutUI(QWidget):
             from PIL import Image, ImageDraw
             import os
             
-            # Use the first image from original_image_files as the main image
-            if original_image_files:
+            # Determine which image to use for framebox
+            if (hasattr(self, 'frame_box_custom_image_checkbox') and 
+                self.frame_box_custom_image_checkbox.isChecked() and 
+                hasattr(self, 'frame_box_custom_image_path') and 
+                self.frame_box_custom_image_path and 
+                os.path.exists(self.frame_box_custom_image_path)):
+                # Validate file type for custom image
+                file_ext = os.path.splitext(self.frame_box_custom_image_path)[1].lower()
+                if file_ext in ['.gif', '.png', '.jpg', '.jpeg']:
+                    # Use custom image if enabled, file exists, and has valid extension
+                    main_img_path = self.frame_box_custom_image_path
+                else:
+                    # Invalid file type, fall back to background image
+                    main_img_path = list(original_image_files)[0] if original_image_files else None
+            elif original_image_files:
+                # Use the first image from original_image_files as the main image
                 main_img_path = list(original_image_files)[0]
+            else:
+                # No valid image available
+                main_img_path = None
+            
+            # Process framebox only if we have a valid image
+            if main_img_path:
                 with Image.open(main_img_path) as img:
                     w, h = img.size
                     # Crop to square using height, center horizontally
@@ -7532,6 +7586,7 @@ class SuperCutUI(QWidget):
                     else:
                         # No caption, use frame box without caption
                         frame_box_path = frame_box_temp_path
+            # End of framebox processing if main_img_path exists
         # Fallback if not set
         if not frame_box_path:
             frame_box_path = "src/sources/frame_box.png"
@@ -7644,6 +7699,9 @@ class SuperCutUI(QWidget):
             frame_box_pad_right=self.frame_box_pad_right,
             frame_box_pad_top=self.frame_box_pad_top,
             frame_box_pad_bottom=self.frame_box_pad_bottom,
+            # --- Add frame box custom image parameters ---
+            use_frame_box_custom_image=self.frame_box_custom_image_checkbox.isChecked() if hasattr(self, 'frame_box_custom_image_checkbox') else False,
+            frame_box_custom_image_path=self.frame_box_custom_image_path if hasattr(self, 'frame_box_custom_image_path') and self.frame_box_custom_image_path else "",
             # --- Add frame mp3cover parameters ---
             use_frame_mp3cover=self.frame_mp3cover_checkbox.isChecked(),
             frame_mp3cover_path="src/sources/icon.png",  # Hardcoded path for now

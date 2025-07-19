@@ -68,6 +68,8 @@ class VideoWorker(QObject):
                  use_frame_box: bool = False, frame_box_path: str = "", frame_box_size_percent: int = 50, frame_box_x_percent: int = 0, frame_box_y_percent: int = 0,
                  frame_box_effect: str = "fadein", frame_box_start_time: int = 5, frame_box_duration: int = 6, frame_box_duration_full_checkbox_checked: bool = True,
                  frame_box_pad_left: int = 12, frame_box_pad_right: int = 12, frame_box_pad_top: int = 12, frame_box_pad_bottom: int = 12,
+                 # --- Add frame box custom image parameters ---
+                 use_frame_box_custom_image: bool = False, frame_box_custom_image_path: str = "",
                  # --- Add frame mp3cover parameters ---
                  use_frame_mp3cover: bool = False, frame_mp3cover_path: str = "", frame_mp3cover_size_percent: int = 50, frame_mp3cover_x_percent: int = 0, frame_mp3cover_y_percent: int = 0,
                  frame_mp3cover_effect: str = "fadein", frame_mp3cover_start_time: int = 5, frame_mp3cover_duration: int = 6, frame_mp3cover_duration_full_checkbox_checked: bool = True,
@@ -260,6 +262,9 @@ class VideoWorker(QObject):
         self.frame_box_pad_right = frame_box_pad_right
         self.frame_box_pad_top = frame_box_pad_top
         self.frame_box_pad_bottom = frame_box_pad_bottom
+        # --- Add frame box custom image attributes ---
+        self.use_frame_box_custom_image = use_frame_box_custom_image
+        self.frame_box_custom_image_path = frame_box_custom_image_path
         # --- Add frame mp3cover attributes ---
         self.use_frame_mp3cover = use_frame_mp3cover
         self.frame_mp3cover_path = frame_mp3cover_path
@@ -1156,6 +1161,9 @@ class VideoWorker(QObject):
                 frame_box_pad_right=self.frame_box_pad_right,
                 frame_box_pad_top=self.frame_box_pad_top,
                 frame_box_pad_bottom=self.frame_box_pad_bottom,
+                # --- Add frame box custom image parameters ---
+                use_frame_box_custom_image=self.use_frame_box_custom_image,
+                frame_box_custom_image_path=self.frame_box_custom_image_path,
                 # --- Add frame mp3cover parameters ---
                 use_frame_mp3cover=self.use_frame_mp3cover,
                 frame_mp3cover_path=self.frame_mp3cover_path,
