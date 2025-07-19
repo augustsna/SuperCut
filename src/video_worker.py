@@ -563,6 +563,24 @@ class VideoWorker(QObject):
                 # For GIFs and videos, use original path - FFmpeg will handle scaling
                 processed_overlay6_path = self.overlay6_path
         
+        # Preprocess overlay7 image (only for images, not videos)
+        processed_overlay7_path = self.overlay7_path
+        if self.use_overlay7 and self.overlay7_path:
+            file_ext = os.path.splitext(self.overlay7_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay7_image
+                processed_overlay7_path = preprocess_overlay7_image(
+                    image_path=self.overlay7_path,
+                    size_percent=self.overlay7_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay7_path = self.overlay7_path
+        
         # Create output filename
         if self.name_list and batch_count < len(self.name_list):
             from src.utils import sanitize_filename
@@ -973,8 +991,8 @@ class VideoWorker(QObject):
                 overlay6_x_percent=self.overlay6_x_percent,
                 overlay6_y_percent=self.overlay6_y_percent,
                 use_overlay7=self.use_overlay7,
-                overlay7_path=self.overlay7_path,
-                overlay7_size_percent=self.overlay7_size_percent,
+                overlay7_path=processed_overlay7_path,  # Use preprocessed overlay7
+                overlay7_size_percent=self.overlay7_size_percent,  # Pass original size percent for detection
                 overlay7_x_percent=self.overlay7_x_percent,
                 overlay7_y_percent=self.overlay7_y_percent,
                 use_overlay8=self.use_overlay8,
@@ -1143,6 +1161,12 @@ class VideoWorker(QObject):
             if 'processed_overlay6_path' in locals() and processed_overlay6_path != self.overlay6_path and os.path.exists(processed_overlay6_path):
                 try:
                     os.remove(processed_overlay6_path)
+                except:
+                    pass
+            # Clean up processed overlay7 image if it was created
+            if 'processed_overlay7_path' in locals() and processed_overlay7_path != self.overlay7_path and os.path.exists(processed_overlay7_path):
+                try:
+                    os.remove(processed_overlay7_path)
                 except:
                     pass
             
