@@ -2055,8 +2055,8 @@ class SuperCutUI(QWidget):
         overlay4_layout = QHBoxLayout()
         overlay4_layout.setSpacing(4)
         self.overlay4_edit = ImageDropLineEdit()
-        self.overlay4_edit.setPlaceholderText("Overlay 4 image path (*.gif, *.png)")
-        self.overlay4_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay4_edit.setPlaceholderText("Overlay 4 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
+        self.overlay4_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay4_edit.setFixedWidth(125)
         self.overlay4_path = ""
         def on_overlay4_changed():
@@ -2069,7 +2069,7 @@ class SuperCutUI(QWidget):
         overlay4_btn = QPushButton("Select")
         overlay4_btn.setFixedWidth(60)
         def select_overlay4_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 4 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 4 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay4_edit.setText(file_path)
         overlay4_btn.clicked.connect(select_overlay4_image)
@@ -6621,8 +6621,8 @@ class SuperCutUI(QWidget):
         # Overlay 4 validation
         if hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked():
             overlay4_path = self.overlay4_edit.text().strip()
-            if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png']:
-                QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 4.", QMessageBox.StandardButton.Ok)
+            if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 4.", QMessageBox.StandardButton.Ok)
                 return
         # Overlay 5 validation
         if hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked():

@@ -509,6 +509,24 @@ class VideoWorker(QObject):
                 # For GIFs and videos, use original path - FFmpeg will handle scaling
                 processed_intro_path = self.intro_path
         
+        # Preprocess overlay4 image (only for images, not videos)
+        processed_overlay4_path = self.overlay4_path
+        if self.use_overlay4 and self.overlay4_path:
+            file_ext = os.path.splitext(self.overlay4_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay4_image
+                processed_overlay4_path = preprocess_overlay4_image(
+                    image_path=self.overlay4_path,
+                    size_percent=self.overlay4_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay4_path = self.overlay4_path
+        
         # Create output filename
         if self.name_list and batch_count < len(self.name_list):
             from src.utils import sanitize_filename
@@ -904,8 +922,8 @@ class VideoWorker(QObject):
                 overlay3_x_percent=self.overlay3_x_percent,
                 overlay3_y_percent=self.overlay3_y_percent,
                 use_overlay4=self.use_overlay4,
-                overlay4_path=self.overlay4_path,
-                overlay4_size_percent=self.overlay4_size_percent,
+                overlay4_path=processed_overlay4_path,  # Use preprocessed overlay4
+                overlay4_size_percent=self.overlay4_size_percent,  # Pass original size percent for detection
                 overlay4_x_percent=self.overlay4_x_percent,
                 overlay4_y_percent=self.overlay4_y_percent,
                 use_overlay5=self.use_overlay5,
@@ -1071,6 +1089,12 @@ class VideoWorker(QObject):
             if 'processed_intro_path' in locals() and processed_intro_path != self.intro_path and os.path.exists(processed_intro_path):
                 try:
                     os.remove(processed_intro_path)
+                except:
+                    pass
+            # Clean up processed overlay4 image if it was created
+            if 'processed_overlay4_path' in locals() and processed_overlay4_path != self.overlay4_path and os.path.exists(processed_overlay4_path):
+                try:
+                    os.remove(processed_overlay4_path)
                 except:
                     pass
             
