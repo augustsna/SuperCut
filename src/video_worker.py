@@ -635,6 +635,24 @@ class VideoWorker(QObject):
                 # For GIFs and videos, use original path - FFmpeg will handle scaling
                 processed_overlay9_path = self.overlay9_path
         
+        # Preprocess overlay10 image (only for images, not videos)
+        processed_overlay10_path = self.overlay10_path
+        if self.use_overlay10 and self.overlay10_path:
+            file_ext = os.path.splitext(self.overlay10_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_overlay10_image
+                processed_overlay10_path = preprocess_overlay10_image(
+                    image_path=self.overlay10_path,
+                    size_percent=self.overlay10_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_overlay10_path = self.overlay10_path
+        
         # Create output filename
         if self.name_list and batch_count < len(self.name_list):
             from src.utils import sanitize_filename
@@ -970,7 +988,7 @@ class VideoWorker(QObject):
                     
                     overlay_duration = self.overlay10_duration
                     extra_overlays.append({
-                        'path': self.overlay10_path,
+                        'path': processed_overlay10_path,  # Use preprocessed overlay10
                         'start': overlay_start,
                         'duration': overlay_duration,
                         'x_percent': self.overlay10_x_percent,
@@ -1060,8 +1078,8 @@ class VideoWorker(QObject):
                 overlay9_x_percent=self.overlay9_x_percent,
                 overlay9_y_percent=self.overlay9_y_percent,
                 use_overlay10=ffmpeg_use_overlay10,
-                overlay10_path=self.overlay10_path,
-                overlay10_size_percent=self.overlay10_size_percent,
+                overlay10_path=processed_overlay10_path,  # Use preprocessed overlay10
+                overlay10_size_percent=self.overlay10_size_percent,  # Pass original size percent for detection
                 overlay10_x_percent=self.overlay10_x_percent,
                 overlay10_y_percent=self.overlay10_y_percent,
                 use_intro=self.use_intro,
@@ -1239,6 +1257,12 @@ class VideoWorker(QObject):
             if 'processed_overlay9_path' in locals() and processed_overlay9_path != self.overlay9_path and os.path.exists(processed_overlay9_path):
                 try:
                     os.remove(processed_overlay9_path)
+                except:
+                    pass
+            # Clean up processed overlay10 image if it was created
+            if 'processed_overlay10_path' in locals() and processed_overlay10_path != self.overlay10_path and os.path.exists(processed_overlay10_path):
+                try:
+                    os.remove(processed_overlay10_path)
                 except:
                     pass
             

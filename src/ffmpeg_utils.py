@@ -398,11 +398,14 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 cmd.extend(["-i", overlay9_path])
             overlay9_idx = input_idx
             input_idx += 1
-        if use_overlay10 and overlay10_path and ext10 in ['.gif', '.png']:
+        if use_overlay10 and overlay10_path and ext10 in ['.gif', '.png', '.mp4', '.mov', '.mkv']:
             if ext10 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay10_path])
             elif ext10 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay10_path])
+            elif ext10 in ['.mp4', '.mov', '.mkv']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", overlay10_path])
             else:
                 cmd.extend(["-i", overlay10_path])
             overlay10_idx = input_idx
@@ -662,9 +665,27 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 scale_factor9 = overlay9_size_percent / 100.0
                 ow9 = f"iw*{scale_factor9:.3f}"
                 oh9 = f"ih*{scale_factor9:.3f}"
-            scale_factor10 = overlay10_size_percent / 100.0
-            ow10 = f"iw*{scale_factor10:.3f}"
-            oh10 = f"ih*{scale_factor10:.3f}"
+            # Check if overlay10 is preprocessed (only for non-GIF images)
+            overlay10_filename = os.path.basename(overlay10_path) if overlay10_path else ""
+            is_overlay10_preprocessed = overlay10_filename.startswith("supercut_")
+            overlay10_ext = os.path.splitext(overlay10_path)[1].lower() if overlay10_path else ""
+            is_overlay10_gif = overlay10_ext == '.gif'
+            is_overlay10_video = overlay10_path and overlay10_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay10_preprocessed and not is_overlay10_gif:
+                # Overlay10 is preprocessed non-GIF image - use original size
+                ow10 = "iw"
+                oh10 = "ih"
+            elif is_overlay10_gif or is_overlay10_video:
+                # Overlay10 is GIF or video - apply scaling in FFmpeg
+                scale_factor10 = overlay10_size_percent / 100.0
+                ow10 = f"iw*{scale_factor10:.3f}"
+                oh10 = f"ih*{scale_factor10:.3f}"
+            else:
+                # Overlay10 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor10 = overlay10_size_percent / 100.0
+                ow10 = f"iw*{scale_factor10:.3f}"
+                oh10 = f"ih*{scale_factor10:.3f}"
             scale_factor_frame_box = frame_box_size_percent / 100.0
             ow_frame_box = f"iw*{scale_factor_frame_box:.3f}"
             oh_frame_box = f"ih*{scale_factor_frame_box:.3f}"

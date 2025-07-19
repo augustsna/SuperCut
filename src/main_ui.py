@@ -4456,8 +4456,8 @@ class SuperCutUI(QWidget):
         overlay10_layout = QHBoxLayout()
         overlay10_layout.setSpacing(4)
         self.overlay10_edit = ImageDropLineEdit()
-        self.overlay10_edit.setPlaceholderText("Overlay 10 image path (*.gif, *.png)")
-        self.overlay10_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay10_edit.setPlaceholderText("Overlay 10 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv")
+        self.overlay10_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image")
         self.overlay10_edit.setFixedWidth(125)
         self.overlay10_path = ""
         def on_overlay10_changed():
@@ -4470,7 +4470,7 @@ class SuperCutUI(QWidget):
         overlay10_btn = QPushButton("Select")
         overlay10_btn.setFixedWidth(60)
         def select_overlay10_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 10 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 10 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay10_edit.setText(file_path)
         overlay10_btn.clicked.connect(select_overlay10_image)
