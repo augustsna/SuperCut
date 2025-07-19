@@ -374,11 +374,14 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 cmd.extend(["-i", overlay7_path])
             overlay7_idx = input_idx
             input_idx += 1
-        if use_overlay8 and overlay8_path and ext8 in ['.gif', '.png']:
+        if use_overlay8 and overlay8_path and ext8 in ['.gif', '.png', '.mp4', '.mov', '.mkv']:
             if ext8 == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", overlay8_path])
             elif ext8 == '.png':
                 cmd.extend(["-loop", "1", "-i", overlay8_path])
+            elif ext8 in ['.mp4', '.mov', '.mkv']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", overlay8_path])
             else:
                 cmd.extend(["-i", overlay8_path])
             overlay8_idx = input_idx
@@ -612,9 +615,28 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 scale_factor7 = overlay7_size_percent / 100.0
                 ow7 = f"iw*{scale_factor7:.3f}"
                 oh7 = f"ih*{scale_factor7:.3f}"
-            scale_factor8 = overlay8_size_percent / 100.0
-            ow8 = f"iw*{scale_factor8:.3f}"
-            oh8 = f"ih*{scale_factor8:.3f}"
+            
+            # Check if overlay8 is preprocessed (only for non-GIF images)
+            overlay8_filename = os.path.basename(overlay8_path) if overlay8_path else ""
+            is_overlay8_preprocessed = overlay8_filename.startswith("supercut_")
+            overlay8_ext = os.path.splitext(overlay8_path)[1].lower() if overlay8_path else ""
+            is_overlay8_gif = overlay8_ext == '.gif'
+            is_overlay8_video = overlay8_path and overlay8_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_overlay8_preprocessed and not is_overlay8_gif:
+                # Overlay8 is preprocessed non-GIF image - use original size
+                ow8 = "iw"
+                oh8 = "ih"
+            elif is_overlay8_gif or is_overlay8_video:
+                # Overlay8 is GIF or video - apply scaling in FFmpeg
+                scale_factor8 = overlay8_size_percent / 100.0
+                ow8 = f"iw*{scale_factor8:.3f}"
+                oh8 = f"ih*{scale_factor8:.3f}"
+            else:
+                # Overlay8 is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor8 = overlay8_size_percent / 100.0
+                ow8 = f"iw*{scale_factor8:.3f}"
+                oh8 = f"ih*{scale_factor8:.3f}"
             scale_factor9 = overlay9_size_percent / 100.0
             ow9 = f"iw*{scale_factor9:.3f}"
             oh9 = f"ih*{scale_factor9:.3f}"

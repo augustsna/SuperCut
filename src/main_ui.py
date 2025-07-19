@@ -3600,8 +3600,8 @@ class SuperCutUI(QWidget):
         overlay8_layout = QHBoxLayout()
         overlay8_layout.setSpacing(4)
         self.overlay8_edit = ImageDropLineEdit()
-        self.overlay8_edit.setPlaceholderText("Overlay 8 image path (*.gif, *.png)")
-        self.overlay8_edit.setToolTip("Drag and drop a GIF or PNG file here or click 'Select Image'")
+        self.overlay8_edit.setPlaceholderText("Overlay 8 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv)")
+        self.overlay8_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay8_edit.setFixedWidth(125)
         self.overlay8_path = ""
         def on_overlay8_changed():
@@ -3614,7 +3614,7 @@ class SuperCutUI(QWidget):
         overlay8_btn = QPushButton("Select")
         overlay8_btn.setFixedWidth(60)
         def select_overlay8_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 8 Image", "", "Image Files (*.gif *.png)")
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 8 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.overlay8_edit.setText(file_path)
         overlay8_btn.clicked.connect(select_overlay8_image)
@@ -8783,38 +8783,38 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
             # Overlay 4 validation
             if hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked():
                 overlay4_path = self.overlay4_edit.text().strip()
-                if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 4.", QMessageBox.StandardButton.Ok)
+                if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv  ']:
+                    QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 4.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 5 validation
             if hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked():
                 overlay5_path = self.overlay5_edit.text().strip()
-                if not overlay5_path or not os.path.isfile(overlay5_path) or os.path.splitext(overlay5_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 5 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 5.", QMessageBox.StandardButton.Ok)
+                if not overlay5_path or not os.path.isfile(overlay5_path) or os.path.splitext(overlay5_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 5 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 5.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 6 validation
             if hasattr(self, 'overlay6_checkbox') and self.overlay6_checkbox.isChecked():
                 overlay6_path = self.overlay6_edit.text().strip()
-                if not overlay6_path or not os.path.isfile(overlay6_path) or os.path.splitext(overlay6_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 6 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 6.", QMessageBox.StandardButton.Ok)
+                if not overlay6_path or not os.path.isfile(overlay6_path) or os.path.splitext(overlay6_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 6 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 6.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 7 validation
             if hasattr(self, 'overlay7_checkbox') and self.overlay7_checkbox.isChecked():
                 overlay7_path = self.overlay7_edit.text().strip()
-                if not overlay7_path or not os.path.isfile(overlay7_path) or os.path.splitext(overlay7_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 7 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 7.", QMessageBox.StandardButton.Ok)
+                if not overlay7_path or not os.path.isfile(overlay7_path) or os.path.splitext(overlay7_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 7 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 7.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 8 validation
             if hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked():
                 overlay8_path = self.overlay8_edit.text().strip()
-                if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 8.", QMessageBox.StandardButton.Ok)
+                if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 8.", QMessageBox.StandardButton.Ok)
                     return
             # Overlay 9 validation
             if hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked():
                 overlay9_path = self.overlay9_edit.text().strip()
-                if not overlay9_path or not os.path.isfile(overlay9_path) or os.path.splitext(overlay9_path)[1].lower() not in ['.gif', '.png']:
-                    QMessageBox.warning(self, "⚠️ Overlay 9 Image Required", "Please provide a valid GIF or PNG file (*.gif, *.png) for Overlay 9.", QMessageBox.StandardButton.Ok)
+                if not overlay9_path or not os.path.isfile(overlay9_path) or os.path.splitext(overlay9_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                    QMessageBox.warning(self, "⚠️ Overlay 9 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 9.", QMessageBox.StandardButton.Ok)
                     return
             
             # Disable preview button during dry run
