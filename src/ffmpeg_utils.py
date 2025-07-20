@@ -142,7 +142,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     video_bitrate: str = "12M",
     maxrate: str = "16M",
     bufsize: str = "24M",
-    extra_overlays: Optional[List[dict]] = None,  # List of dicts: {path, start, duration, fade}
+    extra_overlays: Optional[List[dict]] = None,  # List of dicts: {path, start, duration, x_percent, y_percent, size_percent, effect, type}
     song_title_effect: str = "fadeinout",
     song_title_font: str = "default",
     song_title_font_size: int = 32,
@@ -943,9 +943,16 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 frame_mp3cover_actual_duration = frame_mp3cover_duration
             
             filter_frame_mp3cover = overlay_effect_chain(frame_mp3cover_idx, f"{ow_frame_mp3cover}:{oh_frame_mp3cover}", "ol_frame_mp3cover", frame_mp3cover_effect, frame_mp3cover_start_time, ext_frame_mp3cover, frame_mp3cover_actual_duration) if frame_mp3cover_idx is not None else ""
-            # --- Song Title Overlay Filter Graph ---
-            filter_chains = []
-            overlay_labels = []
+            # --- Song Title and MP3 Cover Overlay Filter Graph ---
+            song_title_chains = []
+            song_title_labels = []
+            mp3_cover_chains = []
+            mp3_cover_labels = []
+            
+            # Separate counters for each overlay type
+            song_title_counter = 0
+            mp3_cover_counter = 0
+            
             if extra_overlays:
                 for i, overlay in enumerate(extra_overlays):
                     idx = extra_overlay_indices[i]
@@ -953,109 +960,107 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     duration = overlay.get('duration', 0)
                     x_percent = overlay.get('x_percent', 0)
                     y_percent = overlay.get('y_percent', 0)
+                    size_percent = overlay.get('size_percent', 100)
+                    effect = overlay.get('effect', 'fadein')
                     
-                    # Check if this is an overlay8 popup overlay, MP3 cover overlay, or song title overlay (has size_percent and effect)
-                    is_popup_or_song = 'size_percent' in overlay and 'effect' in overlay
+                    overlay_path = overlay.get('path', '')
+                    overlay_filename = os.path.basename(overlay_path) if overlay_path else ""
+                    overlay_ext = os.path.splitext(overlay_path)[1].lower() if overlay_path else ""
                     
-                    if is_popup_or_song:
-                        # Popup overlay, MP3 cover, or song title - check if preprocessed like regular overlays
-                        size_percent = overlay.get('size_percent', 100)
-                        effect = overlay.get('effect', 'fadein')
-                        overlay_path = overlay.get('path', '')
-                        overlay_filename = os.path.basename(overlay_path) if overlay_path else ""
-                        is_popup_preprocessed = overlay_filename.startswith("supercut_")
-                        overlay_ext = os.path.splitext(overlay_path)[1].lower() if overlay_path else ""
-                        is_popup_gif = overlay_ext == '.gif'
-                        is_popup_video = overlay_path and overlay_ext in ['.mp4', '.mov', '.mkv']
+                    # Calculate x/y as expressions based on percent
+                    x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
+                    y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
+                    
+                    # Get overlay type directly from the overlay data
+                    # Supported types: 'song_title', 'mp3_cover'
+                    overlay_type = overlay.get('type', 'unknown')
+                    
+                    # Process based on explicit type
+                    if overlay_type == 'song_title':
+                        # This is a song title overlay
+                        song_title_counter += 1
+                        label = f"songol{song_title_counter}"
                         
-                        # Determine scaling based on preprocessing status (same logic as regular overlay8)
-                        if is_popup_preprocessed and not is_popup_gif:
-                            # Popup is preprocessed non-GIF image - use original size
-                            scale_expr = "iw:ih"
-                        elif is_popup_gif or is_popup_video:
-                            # Popup is GIF or video - apply scaling in FFmpeg
-                            scale_factor = size_percent / 100.0
-                            scale_expr = f"iw*{scale_factor:.3f}:ih*{scale_factor:.3f}"
-                        else:
-                            # Popup is non-preprocessed image - apply scaling in FFmpeg
-                            scale_factor = size_percent / 100.0
-                            scale_expr = f"iw*{scale_factor:.3f}:ih*{scale_factor:.3f}"
+                        # Build song title effect chain
+                        chain = f"[{idx}:v]format=rgba"
                         
-                        # Determine label based on overlay type
-                        overlay_path = overlay.get('path', '')
-                        overlay_filename = os.path.basename(overlay_path) if overlay_path else ""
-                        
-                        # Check if this is a song title (processed PNG) or popup overlay
-                        if overlay_filename.startswith("supercut_") and overlay_ext == '.png':
-                            # This is likely a song title or preprocessed overlay
-                            label = f"songol{i+1}"
-                        else:
-                            # This is a popup overlay (overlay8, overlay9, MP3 cover)
-                            label = f"popupol{i+1}"
-                        
-                        # Calculate x/y as expressions based on percent
-                        x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
-                        y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
-                        
-                        # Build effect chain for overlay8 popup
-                        chain = f"[{idx}:v]"
-                        ext = os.path.splitext(overlay.get('path', ''))[1].lower()
-                        if ext == ".gif":
-                            chain += "fps=30,"
-                        
-                        # Convert to rgba for overlay processing
-                        chain += "format=rgba,"
-                        
-                        # Apply effect based on overlay8 effect
-                        fade_alpha = ":alpha=1" if ext == ".png" else ""
+                        # Apply effect
+                        fade_alpha = ":alpha=1" if overlay_ext == ".png" else ""
                         if effect == "fadeinout":
                             fadein_duration = 1.5
                             fadeout_duration = 1.5
                             hold_duration = max(0, duration - fadein_duration - fadeout_duration)
                             fadein_end = start + fadein_duration
                             fadeout_start = fadein_end + hold_duration
-                            # Add comma only if scale operation will follow
-                            if scale_expr != "iw:ih":
-                                chain += f"fade=t=in:st={start}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
-                            else:
-                                chain += f"fade=t=in:st={start}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha}"
+                            chain += f",fade=t=in:st={start}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha}"
                         elif effect == "fadein":
-                            # Add comma only if scale operation will follow
-                            if scale_expr != "iw:ih":
-                                chain += f"fade=t=in:st={start}:d=1{fade_alpha},"
-                            else:
-                                chain += f"fade=t=in:st={start}:d=1{fade_alpha}"
+                            chain += f",fade=t=in:st={start}:d=1{fade_alpha}"
                         elif effect == "fadeout":
-                            # Add comma only if scale operation will follow
-                            if scale_expr != "iw:ih":
-                                chain += f"fade=t=out:st={start}:d=1{fade_alpha},"
-                            else:
-                                chain += f"fade=t=out:st={start}:d=1{fade_alpha}"
+                            chain += f",fade=t=out:st={start}:d=1{fade_alpha}"
                         elif effect == "zoompan":
-                            # Add comma only if scale operation will follow
-                            if scale_expr != "iw:ih":
-                                chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
-                            else:
-                                chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+                            chain += f",zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
                         
-                        # Add scale operation only if necessary
-                        if scale_expr != "iw:ih":
-                            chain += f"scale={scale_expr}"
+                        # Add scale operation if needed
+                        if size_percent != 100:
+                            scale_factor = size_percent / 100.0
+                            chain += f",scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}"
+                        
                         chain += f"[{label}]"
-                        filter_chains.append(chain)
-                        overlay_labels.append((label, start, duration, x_expr, y_expr))
+                        song_title_chains.append(chain)
+                        song_title_labels.append((label, start, duration, x_expr, y_expr))
+                        
+                    elif overlay_type == 'mp3_cover':
+                        # This is an MP3 cover overlay
+                        mp3_cover_counter += 1
+                        label = f"mp3cover.ol{mp3_cover_counter}"
+                        
+                        # Build MP3 cover effect chain
+                        chain = f"[{idx}:v]format=rgba"
+                        
+                        # Apply effect
+                        fade_alpha = ":alpha=1" if overlay_ext == ".png" else ""
+                        if effect == "fadeinout":
+                            fadein_duration = 1.5
+                            fadeout_duration = 1.5
+                            hold_duration = max(0, duration - fadein_duration - fadeout_duration)
+                            fadein_end = start + fadein_duration
+                            fadeout_start = fadein_end + hold_duration
+                            chain += f",fade=t=in:st={start}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha}"
+                        elif effect == "fadein":
+                            chain += f",fade=t=in:st={start}:d=1{fade_alpha}"
+                        elif effect == "fadeout":
+                            chain += f",fade=t=out:st={start}:d=1{fade_alpha}"
+                        elif effect == "zoompan":
+                            chain += f",zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+                        
+                        # Add scale operation if needed
+                        if size_percent != 100:
+                            scale_factor = size_percent / 100.0
+                            chain += f",scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}"
+                        
+                        chain += f"[{label}]"
+                        mp3_cover_chains.append(chain)
+                        mp3_cover_labels.append((label, start, duration, x_expr, y_expr))
                         
                     else:
-                        # Legacy overlay without size_percent and effect (should not occur with current implementation)
-                        label = f"legacyol{i+1}"
-                        
-                        # Calculate x/y as expressions based on percent
-                        x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
-                        y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
-                        chain = f"[{idx}:v]format=rgba[{label}]"
-                        filter_chains.append(chain)
-                        overlay_labels.append((label, start, duration, x_expr, y_expr))
-            # --- End Song Title Overlay Filter Graph ---
+                        # Unknown overlay type - skip or handle as needed
+                        print(f"⚠️ Unknown overlay type: {overlay_type} for {overlay_filename}")
+                        continue
+            
+            # Combine all chains and labels for backward compatibility
+            filter_chains = song_title_chains + mp3_cover_chains
+            overlay_labels = song_title_labels + mp3_cover_labels
+            
+            # Debug output
+            if song_title_chains:
+                print(f"🎵 Found {len(song_title_chains)} song title overlays (songol1-{song_title_counter})")
+            if mp3_cover_chains:
+                print(f"🎵 Found {len(mp3_cover_chains)} MP3 cover overlays (mp3cover.ol1-{mp3_cover_counter})")
+            
+            # Show overlay types for debugging
+            if extra_overlays:
+                print(f"🎵 Extra overlays types: {[overlay.get('type', 'unknown') for overlay in extra_overlays]}")
+            # --- End Song Title and MP3 Cover Overlay Filter Graph ---
             # Print layer order information for debugging
             if layer_order:
                 print(f"🎨 Custom layer order: {layer_order}")
@@ -1140,11 +1145,11 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     'duration': overlay10_duration
                 },
                 'mp3_cover_overlay': {
-                    'filter': filter_frame_mp3cover,
-                    'overlay': f"[ol_frame_mp3cover]overlay={ox_frame_mp3cover}:{oy_frame_mp3cover}",
-                    'duration_control': frame_mp3cover_duration_full_checkbox_checked,
-                    'start_time': frame_mp3cover_start_time,
-                    'duration': frame_mp3cover_duration
+                    'filter': None,  # Handled in extra_overlays like song_titles
+                    'overlay': None,  # Handled in extra_overlays like song_titles
+                    'duration_control': None,
+                    'start_time': None,
+                    'duration': None
                 },
                 'frame_box': {
                     'filter': filter_frame_box,
@@ -1210,11 +1215,21 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     continue
                 
                 # Handle song titles (special case)
-                if layer_id == 'song_titles' and config['filter']:
-                    filter_graph += ";" + ";".join(config['filter'])
-                    for i, (label, start, duration, x_expr, y_expr) in enumerate(overlay_labels):
+                if layer_id == 'song_titles' and song_title_chains:
+                    filter_graph += ";" + ";".join(song_title_chains)
+                    for i, (label, start, duration, x_expr, y_expr) in enumerate(song_title_labels):
                         enable_expr = f"between(t,{start},{start+duration})"
-                        out_label = f"songtmp{i+1}" if i < len(overlay_labels)-1 else "vout"
+                        out_label = f"songtmp{i+1}" if i < len(song_title_labels)-1 else "vout"
+                        filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
+                        last_label = f"[{out_label}]"
+                    continue
+                
+                # Handle MP3 cover overlays (special case) - similar to song titles
+                if layer_id == 'mp3_cover_overlay' and mp3_cover_chains:
+                    filter_graph += ";" + ";".join(mp3_cover_chains)
+                    for i, (label, start, duration, x_expr, y_expr) in enumerate(mp3_cover_labels):
+                        enable_expr = f"between(t,{start},{start+duration})"
+                        out_label = f"mp3covertmp{i+1}" if i < len(mp3_cover_labels)-1 else "vout"
                         filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
                         last_label = f"[{out_label}]"
                     continue
@@ -1243,8 +1258,8 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     
                     last_label = f"[tmp_{layer_id}]"
             
-            # Handle final output if no song titles or soundwave were processed
-            if not filter_chains and not (use_soundwave_overlay and soundwave_idx is not None):
+            # Handle final output if no song titles, MP3 covers, or soundwave were processed
+            if not song_title_chains and not mp3_cover_chains and not (use_soundwave_overlay and soundwave_idx is not None):
                 filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout]"
         else:
             # Check if background is preprocessed (already correct size)

@@ -777,7 +777,8 @@ class VideoWorker(QObject):
                         'x_percent': song_title_pngs[i]['x_percent'],
                         'y_percent': song_title_pngs[i]['y_percent'],
                         'size_percent': self.song_title_scale_percent,
-                        'effect': self.song_title_effect
+                        'effect': self.song_title_effect,
+                        'type': 'song_title'
                     })
 
             # Process MP3 Cover overlays independently (only if MP3 covers are enabled)
@@ -809,7 +810,8 @@ class VideoWorker(QObject):
                             'x_percent': mp3_cover_pngs[i]['x_percent'],
                             'y_percent': mp3_cover_pngs[i]['y_percent'],
                             'size_percent': mp3_cover_pngs[i]['size_percent'],
-                            'effect': mp3_cover_pngs[i]['effect']
+                            'effect': mp3_cover_pngs[i]['effect'],
+                            'type': 'mp3_cover'
                         })
             
             # --- Add soundwave overlay to extra_overlays ---
