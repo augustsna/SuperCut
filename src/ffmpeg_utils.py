@@ -1048,9 +1048,9 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         print(f"⚠️ Unknown overlay type: {overlay_type} for {overlay_filename}")
                         continue
             
-            # Combine all chains and labels for backward compatibility
-            filter_chains = song_title_chains + mp3_cover_chains
-            overlay_labels = song_title_labels + mp3_cover_labels
+            # Keep chains separate since they're handled individually in the layer processing
+            # filter_chains = song_title_chains + mp3_cover_chains  # Removed to prevent duplicates
+            # overlay_labels = song_title_labels + mp3_cover_labels  # Removed to prevent duplicates
             
             # Debug output
             if song_title_chains:
@@ -1174,7 +1174,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     'duration': intro_duration
                 },
                 'song_titles': {
-                    'filter': filter_chains,
+                    'filter': None,  # Handled separately in special case
                     'overlay': None,  # Handled separately
                     'duration_control': None,
                     'start_time': None,
@@ -1220,7 +1220,9 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     filter_graph += ";" + ";".join(song_title_chains)
                     for i, (label, start, duration, x_expr, y_expr) in enumerate(song_title_labels):
                         enable_expr = f"between(t,{start},{start+duration})"
-                        out_label = f"songtmp{i+1}" if i < len(song_title_labels)-1 else "vout"
+                        # Only create [vout] if this is the very last layer
+                        is_last_layer = (layer_id == final_order[-1]) and (i == len(song_title_labels)-1)
+                        out_label = f"songtmp{i+1}" if i < len(song_title_labels)-1 else ("vout" if is_last_layer else "songtmp_final")
                         filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
                         last_label = f"[{out_label}]"
                     continue
@@ -1230,7 +1232,9 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     filter_graph += ";" + ";".join(mp3_cover_chains)
                     for i, (label, start, duration, x_expr, y_expr) in enumerate(mp3_cover_labels):
                         enable_expr = f"between(t,{start},{start+duration})"
-                        out_label = f"mp3covertmp{i+1}" if i < len(mp3_cover_labels)-1 else "vout"
+                        # Only create [vout] if this is the very last layer
+                        is_last_layer = (layer_id == final_order[-1]) and (i == len(mp3_cover_labels)-1)
+                        out_label = f"mp3covertmp{i+1}" if i < len(mp3_cover_labels)-1 else ("vout" if is_last_layer else "mp3covertmp_final")
                         filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
                         last_label = f"[{out_label}]"
                     continue
@@ -1274,7 +1278,9 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             else:
                 # Background needs scaling to target resolution
                 filter_graph = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
-        cmd.extend(["-filter_complex", filter_graph, "-map", "[vout]", "-map", "1:a"])
+        # Use the correct final output label
+        final_output_label = last_label if last_label != "[bg]" else "[vout]"
+        cmd.extend(["-filter_complex", filter_graph, "-map", final_output_label, "-map", "1:a"])
 
         cmd.extend(["-c:v", codec, "-preset", preset])       
 
