@@ -323,7 +323,7 @@ class LayerManagerWidget(QWidget):
         # Store the saved order if provided
         if saved_order:
             self.last_applied_order = saved_order
-            print(f"🔧 Layer manager received saved order: {saved_order}")
+    
         
         # If we have a saved order, use it; otherwise use default order
         if self.last_applied_order:
@@ -802,14 +802,14 @@ class LayerManagerDialog(QWidget):
         """Apply the current layer order and close the window"""
         # Get current order and emit signal
         order = self.layer_manager.get_layer_order()
-        print(f"🔧 Layer manager returning order: {order}")
+
         self.layer_manager.layer_order_changed.emit(order)
         
         # Update main window's layer order
         if self.main_window:
             self.main_window.layer_order = order
             self.main_window.enabled_layers = self.layer_manager.get_enabled_layers()
-            print(f"Layer order applied: {order}")
+    
             print(f"Enabled layers: {self.layer_manager.get_enabled_layers()}")
             
             # Save layer order to configuration
@@ -817,8 +817,7 @@ class LayerManagerDialog(QWidget):
                 from src.config import save_layer_order
                 save_layer_order(order)
             except Exception as e:
-                print(f"❌ Error saving layer order: {e}")
-        
+                pass
         # Close the window
         self.close()
         

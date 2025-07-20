@@ -1062,11 +1062,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             if extra_overlays:
                 print(f"🎵 Extra overlays types: {[overlay.get('type', 'unknown') for overlay in extra_overlays]}")
             # --- End Song Title and MP3 Cover Overlay Filter Graph ---
-            # Print layer order information for debugging
-            if layer_order:
-                print(f"🎨 Custom layer order: {layer_order}")
-            else:
-                print(f"🎨 Using default layer order")
+            
             
             # Build filter graph based on layer order
             filter_graph = filter_bg
@@ -1191,14 +1187,14 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             
             # Use the exact layer order from layer manager if provided
             if layer_order:
-                print(f"🎨 Using custom layer order from layer manager: {layer_order}")
+    
                 # Use the exact order provided by layer manager, only filter out non-existent layers
                 final_order = [layer for layer in layer_order if layer in layer_configs]
                 # Add any missing layers that exist in configs but not in layer_order
                 missing_layers = [layer for layer in layer_configs.keys() if layer not in final_order]
                 final_order.extend(missing_layers)
             else:
-                print(f"🎨 Using default layer order (no custom order provided)")
+    
                 final_order = ['background', 'overlay1', 'overlay2', 'overlay3', 'overlay4', 'overlay5',
                              'overlay6', 'overlay7', 'overlay8', 'overlay9', 'overlay10',
                              'intro', 'frame_box', 'frame_mp3cover', 'mp3_cover_overlay', 'song_titles', 'soundwave']

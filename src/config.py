@@ -279,10 +279,10 @@ def save_layer_order(layer_order):
         with open(config_file, 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
         
-        print(f"🔧 Layer order saved: {layer_order}")
+
         return True
     except Exception as e:
-        print(f"❌ Error saving layer order: {e}")
+
         return False
 
 def load_layer_order():
@@ -294,12 +294,11 @@ def load_layer_order():
                 config = json.load(f)
                 layer_order = config.get('layer_order')
                 if layer_order:
-                    print(f"🔧 Layer order loaded: {layer_order}")
+            
                     return layer_order
     except Exception as e:
-        print(f"❌ Error loading layer order: {e}")
-    
-    print(f"🔧 No saved layer order found, using default")
+        pass
+
     return None
 
 # FFmpeg Bufsize Options

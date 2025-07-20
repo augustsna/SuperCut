@@ -301,10 +301,7 @@ class VideoWorker(QObject):
         self.layer_order = layer_order
                 
         # Debug layer order
-        if self.layer_order:
-            print(f"🎨 Layer order: {self.layer_order}\n")
-        else:
-            print(f"🎨 Using default layer order\n")
+
 
     def stop(self):
         """Stop the video processing"""
