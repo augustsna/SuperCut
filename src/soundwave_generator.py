@@ -198,7 +198,10 @@ class SoundwaveGenerator:
 
 def create_soundwave_from_merged_audio(merged_audio_path: str, 
                                      method: str = "bars",
-                                     color: str = "hue_rotate") -> Optional[str]:
+                                     color: str = "hue_rotate",
+                                     size_percent: int = 100,
+                                     x_percent: int = 50,
+                                     y_percent: int = 50) -> Optional[str]:
     """
     Create a soundwave MP4 from merged audio file
     
@@ -206,6 +209,9 @@ def create_soundwave_from_merged_audio(merged_audio_path: str,
         merged_audio_path: Path to merged audio file
         method: Visualization method
         color: Color scheme
+        size_percent: Size as percentage of video (1-100)
+        x_percent: X position as percentage (0-100)
+        y_percent: Y position as percentage (0-100)
         
     Returns:
         str: Path to created MP4 file, or None if failed
@@ -215,7 +221,10 @@ def create_soundwave_from_merged_audio(merged_audio_path: str,
         return generator.create_soundwave_overlay(
             merged_audio_path, 
             method=method, 
-            color=color
+            color=color,
+            size_percent=size_percent,
+            x_percent=x_percent,
+            y_percent=y_percent
         )
     except Exception as e:
         logger.error(f"Error creating soundwave from merged audio: {e}")

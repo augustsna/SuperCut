@@ -816,8 +816,41 @@ class VideoWorker(QObject):
                             'type': 'mp3_cover'
                         })
             
-            # --- Add soundwave overlay to extra_overlays ---
-            # REMOVED: Soundwave overlay is now handled independently in FFmpeg utils
+            # --- Generate soundwave overlay if enabled ---
+            if self.use_soundwave_overlay and merged_audio_path:
+                print("🎵 Attempting to generate soundwave overlay...")
+                print(f"🎵 Soundwave settings: method={self.soundwave_method}, color={self.soundwave_color}, size={self.soundwave_size_percent}%, x={self.soundwave_x_percent}%, y={self.soundwave_y_percent}%")
+                logger.info(f"Attempting to generate soundwave overlay...")
+                logger.info(f"Soundwave settings: method={self.soundwave_method}, color={self.soundwave_color}, size={self.soundwave_size_percent}%, x={self.soundwave_x_percent}%, y={self.soundwave_y_percent}%")
+                try:
+                    from src.soundwave_generator import create_soundwave_from_merged_audio
+                    print("🎵 Calling soundwave generation function...")
+                    soundwave_overlay_path = create_soundwave_from_merged_audio(
+                        merged_audio_path=merged_audio_path,
+                        method=self.soundwave_method,
+                        color=self.soundwave_color,
+                        size_percent=self.soundwave_size_percent,
+                        x_percent=self.soundwave_x_percent,
+                        y_percent=self.soundwave_y_percent
+                    )
+                    if soundwave_overlay_path:
+                        print(f"✅ Soundwave overlay generated successfully: {soundwave_overlay_path}")
+                        logger.info(f"Soundwave overlay generated successfully: {soundwave_overlay_path}")
+                    else:
+                        print("❌ Failed to generate soundwave overlay - function returned None")
+                        logger.warning("Failed to generate soundwave overlay - function returned None")
+                        soundwave_overlay_path = None
+                except Exception as e:
+                    print(f"❌ Error generating soundwave overlay: {e}")
+                    logger.error(f"Error generating soundwave overlay: {e}")
+                    import traceback
+                    traceback_str = traceback.format_exc()
+                    print(f"❌ Traceback: {traceback_str}")
+                    logger.error(f"Traceback: {traceback_str}")
+                    soundwave_overlay_path = None
+            else:
+                print(f"ℹ️ Soundwave overlay not enabled: use_soundwave_overlay={self.use_soundwave_overlay}, merged_audio_path exists={merged_audio_path is not None}")
+                logger.info(f"Soundwave overlay not enabled: use_soundwave_overlay={self.use_soundwave_overlay}, merged_audio_path exists={merged_audio_path is not None}")
             # --- End soundwave overlay ---
             
             # Calculate actual intro start time and duration based on checkbox states (only if intro is enabled)

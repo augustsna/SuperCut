@@ -1206,7 +1206,15 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                              'mp3_cover_overlay',
                              'intro', 'frame_box', 'frame_mp3cover', 'song_titles', 'soundwave']
             
-            # Build filter graph based on final order
+            # Build filter graph with proper grouping: input processing first, then overlay applications
+            input_processing_filters = []
+            overlay_application_filters = []
+            song_title_overlays = []
+            mp3_cover_overlays = []
+            soundwave_overlay = None
+            final_processing_filters = []
+            
+            # Collect all filters by type
             for layer_id in final_order:
                 if layer_id == 'background':
                     continue  # Background is already the base
@@ -1217,55 +1225,95 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 
                 # Handle song titles (special case)
                 if layer_id == 'song_titles' and song_title_chains:
-                    filter_graph += ";" + ";".join(song_title_chains)
-                    for i, (label, start, duration, x_expr, y_expr) in enumerate(song_title_labels):
-                        enable_expr = f"between(t,{start},{start+duration})"
-                        # Only create [vout] if this is the very last layer
-                        is_last_layer = (layer_id == final_order[-1]) and (i == len(song_title_labels)-1)
-                        out_label = f"songtmp{i+1}" if i < len(song_title_labels)-1 else ("vout" if is_last_layer else "songtmp_final")
-                        filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
-                        last_label = f"[{out_label}]"
+                    input_processing_filters.extend(song_title_chains)
+                    song_title_overlays = song_title_labels.copy()
                     continue
                 
-                # Handle MP3 cover overlays (special case) - similar to song titles
+                # Handle MP3 cover overlays (special case)
                 if layer_id == 'mp3_cover_overlay' and mp3_cover_chains:
-                    filter_graph += ";" + ";".join(mp3_cover_chains)
-                    for i, (label, start, duration, x_expr, y_expr) in enumerate(mp3_cover_labels):
-                        enable_expr = f"between(t,{start},{start+duration})"
-                        # Only create [vout] if this is the very last layer
-                        is_last_layer = (layer_id == final_order[-1]) and (i == len(mp3_cover_labels)-1)
-                        out_label = f"mp3covertmp{i+1}" if i < len(mp3_cover_labels)-1 else ("vout" if is_last_layer else "mp3covertmp_final")
-                        filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
-                        last_label = f"[{out_label}]"
+                    input_processing_filters.extend(mp3_cover_chains)
+                    mp3_cover_overlays = mp3_cover_labels.copy()
                     continue
                 
                 # Handle soundwave (special case)
                 if layer_id == 'soundwave' and use_soundwave_overlay and soundwave_idx is not None:
-                    filter_graph += f";[{soundwave_idx}:v]format=yuva420p[soundwave]"
-                    filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[vout]"
-                    last_label = "[vout]"
+                    input_processing_filters.append(f"[{soundwave_idx}:v]format=yuva420p[soundwave]")
+                    soundwave_overlay = (ox_soundwave, oy_soundwave)
                     continue
                 
                 # Handle regular overlays
                 if config['filter']:
-                    filter_graph += f";{config['filter']}"
+                    input_processing_filters.append(config['filter'])
                     
-                    # Apply overlay with duration control
+                    # Prepare overlay application
                     if config['duration_control'] is None:
                         # No duration control (like overlay3)
-                        filter_graph += f";{last_label}{config['overlay']}[tmp_{layer_id}]"
+                        overlay_application_filters.append((f"{config['overlay']}[tmp_{layer_id}]", None))
                     elif config['duration_control']:
                         # Full duration
-                        filter_graph += f";{last_label}{config['overlay']}:enable='gte(t,{config['start_time']})'[tmp_{layer_id}]"
+                        overlay_application_filters.append((f"{config['overlay']}:enable='gte(t,{config['start_time']})'[tmp_{layer_id}]", f"tmp_{layer_id}"))
                     else:
                         # Limited duration
-                        filter_graph += f";{last_label}{config['overlay']}:enable='between(t,{config['start_time']},{config['start_time']+config['duration']})'[tmp_{layer_id}]"
-                    
-                    last_label = f"[tmp_{layer_id}]"
+                        overlay_application_filters.append((f"{config['overlay']}:enable='between(t,{config['start_time']},{config['start_time']+config['duration']})'[tmp_{layer_id}]", f"tmp_{layer_id}"))
             
-            # Handle final output if no song titles, MP3 covers, or soundwave were processed
-            if not song_title_chains and not mp3_cover_chains and not (use_soundwave_overlay and soundwave_idx is not None):
-                filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout]"
+            # Build the filter graph with proper grouping
+            filter_graph = filter_bg
+            last_label = "[bg]"
+            
+            # 1. Add all input processing filters
+            if input_processing_filters:
+                filter_graph += ";" + ";".join(input_processing_filters)
+            
+            # 2. Add overlay applications
+            for overlay_filter, tmp_label in overlay_application_filters:
+                filter_graph += f";{last_label}{overlay_filter}"
+                if tmp_label:
+                    last_label = f"[{tmp_label}]"
+            
+            # 3. Add song title overlays
+            for i, (label, start, duration, x_expr, y_expr) in enumerate(song_title_overlays):
+                enable_expr = f"between(t,{start},{start+duration})"
+                is_last_song = (i == len(song_title_overlays)-1) and not mp3_cover_overlays and not soundwave_overlay
+                out_label = f"songtmp{i+1}" if i < len(song_title_overlays)-1 else ("vout" if is_last_song else "songtmp_final")
+                filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
+                last_label = f"[{out_label}]"
+            
+            # 4. Add MP3 cover overlays
+            for i, (label, start, duration, x_expr, y_expr) in enumerate(mp3_cover_overlays):
+                enable_expr = f"between(t,{start},{start+duration})"
+                is_last_mp3 = (i == len(mp3_cover_overlays)-1) and not soundwave_overlay
+                out_label = f"mp3covertmp{i+1}" if i < len(mp3_cover_overlays)-1 else ("vout" if is_last_mp3 else "mp3covertmp_final")
+                filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
+                last_label = f"[{out_label}]"
+            
+            # 5. Add soundwave overlay
+            if soundwave_overlay:
+                ox_soundwave, oy_soundwave = soundwave_overlay
+                filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[vout]"
+                last_label = "[vout]"
+            
+            # Handle final output - add format filter if not already added
+            if song_title_chains or mp3_cover_chains or (use_soundwave_overlay and soundwave_idx is not None):
+                # Song titles, MP3 covers, or soundwave were processed - they should have created [vout]
+                # But if they didn't (e.g., songtmp_final), we need to add format filter
+                if last_label != "[vout]" and not last_label.endswith("_final]"):
+                    filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout_final]"
+                    final_output_label = "[vout_final]"
+                elif last_label == "[vout]":
+                    # [vout] already exists but needs format filter
+                    filter_graph += f";[vout]format={VIDEO_SETTINGS['pixel_format']}[vout_final]"
+                    final_output_label = "[vout_final]"
+                else:
+                    # Check if we need to add format to _final labels
+                    if last_label.endswith("_final]"):
+                        filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout_final]"
+                        final_output_label = "[vout_final]"
+                    else:
+                        final_output_label = last_label if last_label != "[bg]" else "[vout_final]"
+            else:
+                # No song titles, MP3 covers, or soundwave - add format filter
+                filter_graph += f";{last_label}format={VIDEO_SETTINGS['pixel_format']}[vout_final]"
+                final_output_label = "[vout_final]"
         else:
             # Check if background is preprocessed (already correct size)
             # Background is always PNG, so no need to check for GIF
@@ -1274,12 +1322,13 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             
             if is_bg_preprocessed:
                 # Background is preprocessed PNG - no scaling needed
-                filter_graph = f"[0:v]format={VIDEO_SETTINGS['pixel_format']}[vout]"
+                filter_graph = f"[0:v]format={VIDEO_SETTINGS['pixel_format']}[vout_final]"
             else:
                 # Background needs scaling to target resolution
-                filter_graph = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout]"
-        # Use the correct final output label
-        final_output_label = last_label if last_label != "[bg]" else "[vout]"
+                filter_graph = f"[0:v]scale={width}:{height},format={VIDEO_SETTINGS['pixel_format']}[vout_final]"
+            # For simple background-only videos, the output is always [vout_final]
+            final_output_label = "[vout_final]"
+        
         cmd.extend(["-filter_complex", filter_graph, "-map", final_output_label, "-map", "1:a"])
 
         cmd.extend(["-c:v", codec, "-preset", preset])       
@@ -1322,11 +1371,11 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         
         cmd.append(output_path)
 
-        # Display FFmpeg command with output video name
-        video_name = os.path.basename(output_path)        
-        print(f"📝 FFMPEG COMMAND:")        
-        display_cmd = ['✨ ffmpeg'] + cmd[1:]
-        print(f"  {' '.join(display_cmd)} ✨")           
+        # Display raw FFmpeg command for debugging performance bottlenecks
+        print(f"🔧 RAW FFMPEG COMMAND (for performance analysis):")
+        raw_cmd = " ".join(cmd)
+        print(raw_cmd)
+        print()
 
         audio_duration = get_audio_duration(audio_path)
         total_frames = int(audio_duration * fps)
@@ -1413,6 +1462,10 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 logger.warning(f"No permission to remove temp PNG {temp_png_path}.")
             except OSError as e:
                 logger.warning(f"OS error removing temp PNG {temp_png_path}: {e}")
+
+
+
+
 
 def merge_random_mp3s(selected_mp3s: list) -> Tuple[Optional[str], float]:
     """Merge MP3 files using ffmpeg - returns output path and duration"""
