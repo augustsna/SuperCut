@@ -954,7 +954,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     x_percent = overlay.get('x_percent', 0)
                     y_percent = overlay.get('y_percent', 0)
                     
-                    # Check if this is an overlay8 popup overlay (has size_percent and effect)
+                    # Check if this is an overlay8 popup overlay or MP3 cover overlay (has size_percent and effect)
                     is_overlay8_popup = 'size_percent' in overlay and 'effect' in overlay
                     
                     if is_overlay8_popup:
@@ -1018,7 +1018,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         overlay_labels.append((label, start, duration, x_expr, y_expr))
                         
                     else:
-                        # Song title overlay - already preprocessed, no scaling needed
+                        # Song title overlay - already preprocessed, no scaling needed (MP3 covers are handled in the popup block)
                         label = f"songol{i+1}"
                         
                         # Calculate x/y as expressions based on percent

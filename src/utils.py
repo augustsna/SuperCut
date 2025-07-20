@@ -1647,3 +1647,55 @@ def preprocess_song_title_png(png_path: str, scale_percent: int = 100) -> str:
     except Exception as e:
         logger.error(f"Error preprocessing song title PNG: {e}")
         return png_path  # Fallback to original
+
+def preprocess_mp3_cover_png(png_path: str, scale_percent: int = 20) -> str:
+    """
+    Preprocess MP3 cover PNG with scaling only (like other overlays).
+    For PNG files: Scale with high quality Lanczos filtering.
+    
+    Args:
+        png_path: Path to the original MP3 cover PNG (has supercut_ prefix)
+        scale_percent: Scale percentage (default 20 for 20%)
+    
+    Returns:
+        Path to the processed temporary PNG file (with supercut_ prefix for cleanup)
+    """
+    try:
+        import subprocess
+        from src.config import FFMPEG_BINARY
+        from src.logger import logger
+        
+        # Calculate scale factor
+        scale_factor = scale_percent / 100.0
+        
+        # No scaling needed
+        if scale_factor == 1.0:
+            return png_path
+        
+        # Create temporary file for processed PNG
+        temp_processed_path = create_temp_file(suffix='.png', prefix='supercut_')
+        
+        # Scale with high quality Lanczos filtering
+        filter_str = f"scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}:flags=lanczos"
+        
+        cmd = [
+            FFMPEG_BINARY,
+            '-y',  # Overwrite output file
+            '-i', png_path,
+            '-vf', filter_str,
+            temp_processed_path
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f"FFmpeg MP3 cover preprocessing failed: {result.stderr}")
+            # Fallback to original PNG
+            return png_path
+        
+        logger.info(f"MP3 cover PNG preprocessed: {os.path.basename(png_path)} -> {os.path.basename(temp_processed_path)}")
+        return temp_processed_path
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing MP3 cover PNG: {e}")
+        # Fallback to original PNG
+        return png_path

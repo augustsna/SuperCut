@@ -5794,6 +5794,61 @@ class SuperCutUI(QWidget):
         self.mp3_cover_frame_size_combo.currentIndexChanged.connect(on_mp3_cover_frame_size_changed)
         on_mp3_cover_frame_size_changed(self.mp3_cover_frame_size_combo.currentIndex())
 
+        # Custom image checkbox for MP3 cover overlay
+        self.mp3_cover_custom_image_checkbox = QtWidgets.QCheckBox("Custom Image:")
+        self.mp3_cover_custom_image_checkbox.setFixedWidth(100)
+        self.mp3_cover_custom_image_checkbox.setChecked(False)
+        def update_mp3_cover_custom_image_checkbox_style(state):
+            self.mp3_cover_custom_image_checkbox.setStyleSheet("")  # Always default color
+        self.mp3_cover_custom_image_checkbox.stateChanged.connect(update_mp3_cover_custom_image_checkbox_style)
+        update_mp3_cover_custom_image_checkbox_style(self.mp3_cover_custom_image_checkbox.checkState())
+
+        # Custom image file selection for MP3 cover overlay
+        self.mp3_cover_custom_image_edit = ImageDropLineEdit()
+        self.mp3_cover_custom_image_edit.setFixedWidth(120)
+        self.mp3_cover_custom_image_edit.setPlaceholderText("Select custom image...")
+        self.mp3_cover_custom_image_path = None
+        
+        def select_mp3_cover_custom_image():
+            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self, "Select Custom Image for MP3 Cover", "", 
+                "Image Files (*.png *.jpg *.jpeg)"
+            )
+            if file_path:
+                self.mp3_cover_custom_image_edit.setText(file_path)
+                self.mp3_cover_custom_image_path = file_path
+        
+        self.mp3_cover_custom_image_btn = QPushButton("Browse")
+        self.mp3_cover_custom_image_btn.setFixedWidth(50)
+        self.mp3_cover_custom_image_btn.clicked.connect(select_mp3_cover_custom_image)
+        
+        def on_mp3_cover_custom_image_changed():
+            self.mp3_cover_custom_image_path = self.mp3_cover_custom_image_edit.text()
+        
+        self.mp3_cover_custom_image_edit.textChanged.connect(on_mp3_cover_custom_image_changed)
+
+        # Function to update custom image controls state for MP3 cover overlay
+        def update_mp3_cover_custom_image_controls_state():
+            # Check if both MP3 cover overlay and custom image are enabled
+            mp3_cover_enabled = self.mp3_cover_overlay_checkbox.isChecked()
+            custom_image_enabled = self.mp3_cover_custom_image_checkbox.isChecked()
+            both_enabled = mp3_cover_enabled and custom_image_enabled
+            
+            # Enable/disable custom image controls
+            self.mp3_cover_custom_image_edit.setEnabled(both_enabled)
+            self.mp3_cover_custom_image_btn.setEnabled(both_enabled)
+            
+            # Update styling based on state
+            if both_enabled:
+                # Custom image controls are enabled
+                self.mp3_cover_custom_image_edit.setStyleSheet("")
+                self.mp3_cover_custom_image_btn.setStyleSheet("")
+            else:
+                # Custom image controls are disabled
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.mp3_cover_custom_image_edit.setStyleSheet(grey_btn_style)
+                self.mp3_cover_custom_image_btn.setStyleSheet(grey_btn_style)
+
         def set_mp3_cover_overlay_enabled(state):
             enabled = state == Qt.CheckState.Checked
             self.mp3_cover_size_combo.setEnabled(enabled)
@@ -5805,6 +5860,8 @@ class SuperCutUI(QWidget):
             self.mp3_cover_start_edit.setEnabled(enabled)
             self.mp3_cover_frame_color_btn.setEnabled(enabled)
             self.mp3_cover_frame_size_combo.setEnabled(enabled)
+            self.mp3_cover_custom_image_checkbox.setEnabled(enabled)
+            
             if enabled:
                 self.mp3_cover_size_combo.setStyleSheet("")
                 self.mp3_cover_x_combo.setStyleSheet("")
@@ -5821,6 +5878,8 @@ class SuperCutUI(QWidget):
                 mp3_cover_start_label.setStyleSheet("")
                 mp3_cover_frame_color_label.setStyleSheet("")
                 mp3_cover_frame_size_label.setStyleSheet("")
+                # Reset custom image checkbox styling when MP3 cover overlay is enabled
+                self.mp3_cover_custom_image_checkbox.setStyleSheet("")
                 # Duration controls depend on full duration checkbox
                 if not self.mp3_cover_duration_full_checkbox.isChecked():
                     self.mp3_cover_duration_edit.setStyleSheet("")
@@ -5832,24 +5891,33 @@ class SuperCutUI(QWidget):
                 self.mp3_cover_y_combo.setStyleSheet(grey_btn_style)
                 self.mp3_cover_effect_combo.setStyleSheet(grey_btn_style)
                 self.mp3_cover_duration_edit.setStyleSheet(grey_btn_style)
-                self.mp3_cover_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.mp3_cover_start_edit.setStyleSheet(grey_btn_style)
-                self.mp3_cover_frame_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf; padding: 0px; margin: 0px;")
+                self.mp3_cover_frame_color_btn.setStyleSheet(grey_btn_style)
                 self.mp3_cover_frame_size_combo.setStyleSheet(grey_btn_style)
                 mp3_cover_size_label.setStyleSheet("color: grey;")
                 mp3_cover_x_label.setStyleSheet("color: grey;")
                 mp3_cover_y_label.setStyleSheet("color: grey;")
                 mp3_cover_effect_label.setStyleSheet("color: grey;")
-                mp3_cover_duration_label.setStyleSheet("color: grey;")
                 mp3_cover_start_label.setStyleSheet("color: grey;")
                 mp3_cover_frame_color_label.setStyleSheet("color: grey;")
                 mp3_cover_frame_size_label.setStyleSheet("color: grey;")
+                # Also grey out custom image controls when MP3 cover overlay is disabled
+                self.mp3_cover_custom_image_checkbox.setStyleSheet("color: grey;")
+                self.mp3_cover_custom_image_edit.setStyleSheet(grey_btn_style)
+                self.mp3_cover_custom_image_btn.setStyleSheet(grey_btn_style)
+            
+            # Update custom image controls state
+            update_mp3_cover_custom_image_controls_state()
         
         self.mp3_cover_overlay_checkbox.stateChanged.connect(lambda _: set_mp3_cover_overlay_enabled(self.mp3_cover_overlay_checkbox.checkState()))
+        self.mp3_cover_custom_image_checkbox.stateChanged.connect(lambda _: update_mp3_cover_custom_image_controls_state())
         self.mp3_cover_duration_full_checkbox.stateChanged.connect(lambda _: set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState()))
         
-        # First line: checkbox, frame controls, size, x, y controls
+        # First line: checkbox, custom image controls, frame controls, size, x, y controls
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_overlay_checkbox)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_checkbox)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_edit)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_btn)
         mp3_cover_overlay_layout.addSpacing(4)
         mp3_cover_overlay_layout.addWidget(mp3_cover_frame_color_label)
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_frame_color_btn)
@@ -7842,6 +7910,7 @@ class SuperCutUI(QWidget):
             mp3_cover_duration_full_checkbox_checked=self.mp3_cover_duration_full_checkbox.isChecked() if hasattr(self, 'mp3_cover_duration_full_checkbox') else True,
             mp3_cover_frame_color=self.mp3_cover_frame_color if hasattr(self, 'mp3_cover_frame_color') else (0, 0, 0),
             mp3_cover_frame_size=self.mp3_cover_frame_size if hasattr(self, 'mp3_cover_frame_size') else 10,
+            mp3_cover_custom_image_path=self.mp3_cover_custom_image_path if hasattr(self, 'mp3_cover_custom_image_path') and self.mp3_cover_custom_image_path else "",
             # --- Add background layer parameters ---
             use_bg_layer=self.bg_layer_checkbox.isChecked() if hasattr(self, 'bg_layer_checkbox') else False,
             bg_scale_percent=self.bg_scale_percent if hasattr(self, 'bg_scale_percent') else 103,

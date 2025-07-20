@@ -84,6 +84,7 @@ class VideoWorker(QObject):
                  mp3_cover_duration_full_checkbox_checked: bool = True,
                  mp3_cover_frame_color: tuple = (255, 255, 255),
                  mp3_cover_frame_size: int = 10,
+                 mp3_cover_custom_image_path: str = "",
                  # --- Add background layer parameters ---
                  use_bg_layer: bool = False,
                  bg_scale_percent: int = 103,
@@ -287,6 +288,7 @@ class VideoWorker(QObject):
         self.mp3_cover_duration_full_checkbox_checked = mp3_cover_duration_full_checkbox_checked
         self.mp3_cover_frame_color = mp3_cover_frame_color
         self.mp3_cover_frame_size = mp3_cover_frame_size
+        self.mp3_cover_custom_image_path = mp3_cover_custom_image_path
         # --- Add background layer attributes ---
         self.use_bg_layer = use_bg_layer
         self.bg_scale_percent = bg_scale_percent
@@ -409,18 +411,26 @@ class VideoWorker(QObject):
         # --- MP3 Cover Overlays: Extract cover and create framed PNG for each selected MP3 ---
         mp3_cover_pngs = []
         if self.use_mp3_cover_overlay:
-            from src.utils import extract_and_frame_mp3_cover
+            from src.utils import extract_and_frame_mp3_cover, preprocess_mp3_cover_png
             for idx, mp3_path in enumerate(selected_mp3s, start=100):  # mp3cover100, mp3cover101, ...
                 # Create a temp PNG file for the MP3 cover overlay
                 temp_cover_path = create_temp_file(suffix=f'_mp3cover{idx}.png', prefix='supercut_')
                 
                 # Extract and frame the MP3 cover image with custom frame color and size
-                success = extract_and_frame_mp3_cover(mp3_path, temp_cover_path, frame_width=self.mp3_cover_frame_size, frame_color=self.mp3_cover_frame_color)
+                # Use custom image if provided, otherwise use default
+                default_cover_path = self.mp3_cover_custom_image_path if self.mp3_cover_custom_image_path else "src/sources/mp3cover/mp3cover.png"
+                success = extract_and_frame_mp3_cover(mp3_path, temp_cover_path, default_cover_path=default_cover_path, frame_width=self.mp3_cover_frame_size, frame_color=self.mp3_cover_frame_color)
                 
                 if success:
+                    # Always preprocess the MP3 cover PNG
+                    processed_cover_path = preprocess_mp3_cover_png(
+                        png_path=temp_cover_path,
+                        scale_percent=self.mp3_cover_size_percent
+                    )
+                    
                     # Add x/y percent and start_at to overlay dict for ffmpeg_utils
                     mp3_cover_pngs.append({
-                        'path': temp_cover_path, 
+                        'path': processed_cover_path, 
                         'mp3_path': mp3_path, 
                         'x_percent': self.mp3_cover_x_percent, 
                         'y_percent': self.mp3_cover_y_percent, 
