@@ -255,17 +255,17 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         # Build ffmpeg command with dynamic inputs
         cmd = [
             FFMPEG_BINARY,
-            "-loglevel", "verbose",
-            "-stats"
+            "-i", image_path_for_ffmpeg,
+            "-i", audio_path
         ]
         
-        # Add loop parameter based on image type (global option before inputs)
+        # Add loop parameter based on image type
         if image_path_for_ffmpeg.lower().endswith('.gif'):
-            cmd.extend(["-stream_loop", "-1"])
+            cmd.insert(1, "-stream_loop")
+            cmd.insert(2, "-1")
         else:
-            cmd.extend(["-loop", "1"])
-            
-        cmd.extend(["-i", image_path_for_ffmpeg, "-i", audio_path])
+            cmd.insert(1, "-loop")
+            cmd.insert(2, "1")
         ext1 = os.path.splitext(overlay1_path)[1].lower() if overlay1_path else ''
         ext2 = os.path.splitext(overlay2_path)[1].lower() if overlay2_path else ''
         ext3 = os.path.splitext(overlay3_path)[1].lower() if overlay3_path else ''
@@ -1348,12 +1348,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         
         cmd.extend(["-filter_complex", filter_graph, "-map", final_output_label, "-map", "1:a"])
 
-        cmd.extend(["-c:v", codec, "-preset", preset])
-        
-        # Add GPU performance monitoring for NVENC
-        if codec == "h264_nvenc":
-            cmd.extend(["-gpu", "0"])  # Use first GPU
-            cmd.extend(["-rc-lookahead", "20"])  # Optimize encoding lookahead       
+        cmd.extend(["-c:v", codec, "-preset", preset])       
 
         # Rate control based on input image type
         if image_path_for_ffmpeg.lower().endswith('.gif'):
@@ -1388,8 +1383,6 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             "-level:v", VIDEO_SETTINGS["level"],
             "-movflags", "+faststart", 
             "-shortest",
-            "-threads", "0",  # Use all available CPU threads
-            "-thread_type", "frame",  # Process frames in parallel
             "-y"
         ])              
         
