@@ -326,8 +326,7 @@ class LayerManagerWidget(QWidget):
     
         
         # If we have a saved order, use it; otherwise use default order
-        if self.last_applied_order:
-            print(f"🔧 Using saved order: {self.last_applied_order}")
+        if self.last_applied_order:            
             # Use saved order, adding any missing layers at the end
             used_ids = set()
             # Build the list in reverse order for display (background at bottom)
@@ -394,9 +393,11 @@ class LayerManagerWidget(QWidget):
         return order
     
     def get_enabled_layers(self):
-        """Get list of enabled layer IDs in current order"""
+        """Get list of enabled layer IDs in logical order (background first)"""
         enabled = []
-        for i in range(self.layer_list.count()):
+        # Get items in reverse order since display is reversed (background at bottom)
+        # This matches the logic in get_layer_order() to maintain consistent ordering
+        for i in range(self.layer_list.count() - 1, -1, -1):
             item = self.layer_list.item(i)
             if isinstance(item, LayerItem) and item.checkState() == Qt.CheckState.Checked:
                 enabled.append(item.layer_id)
@@ -810,6 +811,7 @@ class LayerManagerDialog(QWidget):
             self.main_window.layer_order = order
             self.main_window.enabled_layers = self.layer_manager.get_enabled_layers()
     
+            print(f"🔧 Updated layer order: {order}")
             print(f"Enabled layers: {self.layer_manager.get_enabled_layers()}")
             
             # Save layer order to configuration
