@@ -8037,6 +8037,12 @@ class SuperCutUI(QWidget):
             # print("[DEBUG] real_leftover_images:", real_leftover_images)
             if real_leftover_mp3s or real_leftover_images:
                 # Show dialog indicating process is incomplete due to leftovers
+                # Play notification sound
+                try:
+                    QtWidgets.QApplication.beep()
+                except RuntimeError as e:
+                    logger.warning(f"Failed to play notification sound: {e}")
+                
                 dlg = SuccessWithLeftoverDialog(
                     self,
                     open_folder=self.open_result_folder,
@@ -8048,7 +8054,7 @@ class SuperCutUI(QWidget):
                 if hasattr(self, '_pending_close') and self._pending_close:
                     timer = QTimer(self)
                     timer.singleShot(2000, dlg.close)
-                dlg.exec()
+                dlg.exec()               
             else:
                 self.show_success_options(batch_count=batch_count, min_mp3_count=min_mp3_count)
         # Show warning if any files failed to move (only if they still exist and were used)
