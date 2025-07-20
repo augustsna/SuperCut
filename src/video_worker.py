@@ -389,14 +389,21 @@ class VideoWorker(QObject):
         # --- Song Title Overlays: Extract title and create PNG for each selected MP3 ---
         song_title_pngs = []
         if self.use_song_title_overlay:
-            from src.utils import extract_mp3_title, create_song_title_png
+            from src.utils import extract_mp3_title, create_song_title_png, preprocess_song_title_png
             for idx, mp3_path in enumerate(selected_mp3s, start=16):  # overlay16, overlay17, ...
                 title = extract_mp3_title(mp3_path)
                 # Create a temp PNG file for the overlay
                 temp_png_path = create_temp_file(suffix=f'_overlay{idx}.png', prefix='supercut_')
                 create_song_title_png(title, temp_png_path, width=1920, height=240, font_size=self.song_title_font_size, font_name=self.song_title_font, color=self.song_title_color, bg=self.song_title_bg, bg_color=self.song_title_bg_color, opacity=self.song_title_opacity, text_effect=self.song_title_text_effect, text_effect_color=self.song_title_text_effect_color, text_effect_intensity=self.song_title_text_effect_intensity, bottom_padding=0)
+                
+                # Always preprocess the song title PNG
+                processed_png_path = preprocess_song_title_png(
+                    png_path=temp_png_path,
+                    scale_percent=self.song_title_scale_percent
+                )
+                
                 # Add x/y percent and start_at to overlay dict for ffmpeg_utils
-                song_title_pngs.append({'path': temp_png_path, 'title': title, 'x_percent': self.song_title_x_percent, 'y_percent': self.song_title_y_percent, 'start_at': self.song_title_start_at})
+                song_title_pngs.append({'path': processed_png_path, 'title': title, 'x_percent': self.song_title_x_percent, 'y_percent': self.song_title_y_percent, 'start_at': self.song_title_start_at})
         # --- End Song Title Overlays ---
 
         # --- MP3 Cover Overlays: Extract cover and create framed PNG for each selected MP3 ---
@@ -1124,7 +1131,7 @@ class VideoWorker(QObject):
                 overlay10_x_percent=self.overlay10_x_percent,
                 overlay10_y_percent=self.overlay10_y_percent,
                 use_intro=self.use_intro,
-                 intro_path=processed_intro_path,  # Use preprocessed intro
+                intro_path=processed_intro_path,  # Use preprocessed intro
                 intro_size_percent=self.intro_size_percent,  # Pass original size percent for detection
                 intro_x_percent=self.intro_x_percent,
                 intro_y_percent=self.intro_y_percent,

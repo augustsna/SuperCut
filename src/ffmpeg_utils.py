@@ -1018,17 +1018,14 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         overlay_labels.append((label, start, duration, x_expr, y_expr))
                         
                     else:
-                        # Song title overlay - use existing logic
-                        scale = song_title_scale_percent / 100.0 if song_title_scale_percent else 1.0
-                        scaled_w = round(1920 * scale)
-                        scaled_h = round(240 * scale)
+                        # Song title overlay - already preprocessed, no scaling needed
                         label = f"songol{i+1}"
                         
                         # Calculate x/y as expressions based on percent
                         x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
                         # For Y: 0% = bottom, 100% = top
                         y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
-                        chain = f"[{idx}:v]format=rgba,scale={scaled_w}:{scaled_h}"
+                        chain = f"[{idx}:v]format=rgba"
                         
                         # Apply song title effect based on song_title_effect parameter
                         if song_title_effect == "fadeinout":
