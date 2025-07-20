@@ -7847,9 +7847,7 @@ class SuperCutUI(QWidget):
             overlay8_duration=self.overlay8_duration,
             overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked(),
             overlay8_start_at_checkbox_checked=self.overlay8_start_at_checkbox.isChecked(),
-            overlay8_popup_start_at=self.overlay8_popup_start_at_percent,
-            overlay8_popup_interval=self.overlay8_popup_interval_percent,
-            overlay8_popup_checkbox_checked=self.overlay8_popup_checkbox.isChecked(),
+
             # --- Add overlay9, overlay9 effect ---
             use_overlay9=self.overlay9_checkbox.isChecked(),
             overlay9_path=self.overlay9_path,
@@ -7869,9 +7867,7 @@ class SuperCutUI(QWidget):
                                 overlay10_start_end_value=self.overlay10_start_end_value,
             overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox.isChecked(),
                 overlay9_start_at_checkbox_checked=self.overlay9_start_at_checkbox.isChecked(),
-            overlay9_popup_start_at=self.overlay9_popup_start_at_percent,
-            overlay9_popup_interval=self.overlay9_popup_interval_percent,
-            overlay9_popup_checkbox_checked=self.overlay9_popup_checkbox.isChecked(),
+
             # --- Add frame box parameters ---
             use_frame_box=use_frame_box,
             frame_box_path=frame_box_path,

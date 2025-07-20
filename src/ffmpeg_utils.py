@@ -954,16 +954,44 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     x_percent = overlay.get('x_percent', 0)
                     y_percent = overlay.get('y_percent', 0)
                     
-                    # Check if this is an overlay8 popup overlay or MP3 cover overlay (has size_percent and effect)
-                    is_overlay8_popup = 'size_percent' in overlay and 'effect' in overlay
+                    # Check if this is an overlay8 popup overlay, MP3 cover overlay, or song title overlay (has size_percent and effect)
+                    is_popup_or_song = 'size_percent' in overlay and 'effect' in overlay
                     
-                    if is_overlay8_popup:
-                        # Overlay8 popup overlay - use its own scaling and effects
+                    if is_popup_or_song:
+                        # Popup overlay, MP3 cover, or song title - check if preprocessed like regular overlays
                         size_percent = overlay.get('size_percent', 100)
                         effect = overlay.get('effect', 'fadein')
-                        scale_factor = size_percent / 100.0
-                        scale_expr = f"iw*{scale_factor:.3f}:ih*{scale_factor:.3f}"
-                        label = f"popupol{i+1}"
+                        overlay_path = overlay.get('path', '')
+                        overlay_filename = os.path.basename(overlay_path) if overlay_path else ""
+                        is_popup_preprocessed = overlay_filename.startswith("supercut_")
+                        overlay_ext = os.path.splitext(overlay_path)[1].lower() if overlay_path else ""
+                        is_popup_gif = overlay_ext == '.gif'
+                        is_popup_video = overlay_path and overlay_ext in ['.mp4', '.mov', '.mkv']
+                        
+                        # Determine scaling based on preprocessing status (same logic as regular overlay8)
+                        if is_popup_preprocessed and not is_popup_gif:
+                            # Popup is preprocessed non-GIF image - use original size
+                            scale_expr = "iw:ih"
+                        elif is_popup_gif or is_popup_video:
+                            # Popup is GIF or video - apply scaling in FFmpeg
+                            scale_factor = size_percent / 100.0
+                            scale_expr = f"iw*{scale_factor:.3f}:ih*{scale_factor:.3f}"
+                        else:
+                            # Popup is non-preprocessed image - apply scaling in FFmpeg
+                            scale_factor = size_percent / 100.0
+                            scale_expr = f"iw*{scale_factor:.3f}:ih*{scale_factor:.3f}"
+                        
+                        # Determine label based on overlay type
+                        overlay_path = overlay.get('path', '')
+                        overlay_filename = os.path.basename(overlay_path) if overlay_path else ""
+                        
+                        # Check if this is a song title (processed PNG) or popup overlay
+                        if overlay_filename.startswith("supercut_") and overlay_ext == '.png':
+                            # This is likely a song title or preprocessed overlay
+                            label = f"songol{i+1}"
+                        else:
+                            # This is a popup overlay (overlay8, overlay9, MP3 cover)
+                            label = f"popupol{i+1}"
                         
                         # Calculate x/y as expressions based on percent
                         x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
@@ -1018,27 +1046,13 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         overlay_labels.append((label, start, duration, x_expr, y_expr))
                         
                     else:
-                        # Song title overlay - already preprocessed, no scaling needed (MP3 covers are handled in the popup block)
-                        label = f"songol{i+1}"
+                        # Legacy overlay without size_percent and effect (should not occur with current implementation)
+                        label = f"legacyol{i+1}"
                         
                         # Calculate x/y as expressions based on percent
                         x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
-                        # For Y: 0% = bottom, 100% = top
                         y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
-                        chain = f"[{idx}:v]format=rgba"
-                        
-                        # Apply song title effect based on song_title_effect parameter
-                        if song_title_effect == "fadeinout":
-                            chain += f",fade=t=in:st={start}:d=1:alpha=1,fade=t=out:st={start+duration-1}:d=1:alpha=1"
-                        elif song_title_effect == "fadein":
-                            chain += f",fade=t=in:st={start}:d=1:alpha=1"
-                        elif song_title_effect == "fadeout":
-                            chain += f",fade=t=out:st={start+duration-1}:d=1:alpha=1"
-                        elif song_title_effect == "zoompan":
-                            chain += f",zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
-                        # For "none" effect, no additional effects are applied
-                        
-                        chain += f"[{label}]"
+                        chain = f"[{idx}:v]format=rgba[{label}]"
                         filter_chains.append(chain)
                         overlay_labels.append((label, start, duration, x_expr, y_expr))
             # --- End Song Title Overlay Filter Graph ---

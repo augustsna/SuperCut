@@ -56,10 +56,10 @@ class VideoWorker(QObject):
                  overlay7_effect: str = "fadein", overlay7_start_time: int = 5, overlay7_duration: int = 6, overlay7_duration_full_checkbox_checked: bool = False,
                  # --- Add overlay8, overlay8 effect ---
                  use_overlay8: bool = False, overlay8_path: str = "", overlay8_size_percent: int = 10, overlay8_x_percent: int = 75, overlay8_y_percent: int = 0,
-                 overlay8_effect: str = "fadein", overlay8_start_time: int = 5, overlay8_start_from: int = 0, overlay8_duration: int = 6, overlay8_duration_full_checkbox_checked: bool = False, overlay8_start_at_checkbox_checked: bool = True, overlay8_popup_start_at: int = 5, overlay8_popup_interval: int = 10, overlay8_popup_checkbox_checked: bool = False,
+                 overlay8_effect: str = "fadein", overlay8_start_time: int = 5, overlay8_start_from: int = 0, overlay8_duration: int = 6, overlay8_duration_full_checkbox_checked: bool = False, overlay8_start_at_checkbox_checked: bool = True,
                  # --- Add overlay9, overlay9 effect ---
                  use_overlay9: bool = False, overlay9_path: str = "", overlay9_size_percent: int = 10, overlay9_x_percent: int = 75, overlay9_y_percent: int = 0,
-                 overlay9_effect: str = "fadein", overlay9_start_time: int = 5, overlay9_start_from: int = 0, overlay9_duration: int = 6, overlay9_duration_full_checkbox_checked: bool = False, overlay9_start_at_checkbox_checked: bool = True, overlay9_popup_start_at: int = 5, overlay9_popup_interval: int = 10, overlay9_popup_checkbox_checked: bool = False,
+                 overlay9_effect: str = "fadein", overlay9_start_time: int = 5, overlay9_start_from: int = 0, overlay9_duration: int = 6, overlay9_duration_full_checkbox_checked: bool = False, overlay9_start_at_checkbox_checked: bool = True,
                  # --- Add overlay10, overlay10 effect ---
                  use_overlay10: bool = False, overlay10_path: str = "", overlay10_size_percent: int = 10, overlay10_x_percent: int = 75, overlay10_y_percent: int = 0,
                  overlay10_effect: str = "fadein", overlay10_start_time: int = 5, overlay10_start_from: int = 0, overlay10_duration: int = 6, overlay10_start_at_checkbox_checked: bool = True,
@@ -218,9 +218,6 @@ class VideoWorker(QObject):
         self.overlay8_duration = overlay8_duration
         self.overlay8_duration_full_checkbox_checked = overlay8_duration_full_checkbox_checked
         self.overlay8_start_at_checkbox_checked = overlay8_start_at_checkbox_checked
-        self.overlay8_popup_start_at = overlay8_popup_start_at
-        self.overlay8_popup_interval = overlay8_popup_interval
-        self.overlay8_popup_checkbox_checked = overlay8_popup_checkbox_checked
         # --- Add overlay9 attributes ---
         self.use_overlay9 = use_overlay9
         self.overlay9_path = overlay9_path
@@ -233,9 +230,6 @@ class VideoWorker(QObject):
         self.overlay9_duration = overlay9_duration
         self.overlay9_duration_full_checkbox_checked = overlay9_duration_full_checkbox_checked
         self.overlay9_start_at_checkbox_checked = overlay9_start_at_checkbox_checked
-        self.overlay9_popup_start_at = overlay9_popup_start_at
-        self.overlay9_popup_interval = overlay9_popup_interval
-        self.overlay9_popup_checkbox_checked = overlay9_popup_checkbox_checked
         # --- Add overlay10 attributes ---
         self.use_overlay10 = use_overlay10
         self.overlay10_path = overlay10_path
@@ -781,7 +775,9 @@ class VideoWorker(QObject):
                         'start': overlay_start,
                         'duration': overlay_duration,
                         'x_percent': song_title_pngs[i]['x_percent'],
-                        'y_percent': song_title_pngs[i]['y_percent']
+                        'y_percent': song_title_pngs[i]['y_percent'],
+                        'size_percent': self.song_title_scale_percent,
+                        'effect': self.song_title_effect
                     })
 
             # Process MP3 Cover overlays independently (only if MP3 covers are enabled)
@@ -870,54 +866,7 @@ class VideoWorker(QObject):
             actual_overlay8_start_at = 0  # Default value
             
             if self.use_overlay8:
-                if self.overlay8_popup_checkbox_checked:
-                    # Popup mode: calculate multiple overlay instances based on interval count
-                    # First popup at the specified start time
-                    first_popup_start = int((self.overlay8_popup_start_at / 100.0) * total_duration)
-                    
-                    # Calculate how many additional popups based on interval count (not percentage)
-                    additional_popups = self.overlay8_popup_interval  # This is the count
-                    
-                    if additional_popups > 0:
-                        # Calculate the time span for additional popups
-                        remaining_time = total_duration - first_popup_start  # NOT subtracting duration
-                        if remaining_time > 0:
-                            interval_seconds = remaining_time / additional_popups
-                        else:
-                            interval_seconds = 0
-                        
-                        # Create multiple overlay instances for popup mode
-                        for i in range(additional_popups + 1):  # +1 to include the first popup
-                            if i == 0:
-                                # First popup at specified start time
-                                popup_start = first_popup_start
-                            else:
-                                # Subsequent popups: first_popup + (interval_seconds * i) - duration
-                                popup_start = first_popup_start + (interval_seconds * i) - self.overlay8_duration
-                            
-                            # Ensure popup doesn't start before 0 or after video ends
-                            popup_start = max(0, min(popup_start, int(total_duration - self.overlay8_duration)))
-                            
-                            # Add to extra_overlays for FFmpeg processing
-                            extra_overlays.append({
-                                'path': processed_overlay8_path,  # Use preprocessed overlay8
-                                'start': popup_start,
-                                'duration': self.overlay8_duration,
-                                'x_percent': self.overlay8_x_percent,
-                                'y_percent': self.overlay8_y_percent,
-                                'size_percent': self.overlay8_size_percent,
-                                'effect': self.overlay8_effect
-                            })
-                            
-                            print(f"Overlay8 Popup {i+1}: Start at {popup_start}s, Duration {self.overlay8_duration}s")
-                        
-                        # Set overlay8 to not be used since we're using extra_overlays
-                        actual_overlay8_start_at = -1  # Signal to not use single overlay8
-                    else:
-                        # No additional popups, just use first popup
-                        actual_overlay8_start_at = first_popup_start
-                        actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
-                elif not self.overlay8_start_at_checkbox_checked:
+                if not self.overlay8_start_at_checkbox_checked:
                     # Use start from logic
                     if self.overlay8_duration_full_checkbox_checked:
                         # Full duration: simple percentage of total duration
@@ -935,12 +884,11 @@ class VideoWorker(QObject):
                     # Ensure the start time doesn't exceed the video duration
                     actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
                 
-                # Final validation to ensure start time is valid (only for non-popup mode)
-                if not self.overlay8_popup_checkbox_checked:
-                    actual_overlay8_start_at = max(0, actual_overlay8_start_at)           
+                # Final validation to ensure start time is valid
+                actual_overlay8_start_at = max(0, actual_overlay8_start_at)           
                 
                 # Additional validation for overlay8 parameters
-                if not self.overlay8_popup_checkbox_checked and actual_overlay8_start_at < 0:                
+                if actual_overlay8_start_at < 0:                
                     actual_overlay8_start_at = 0
                 if self.overlay8_duration < 0:                
                     self.overlay8_duration = 1
@@ -949,54 +897,7 @@ class VideoWorker(QObject):
             actual_overlay9_start_at = 0  # Default value
             
             if self.use_overlay9:
-                if self.overlay9_popup_checkbox_checked:
-                    # Popup mode: calculate multiple overlay instances based on interval count
-                    # First popup at the specified start time
-                    first_popup_start = int((self.overlay9_popup_start_at / 100.0) * total_duration)
-                    
-                    # Calculate how many additional popups based on interval count (not percentage)
-                    additional_popups = self.overlay9_popup_interval  # This is the count
-                    
-                    if additional_popups > 0:
-                        # Calculate the time span for additional popups
-                        remaining_time = total_duration - first_popup_start  # NOT subtracting duration
-                        if remaining_time > 0:
-                            interval_seconds = remaining_time / additional_popups
-                        else:
-                            interval_seconds = 0
-                        
-                        # Create multiple overlay instances for popup mode
-                        for i in range(additional_popups + 1):  # +1 to include the first popup
-                            if i == 0:
-                                # First popup at specified start time
-                                popup_start = first_popup_start
-                            else:
-                                # Subsequent popups: first_popup + (interval_seconds * i) - duration
-                                popup_start = first_popup_start + (interval_seconds * i) - self.overlay9_duration
-                            
-                            # Ensure popup doesn't start before 0 or after video ends
-                            popup_start = max(0, min(popup_start, int(total_duration - self.overlay9_duration)))
-                            
-                            # Add to extra_overlays for FFmpeg processing
-                            extra_overlays.append({
-                                'path': processed_overlay9_path,  # Use preprocessed overlay9
-                                'start': popup_start,
-                                'duration': self.overlay9_duration,
-                                'x_percent': self.overlay9_x_percent,
-                                'y_percent': self.overlay9_y_percent,
-                                'size_percent': self.overlay9_size_percent,
-                                'effect': self.overlay9_effect
-                            })
-                            
-                            print(f"Overlay9 Popup {i+1}: Start at {popup_start}s, Duration {self.overlay9_duration}s")
-                        
-                        # Set overlay9 to not be used since we're using extra_overlays
-                        actual_overlay9_start_at = -1  # Signal to not use single overlay9
-                    else:
-                        # No additional popups, just use first popup
-                        actual_overlay9_start_at = first_popup_start
-                        actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
-                elif not self.overlay9_start_at_checkbox_checked:
+                if not self.overlay9_start_at_checkbox_checked:
                     # Use start from logic
                     if self.overlay9_duration_full_checkbox_checked:
                         # Full duration: simple percentage of total duration
@@ -1014,53 +915,19 @@ class VideoWorker(QObject):
                     # Ensure the start time doesn't exceed the video duration
                     actual_overlay9_start_at = min(actual_overlay9_start_at, int(total_duration - 1))
                 
-                # Final validation to ensure start time is valid (only for non-popup mode)
-                if not self.overlay9_popup_checkbox_checked:
-                    actual_overlay9_start_at = max(0, actual_overlay9_start_at)
+                # Final validation to ensure start time is valid
+                actual_overlay9_start_at = max(0, actual_overlay9_start_at)
                            
                 # Additional validation for overlay9 parameters
-                if not self.overlay9_popup_checkbox_checked and actual_overlay9_start_at < 0:                
+                if actual_overlay9_start_at < 0:                
                     actual_overlay9_start_at = 0
                 if self.overlay9_duration < 0:                
                     self.overlay9_duration = 1
             
-            # --- Overlay 10: When Song Start/End Logic ---
-            overlay10_multi_song = (
-                self.use_overlay10 and self.overlay10_song_start_end_checked and 
-                (self.overlay10_start_end_value == "start" or self.overlay10_start_end_value == "end")
-            )
-            if overlay10_multi_song:
-                # Use pre-calculated song durations
-                for i, (song_start, song_duration) in enumerate(song_durations):
-                    if self.overlay10_start_end_value == "start":
-                        # Start logic: first song uses user start time, others start at song beginning
-                        if i == 0:
-                            overlay_start = self.overlay10_start_time
-                        else:
-                            overlay_start = song_start
-                    else:  # "end" logic
-                        # End logic: overlay appears before the end of each song
-                        overlay_start = song_start + song_duration - self.overlay10_duration
-                        # Ensure overlay doesn't start before song begins
-                        overlay_start = max(song_start, overlay_start)
-                    
-                    overlay_duration = self.overlay10_duration
-                    extra_overlays.append({
-                        'path': processed_overlay10_path,  # Use preprocessed overlay10
-                        'start': overlay_start,
-                        'duration': overlay_duration,
-                        'x_percent': self.overlay10_x_percent,
-                        'y_percent': self.overlay10_y_percent,
-                        'effect': self.overlay10_effect,
-                        'size_percent': self.overlay10_size_percent
-                    })
-
-            # --- End Overlay 10: When Song Start/End Logic ---
-
-            # Calculate actual overlay10 start time based on checkbox state (only if overlay10 is enabled and not multi-song)
+            # Calculate actual overlay10 start time based on checkbox state (only if overlay10 is enabled)
             actual_overlay10_start_at = 0  # Default value
             
-            if self.use_overlay10 and not overlay10_multi_song:
+            if self.use_overlay10:
                 if not self.overlay10_start_at_checkbox_checked:
                     # Use start from logic: (total_duration * percentage) - effect_duration
                     effect_duration = self.overlay10_duration
@@ -1086,8 +953,6 @@ class VideoWorker(QObject):
             
 
             # Create video (Overlay 1: GIF/PNG, with size)
-            # Call create_video_with_ffmpeg, but if overlay10_multi_song, set use_overlay10=False so it is not added as a static overlay
-            ffmpeg_use_overlay10 = self.use_overlay10 and not overlay10_multi_song
             success, err = create_video_with_ffmpeg(
                 processed_image_path, merged_audio_path, output_path, self.resolution, self.fps, self.codec,
                 use_overlay=self.use_overlay,
@@ -1135,7 +1000,7 @@ class VideoWorker(QObject):
                 overlay9_size_percent=self.overlay9_size_percent,  # Pass original size percent for detection
                 overlay9_x_percent=self.overlay9_x_percent,
                 overlay9_y_percent=self.overlay9_y_percent,
-                use_overlay10=ffmpeg_use_overlay10,
+                use_overlay10=self.use_overlay10,
                 overlay10_path=processed_overlay10_path,  # Use preprocessed overlay10
                 overlay10_size_percent=self.overlay10_size_percent,  # Pass original size percent for detection
                 overlay10_x_percent=self.overlay10_x_percent,
@@ -1190,11 +1055,11 @@ class VideoWorker(QObject):
                 overlay7_duration=self.overlay7_duration,
                 overlay7_duration_full_checkbox_checked=self.overlay7_duration_full_checkbox_checked,
                 overlay8_effect=self.overlay8_effect,
-                overlay8_start_time=actual_overlay8_start_at if actual_overlay8_start_at != -1 else 0,
+                overlay8_start_time=actual_overlay8_start_at,
                 overlay8_duration=self.overlay8_duration,
                 overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox_checked,
                 overlay9_effect=self.overlay9_effect,
-                overlay9_start_time=actual_overlay9_start_at if actual_overlay9_start_at != -1 else 0,
+                overlay9_start_time=actual_overlay9_start_at,
                 overlay9_duration=self.overlay9_duration,
                 overlay10_effect=self.overlay10_effect,
                 overlay10_start_time=actual_overlay10_start_at,
