@@ -184,6 +184,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     overlay10_effect: str = "fadein",
     overlay10_start_time: int = 5,
     overlay10_duration: int = 6,
+    overlay10_start_time_percent: int = 0,
     # --- Add frame box parameters ---
     use_frame_box: bool = False,
     frame_box_path: str = "",

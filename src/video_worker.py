@@ -63,6 +63,7 @@ class VideoWorker(QObject):
                  # --- Add overlay10, overlay10 effect ---
                  use_overlay10: bool = False, overlay10_path: str = "", overlay10_size_percent: int = 10, overlay10_x_percent: int = 75, overlay10_y_percent: int = 0,
                  overlay10_effect: str = "fadein", overlay10_start_time: int = 5, overlay10_start_from: int = 0, overlay10_duration: int = 6, overlay10_start_at_checkbox_checked: bool = True,
+                 overlay10_start_time_percent: int = 0,
                  overlay10_song_start_end_checked: bool = False, overlay10_start_end_value: str = "start",
                  # --- Add frame box parameters ---
                  use_frame_box: bool = False, frame_box_path: str = "", frame_box_size_percent: int = 50, frame_box_x_percent: int = 0, frame_box_y_percent: int = 0,
@@ -241,6 +242,7 @@ class VideoWorker(QObject):
         self.overlay10_start_from = overlay10_start_from
         self.overlay10_duration = overlay10_duration
         self.overlay10_start_at_checkbox_checked = overlay10_start_at_checkbox_checked
+        self.overlay10_start_time_percent = overlay10_start_time_percent
         self.overlay10_song_start_end_checked = overlay10_song_start_end_checked
         self.overlay10_start_end_value = overlay10_start_end_value
         # --- Add frame box attributes ---
@@ -933,8 +935,13 @@ class VideoWorker(QObject):
                 if not self.overlay10_start_at_checkbox_checked:
                     # Use start from logic: (total_duration * percentage) - effect_duration
                     effect_duration = self.overlay10_duration
-                    percentage_time = (self.overlay10_start_from / 100.0) * total_duration
-                    actual_overlay10_start_at = int(max(0, percentage_time - effect_duration))
+                    if self.overlay10_start_time_percent > 0:
+                        # Use percentage of total duration if specified
+                        actual_overlay10_start_at = int((self.overlay10_start_time_percent / 100.0) * total_duration)
+                    else:
+                        # Fall back to regular start from logic
+                        percentage_time = (self.overlay10_start_from / 100.0) * total_duration
+                        actual_overlay10_start_at = int(max(0, percentage_time - effect_duration))
                     # Ensure the start time doesn't exceed the video duration
                     actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
                 else:

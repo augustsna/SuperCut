@@ -4629,6 +4629,20 @@ class SuperCutUI(QWidget):
         self.overlay10_start_edit.textChanged.connect(on_overlay10_start_changed)
         on_overlay10_start_changed()
 
+        # Overlay10 start time percentage dropdown
+        overlay10_start_percent_label = QLabel("or at %:")
+        overlay10_start_percent_label.setFixedWidth(60)
+        self.overlay10_start_percent_combo = NoWheelComboBox()
+        self.overlay10_start_percent_combo.setFixedWidth(70)
+        for percent in range(0, 101, 5):  # 0 to 100 in steps of 5
+            self.overlay10_start_percent_combo.addItem(f"{percent}%", percent)
+        self.overlay10_start_percent_combo.setCurrentIndex(0)  # Default to 0%
+        self.overlay10_start_time_percent = 0
+        def on_overlay10_start_percent_changed():
+            self.overlay10_start_time_percent = self.overlay10_start_percent_combo.currentData()
+        self.overlay10_start_percent_combo.currentIndexChanged.connect(on_overlay10_start_percent_changed)
+        on_overlay10_start_percent_changed()
+
         # Overlay10 song start/end checkbox and dropdown
         self.overlay10_song_start_end = QtWidgets.QCheckBox("")
         self.overlay10_song_start_end.setChecked(False)
@@ -4645,24 +4659,7 @@ class SuperCutUI(QWidget):
         self.overlay10_start_end_combo.addItem("end", "end")
         self.overlay10_start_end_combo.setCurrentIndex(0)  # Default to "start"
         self.overlay10_start_end_value = "start"
-        # Function to control start at input state based on song timing selection
-        def update_overlay10_start_at_state():
-            if self.overlay10_song_start_end.isChecked():
-                # If "end" is selected, disable start at input
-                if self.overlay10_start_end_value == "end":
-                    self.overlay10_start_edit.setEnabled(False)
-                    overlay10_start_label.setStyleSheet("color: grey;")
-                    self.overlay10_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                else:
-                    # If "start" is selected, enable start at input
-                    self.overlay10_start_edit.setEnabled(True)
-                    overlay10_start_label.setStyleSheet("")
-                    self.overlay10_start_edit.setStyleSheet("")
-            else:
-                # If song timing checkbox is unchecked, enable start at input
-                self.overlay10_start_edit.setEnabled(True)
-                overlay10_start_label.setStyleSheet("")
-                self.overlay10_start_edit.setStyleSheet("")
+
 
         # Function to control start/end dropdown state based on checkbox
         def set_overlay10_start_end_enabled(state):
@@ -4670,15 +4667,9 @@ class SuperCutUI(QWidget):
             self.overlay10_start_end_combo.setEnabled(enabled)
             overlay10_start_end_label.setStyleSheet("" if enabled else "color: grey;")
             self.overlay10_start_end_combo.setStyleSheet("" if enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-            
-            # If song timing is enabled, check if "end" is selected to disable start at input
-            if enabled:
-                update_overlay10_start_at_state()
 
         def on_overlay10_start_end_changed(idx):
             self.overlay10_start_end_value = self.overlay10_start_end_combo.itemData(idx)
-            # Update the start at input state based on the new selection
-            update_overlay10_start_at_state()
         self.overlay10_start_end_combo.currentIndexChanged.connect(on_overlay10_start_end_changed)
         on_overlay10_start_end_changed(self.overlay10_start_end_combo.currentIndex())
         
@@ -4695,13 +4686,16 @@ class SuperCutUI(QWidget):
         overlay10_layout.addWidget(overlay10_duration_label)
         overlay10_layout.addWidget(self.overlay10_duration_edit)
         overlay10_layout.addSpacing(-6)
-        overlay10_layout.addWidget(overlay10_start_label)
-        overlay10_layout.addWidget(self.overlay10_start_edit)
+        overlay10_layout.addWidget(overlay10_start_percent_label)
+        overlay10_layout.addWidget(self.overlay10_start_percent_combo)
         overlay10_layout.addSpacing(-6)
         overlay10_layout.addWidget(self.overlay10_song_start_end)
         overlay10_layout.addSpacing(-6)
         overlay10_layout.addWidget(overlay10_start_end_label)
         overlay10_layout.addWidget(self.overlay10_start_end_combo)
+        overlay10_layout.addSpacing(-6)
+        overlay10_layout.addWidget(overlay10_start_label)
+        overlay10_layout.addWidget(self.overlay10_start_edit)
         overlay10_layout.addStretch()
         layout.addLayout(overlay10_layout)
 
@@ -4717,6 +4711,9 @@ class SuperCutUI(QWidget):
                 overlay10_start_label.setStyleSheet("color: grey;")
                 self.overlay10_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay10_start_edit.setEnabled(False)
+                overlay10_start_percent_label.setStyleSheet("color: grey;")
+                self.overlay10_start_percent_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay10_start_percent_combo.setEnabled(False)
                 self.overlay10_song_start_end.setStyleSheet("color: grey;")
                 self.overlay10_song_start_end.setEnabled(False)
                 overlay10_start_end_label.setStyleSheet("color: grey;")
@@ -4726,6 +4723,9 @@ class SuperCutUI(QWidget):
                 overlay10_label.setStyleSheet("")
                 self.overlay10_effect_combo.setStyleSheet("")
                 self.overlay10_effect_combo.setEnabled(True)
+                overlay10_start_percent_label.setStyleSheet("")
+                self.overlay10_start_percent_combo.setEnabled(True)
+                self.overlay10_start_percent_combo.setStyleSheet("")
                 self.overlay10_song_start_end.setStyleSheet("")
                 self.overlay10_song_start_end.setEnabled(True)
                 # Start/end controls depend on checkbox state
@@ -4734,15 +4734,23 @@ class SuperCutUI(QWidget):
                 self.overlay10_start_end_combo.setStyleSheet("" if start_end_enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay10_start_end_combo.setEnabled(start_end_enabled)
                 
-                # Start at input state depends on song timing selection
-                if start_end_enabled and self.overlay10_start_end_value == "end":
-                    overlay10_start_label.setStyleSheet("color: grey;")
-                    self.overlay10_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                    self.overlay10_start_edit.setEnabled(False)
-                else:
+                # Start at input and percentage dropdown state depends on song timing checkbox
+                if start_end_enabled:
+                    # When song start/end checkbox is checked, enable start at input but disable percentage dropdown
                     overlay10_start_label.setStyleSheet("")
                     self.overlay10_start_edit.setStyleSheet("")
                     self.overlay10_start_edit.setEnabled(True)
+                    overlay10_start_percent_label.setStyleSheet("color: grey;")
+                    self.overlay10_start_percent_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    self.overlay10_start_percent_combo.setEnabled(False)
+                else:
+                    # When song start/end checkbox is unchecked, disable start at input but enable percentage dropdown
+                    overlay10_start_label.setStyleSheet("color: grey;")
+                    self.overlay10_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    self.overlay10_start_edit.setEnabled(False)
+                    overlay10_start_percent_label.setStyleSheet("")
+                    self.overlay10_start_percent_combo.setStyleSheet("")
+                    self.overlay10_start_percent_combo.setEnabled(True)
         self.overlay10_checkbox.stateChanged.connect(lambda _: update_overlay10_effect_label_style())
         # Connect start/end controls to effect label style updates
         self.overlay10_song_start_end.stateChanged.connect(lambda _: update_overlay10_effect_label_style())
@@ -5190,10 +5198,19 @@ class SuperCutUI(QWidget):
         
         # Function to update custom image controls state
         def update_custom_image_controls_state():
-            # Check if both frame box and custom image are enabled
+            # Check if frame box is enabled
             frame_box_enabled = self.frame_box_checkbox.isChecked()
             custom_image_enabled = self.frame_box_custom_image_checkbox.isChecked()
             both_enabled = frame_box_enabled and custom_image_enabled
+            
+            # Enable/disable custom image checkbox based on frame box state
+            self.frame_box_custom_image_checkbox.setEnabled(frame_box_enabled)
+            
+            # Update custom image checkbox styling
+            if frame_box_enabled:
+                self.frame_box_custom_image_checkbox.setStyleSheet("")
+            else:
+                self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
             
             # Enable/disable custom image controls
             self.frame_box_custom_image_edit.setEnabled(both_enabled)
@@ -7035,6 +7052,7 @@ class SuperCutUI(QWidget):
             self.overlay_checkbox, self.overlay2_checkbox, self.overlay3_checkbox,
             self.overlay4_checkbox, self.overlay5_checkbox, self.overlay6_checkbox,
             self.overlay7_checkbox, self.overlay8_checkbox, self.overlay9_checkbox,
+            self.overlay10_checkbox,
             self.frame_box_checkbox,
             self.frame_mp3cover_checkbox,
             
@@ -7056,11 +7074,14 @@ class SuperCutUI(QWidget):
             # Frame box controls
             self.frame_box_size_combo, self.frame_box_x_combo, self.frame_box_y_combo,
             self.frame_box_effect_combo, self.frame_box_duration_edit, self.frame_box_start_edit,
-            self.frame_box_duration_full_checkbox,
+            self.frame_box_duration_full_checkbox, self.frame_box_custom_image_checkbox,
+            self.frame_box_custom_image_edit, self.frame_box_custom_image_btn,
+            self.frame_box_caption_checkbox, self.frame_box_caption_png_checkbox,
             # Frame mp3cover controls
             self.frame_mp3cover_size_combo, self.frame_mp3cover_x_combo, self.frame_mp3cover_y_combo,
             self.frame_mp3cover_effect_combo, self.frame_mp3cover_duration_edit, self.frame_mp3cover_start_edit,
-            self.frame_mp3cover_duration_full_checkbox,
+            self.frame_mp3cover_duration_full_checkbox, self.frame_mp3cover_custom_image_checkbox,
+            self.frame_mp3cover_custom_image_edit, self.frame_mp3cover_custom_image_btn,
             
             # Background layer controls
             self.bg_layer_checkbox, self.bg_scale_combo, self.bg_crop_position_combo, self.bg_effect_combo, self.bg_intensity_combo,
@@ -7458,21 +7479,13 @@ class SuperCutUI(QWidget):
                     if hasattr(self, attr):
                         getattr(self, attr).setEnabled(soundwave_enabled)
             
-            # Frame box controls
+            # Frame box controls - use the existing state management function
             if hasattr(self, 'frame_box_checkbox'):
                 frame_box_enabled = self.frame_box_checkbox.isChecked()
-                for attr in ['frame_box_size_combo', 'frame_box_x_combo', 'frame_box_y_combo',
-                            'frame_box_effect_combo', 'frame_box_duration_edit', 'frame_box_start_edit',
-                            'frame_box_caption_checkbox', 'frame_box_color_btn', 'frame_box_opacity_combo',
-                            'frame_box_pad_left_combo', 'frame_box_pad_right_combo', 'frame_box_pad_top_combo', 'frame_box_pad_bottom_combo']:
-                    if hasattr(self, attr):
-                        getattr(self, attr).setEnabled(frame_box_enabled)
+                state = Qt.CheckState.Checked.value if frame_box_enabled else Qt.CheckState.Unchecked.value
+                self.frame_box_checkbox.stateChanged.emit(state)
                 
-                if hasattr(self, 'frame_box_duration_full_checkbox'):
-                    self.frame_box_duration_full_checkbox.setEnabled(frame_box_enabled)
-                    if frame_box_enabled and hasattr(self, 'frame_box_duration_edit'):
-                        full_checked = self.frame_box_duration_full_checkbox.isChecked()
-                        self.frame_box_duration_edit.setEnabled(not full_checked)
+
                 
                 # Frame box caption controls - more complex dependency
                 if hasattr(self, 'frame_box_caption_checkbox'):
@@ -7525,28 +7538,10 @@ class SuperCutUI(QWidget):
                 state = Qt.CheckState.Checked.value if self.overlay10_checkbox.isChecked() else Qt.CheckState.Unchecked.value
                 self.overlay10_checkbox.stateChanged.emit(state)
             
-            # Frame MP3 cover controls
+            # Frame MP3 cover controls - use the existing state management function
             if hasattr(self, 'frame_mp3cover_checkbox'):
-                frame_mp3cover_enabled = self.frame_mp3cover_checkbox.isChecked()
-                for attr in ['frame_mp3cover_size_combo', 'frame_mp3cover_x_combo', 'frame_mp3cover_y_combo',
-                            'frame_mp3cover_effect_combo', 'frame_mp3cover_duration_edit', 'frame_mp3cover_start_edit',
-                            'frame_mp3cover_custom_image_checkbox']:
-                    if hasattr(self, attr):
-                        getattr(self, attr).setEnabled(frame_mp3cover_enabled)
-                
-                if hasattr(self, 'frame_mp3cover_duration_full_checkbox'):
-                    self.frame_mp3cover_duration_full_checkbox.setEnabled(frame_mp3cover_enabled)
-                    if frame_mp3cover_enabled and hasattr(self, 'frame_mp3cover_duration_edit'):
-                        full_checked = self.frame_mp3cover_duration_full_checkbox.isChecked()
-                        self.frame_mp3cover_duration_edit.setEnabled(not full_checked)
-                
-                # Handle custom image controls
-                if hasattr(self, 'frame_mp3cover_custom_image_checkbox'):
-                    custom_image_enabled = frame_mp3cover_enabled and self.frame_mp3cover_custom_image_checkbox.isChecked()
-                    if hasattr(self, 'frame_mp3cover_custom_image_edit'):
-                        self.frame_mp3cover_custom_image_edit.setEnabled(custom_image_enabled)
-                    if hasattr(self, 'frame_mp3cover_custom_image_btn'):
-                        self.frame_mp3cover_custom_image_btn.setEnabled(custom_image_enabled)
+                state = Qt.CheckState.Checked.value if self.frame_mp3cover_checkbox.isChecked() else Qt.CheckState.Unchecked.value
+                self.frame_mp3cover_checkbox.stateChanged.emit(state)
             
             # MP3 cover overlay controls - use the existing state management function
             if hasattr(self, 'mp3_cover_overlay_checkbox'):
@@ -7863,6 +7858,7 @@ class SuperCutUI(QWidget):
                                                                 overlay10_start_time=self.overlay10_start_time,
                                 overlay9_duration=self.overlay9_duration,
                                 overlay10_duration=self.overlay10_duration,
+                                overlay10_start_time_percent=self.overlay10_start_time_percent,
                                 overlay10_song_start_end_checked=self.overlay10_song_start_end.isChecked(),
                                 overlay10_start_end_value=self.overlay10_start_end_value,
             overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox.isChecked(),
