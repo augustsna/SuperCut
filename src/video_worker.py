@@ -63,7 +63,7 @@ class VideoWorker(QObject):
                  # --- Add overlay10, overlay10 effect ---
                  use_overlay10: bool = False, overlay10_path: str = "", overlay10_size_percent: int = 10, overlay10_x_percent: int = 75, overlay10_y_percent: int = 0,
                  overlay10_effect: str = "fadein", overlay10_start_time: int = 5, overlay10_start_from: int = 0, overlay10_duration: int = 6, overlay10_start_at_checkbox_checked: bool = True,
-                 overlay10_song_start_end_checked: bool = False, overlay10_start_end_value: str = "start",
+                 overlay10_start_percent: int = 5, overlay10_song_start_end_checked: bool = False, overlay10_start_end_value: str = "start",
                  # --- Add frame box parameters ---
                  use_frame_box: bool = False, frame_box_path: str = "", frame_box_size_percent: int = 50, frame_box_x_percent: int = 0, frame_box_y_percent: int = 0,
                  frame_box_effect: str = "fadein", frame_box_start_time: int = 5, frame_box_duration: int = 6, frame_box_duration_full_checkbox_checked: bool = True,
@@ -241,6 +241,7 @@ class VideoWorker(QObject):
         self.overlay10_start_from = overlay10_start_from
         self.overlay10_duration = overlay10_duration
         self.overlay10_start_at_checkbox_checked = overlay10_start_at_checkbox_checked
+        self.overlay10_start_percent = overlay10_start_percent
         self.overlay10_song_start_end_checked = overlay10_song_start_end_checked
         self.overlay10_start_end_value = overlay10_start_end_value
         # --- Add frame box attributes ---

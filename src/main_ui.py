@@ -4526,6 +4526,8 @@ class SuperCutUI(QWidget):
             overlay10_duration_label.setEnabled(enabled)
             self.overlay10_start_edit.setEnabled(enabled)
             overlay10_start_label.setEnabled(enabled)
+            self.overlay10_start_percent_combo.setEnabled(enabled)
+            overlay10_start_percent_label.setEnabled(enabled)
             self.overlay10_song_start_end.setEnabled(enabled)
             # Start/end controls are only enabled if both overlay10 is enabled AND the checkbox is checked
             start_end_enabled = enabled and self.overlay10_song_start_end.isChecked()
@@ -4539,6 +4541,7 @@ class SuperCutUI(QWidget):
                 self.overlay10_y_combo.setStyleSheet("")
                 self.overlay10_duration_edit.setStyleSheet("")
                 self.overlay10_start_edit.setStyleSheet("")
+                self.overlay10_start_percent_combo.setStyleSheet("")
                 self.overlay10_song_start_end.setStyleSheet("")
                 # Start/end controls styling depends on checkbox state
                 start_end_enabled = self.overlay10_song_start_end.isChecked()
@@ -4548,6 +4551,7 @@ class SuperCutUI(QWidget):
                 overlay10_y_label.setStyleSheet("")
                 overlay10_duration_label.setStyleSheet("")
                 overlay10_start_label.setStyleSheet("")
+                overlay10_start_percent_label.setStyleSheet("")
                 overlay10_start_end_label.setStyleSheet("" if start_end_enabled else "color: grey;")
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
@@ -4558,6 +4562,7 @@ class SuperCutUI(QWidget):
                 self.overlay10_y_combo.setStyleSheet(grey_btn_style)
                 self.overlay10_duration_edit.setStyleSheet(grey_btn_style)
                 self.overlay10_start_edit.setStyleSheet(grey_btn_style)
+                self.overlay10_start_percent_combo.setStyleSheet(grey_btn_style)
                 self.overlay10_song_start_end.setStyleSheet("color: grey;")
                 self.overlay10_start_end_combo.setStyleSheet(grey_btn_style)
                 overlay10_size_label.setStyleSheet("color: grey;")
@@ -4565,6 +4570,7 @@ class SuperCutUI(QWidget):
                 overlay10_y_label.setStyleSheet("color: grey;")
                 overlay10_duration_label.setStyleSheet("color: grey;")
                 overlay10_start_label.setStyleSheet("color: grey;")
+                overlay10_start_percent_label.setStyleSheet("color: grey;")
                 overlay10_start_end_label.setStyleSheet("color: grey;")
         self.overlay10_checkbox.stateChanged.connect(lambda _: set_overlay10_enabled(self.overlay10_checkbox.checkState()))
         
@@ -4628,6 +4634,21 @@ class SuperCutUI(QWidget):
                 self.overlay10_start_time = 5
         self.overlay10_start_edit.textChanged.connect(on_overlay10_start_changed)
         on_overlay10_start_changed()
+
+        # Overlay10 start time percentage dropdown
+        overlay10_start_percent_label = QLabel("Start %:")
+        overlay10_start_percent_label.setFixedWidth(80)
+        self.overlay10_start_percent_combo = NoWheelComboBox()
+        self.overlay10_start_percent_combo.setFixedWidth(60)
+        # Add percentage options from 0% to 100% in 5% increments
+        for percent in range(0, 101, 5):
+            self.overlay10_start_percent_combo.addItem(f"{percent}%", percent)
+        self.overlay10_start_percent_combo.setCurrentIndex(1)  # Default to 5%
+        self.overlay10_start_percent = 5
+        def on_overlay10_start_percent_changed(idx):
+            self.overlay10_start_percent = self.overlay10_start_percent_combo.itemData(idx)
+        self.overlay10_start_percent_combo.currentIndexChanged.connect(on_overlay10_start_percent_changed)
+        on_overlay10_start_percent_changed(self.overlay10_start_percent_combo.currentIndex())
 
         # Overlay10 song start/end checkbox and dropdown
         self.overlay10_song_start_end = QtWidgets.QCheckBox("")
@@ -4698,6 +4719,9 @@ class SuperCutUI(QWidget):
         overlay10_layout.addWidget(overlay10_start_label)
         overlay10_layout.addWidget(self.overlay10_start_edit)
         overlay10_layout.addSpacing(-6)
+        overlay10_layout.addWidget(overlay10_start_percent_label)
+        overlay10_layout.addWidget(self.overlay10_start_percent_combo)
+        overlay10_layout.addSpacing(-6)
         overlay10_layout.addWidget(self.overlay10_song_start_end)
         overlay10_layout.addSpacing(-6)
         overlay10_layout.addWidget(overlay10_start_end_label)
@@ -4717,6 +4741,9 @@ class SuperCutUI(QWidget):
                 overlay10_start_label.setStyleSheet("color: grey;")
                 self.overlay10_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay10_start_edit.setEnabled(False)
+                overlay10_start_percent_label.setStyleSheet("color: grey;")
+                self.overlay10_start_percent_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay10_start_percent_combo.setEnabled(False)
                 self.overlay10_song_start_end.setStyleSheet("color: grey;")
                 self.overlay10_song_start_end.setEnabled(False)
                 overlay10_start_end_label.setStyleSheet("color: grey;")
@@ -4726,6 +4753,9 @@ class SuperCutUI(QWidget):
                 overlay10_label.setStyleSheet("")
                 self.overlay10_effect_combo.setStyleSheet("")
                 self.overlay10_effect_combo.setEnabled(True)
+                overlay10_start_percent_label.setStyleSheet("")
+                self.overlay10_start_percent_combo.setStyleSheet("")
+                self.overlay10_start_percent_combo.setEnabled(True)
                 self.overlay10_song_start_end.setStyleSheet("")
                 self.overlay10_song_start_end.setEnabled(True)
                 # Start/end controls depend on checkbox state
@@ -7861,6 +7891,7 @@ class SuperCutUI(QWidget):
                                             overlay9_start_time=self.overlay9_start_percent,
                 overlay9_start_from=self.overlay9_start_from_percent,
                                                                 overlay10_start_time=self.overlay10_start_time,
+                                overlay10_start_percent=self.overlay10_start_percent,
                                 overlay9_duration=self.overlay9_duration,
                                 overlay10_duration=self.overlay10_duration,
                                 overlay10_song_start_end_checked=self.overlay10_song_start_end.isChecked(),
