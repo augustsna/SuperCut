@@ -422,11 +422,14 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 cmd.extend(["-i", frame_box_path])
             frame_box_idx = input_idx
             input_idx += 1
-        if use_frame_mp3cover and frame_mp3cover_path and ext_frame_mp3cover in ['.gif', '.png']:
+        if use_frame_mp3cover and frame_mp3cover_path and ext_frame_mp3cover in ['.gif', '.png', '.mp4', '.mov', '.mkv']:
             if ext_frame_mp3cover == '.gif':
                 cmd.extend(["-stream_loop", "-1", "-i", frame_mp3cover_path])
             elif ext_frame_mp3cover == '.png':
                 cmd.extend(["-loop", "1", "-i", frame_mp3cover_path])
+            elif ext_frame_mp3cover in ['.mp4', '.mov', '.mkv']:
+                # For video files, loop infinitely and handle timing
+                cmd.extend(["-stream_loop", "-1", "-i", frame_mp3cover_path])
             else:
                 cmd.extend(["-i", frame_mp3cover_path])
             frame_mp3cover_idx = input_idx
@@ -692,9 +695,28 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             # Framebox is pre-scaled, use original dimensions
             ow_frame_box = "iw"
             oh_frame_box = "ih"
-            scale_factor_frame_mp3cover = frame_mp3cover_size_percent / 100.0
-            ow_frame_mp3cover = f"iw*{scale_factor_frame_mp3cover:.3f}"
-            oh_frame_mp3cover = f"ih*{scale_factor_frame_mp3cover:.3f}"
+            
+            # Check if frame_mp3cover is preprocessed (only for non-GIF images)
+            frame_mp3cover_filename = os.path.basename(frame_mp3cover_path) if frame_mp3cover_path else ""
+            is_frame_mp3cover_preprocessed = frame_mp3cover_filename.startswith("supercut_")
+            frame_mp3cover_ext = os.path.splitext(frame_mp3cover_path)[1].lower() if frame_mp3cover_path else ""
+            is_frame_mp3cover_gif = frame_mp3cover_ext == '.gif'
+            is_frame_mp3cover_video = frame_mp3cover_path and frame_mp3cover_ext in ['.mp4', '.mov', '.mkv']
+            
+            if is_frame_mp3cover_preprocessed and not is_frame_mp3cover_gif:
+                # Frame_mp3cover is preprocessed non-GIF image - use original size
+                ow_frame_mp3cover = "iw"
+                oh_frame_mp3cover = "ih"
+            elif is_frame_mp3cover_gif or is_frame_mp3cover_video:
+                # Frame_mp3cover is GIF or video - apply scaling in FFmpeg
+                scale_factor_frame_mp3cover = frame_mp3cover_size_percent / 100.0
+                ow_frame_mp3cover = f"iw*{scale_factor_frame_mp3cover:.3f}"
+                oh_frame_mp3cover = f"ih*{scale_factor_frame_mp3cover:.3f}"
+            else:
+                # Frame_mp3cover is non-preprocessed image - apply scaling in FFmpeg
+                scale_factor_frame_mp3cover = frame_mp3cover_size_percent / 100.0
+                ow_frame_mp3cover = f"iw*{scale_factor_frame_mp3cover:.3f}"
+                oh_frame_mp3cover = f"ih*{scale_factor_frame_mp3cover:.3f}"
             # --- Add soundwave scale and position calculations ---
             scale_factor_soundwave = soundwave_size_percent / 100.0
             ow_soundwave = f"iw*{scale_factor_soundwave:.3f}"

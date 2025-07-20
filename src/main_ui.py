@@ -5899,6 +5899,39 @@ class SuperCutUI(QWidget):
         self.frame_mp3cover_checkbox.stateChanged.connect(update_frame_mp3cover_checkbox_style)
         update_frame_mp3cover_checkbox_style(self.frame_mp3cover_checkbox.checkState())
 
+        # Custom image checkbox for frame_mp3cover
+        self.frame_mp3cover_custom_image_checkbox = QtWidgets.QCheckBox("Custom Image:")
+        self.frame_mp3cover_custom_image_checkbox.setFixedWidth(100)
+        self.frame_mp3cover_custom_image_checkbox.setChecked(False)
+        def update_frame_mp3cover_custom_image_checkbox_style(state):
+            self.frame_mp3cover_custom_image_checkbox.setStyleSheet("")  # Always default color
+        self.frame_mp3cover_custom_image_checkbox.stateChanged.connect(update_frame_mp3cover_custom_image_checkbox_style)
+        update_frame_mp3cover_custom_image_checkbox_style(self.frame_mp3cover_custom_image_checkbox.checkState())
+
+        # Custom image file selection for frame_mp3cover
+        self.frame_mp3cover_custom_image_edit = ImageDropLineEdit()
+        self.frame_mp3cover_custom_image_edit.setFixedWidth(120)
+        self.frame_mp3cover_custom_image_edit.setPlaceholderText("Select custom image...")
+        self.frame_mp3cover_custom_image_path = None
+        
+        def select_frame_mp3cover_custom_image():
+            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self, "Select Custom Media for Frame MP3 Cover", "", 
+                "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)"
+            )
+            if file_path:
+                self.frame_mp3cover_custom_image_edit.setText(file_path)
+                self.frame_mp3cover_custom_image_path = file_path
+        
+        self.frame_mp3cover_custom_image_btn = QPushButton("Browse")
+        self.frame_mp3cover_custom_image_btn.setFixedWidth(50)
+        self.frame_mp3cover_custom_image_btn.clicked.connect(select_frame_mp3cover_custom_image)
+        
+        def on_frame_mp3cover_custom_image_changed():
+            self.frame_mp3cover_custom_image_path = self.frame_mp3cover_custom_image_edit.text()
+        
+        self.frame_mp3cover_custom_image_edit.textChanged.connect(on_frame_mp3cover_custom_image_changed)
+
         frame_mp3cover_layout = QHBoxLayout()
         frame_mp3cover_layout.setSpacing(4)
         
@@ -5945,6 +5978,28 @@ class SuperCutUI(QWidget):
         self.frame_mp3cover_y_combo.currentIndexChanged.connect(on_frame_mp3cover_y_changed)
         on_frame_mp3cover_y_changed(self.frame_mp3cover_y_combo.currentIndex())
 
+        # Function to update custom image controls state for frame_mp3cover
+        def update_frame_mp3cover_custom_image_controls_state():
+            # Check if both frame_mp3cover and custom image are enabled
+            frame_mp3cover_enabled = self.frame_mp3cover_checkbox.isChecked()
+            custom_image_enabled = self.frame_mp3cover_custom_image_checkbox.isChecked()
+            both_enabled = frame_mp3cover_enabled and custom_image_enabled
+            
+            # Enable/disable custom image controls
+            self.frame_mp3cover_custom_image_edit.setEnabled(both_enabled)
+            self.frame_mp3cover_custom_image_btn.setEnabled(both_enabled)
+            
+            # Update styling based on state
+            if both_enabled:
+                # Custom image controls are enabled
+                self.frame_mp3cover_custom_image_edit.setStyleSheet("")
+                self.frame_mp3cover_custom_image_btn.setStyleSheet("")
+            else:
+                # Custom image controls are disabled
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.frame_mp3cover_custom_image_edit.setStyleSheet(grey_btn_style)
+                self.frame_mp3cover_custom_image_btn.setStyleSheet(grey_btn_style)
+
         def set_frame_mp3cover_enabled(state):
             enabled = state == Qt.CheckState.Checked
             self.frame_mp3cover_size_combo.setEnabled(enabled)
@@ -5954,6 +6009,8 @@ class SuperCutUI(QWidget):
             frame_mp3cover_duration_label.setEnabled(enabled)
             self.frame_mp3cover_start_edit.setEnabled(enabled)
             frame_mp3cover_start_label.setEnabled(enabled)
+            self.frame_mp3cover_custom_image_checkbox.setEnabled(enabled)
+            
             if enabled:
                 self.frame_mp3cover_size_combo.setStyleSheet("")
                 self.frame_mp3cover_x_combo.setStyleSheet("")
@@ -5965,6 +6022,8 @@ class SuperCutUI(QWidget):
                 frame_mp3cover_y_label.setStyleSheet("")
                 frame_mp3cover_duration_label.setStyleSheet("")
                 frame_mp3cover_start_label.setStyleSheet("")
+                # Reset custom image checkbox styling when frame_mp3cover is enabled
+                self.frame_mp3cover_custom_image_checkbox.setStyleSheet("")
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.frame_mp3cover_size_combo.setStyleSheet(grey_btn_style)
@@ -5977,10 +6036,20 @@ class SuperCutUI(QWidget):
                 frame_mp3cover_y_label.setStyleSheet("color: grey;")
                 frame_mp3cover_duration_label.setStyleSheet("color: grey;")
                 frame_mp3cover_start_label.setStyleSheet("color: grey;")
+                # Also grey out custom image controls when frame_mp3cover is disabled
+                self.frame_mp3cover_custom_image_checkbox.setStyleSheet("color: grey;")
+                self.frame_mp3cover_custom_image_edit.setStyleSheet(grey_btn_style)
+                self.frame_mp3cover_custom_image_btn.setStyleSheet(grey_btn_style)
+            
+            # Update custom image controls state
+            update_frame_mp3cover_custom_image_controls_state()
         self.frame_mp3cover_checkbox.stateChanged.connect(lambda _: set_frame_mp3cover_enabled(self.frame_mp3cover_checkbox.checkState()))
         
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_checkbox)
-        frame_mp3cover_layout.addSpacing(188)
+        frame_mp3cover_layout.addWidget(self.frame_mp3cover_custom_image_checkbox)
+        frame_mp3cover_layout.addWidget(self.frame_mp3cover_custom_image_edit)
+        frame_mp3cover_layout.addWidget(self.frame_mp3cover_custom_image_btn)
+        frame_mp3cover_layout.addSpacing(20)
         frame_mp3cover_layout.addWidget(frame_mp3cover_size_label)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_size_combo)
         frame_mp3cover_layout.addSpacing(4)
@@ -6080,6 +6149,13 @@ class SuperCutUI(QWidget):
         
         # Initialize frame mp3cover enabled state after all controls are created
         set_frame_mp3cover_enabled(self.frame_mp3cover_checkbox.checkState())
+        update_frame_mp3cover_custom_image_controls_state()
+
+        # --- Frame mp3cover custom image checkbox handler ---
+        def on_frame_mp3cover_custom_image_checked(state):
+            # Update custom image controls state
+            update_frame_mp3cover_custom_image_controls_state()
+        self.frame_mp3cover_custom_image_checkbox.stateChanged.connect(on_frame_mp3cover_custom_image_checked)
 
         # --- Frame mp3cover effect greying logic ---
         def update_frame_mp3cover_effect_label_style():
@@ -6107,9 +6183,11 @@ class SuperCutUI(QWidget):
                 self.frame_mp3cover_duration_full_checkbox.setEnabled(True)
                 set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState())
         self.frame_mp3cover_checkbox.stateChanged.connect(lambda _: update_frame_mp3cover_effect_label_style())
+        self.frame_mp3cover_checkbox.stateChanged.connect(lambda _: update_frame_mp3cover_custom_image_controls_state())
         self.frame_mp3cover_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState()))
         update_frame_mp3cover_effect_label_style()
         set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState())
+        update_frame_mp3cover_custom_image_controls_state()
 
         # --- BACKGROUND LAYER SCALE CONTROL ---
         self.bg_layer_checkbox = QtWidgets.QCheckBox("BG Layer:")
@@ -7383,7 +7461,8 @@ class SuperCutUI(QWidget):
             if hasattr(self, 'frame_mp3cover_checkbox'):
                 frame_mp3cover_enabled = self.frame_mp3cover_checkbox.isChecked()
                 for attr in ['frame_mp3cover_size_combo', 'frame_mp3cover_x_combo', 'frame_mp3cover_y_combo',
-                            'frame_mp3cover_effect_combo', 'frame_mp3cover_duration_edit', 'frame_mp3cover_start_edit']:
+                            'frame_mp3cover_effect_combo', 'frame_mp3cover_duration_edit', 'frame_mp3cover_start_edit',
+                            'frame_mp3cover_custom_image_checkbox']:
                     if hasattr(self, attr):
                         getattr(self, attr).setEnabled(frame_mp3cover_enabled)
                 
@@ -7392,6 +7471,14 @@ class SuperCutUI(QWidget):
                     if frame_mp3cover_enabled and hasattr(self, 'frame_mp3cover_duration_edit'):
                         full_checked = self.frame_mp3cover_duration_full_checkbox.isChecked()
                         self.frame_mp3cover_duration_edit.setEnabled(not full_checked)
+                
+                # Handle custom image controls
+                if hasattr(self, 'frame_mp3cover_custom_image_checkbox'):
+                    custom_image_enabled = frame_mp3cover_enabled and self.frame_mp3cover_custom_image_checkbox.isChecked()
+                    if hasattr(self, 'frame_mp3cover_custom_image_edit'):
+                        self.frame_mp3cover_custom_image_edit.setEnabled(custom_image_enabled)
+                    if hasattr(self, 'frame_mp3cover_custom_image_btn'):
+                        self.frame_mp3cover_custom_image_btn.setEnabled(custom_image_enabled)
             
             # MP3 cover overlay controls - use the existing state management function
             if hasattr(self, 'mp3_cover_overlay_checkbox'):
@@ -7736,7 +7823,7 @@ class SuperCutUI(QWidget):
             frame_box_custom_image_path=self.frame_box_custom_image_path if hasattr(self, 'frame_box_custom_image_path') and self.frame_box_custom_image_path else "",
             # --- Add frame mp3cover parameters ---
             use_frame_mp3cover=self.frame_mp3cover_checkbox.isChecked(),
-            frame_mp3cover_path="src/sources/icon.png",  # Hardcoded path for now
+            frame_mp3cover_path=self.frame_mp3cover_custom_image_path if self.frame_mp3cover_custom_image_checkbox.isChecked() and self.frame_mp3cover_custom_image_path else "src/sources/icon.png",
             frame_mp3cover_size_percent=self.frame_mp3cover_size_percent,
             frame_mp3cover_x_percent=self.frame_mp3cover_x_percent,
             frame_mp3cover_y_percent=self.frame_mp3cover_y_percent,

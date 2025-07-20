@@ -676,6 +676,24 @@ class VideoWorker(QObject):
                 # For GIFs and videos, use original path - FFmpeg will handle scaling
                 processed_frame_box_path = self.frame_box_path
         
+        # Preprocess frame_mp3cover image (only for images, not videos)
+        processed_frame_mp3cover_path = self.frame_mp3cover_path
+        if self.use_frame_mp3cover and self.frame_mp3cover_path:
+            file_ext = os.path.splitext(self.frame_mp3cover_path)[1].lower()
+            is_gif = file_ext == '.gif'
+            is_video = file_ext in ['.mp4', '.mov', '.mkv']
+            
+            if not is_gif and not is_video:
+                # Only preprocess non-GIF images (PNG, etc.), not GIFs or videos
+                from src.utils import preprocess_frame_mp3cover_image
+                processed_frame_mp3cover_path = preprocess_frame_mp3cover_image(
+                    image_path=self.frame_mp3cover_path,
+                    size_percent=self.frame_mp3cover_size_percent
+                )
+            else:
+                # For GIFs and videos, use original path - FFmpeg will handle scaling
+                processed_frame_mp3cover_path = self.frame_mp3cover_path
+        
         # Create output filename
         if self.name_list and batch_count < len(self.name_list):
             from src.utils import sanitize_filename
@@ -1184,7 +1202,7 @@ class VideoWorker(QObject):
                 frame_box_custom_image_path=self.frame_box_custom_image_path,
                 # --- Add frame mp3cover parameters ---
                 use_frame_mp3cover=self.use_frame_mp3cover,
-                frame_mp3cover_path=self.frame_mp3cover_path,
+                frame_mp3cover_path=processed_frame_mp3cover_path,
                 frame_mp3cover_size_percent=self.frame_mp3cover_size_percent,
                 frame_mp3cover_x_percent=self.frame_mp3cover_x_percent,
                 frame_mp3cover_y_percent=self.frame_mp3cover_y_percent,
@@ -1295,6 +1313,12 @@ class VideoWorker(QObject):
             if 'processed_frame_box_path' in locals() and processed_frame_box_path != self.frame_box_path and os.path.exists(processed_frame_box_path):
                 try:
                     os.remove(processed_frame_box_path)
+                except:
+                    pass
+            # Clean up processed frame_mp3cover image if it was created
+            if 'processed_frame_mp3cover_path' in locals() and processed_frame_mp3cover_path != self.frame_mp3cover_path and os.path.exists(processed_frame_mp3cover_path):
+                try:
+                    os.remove(processed_frame_mp3cover_path)
                 except:
                     pass
             
