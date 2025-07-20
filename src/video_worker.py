@@ -776,7 +776,7 @@ class VideoWorker(QObject):
                         'duration': overlay_duration,
                         'x_percent': song_title_pngs[i]['x_percent'],
                         'y_percent': song_title_pngs[i]['y_percent'],
-                        'size_percent': self.song_title_scale_percent,
+                        'size_percent': 100,  # Already prescaled, so use 100% to avoid double scaling
                         'effect': self.song_title_effect,
                         'type': 'song_title'
                     })
@@ -809,7 +809,7 @@ class VideoWorker(QObject):
                             'duration': overlay_duration,
                             'x_percent': mp3_cover_pngs[i]['x_percent'],
                             'y_percent': mp3_cover_pngs[i]['y_percent'],
-                            'size_percent': mp3_cover_pngs[i]['size_percent'],
+                            'size_percent': 100,  # Already prescaled, so use 100% to avoid double scaling
                             'effect': mp3_cover_pngs[i]['effect'],
                             'type': 'mp3_cover'
                         })
