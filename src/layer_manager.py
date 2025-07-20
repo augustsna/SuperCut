@@ -323,12 +323,15 @@ class LayerManagerWidget(QWidget):
         # Store the saved order if provided
         if saved_order:
             self.last_applied_order = saved_order
+            print(f"🔧 Layer manager received saved order: {saved_order}")
         
         # If we have a saved order, use it; otherwise use default order
         if self.last_applied_order:
+            print(f"🔧 Using saved order: {self.last_applied_order}")
             # Use saved order, adding any missing layers at the end
             used_ids = set()
-            for layer_id in self.last_applied_order:
+            # Build the list in reverse order for display (background at bottom)
+            for layer_id in reversed(self.last_applied_order):
                 if layer_id in [config['id'] for config in layer_configs]:
                     used_ids.add(layer_id)
                     config = next(c for c in layer_configs if c['id'] == layer_id)
@@ -342,7 +345,7 @@ class LayerManagerWidget(QWidget):
                     )
                     self.layer_list.addItem(item)  # Append to end
             # Add any remaining layers that weren't in the saved order
-            for config in layer_configs:
+            for config in reversed(layer_configs):
                 if config['id'] not in used_ids:
                     self.layer_items[config['id']] = config
                     item = LayerItem(
@@ -355,6 +358,7 @@ class LayerManagerWidget(QWidget):
                     self.layer_list.addItem(item)  # Append to end
         else:
             # Use default order (original behavior)
+            print(f"🔧 No saved order, using default order")
             for config in reversed(layer_configs):
                 self.layer_items[config['id']] = config
                 item = LayerItem(
@@ -380,9 +384,10 @@ class LayerManagerWidget(QWidget):
                 item.update_order_number(order_number)
 
     def get_layer_order(self):
-        """Get current layer order as list of layer IDs"""
+        """Get current layer order as list of layer IDs in logical order (background first)"""
         order = []
-        for i in range(self.layer_list.count()):
+        # Get items in reverse order since display is reversed (background at bottom)
+        for i in range(self.layer_list.count() - 1, -1, -1):
             item = self.layer_list.item(i)
             if isinstance(item, LayerItem):
                 order.append(item.layer_id)
@@ -797,6 +802,7 @@ class LayerManagerDialog(QWidget):
         """Apply the current layer order and close the window"""
         # Get current order and emit signal
         order = self.layer_manager.get_layer_order()
+        print(f"🔧 Layer manager returning order: {order}")
         self.layer_manager.layer_order_changed.emit(order)
         
         # Update main window's layer order
@@ -805,6 +811,13 @@ class LayerManagerDialog(QWidget):
             self.main_window.enabled_layers = self.layer_manager.get_enabled_layers()
             print(f"Layer order applied: {order}")
             print(f"Enabled layers: {self.layer_manager.get_enabled_layers()}")
+            
+            # Save layer order to configuration
+            try:
+                from src.config import save_layer_order
+                save_layer_order(order)
+            except Exception as e:
+                print(f"❌ Error saving layer order: {e}")
         
         # Close the window
         self.close()

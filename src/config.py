@@ -251,6 +251,57 @@ DEFAULT_MAXRATE_OPTIONS = [
 ]
 DEFAULT_MAXRATE = "16M"
 
+# Layer Order Configuration
+import json
+import os
+
+def get_config_file_path():
+    """Get the path to the user configuration file"""
+    config_dir = os.path.join(PROJECT_ROOT, "config")
+    os.makedirs(config_dir, exist_ok=True)
+    return os.path.join(config_dir, "user_settings.json")
+
+def save_layer_order(layer_order):
+    """Save layer order to configuration file"""
+    config_file = get_config_file_path()
+    try:
+        # Load existing config or create new one
+        if os.path.exists(config_file):
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+        else:
+            config = {}
+        
+        # Save layer order
+        config['layer_order'] = layer_order
+        
+        # Write back to file
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+        
+        print(f"🔧 Layer order saved: {layer_order}")
+        return True
+    except Exception as e:
+        print(f"❌ Error saving layer order: {e}")
+        return False
+
+def load_layer_order():
+    """Load layer order from configuration file"""
+    config_file = get_config_file_path()
+    try:
+        if os.path.exists(config_file):
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+                layer_order = config.get('layer_order')
+                if layer_order:
+                    print(f"🔧 Layer order loaded: {layer_order}")
+                    return layer_order
+    except Exception as e:
+        print(f"❌ Error loading layer order: {e}")
+    
+    print(f"🔧 No saved layer order found, using default")
+    return None
+
 # FFmpeg Bufsize Options
 DEFAULT_BUFSIZE_OPTIONS = [
     ("4 Mbps", "4M"),

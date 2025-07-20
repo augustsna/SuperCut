@@ -44,6 +44,7 @@ from src.ui_components import FolderDropLineEdit, PleaseWaitDialog, StoppedDialo
 from src.video_worker import VideoWorker
 from src.terminal_widget import TerminalWidget
 from src.layer_manager import LayerManagerDialog
+from src.config import save_layer_order, load_layer_order
 
 import time
 import threading
@@ -867,7 +868,7 @@ class SuperCutUI(QWidget):
         self.is_dry_run_mode = False  # Track dry run state
         self._preview_dialog = None  # Track preview dialog for toggle functionality
         self.frame_box_caption_png_path = None
-        self.layer_order = None  # Initialize layer order to None (uses default)
+        self.layer_order = load_layer_order()  # Load saved layer order or None for default
         self.layer_manager_dialog = None  # Track layer manager dialog for toggle functionality
         
         self.init_ui()

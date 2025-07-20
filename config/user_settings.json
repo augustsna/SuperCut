@@ -1,0 +1,21 @@
+{
+  "layer_order": [
+    "background",
+    "intro",
+    "overlay1",
+    "overlay2",
+    "overlay3",
+    "overlay4",
+    "overlay6",
+    "overlay7",
+    "overlay8",
+    "overlay9",
+    "frame_box",
+    "frame_mp3cover",
+    "soundwave",
+    "overlay10",
+    "overlay5",
+    "mp3_cover_overlay",
+    "song_titles"
+  ]
+}

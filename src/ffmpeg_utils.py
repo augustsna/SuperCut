@@ -1189,32 +1189,26 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 }
             }
             
-            # Use custom layer order if provided, otherwise use default
+            # Use the exact layer order from layer manager if provided
             if layer_order:
-                # Filter out layers that don't exist in our config
-                valid_layers = [layer for layer in layer_order if layer in layer_configs]
-                # Add any missing layers at the end in default order
-                default_order = ['background', 'overlay1', 'overlay2', 'overlay3', 'overlay4', 'overlay5',
-                               'overlay6', 'overlay7', 'overlay8', 'overlay9', 'overlay10',
-                               'mp3_cover_overlay',
-                               'intro', 'frame_box', 'frame_mp3cover', 'song_titles', 'soundwave']
-                missing_layers = [layer for layer in default_order if layer not in valid_layers]
-                final_order = valid_layers + missing_layers
+                print(f"🎨 Using custom layer order from layer manager: {layer_order}")
+                # Use the exact order provided by layer manager, only filter out non-existent layers
+                final_order = [layer for layer in layer_order if layer in layer_configs]
+                # Add any missing layers that exist in configs but not in layer_order
+                missing_layers = [layer for layer in layer_configs.keys() if layer not in final_order]
+                final_order.extend(missing_layers)
             else:
+                print(f"🎨 Using default layer order (no custom order provided)")
                 final_order = ['background', 'overlay1', 'overlay2', 'overlay3', 'overlay4', 'overlay5',
                              'overlay6', 'overlay7', 'overlay8', 'overlay9', 'overlay10',
-                             'mp3_cover_overlay',
-                             'intro', 'frame_box', 'frame_mp3cover', 'song_titles', 'soundwave']
+                             'intro', 'frame_box', 'frame_mp3cover', 'mp3_cover_overlay', 'song_titles', 'soundwave']
             
-            # Build filter graph with proper grouping: input processing first, then overlay applications
+            # Build filter graph with proper 2-grouping: input processing first, then overlay applications
+            # But ensure the order within each group matches the overlay application order
             input_processing_filters = []
             overlay_application_filters = []
-            song_title_overlays = []
-            mp3_cover_overlays = []
-            soundwave_overlay = None
-            final_processing_filters = []
             
-            # Collect all filters by type
+            # First pass: collect all filters in the EXACT order they will be applied in overlays
             for layer_id in final_order:
                 if layer_id == 'background':
                     continue  # Background is already the base
@@ -1226,19 +1220,16 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 # Handle song titles (special case)
                 if layer_id == 'song_titles' and song_title_chains:
                     input_processing_filters.extend(song_title_chains)
-                    song_title_overlays = song_title_labels.copy()
                     continue
                 
                 # Handle MP3 cover overlays (special case)
                 if layer_id == 'mp3_cover_overlay' and mp3_cover_chains:
                     input_processing_filters.extend(mp3_cover_chains)
-                    mp3_cover_overlays = mp3_cover_labels.copy()
                     continue
                 
                 # Handle soundwave (special case)
                 if layer_id == 'soundwave' and use_soundwave_overlay and soundwave_idx is not None:
                     input_processing_filters.append(f"[{soundwave_idx}:v]format=yuva420p[soundwave]")
-                    soundwave_overlay = (ox_soundwave, oy_soundwave)
                     continue
                 
                 # Handle regular overlays
@@ -1256,41 +1247,71 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         # Limited duration
                         overlay_application_filters.append((f"{config['overlay']}:enable='between(t,{config['start_time']},{config['start_time']+config['duration']})'[tmp_{layer_id}]", f"tmp_{layer_id}"))
             
-            # Build the filter graph with proper grouping
+            # Build the filter graph with 2-grouping but matching order
             filter_graph = filter_bg
             last_label = "[bg]"
             
-            # 1. Add all input processing filters
+            # 1. Add all input processing filters in the same order as overlay applications
             if input_processing_filters:
                 filter_graph += ";" + ";".join(input_processing_filters)
             
-            # 2. Add overlay applications
-            for overlay_filter, tmp_label in overlay_application_filters:
-                filter_graph += f";{last_label}{overlay_filter}"
-                if tmp_label:
-                    last_label = f"[{tmp_label}]"
-            
-            # 3. Add song title overlays
-            for i, (label, start, duration, x_expr, y_expr) in enumerate(song_title_overlays):
-                enable_expr = f"between(t,{start},{start+duration})"
-                is_last_song = (i == len(song_title_overlays)-1) and not mp3_cover_overlays and not soundwave_overlay
-                out_label = f"songtmp{i+1}" if i < len(song_title_overlays)-1 else ("vout" if is_last_song else "songtmp_final")
-                filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
-                last_label = f"[{out_label}]"
-            
-            # 4. Add MP3 cover overlays
-            for i, (label, start, duration, x_expr, y_expr) in enumerate(mp3_cover_overlays):
-                enable_expr = f"between(t,{start},{start+duration})"
-                is_last_mp3 = (i == len(mp3_cover_overlays)-1) and not soundwave_overlay
-                out_label = f"mp3covertmp{i+1}" if i < len(mp3_cover_overlays)-1 else ("vout" if is_last_mp3 else "mp3covertmp_final")
-                filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
-                last_label = f"[{out_label}]"
-            
-            # 5. Add soundwave overlay
-            if soundwave_overlay:
-                ox_soundwave, oy_soundwave = soundwave_overlay
-                filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[vout]"
-                last_label = "[vout]"
+            # 2. Add overlay applications in the same order as layer_order
+            for layer_id in final_order:
+                if layer_id == 'background':
+                    continue  # Background is already the base
+                
+                config = layer_configs.get(layer_id)
+                if not config:
+                    continue
+                
+                # Handle song titles (special case)
+                if layer_id == 'song_titles' and song_title_labels:
+                    for i, (label, start, duration, x_expr, y_expr) in enumerate(song_title_labels):
+                        enable_expr = f"between(t,{start},{start+duration})"
+                        is_last_song = (i == len(song_title_labels)-1) and not mp3_cover_chains and not (use_soundwave_overlay and soundwave_idx is not None)
+                        out_label = f"songtmp{i+1}" if i < len(song_title_labels)-1 else "songtmp_final"
+                        filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
+                        last_label = f"[{out_label}]"
+                    continue
+                
+                # Handle MP3 cover overlays (special case)
+                if layer_id == 'mp3_cover_overlay' and mp3_cover_labels:
+                    for i, (label, start, duration, x_expr, y_expr) in enumerate(mp3_cover_labels):
+                        enable_expr = f"between(t,{start},{start+duration})"
+                        # Check if this is the last MP3 cover AND if there are layers after mp3_cover_overlay in the order
+                        current_layer_index = final_order.index('mp3_cover_overlay')
+                        layers_after_mp3 = final_order[current_layer_index + 1:]
+                        has_layers_after = any(layer in layers_after_mp3 for layer in ['song_titles', 'soundwave'])
+                        is_last_mp3 = (i == len(mp3_cover_labels)-1) and not has_layers_after
+                        out_label = f"mp3covertmp{i+1}" if i < len(mp3_cover_labels)-1 else "mp3covertmp_final"
+                        filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
+                        last_label = f"[{out_label}]"
+                    continue
+                
+                # Handle soundwave (special case)
+                if layer_id == 'soundwave' and use_soundwave_overlay and soundwave_idx is not None:
+                    # Check if soundwave is the last layer in the order
+                    current_layer_index = final_order.index('soundwave')
+                    is_last_layer = (current_layer_index == len(final_order) - 1)
+                    out_label = "soundwave_final"
+                    filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[{out_label}]"
+                    last_label = f"[{out_label}]"
+                    continue
+                
+                # Handle regular overlays
+                if config['filter']:
+                    # Find the corresponding overlay filter
+                    for overlay_filter, tmp_label in overlay_application_filters:
+                        if f"tmp_{layer_id}" in overlay_filter or layer_id in overlay_filter:
+                            filter_graph += f";{last_label}{overlay_filter}"
+                            if tmp_label:
+                                last_label = f"[{tmp_label}]"
+                            else:
+                                # Extract the output label from the overlay filter
+                                if "[" in overlay_filter and "]" in overlay_filter.split("[")[-1]:
+                                    output_label = overlay_filter.split("[")[-1].split("]")[0]
+                                    last_label = f"[{output_label}]"
+                            break
             
             # Handle final output - add format filter if not already added
             if song_title_chains or mp3_cover_chains or (use_soundwave_overlay and soundwave_idx is not None):
