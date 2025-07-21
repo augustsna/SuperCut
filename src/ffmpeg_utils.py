@@ -785,21 +785,62 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             
             # 🚀 PRE-CALCULATION OPTIMIZATION: Get actual overlay dimensions
             def get_actual_overlay_dimensions(overlay_path, size_percent):
-                """Get actual overlay dimensions from preprocessed images"""
+                """Get actual overlay dimensions from preprocessed images and videos"""
                 # Check if overlay path is empty or invalid
                 if not overlay_path or overlay_path.strip() == "":
                     base_size = 200  # Estimated base size for empty paths
                     return int(base_size * (size_percent / 100)), int(base_size * (size_percent / 100))
                 
+                # Check file type
+                file_ext = os.path.splitext(overlay_path)[1].lower()
+                is_video = file_ext in ['.mp4', '.mov', '.mkv']
+                is_gif = file_ext == '.gif'
+                
                 try:
-                    from PIL import Image
-                    with Image.open(overlay_path) as img:
-                        # For preprocessed images, use the actual dimensions directly
-                        # The preprocessing already applied the size_percent scaling
-                        actual_width, actual_height = img.size
-                        return actual_width, actual_height
+                    if is_video or is_gif:
+                        # For video/GIF files, try to get dimensions with FFprobe
+                        try:
+                            import subprocess
+                            from src.config import FFPROBE_BINARY
+                            ffprobe = FFPROBE_BINARY
+                            
+                            cmd = [
+                                ffprobe,
+                                '-v', 'quiet',
+                                '-print_format', 'json',
+                                '-show_streams',
+                                '-select_streams', 'v:0',
+                                overlay_path
+                            ]
+                            
+                            result = subprocess.run(cmd, capture_output=True, text=True)
+                            if result.returncode == 0:
+                                import json
+                                data = json.loads(result.stdout)
+                                if 'streams' in data and len(data['streams']) > 0:
+                                    stream = data['streams'][0]
+                                    actual_width = int(stream.get('width', 200))
+                                    actual_height = int(stream.get('height', 200))
+                                    # Apply size_percent for video/GIF files
+                                    scaled_width = int(actual_width * (size_percent / 100))
+                                    scaled_height = int(actual_height * (size_percent / 100))
+                                    return scaled_width, scaled_height
+                        except Exception as e:
+                            # Fallback to estimated dimensions for video/GIF
+                            print(f"⚠️ FFprobe failed for {overlay_path}: {e}")
+                            base_size = 200  # Estimated base size for video/GIF
+                            return int(base_size * (size_percent / 100)), int(base_size * (size_percent / 100))
+                    
+                    # Only try PIL for image files (not video/GIF)
+                    if not is_video and not is_gif:
+                        from PIL import Image
+                        with Image.open(overlay_path) as img:
+                            # For preprocessed images, use the actual dimensions directly
+                            # The preprocessing already applied the size_percent scaling
+                            actual_width, actual_height = img.size
+                            return actual_width, actual_height
                 except Exception as e:
-                    # Fallback to estimated dimensions if PIL fails
+                    # Fallback to estimated dimensions if all methods fail
                     print(f"⚠️ Could not get actual dimensions for {overlay_path}: {e}")
                     base_size = 200  # Estimated base size
                     return int(base_size * (size_percent / 100)), int(base_size * (size_percent / 100))

@@ -1,9 +1,9 @@
 {
   "layer_order": [
     "background",
-    "overlay4",
     "overlay1",
     "overlay2",
+    "overlay4",
     "overlay3",
     "overlay5",
     "overlay6",
