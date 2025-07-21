@@ -955,6 +955,8 @@ class VideoWorker(QObject):
             
             # Calculate actual overlay10 start time based on checkbox state (only if overlay10 is enabled)
             actual_overlay10_start_at = 0
+            overlay10_effect_to_use = None  # Always define before overlay10 logic
+            overlay10_start_time_for_effect = 0  # Always define before overlay10 logic
             overlay10_intervals = None
             if self.use_overlay10:
                 if self.overlay10_song_start_end_checked and song_durations:

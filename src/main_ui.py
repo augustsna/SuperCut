@@ -3815,11 +3815,17 @@ class SuperCutUI(QWidget):
                 self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.overlay8_duration_edit.setEnabled(True)
                 self.overlay8_duration_edit.setStyleSheet("")  # normal style
+                overlay8_label.setStyleSheet("color: grey;")
+                self.overlay8_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay8_effect_combo.setEnabled(False)
             else:
                 self.overlay8_duration_full_checkbox.setEnabled(True)
                 self.overlay8_duration_full_checkbox.setStyleSheet("")
                 # Let the duration full checkbox control the duration field
                 set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
+                overlay8_label.setStyleSheet("")
+                self.overlay8_effect_combo.setStyleSheet("")
+                self.overlay8_effect_combo.setEnabled(True)                
 
             self.overlay8_start_at_checkbox.setEnabled(enabled)
             # When re-enabling start controls, restore the proper start at/from toggle state
@@ -4242,11 +4248,17 @@ class SuperCutUI(QWidget):
                 self.overlay9_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.overlay9_duration_edit.setEnabled(True)
                 self.overlay9_duration_edit.setStyleSheet("")  # normal style
+                overlay9_label.setStyleSheet("color: grey;")
+                self.overlay9_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.overlay9_effect_combo.setEnabled(False)
             else:
                 self.overlay9_duration_full_checkbox.setEnabled(True)
                 self.overlay9_duration_full_checkbox.setStyleSheet("")
                 # Let the duration full checkbox control the duration field
                 set_overlay9_duration_enabled(self.overlay9_duration_full_checkbox.checkState())
+                overlay9_label.setStyleSheet("")
+                self.overlay9_effect_combo.setStyleSheet("")
+                self.overlay9_effect_combo.setEnabled(True)                
 
             self.overlay9_start_at_checkbox.setEnabled(enabled)
             # When re-enabling start controls, restore the proper start at/from toggle state
