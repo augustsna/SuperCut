@@ -895,7 +895,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             
             if is_bg_preprocessed:
                 # Background is preprocessed PNG - no scaling needed
-                filter_bg = f"[0:v]format={VIDEO_SETTINGS['pixel_format']}[bg]"
+                filter_bg = f"[0:v]null[bg]"
             else:
                 # Background needs scaling to target resolution
                 filter_bg = f"[0:v]scale={width}:{height}[bg]"
