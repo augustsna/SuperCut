@@ -3952,8 +3952,37 @@ class SuperCutUI(QWidget):
         overlay8_popup_layout.addWidget(overlay8_popup_start_at_label)
         overlay8_popup_layout.addSpacing(-32)
         overlay8_popup_layout.addWidget(self.overlay8_popup_start_at_combo)
+        # --- Add popup number dropdown (1-10) ---
+        overlay8_popup_num_label = QLabel("Num:")
+        overlay8_popup_num_label.setFixedWidth(32)
+        self.overlay8_popup_num_combo = NoWheelComboBox()
+        self.overlay8_popup_num_combo.setFixedWidth(50)
+        for n in range(1, 11):
+            self.overlay8_popup_num_combo.addItem(str(n), n)
+        self.overlay8_popup_num_combo.setCurrentIndex(0)  # Default 1
+        self.overlay8_popup_num = 1
+        def on_overlay8_popup_num_changed(idx):
+            self.overlay8_popup_num = self.overlay8_popup_num_combo.itemData(idx)
+        self.overlay8_popup_num_combo.currentIndexChanged.connect(on_overlay8_popup_num_changed)
+        on_overlay8_popup_num_changed(self.overlay8_popup_num_combo.currentIndex())
+        overlay8_popup_layout.addSpacing(10)
+        overlay8_popup_layout.addWidget(overlay8_popup_num_label)
+        overlay8_popup_layout.addWidget(self.overlay8_popup_num_combo)
         overlay8_popup_layout.addStretch()
         layout.addLayout(overlay8_popup_layout)
+        # Enable/disable popup num combo with popup checkbox
+        def set_overlay8_popup_num_enabled(state):
+            enabled = (state == Qt.CheckState.Checked or state == 2)
+            self.overlay8_popup_num_combo.setEnabled(enabled)
+            overlay8_popup_num_label.setEnabled(enabled)
+            if enabled:
+                self.overlay8_popup_num_combo.setStyleSheet("")
+                overlay8_popup_num_label.setStyleSheet("")
+            else:
+                self.overlay8_popup_num_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                overlay8_popup_num_label.setStyleSheet("color: grey;")
+        self.overlay8_popup_checkbox.stateChanged.connect(set_overlay8_popup_num_enabled)
+        set_overlay8_popup_num_enabled(self.overlay8_popup_checkbox.checkState())
 
         # --- Overlay 8 effect greying logic ---
         def set_overlay8_start_enabled(state):
@@ -3992,7 +4021,7 @@ class SuperCutUI(QWidget):
                 overlay8_popup_start_at_label.setStyleSheet("color: grey;")
                 self.overlay8_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay8_popup_start_at_combo.setEnabled(False)
-                # Controls for overlay8 disabled state
+                # Popup interval controls removed
             else:
                 overlay8_label.setStyleSheet("")
                 self.overlay8_effect_combo.setStyleSheet("")
@@ -4359,8 +4388,37 @@ class SuperCutUI(QWidget):
         overlay9_popup_layout.addWidget(overlay9_popup_start_at_label)
         overlay9_popup_layout.addSpacing(-32)
         overlay9_popup_layout.addWidget(self.overlay9_popup_start_at_combo)
+        # --- Add popup number dropdown (1-10) for overlay9 pop up ---
+        overlay9_popup_num_label = QLabel("Num:")
+        overlay9_popup_num_label.setFixedWidth(32)
+        self.overlay9_popup_num_combo = NoWheelComboBox()
+        self.overlay9_popup_num_combo.setFixedWidth(50)
+        for n in range(1, 11):
+            self.overlay9_popup_num_combo.addItem(str(n), n)
+        self.overlay9_popup_num_combo.setCurrentIndex(0)  # Default 1
+        self.overlay9_popup_num = 1
+        def on_overlay9_popup_num_changed(idx):
+            self.overlay9_popup_num = self.overlay9_popup_num_combo.itemData(idx)
+        self.overlay9_popup_num_combo.currentIndexChanged.connect(on_overlay9_popup_num_changed)
+        on_overlay9_popup_num_changed(self.overlay9_popup_num_combo.currentIndex())
+        overlay9_popup_layout.addSpacing(10)
+        overlay9_popup_layout.addWidget(overlay9_popup_num_label)
+        overlay9_popup_layout.addWidget(self.overlay9_popup_num_combo)
         overlay9_popup_layout.addStretch()
         layout.addLayout(overlay9_popup_layout)
+        # Enable/disable popup num combo with popup checkbox
+        def set_overlay9_popup_num_enabled(state):
+            enabled = (state == Qt.CheckState.Checked or state == 2)
+            self.overlay9_popup_num_combo.setEnabled(enabled)
+            overlay9_popup_num_label.setEnabled(enabled)
+            if enabled:
+                self.overlay9_popup_num_combo.setStyleSheet("")
+                overlay9_popup_num_label.setStyleSheet("")
+            else:
+                self.overlay9_popup_num_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                overlay9_popup_num_label.setStyleSheet("color: grey;")
+        self.overlay9_popup_checkbox.stateChanged.connect(set_overlay9_popup_num_enabled)
+        set_overlay9_popup_num_enabled(self.overlay9_popup_checkbox.checkState())
 
         # --- Overlay 9 effect greying logic ---
         def set_overlay9_start_enabled(state):
@@ -7756,7 +7814,7 @@ class SuperCutUI(QWidget):
                     else:
                         # No caption, use frame box without caption
                         frame_box_path = frame_box_temp_path
-            # End of framebox processing if main_img_path exists
+        # End of framebox processing if main_img_path exists
         # Fallback if not set
         if not frame_box_path:
             frame_box_path = "src/sources/frame_box.png"
@@ -7830,6 +7888,7 @@ class SuperCutUI(QWidget):
             overlay8_duration=self.overlay8_duration,
             overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked(),
             overlay8_start_at_checkbox_checked=self.overlay8_start_at_checkbox.isChecked(),
+            overlay8_popup_num=self.overlay8_popup_num,
 
             # --- Add overlay9, overlay9 effect ---
             use_overlay9=self.overlay9_checkbox.isChecked(),
@@ -9372,6 +9431,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay8_popup_start_at=self.overlay8_popup_start_at_percent if hasattr(self, 'overlay8_popup_start_at_percent') else 5,
                 # overlay8 popup interval removed
                 overlay8_popup_checkbox_checked=self.overlay8_popup_checkbox.isChecked() if hasattr(self, 'overlay8_popup_checkbox') else False,
+                overlay8_popup_num=self.overlay8_popup_num,
                 use_overlay9=self.overlay9_checkbox.isChecked(),
                 overlay9_path=self.overlay9_path,
                 overlay9_size_percent=self.overlay9_size_percent,
@@ -9385,6 +9445,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay9_popup_start_at=self.overlay9_popup_start_at_percent,
                 # overlay9 popup interval removed
                 overlay9_popup_checkbox_checked=self.overlay9_popup_checkbox.isChecked(),
+                overlay9_popup_num=self.overlay9_popup_num,
                 use_overlay10=self.overlay10_checkbox.isChecked(),
                 overlay10_path=self.overlay10_path,
                 overlay10_size_percent=self.overlay10_size_percent,
