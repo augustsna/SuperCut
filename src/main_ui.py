@@ -3839,8 +3839,6 @@ class SuperCutUI(QWidget):
             
             # Popup start at dropdown - enabled when popup is checked
             self.overlay8_popup_start_at_combo.setEnabled(popup_checked)
-            # Popup interval dropdown - enabled when popup is checked
-            self.overlay8_popup_interval_combo.setEnabled(popup_checked)
             
             # Update styling for start controls (checkbox only, dropdowns are handled by toggle function)
             if enabled:
@@ -3861,13 +3859,7 @@ class SuperCutUI(QWidget):
                 overlay8_popup_start_at_label.setStyleSheet("color: grey;")
                 self.overlay8_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
             
-            # Update styling for popup interval
-            if popup_checked:
-                overlay8_popup_interval_label.setStyleSheet("")
-                self.overlay8_popup_interval_combo.setStyleSheet("")
-            else:
-                overlay8_popup_interval_label.setStyleSheet("color: grey;")
-                self.overlay8_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            # Popup interval styling removed
         
         def update_overlay8_popup_checkbox_style(state):
             self.overlay8_popup_checkbox.setStyleSheet("")
@@ -3924,19 +3916,7 @@ class SuperCutUI(QWidget):
         self.overlay8_popup_start_at_combo.currentIndexChanged.connect(on_overlay8_popup_start_at_changed)
         on_overlay8_popup_start_at_changed(self.overlay8_popup_start_at_combo.currentIndex())
 
-        # Overlay8 Pop up Interval field
-        overlay8_popup_interval_label = QLabel("Pop up Interval:")
-        overlay8_popup_interval_label.setFixedWidth(100)
-        self.overlay8_popup_interval_combo = NoWheelComboBox()
-        self.overlay8_popup_interval_combo.setFixedWidth(60)
-        for value in range(1, 101, 1):
-            self.overlay8_popup_interval_combo.addItem(f"{value}", value)
-        self.overlay8_popup_interval_combo.setCurrentIndex(0)  # Default 1
-        self.overlay8_popup_interval_percent = 1
-        def on_overlay8_popup_interval_changed(idx):
-            self.overlay8_popup_interval_percent = self.overlay8_popup_interval_combo.itemData(idx)
-        self.overlay8_popup_interval_combo.currentIndexChanged.connect(on_overlay8_popup_interval_changed)
-        on_overlay8_popup_interval_changed(self.overlay8_popup_interval_combo.currentIndex())
+        # Overlay8 Pop up Interval field removed
 
         overlay8_layout = QHBoxLayout()
         overlay8_layout.setContentsMargins(0, 0, 0, 0)
@@ -3963,7 +3943,7 @@ class SuperCutUI(QWidget):
         overlay8_layout.addStretch()
         layout.addLayout(overlay8_layout)
         
-        # Overlay8 Pop up checkbox in separate row
+        # Overlay8 additional settings in separate row
         overlay8_popup_layout = QHBoxLayout()
         overlay8_popup_layout.setContentsMargins(0, 0, 0, 0)
         overlay8_popup_layout.addSpacing(20)  # Indent to align with overlay8 controls
@@ -3972,10 +3952,6 @@ class SuperCutUI(QWidget):
         overlay8_popup_layout.addWidget(overlay8_popup_start_at_label)
         overlay8_popup_layout.addSpacing(-32)
         overlay8_popup_layout.addWidget(self.overlay8_popup_start_at_combo)
-        overlay8_popup_layout.addSpacing(10)
-        overlay8_popup_layout.addWidget(overlay8_popup_interval_label)
-        overlay8_popup_layout.addSpacing(-32)
-        overlay8_popup_layout.addWidget(self.overlay8_popup_interval_combo)
         overlay8_popup_layout.addStretch()
         layout.addLayout(overlay8_popup_layout)
 
@@ -4016,10 +3992,7 @@ class SuperCutUI(QWidget):
                 overlay8_popup_start_at_label.setStyleSheet("color: grey;")
                 self.overlay8_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay8_popup_start_at_combo.setEnabled(False)
-                # Also grey out popup interval controls when overlay8 is disabled
-                overlay8_popup_interval_label.setStyleSheet("color: grey;")
-                self.overlay8_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay8_popup_interval_combo.setEnabled(False)
+                # Controls for overlay8 disabled state
             else:
                 overlay8_label.setStyleSheet("")
                 self.overlay8_effect_combo.setStyleSheet("")
@@ -4272,8 +4245,7 @@ class SuperCutUI(QWidget):
             
             # Popup start at dropdown - enabled when popup is checked
             self.overlay9_popup_start_at_combo.setEnabled(popup_checked)
-            # Popup interval dropdown - enabled when popup is checked
-            self.overlay9_popup_interval_combo.setEnabled(popup_checked)
+            # Popup interval removed
             
             # Update styling for start controls (checkbox only, dropdowns are handled by toggle function)
             if enabled:
@@ -4294,13 +4266,7 @@ class SuperCutUI(QWidget):
                 overlay9_popup_start_at_label.setStyleSheet("color: grey;")
                 self.overlay9_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
             
-            # Update styling for popup interval
-            if popup_checked:
-                overlay9_popup_interval_label.setStyleSheet("")
-                self.overlay9_popup_interval_combo.setStyleSheet("")
-            else:
-                overlay9_popup_interval_label.setStyleSheet("color: grey;")
-                self.overlay9_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            # Popup interval styling removed
         
         def update_overlay9_popup_checkbox_style(state):
             self.overlay9_popup_checkbox.setStyleSheet("")
@@ -4357,19 +4323,7 @@ class SuperCutUI(QWidget):
         self.overlay9_popup_start_at_combo.currentIndexChanged.connect(on_overlay9_popup_start_at_changed)
         on_overlay9_popup_start_at_changed(self.overlay9_popup_start_at_combo.currentIndex())
 
-        # Overlay9 Pop up Interval field
-        overlay9_popup_interval_label = QLabel("Pop up Interval:")
-        overlay9_popup_interval_label.setFixedWidth(100)
-        self.overlay9_popup_interval_combo = NoWheelComboBox()
-        self.overlay9_popup_interval_combo.setFixedWidth(60)
-        for value in range(1, 101, 1):
-            self.overlay9_popup_interval_combo.addItem(f"{value}", value)
-        self.overlay9_popup_interval_combo.setCurrentIndex(0)  # Default 1
-        self.overlay9_popup_interval_percent = 1
-        def on_overlay9_popup_interval_changed(idx):
-            self.overlay9_popup_interval_percent = self.overlay9_popup_interval_combo.itemData(idx)
-        self.overlay9_popup_interval_combo.currentIndexChanged.connect(on_overlay9_popup_interval_changed)
-        on_overlay9_popup_interval_changed(self.overlay9_popup_interval_combo.currentIndex())
+        # Overlay9 pop-up interval field removed
 
         overlay9_layout = QHBoxLayout()
         overlay9_layout.setContentsMargins(0, 0, 0, 0)
@@ -4396,7 +4350,7 @@ class SuperCutUI(QWidget):
         overlay9_layout.addStretch()
         layout.addLayout(overlay9_layout)
         
-        # Overlay9 Pop up checkbox in separate row
+        # Overlay9 additional settings in separate row
         overlay9_popup_layout = QHBoxLayout()
         overlay9_popup_layout.setContentsMargins(0, 0, 0, 0)
         overlay9_popup_layout.addSpacing(20)  # Indent to align with overlay9 controls
@@ -4405,10 +4359,6 @@ class SuperCutUI(QWidget):
         overlay9_popup_layout.addWidget(overlay9_popup_start_at_label)
         overlay9_popup_layout.addSpacing(-32)
         overlay9_popup_layout.addWidget(self.overlay9_popup_start_at_combo)
-        overlay9_popup_layout.addSpacing(10)
-        overlay9_popup_layout.addWidget(overlay9_popup_interval_label)
-        overlay9_popup_layout.addSpacing(-32)
-        overlay9_popup_layout.addWidget(self.overlay9_popup_interval_combo)
         overlay9_popup_layout.addStretch()
         layout.addLayout(overlay9_popup_layout)
 
@@ -4449,10 +4399,7 @@ class SuperCutUI(QWidget):
                 overlay9_popup_start_at_label.setStyleSheet("color: grey;")
                 self.overlay9_popup_start_at_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay9_popup_start_at_combo.setEnabled(False)
-                # Also grey out popup interval controls when overlay9 is disabled
-                overlay9_popup_interval_label.setStyleSheet("color: grey;")
-                self.overlay9_popup_interval_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.overlay9_popup_interval_combo.setEnabled(False)
+                # Popup interval controls removed
             else:
                 overlay9_label.setStyleSheet("")
                 self.overlay9_effect_combo.setStyleSheet("")
@@ -7399,9 +7346,6 @@ class SuperCutUI(QWidget):
                         # Popup timing controls (enabled when popup is ON)
                         if hasattr(self, 'overlay8_popup_start_at_combo'):
                             self.overlay8_popup_start_at_combo.setEnabled(popup_checked)
-                        if hasattr(self, 'overlay8_popup_interval_combo'):
-                            self.overlay8_popup_interval_combo.setEnabled(popup_checked)
-                        
                         # Duration controls
                         if hasattr(self, 'overlay8_duration_full_checkbox'):
                             if popup_checked:
@@ -8656,7 +8600,7 @@ Size: {self.overlay7_size_percent}% | X: {self.overlay7_x_percent}% | Y: {self.o
 
 Overlay 8: {self.overlay8_checkbox.isChecked()} | Path: {self.overlay8_path}
 Size: {self.overlay8_size_percent}% | X: {self.overlay8_x_percent}% | Y: {self.overlay8_y_percent}%
-                Overlay8 Effect: {self.selected_overlay8_effect} | Start at: {self.overlay8_start_percent}% | Pop up Start at: {self.overlay8_popup_start_at_percent}% | Pop up Interval: {self.overlay8_popup_interval_percent}%
+                Overlay8 Effect: {self.selected_overlay8_effect} | Start at: {self.overlay8_start_percent}% | Pop up Start at: {self.overlay8_popup_start_at_percent}%
 
 --- Song Title Overlay ---
 Soundwave Overlay: {self.overlay3_checkbox.isChecked()} | Path: {self.overlay3_path}
@@ -9426,7 +9370,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked() if hasattr(self, 'overlay8_duration_full_checkbox') else False,
                 overlay8_start_at_checkbox_checked=self.overlay8_start_at_checkbox.isChecked() if hasattr(self, 'overlay8_start_at_checkbox') else True,
                 overlay8_popup_start_at=self.overlay8_popup_start_at_percent if hasattr(self, 'overlay8_popup_start_at_percent') else 5,
-                overlay8_popup_interval=self.overlay8_popup_interval_percent if hasattr(self, 'overlay8_popup_interval_percent') else 10,
+                # overlay8 popup interval removed
                 overlay8_popup_checkbox_checked=self.overlay8_popup_checkbox.isChecked() if hasattr(self, 'overlay8_popup_checkbox') else False,
                 use_overlay9=self.overlay9_checkbox.isChecked(),
                 overlay9_path=self.overlay9_path,
@@ -9439,7 +9383,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox.isChecked(),
                 overlay9_start_at_checkbox_checked=self.overlay9_start_at_checkbox.isChecked(),
                 overlay9_popup_start_at=self.overlay9_popup_start_at_percent,
-                overlay9_popup_interval=self.overlay9_popup_interval_percent,
+                # overlay9 popup interval removed
                 overlay9_popup_checkbox_checked=self.overlay9_popup_checkbox.isChecked(),
                 use_overlay10=self.overlay10_checkbox.isChecked(),
                 overlay10_path=self.overlay10_path,
