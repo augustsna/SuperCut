@@ -99,7 +99,8 @@ class VideoWorker(QObject):
                  soundwave_size_percent: int = 50,
                  soundwave_x_percent: int = 50,
                  soundwave_y_percent: int = 50,
-                 layer_order: Optional[List[str]] = None):
+                 layer_order: Optional[List[str]] = None,
+                 filter_complex_alt_mode: bool = False):
         super().__init__()
         self.media_sources = media_sources
         self.export_name = export_name
@@ -299,6 +300,7 @@ class VideoWorker(QObject):
         self.soundwave_x_percent = soundwave_x_percent
         self.soundwave_y_percent = soundwave_y_percent
         self.layer_order = layer_order
+        self.filter_complex_alt_mode = filter_complex_alt_mode
                 
         # Debug layer order
 
@@ -1134,7 +1136,9 @@ class VideoWorker(QObject):
                 overlay1_start_at=actual_overlay1_start_at,
                 overlay2_start_at=actual_overlay2_start_at,
                 # --- Add layer order parameter ---
-                layer_order=self.layer_order
+                layer_order=self.layer_order,
+                # --- Add filter complex alt mode parameter ---
+                filter_complex_alt_mode=self.filter_complex_alt_mode
             )
             if not success:
                 self.error.emit(err or f"Failed to create video: {output_filename}")

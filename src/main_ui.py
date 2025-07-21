@@ -516,6 +516,13 @@ class SettingsDialog(QDialog):
         )
         left_form.addRow("Show Placeholder:", self.show_placeholder_checkbox)
 
+        # --- Add to SettingsDialog: Filter Complex Alt Mode Checkbox ---
+        self.filter_complex_alt_checkbox = QtWidgets.QCheckBox("Filter Complex Alt Mode")
+        self.filter_complex_alt_checkbox.setChecked(
+            self.settings.value('filter_complex_alt_mode', False, type=bool) if self.settings is not None else False
+        )
+        left_form.addRow("Filter Complex Alt:", self.filter_complex_alt_checkbox)
+
     def accept(self):
         self.selected_fps = self.fps_combo.currentData()
         if self.settings is not None:
@@ -565,6 +572,7 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_ffmpeg_maxrate', self.maxrate_combo.currentData())
             self.settings.setValue('default_ffmpeg_bufsize', self.bufsize_combo.currentData())
             self.settings.setValue('show_placeholder_controls', self.show_placeholder_checkbox.isChecked())
+            self.settings.setValue('filter_complex_alt_mode', self.filter_complex_alt_checkbox.isChecked())
         super().accept()
 
     def reset_to_defaults(self):
@@ -608,6 +616,8 @@ class SettingsDialog(QDialog):
         self.default_list_name_enabled_checkbox.setChecked(False)
         # MP3 #
         self.default_mp3_count_enabled_checkbox.setChecked(False)
+        # Filter Complex Alt Mode
+        self.filter_complex_alt_checkbox.setChecked(False)
         # Window Size (reset uses 690 as default, matching main default)
         self.default_window_width_edit.setText("690")
         self.default_window_height_edit.setText("660")
@@ -7919,6 +7929,8 @@ class SuperCutUI(QWidget):
             soundwave_y_percent=self.soundwave_y_percent if hasattr(self, 'soundwave_y_percent') else 50,
             # --- Add layer order parameter ---
             layer_order=getattr(self, 'layer_order', None),
+            # --- Add filter complex alt mode parameter ---
+            filter_complex_alt_mode=self.settings.value('filter_complex_alt_mode', False, type=bool) if self.settings else False,
 
         )
         self._worker.moveToThread(self._thread)
