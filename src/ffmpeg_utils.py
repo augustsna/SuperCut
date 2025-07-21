@@ -185,6 +185,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     overlay10_start_time: int = 5,
     overlay10_duration: int = 6,
     overlay10_start_time_percent: int = 0,
+    overlay10_intervals: Optional[list] = None,  # NEW: list of (start, duration)
     # --- Add frame box parameters ---
     use_frame_box: bool = False,
     frame_box_path: str = "",
@@ -906,55 +907,46 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             def overlay_effect_chain(idx, scale_expr, label, effect, effect_time, ext, duration=None):
                 if idx is None:
                     return ""
-                
-                # Debug effect chain parameters
-                if label == "ol8":
-                    print(f"Effect Chain Debug - {label}: effect_time={effect_time}, effect={effect}, duration={duration}")
-                
                 chain = f"[{idx}:v]"
                 if ext == ".gif":
                     chain += "fps=30,"
                 elif ext in [".mp4", ".mov", ".mkv"]:
-                    # For video overlays, we need to handle them differently
-                    # Videos already have their own fps, so we don't force fps=30
-                    # Video files are now looped infinitely like GIFs
                     pass
-                chain += "format=rgba,"
+                chain += "format=rgba"
+                # Special case for overlay10 with effect 'null'
+                if label == "ol10" and effect == "null":
+                    chain += ",null[ol10]"
+                    return chain
+                chain += ","
                 fade_alpha = ":alpha=1" if ext == ".png" else ""
                 if effect == "fadeinout":
                     fadein_duration = 1.5
                     fadeout_duration = 1.5
-                    # Calculate hold duration based on total duration
                     if duration is not None:
                         hold_duration = max(0, duration - fadein_duration - fadeout_duration)
                     else:
-                        hold_duration = 5  # Fallback to 5 seconds if no duration provided
+                        hold_duration = 5
                     fadein_end = effect_time + fadein_duration
                     fadeout_start = fadein_end + hold_duration
-                    # Add comma only if scale operation will follow
                     if scale_expr != "iw:ih":
                         chain += f"fade=t=in:st={effect_time}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha},"
                     else:
                         chain += f"fade=t=in:st={effect_time}:d={fadein_duration}{fade_alpha},fade=t=out:st={fadeout_start}:d={fadeout_duration}{fade_alpha}"
                 elif effect == "fadein":
-                    # Add comma only if scale operation will follow
                     if scale_expr != "iw:ih":
                         chain += f"fade=t=in:st={effect_time}:d=1{fade_alpha},"
                     else:
                         chain += f"fade=t=in:st={effect_time}:d=1{fade_alpha}"
                 elif effect == "fadeout":
-                    # Add comma only if scale operation will follow
                     if scale_expr != "iw:ih":
                         chain += f"fade=t=out:st={effect_time}:d=1{fade_alpha},"
                     else:
                         chain += f"fade=t=out:st={effect_time}:d=1{fade_alpha}"
                 elif effect == "zoompan":
-                    # Add comma only if scale operation will follow
                     if scale_expr != "iw:ih":
                         chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
                     else:
                         chain += f"zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
-                # Add scale operation only if necessary
                 if scale_expr != "iw:ih":
                     chain += f"scale={scale_expr}"
                 chain += f"[{label}]"
@@ -1299,7 +1291,8 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     'overlay': f"[ol10]overlay={ox10}:{oy10}",
                     'duration_control': False,  # Always limited duration
                     'start_time': overlay10_start_time,
-                    'duration': overlay10_duration
+                    'duration': overlay10_duration,
+                    'intervals': overlay10_intervals  # NEW
                 },
                 'mp3_cover_overlay': {
                     'filter': None,  # Handled in extra_overlays like song_titles
@@ -1405,15 +1398,21 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     input_processing_filters.append(config['filter'])
                     
                     # Prepare overlay application
-                    if config['duration_control'] is None:
+                    if layer_id == 'overlay10' and config.get('intervals'):
+                        # Build combined enable expression for all intervals
+                        intervals = config['intervals']
+                        enable_expr = "+".join([
+                            f"between(t,{start},{start+duration})" for start, duration in intervals if duration > 0
+                        ])
+                        overlay_application_filters.append((f"{config['overlay']}:enable='{enable_expr}'[tmp_{layer_id}]", f"tmp_{layer_id}"))
+                    elif config['duration_control'] is None:
                         # No duration control (like overlay3)
                         overlay_application_filters.append((f"{config['overlay']}[tmp_{layer_id}]", None))
                     elif config['duration_control']:
                         # Full duration
                         overlay_application_filters.append((f"{config['overlay']}:enable='gte(t,{config['start_time']})'[tmp_{layer_id}]", f"tmp_{layer_id}"))
                     else:
-                        # 🚀 PRE-CALCULATION OPTIMIZATION: Time-based enable expressions
-                        # Pre-calculate end time instead of real-time addition
+                        # Time-based enable expressions
                         end_time = config['start_time'] + config['duration']
                         overlay_application_filters.append((f"{config['overlay']}:enable='between(t,{config['start_time']},{end_time})'[tmp_{layer_id}]", f"tmp_{layer_id}"))
             

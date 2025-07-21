@@ -954,35 +954,38 @@ class VideoWorker(QObject):
                     self.overlay9_duration = 1
             
             # Calculate actual overlay10 start time based on checkbox state (only if overlay10 is enabled)
-            actual_overlay10_start_at = 0  # Default value
-            
+            actual_overlay10_start_at = 0
+            overlay10_intervals = None
             if self.use_overlay10:
-                if not self.overlay10_start_at_checkbox_checked:
-                    # Use start from logic: (total_duration * percentage) - effect_duration
-                    effect_duration = self.overlay10_duration
-                    if self.overlay10_start_time_percent > 0:
-                        # Use percentage of total duration if specified
-                        actual_overlay10_start_at = int((self.overlay10_start_time_percent / 100.0) * total_duration)
+                if self.overlay10_song_start_end_checked and song_durations:
+                    overlay10_intervals = []
+                    if getattr(self, 'overlay10_start_end_value', 'start') == 'end':
+                        # End Mode: overlay10 appears at the end of each song for the specified duration
+                        for song_start, song_duration in song_durations:
+                            song_end = song_start + song_duration
+                            start = song_end - self.overlay10_duration
+                            end = song_end
+                            overlay10_intervals.append((start, self.overlay10_duration))
                     else:
-                        # Fall back to regular start from logic
-                        percentage_time = (self.overlay10_start_from / 100.0) * total_duration
-                        actual_overlay10_start_at = int(max(0, percentage_time - effect_duration))
-                    # Ensure the start time doesn't exceed the video duration
-                    actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+                        # Start Mode: first overlay10 at user input, then at each song start, all with same duration
+                        first_start = self.overlay10_start_time
+                        overlay10_intervals.append((first_start, self.overlay10_duration))
+                        for i, (song_start, song_duration) in enumerate(song_durations[1:], start=1):
+                            overlay10_intervals.append((song_start, self.overlay10_duration))
+                    overlay10_effect_to_use = 'null'  # No effect when using start/end
                 else:
-                    # Use start at logic: simple percentage of total duration (NO duration subtraction)
-                    actual_overlay10_start_at = int((self.overlay10_start_time / 100.0) * total_duration)
+                    # Single mode: start at percentage of total merged song duration
+                    start_time = int((self.overlay10_start_time_percent / 100.0) * total_duration) if self.overlay10_start_time_percent > 0 else 0
                     # Ensure the start time doesn't exceed the video duration
-                    actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
-                
-                # Final validation to ensure start time is valid
-                actual_overlay10_start_at = max(0, actual_overlay10_start_at)            
-                
-                # Additional validation for overlay10 parameters
-                if actual_overlay10_start_at < 0:                
-                    actual_overlay10_start_at = 0
-                if self.overlay10_duration < 0:                
-                    self.overlay10_duration = 1
+                    start_time = min(start_time, int(total_duration - 1))
+                    # Additional validation for overlay10 parameters
+                    if start_time < 0:
+                        start_time = 0
+                    if self.overlay10_duration < 0:
+                        self.overlay10_duration = 1
+                    overlay10_intervals = [(start_time, self.overlay10_duration)]
+                    overlay10_effect_to_use = self.overlay10_effect
+                    overlay10_start_time_for_effect = start_time
             
             
 
@@ -1095,9 +1098,9 @@ class VideoWorker(QObject):
                 overlay9_effect=self.overlay9_effect,
                 overlay9_start_time=actual_overlay9_start_at,
                 overlay9_duration=self.overlay9_duration,
-                overlay10_effect=self.overlay10_effect,
-                overlay10_start_time=actual_overlay10_start_at,
-                overlay10_duration=self.overlay10_duration,
+                overlay10_effect=overlay10_effect_to_use,
+                overlay10_start_time=overlay10_start_time_for_effect if 'overlay10_start_time_for_effect' in locals() else 0,
+                overlay10_intervals=overlay10_intervals,
                 overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox_checked,
                 # --- Add frame box parameters ---
                 use_frame_box=self.use_frame_box,
