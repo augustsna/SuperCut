@@ -6,7 +6,7 @@ import tempfile
 import time
 import re
 import sys
-from typing import Optional, List, Tuple, Union
+from typing import Optional, List, Tuple
 from src.config import FFMPEG_BINARY, FFPROBE_BINARY, VIDEO_SETTINGS
 from src.logger import logger
 from src.utils import has_enough_disk_space, create_temp_file
@@ -182,7 +182,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     overlay9_duration: int = 6,
     overlay9_duration_full_checkbox_checked: bool = False,
     overlay10_effect: str = "fadein",
-    overlay10_start_time: Union[int, List[int]] = 5,
+    overlay10_start_time: int = 5,
     overlay10_duration: int = 6,
     overlay10_start_time_percent: int = 0,
     # --- Add frame box parameters ---
@@ -921,12 +921,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     pass
                 chain += "format=rgba,"
                 fade_alpha = ":alpha=1" if ext == ".png" else ""
-                if effect == "none":
-                    # No time-based effects - just format and scale
-                    # The format=rgba is already added above, so we just need to handle scaling
-                    # No additional effects needed for "none"
-                    pass
-                elif effect == "fadeinout":
+                if effect == "fadeinout":
                     fadein_duration = 1.5
                     fadeout_duration = 1.5
                     # Calculate hold duration based on total duration
@@ -962,12 +957,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 # Add scale operation only if necessary
                 if scale_expr != "iw:ih":
                     chain += f"scale={scale_expr}"
-                elif effect == "none":
-                    # When no scaling is needed AND effect is "none", add a null filter to complete the chain
-                    chain += "null"
-                # Always add the output label to complete the filter chain
                 chain += f"[{label}]"
-                
                 return chain
 
             def intro_effect_chain(idx, scale_expr, label, effect, duration, start_at, ext):
@@ -1069,20 +1059,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 overlay9_actual_duration = overlay9_duration
             
             filter_overlay9 = overlay_effect_chain(overlay9_idx, f"{ow9}:{oh9}", "ol9", overlay9_effect, overlay9_start_time, ext9, overlay9_actual_duration) if overlay9_idx is not None else ""
-            # Handle overlay10 with multiple start times
-            if isinstance(overlay10_start_time, list) and len(overlay10_start_time) > 1:
-                # Multiple start times - create enable expression with between() for each time period
-                enable_parts = []
-                for start_time in overlay10_start_time:
-                    end_time = start_time + overlay10_duration
-                    enable_parts.append(f"between(t,{start_time},{end_time})")
-                enable_expr = "+".join(enable_parts)
-                # Create filter without time-based effects (they'll be handled by enable expression)
-                filter_overlay10 = overlay_effect_chain(overlay10_idx, f"{ow10}:{oh10}", "ol10", "none", 0, ext10, None) if overlay10_idx is not None else ""
-            else:
-                # Single start time - use normal effect chain
-                start_time = overlay10_start_time[0] if isinstance(overlay10_start_time, list) else overlay10_start_time
-                filter_overlay10 = overlay_effect_chain(overlay10_idx, f"{ow10}:{oh10}", "ol10", overlay10_effect, start_time, ext10, overlay10_duration) if overlay10_idx is not None else ""
+            filter_overlay10 = overlay_effect_chain(overlay10_idx, f"{ow10}:{oh10}", "ol10", overlay10_effect, overlay10_start_time, ext10, overlay10_duration) if overlay10_idx is not None else ""
             # Calculate duration for frame box based on full duration checkbox
             frame_box_actual_duration = None
             if not frame_box_duration_full_checkbox_checked:
@@ -1322,8 +1299,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     'overlay': f"[ol10]overlay={ox10}:{oy10}",
                     'duration_control': False,  # Always limited duration
                     'start_time': overlay10_start_time,
-                    'duration': overlay10_duration,
-                    'multiple_start_times': isinstance(overlay10_start_time, list) and len(overlay10_start_time) > 1
+                    'duration': overlay10_duration
                 },
                 'mp3_cover_overlay': {
                     'filter': None,  # Handled in extra_overlays like song_titles
@@ -1368,8 +1344,6 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     'duration': None
                 }
             }
-            
-
             
             # Use the exact layer order from layer manager if provided
             if layer_order:
@@ -1431,15 +1405,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     input_processing_filters.append(config['filter'])
                     
                     # Prepare overlay application
-                    if layer_id == 'overlay10' and config.get('multiple_start_times', False):
-                        # Handle overlay10 with multiple start times
-                        enable_parts = []
-                        for start_time in config['start_time']:
-                            end_time = start_time + config['duration']
-                            enable_parts.append(f"between(t,{start_time},{end_time})")
-                        enable_expr = "+".join(enable_parts)
-                        overlay_application_filters.append((f"{config['overlay']}:enable='{enable_expr}'[tmp_{layer_id}]", f"tmp_{layer_id}"))
-                    elif config['duration_control'] is None:
+                    if config['duration_control'] is None:
                         # No duration control (like overlay3)
                         overlay_application_filters.append((f"{config['overlay']}[tmp_{layer_id}]", None))
                     elif config['duration_control']:
@@ -1448,13 +1414,8 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     else:
                         # 🚀 PRE-CALCULATION OPTIMIZATION: Time-based enable expressions
                         # Pre-calculate end time instead of real-time addition
-                        # Handle both single int and list of ints for start_time
-                        if isinstance(config['start_time'], list):
-                            start_time = config['start_time'][0]  # Use first element for single appearance
-                        else:
-                            start_time = config['start_time']
-                        end_time = start_time + config['duration']
-                        overlay_application_filters.append((f"{config['overlay']}:enable='between(t,{start_time},{end_time})'[tmp_{layer_id}]", f"tmp_{layer_id}"))
+                        end_time = config['start_time'] + config['duration']
+                        overlay_application_filters.append((f"{config['overlay']}:enable='between(t,{config['start_time']},{end_time})'[tmp_{layer_id}]", f"tmp_{layer_id}"))
             
             # Build the filter graph based on the selected approach
             if filter_complex_alt_mode:
@@ -1522,19 +1483,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         filter_graph += f";{config['filter']}"
                         
                         # Apply overlay immediately
-                        if layer_id == 'overlay10' and config.get('multiple_start_times', False):
-                            # Handle overlay10 with multiple start times
-                            enable_parts = []
-                            for start_time in config['start_time']:
-                                end_time = start_time + config['duration']
-                                enable_parts.append(f"between(t,{start_time},{end_time})")
-                            enable_expr = "+".join(enable_parts)
-                            input_label = config['overlay'].split(']')[0] + ']' if ']' in config['overlay'] else config['overlay']
-                            output_label = f"tmp_{layer_id}"
-                            overlay_params = config['overlay'].split('overlay=')[1]
-                            filter_graph += f";{last_label}{input_label}overlay={overlay_params}:enable='{enable_expr}'[{output_label}]"
-                            last_label = f"[{output_label}]"
-                        elif config['duration_control'] is None:
+                        if config['duration_control'] is None:
                             # No duration control (like overlay3)
                             # Extract the input label from the overlay filter (e.g., "[ol1]" from "[ol1]overlay={ox1}:{oy1}")
                             input_label = config['overlay'].split(']')[0] + ']' if ']' in config['overlay'] else config['overlay']
@@ -1550,16 +1499,11 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                             last_label = f"[{output_label}]"
                         else:
                             # Time-based enable expressions
-                            # Handle both single int and list of ints for start_time
-                            if isinstance(config['start_time'], list):
-                                start_time = config['start_time'][0]  # Use first element for single appearance
-                            else:
-                                start_time = config['start_time']
-                            end_time = start_time + config['duration']
+                            end_time = config['start_time'] + config['duration']
                             input_label = config['overlay'].split(']')[0] + ']' if ']' in config['overlay'] else config['overlay']
                             output_label = f"tmp_{layer_id}"
                             overlay_params = config['overlay'].split('overlay=')[1]
-                            filter_graph += f";{last_label}{input_label}overlay={overlay_params}:enable='between(t,{start_time},{end_time})'[{output_label}]"
+                            filter_graph += f";{last_label}{input_label}overlay={overlay_params}:enable='between(t,{config['start_time']},{end_time})'[{output_label}]"
                             last_label = f"[{output_label}]"
                 
                 # Handle final output for alternative mode - always add format filter

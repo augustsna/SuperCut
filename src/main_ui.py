@@ -4747,29 +4747,13 @@ class SuperCutUI(QWidget):
                 
                 # Start at input and percentage dropdown state depends on song timing checkbox
                 if start_end_enabled:
-                    # Check if "start" or "end" is selected
-                    is_start_mode = self.overlay10_start_end_value == "start"
-                    
-                    if is_start_mode:
-                        # When "start" is selected, enable start at input for first song
-                        overlay10_start_label.setStyleSheet("")
-                        self.overlay10_start_edit.setStyleSheet("")
-                        self.overlay10_start_edit.setEnabled(True)
-                    else:
-                        # When "end" is selected, disable start at input (not used in end mode)
-                        overlay10_start_label.setStyleSheet("color: grey;")
-                        self.overlay10_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                        self.overlay10_start_edit.setEnabled(False)
-                    
-                    # Always disable percentage dropdown when song start/end is checked
+                    # When song start/end checkbox is checked, enable start at input but disable percentage dropdown
+                    overlay10_start_label.setStyleSheet("")
+                    self.overlay10_start_edit.setStyleSheet("")
+                    self.overlay10_start_edit.setEnabled(True)
                     overlay10_start_percent_label.setStyleSheet("color: grey;")
                     self.overlay10_start_percent_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                     self.overlay10_start_percent_combo.setEnabled(False)
-                    
-                    # Grey out effect dropdown when song start/end is checked (uses "none" effect)
-                    overlay10_label.setStyleSheet("color: grey;")
-                    self.overlay10_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                    self.overlay10_effect_combo.setEnabled(False)
                 else:
                     # When song start/end checkbox is unchecked, disable start at input but enable percentage dropdown
                     overlay10_start_label.setStyleSheet("color: grey;")
@@ -4778,11 +4762,6 @@ class SuperCutUI(QWidget):
                     overlay10_start_percent_label.setStyleSheet("")
                     self.overlay10_start_percent_combo.setStyleSheet("")
                     self.overlay10_start_percent_combo.setEnabled(True)
-                    
-                    # Enable effect dropdown when song start/end is unchecked (normal effect selection)
-                    overlay10_label.setStyleSheet("")
-                    self.overlay10_effect_combo.setStyleSheet("")
-                    self.overlay10_effect_combo.setEnabled(True)
         self.overlay10_checkbox.stateChanged.connect(lambda _: update_overlay10_effect_label_style())
         # Connect start/end controls to effect label style updates
         self.overlay10_song_start_end.stateChanged.connect(lambda _: update_overlay10_effect_label_style())
@@ -7880,11 +7859,9 @@ class SuperCutUI(QWidget):
             overlay9_path=self.overlay9_path,
             overlay9_size_percent=self.overlay9_size_percent,
                             overlay9_x_percent=self.overlay9_x_percent, overlay9_y_percent=self.overlay9_y_percent,
-            # --- Add overlay10, overlay10 effect ---
-            use_overlay10=self.overlay10_checkbox.isChecked(),
-            overlay10_path=self.overlay10_path,
-            overlay10_size_percent=self.overlay10_size_percent,
-            overlay10_x_percent=self.overlay10_x_percent, overlay10_y_percent=self.overlay10_y_percent,
+                overlay10_path=self.overlay10_path,
+                overlay10_size_percent=self.overlay10_size_percent,
+                overlay10_x_percent=self.overlay10_x_percent, overlay10_y_percent=self.overlay10_y_percent,
                             overlay9_effect=self.selected_overlay9_effect,
                 overlay10_effect=self.selected_overlay10_effect,
                                             overlay9_start_time=self.overlay9_start_percent,
@@ -9438,7 +9415,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 overlay10_start_time=self.overlay10_start_time,
                 overlay10_start_from=0,  # Overlay10 doesn't have start_from UI, use default 0
                 overlay10_duration=self.overlay10_duration,
-                overlay10_start_at_checkbox_checked=False,  # Overlay10 uses percentage dropdown, not start_at checkbox
+                overlay10_start_at_checkbox_checked=True,  # Overlay10 doesn't have start_at checkbox UI, use default True
                 overlay10_song_start_end_checked=self.overlay10_song_start_end.isChecked(),
                 overlay10_start_end_value=self.overlay10_start_end_value,
                 use_intro=self.intro_checkbox.isChecked(),
