@@ -62,7 +62,7 @@ class VideoWorker(QObject):
                  overlay9_effect: str = "fadein", overlay9_start_time: int = 5, overlay9_start_from: int = 0, overlay9_duration: int = 6, overlay9_duration_full_checkbox_checked: bool = False, overlay9_start_at_checkbox_checked: bool = True,
                  # --- Add overlay10, overlay10 effect ---
                  use_overlay10: bool = False, overlay10_path: str = "", overlay10_size_percent: int = 10, overlay10_x_percent: int = 75, overlay10_y_percent: int = 0,
-                 overlay10_effect: str = "fadein", overlay10_start_time: int = 5, overlay10_start_from: int = 0, overlay10_duration: int = 6, overlay10_start_at_checkbox_checked: bool = True,
+                 overlay10_effect: str = "fadein", overlay10_start_time: int = 5, overlay10_start_from: int = 0, overlay10_duration: int = 6, overlay10_start_at_checkbox_checked: bool = False,
                  overlay10_start_time_percent: int = 0,
                  overlay10_song_start_end_checked: bool = False, overlay10_start_end_value: str = "start",
                  # --- Add frame box parameters ---
@@ -669,6 +669,10 @@ class VideoWorker(QObject):
             else:
                 # For GIFs and videos, use original path - FFmpeg will handle scaling
                 processed_overlay10_path = self.overlay10_path
+            
+            print(f"🔍 Overlay10 Processed: original='{self.overlay10_path}' -> processed='{processed_overlay10_path}'")
+        else:
+            print(f"🔍 Overlay10 Skipped: use_overlay10={self.use_overlay10}, path='{self.overlay10_path}'")
         
         # Preprocess framebox image (only for images, not videos)
         processed_frame_box_path = self.frame_box_path
@@ -720,6 +724,9 @@ class VideoWorker(QObject):
         print(f"Output: {output_filename}")
         print(f"Image: {os.path.basename(selected_image)}")
         print("MP3s:", ", ".join(os.path.basename(mp3) for mp3 in selected_mp3s))
+        
+        # Debug overlay10 parameters
+        
 
         # Merge MP3s
         try:
@@ -953,38 +960,58 @@ class VideoWorker(QObject):
                 if self.overlay9_duration < 0:                
                     self.overlay9_duration = 1
             
-            # Calculate actual overlay10 start time based on checkbox state (only if overlay10 is enabled)
-            actual_overlay10_start_at = 0  # Default value
+            # Calculate overlay10 start times based on checkbox state (only if overlay10 is enabled)
+            overlay10_start_times = []  # List of start times for multiple appearances
             
             if self.use_overlay10:
-                if not self.overlay10_start_at_checkbox_checked:
-                    # Use start from logic: (total_duration * percentage) - effect_duration
-                    effect_duration = self.overlay10_duration
-                    if self.overlay10_start_time_percent > 0:
-                        # Use percentage of total duration if specified
-                        actual_overlay10_start_at = int((self.overlay10_start_time_percent / 100.0) * total_duration)
-                    else:
-                        # Fall back to regular start from logic
-                        percentage_time = (self.overlay10_start_from / 100.0) * total_duration
-                        actual_overlay10_start_at = int(max(0, percentage_time - effect_duration))
-                    # Ensure the start time doesn't exceed the video duration
-                    actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+                if self.overlay10_song_start_end_checked and song_durations:
+                    # Use song start/end logic for multiple appearances
+                    for i, (song_start, song_duration) in enumerate(song_durations):
+                        if self.overlay10_start_end_value == "start":
+                            if i == 0:
+                                # First song: use the "start at" input box value (integer seconds)
+                                start_time = self.overlay10_start_time
+                            else:
+                                # Subsequent songs: use song start logic
+                                start_time = song_start
+                        else:  # "end"
+                            # All songs: use song end logic
+                            start_time = song_start + song_duration - self.overlay10_duration
+                        
+                        # Ensure start time is valid
+                        start_time = max(0, start_time)
+                        if start_time < total_duration:
+                            overlay10_start_times.append(start_time)
                 else:
-                    # Use start at logic: simple percentage of total duration (NO duration subtraction)
-                    actual_overlay10_start_at = int((self.overlay10_start_time / 100.0) * total_duration)
-                    # Ensure the start time doesn't exceed the video duration
-                    actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
-                
-                # Final validation to ensure start time is valid
-                actual_overlay10_start_at = max(0, actual_overlay10_start_at)            
+                    # Use regular percentage-based logic (single appearance)
+                    if not self.overlay10_start_at_checkbox_checked:
+                        # Use start from logic: (total_duration * percentage) - effect_duration
+                        effect_duration = self.overlay10_duration
+                        if self.overlay10_start_time_percent > 0:
+                            # Use percentage of total duration if specified
+                            actual_overlay10_start_at = int((self.overlay10_start_time_percent / 100.0) * total_duration)
+                        else:
+                            # Fall back to regular start from logic
+                            percentage_time = (self.overlay10_start_from / 100.0) * total_duration
+                            actual_overlay10_start_at = int(max(0, percentage_time - effect_duration))
+                        # Ensure the start time doesn't exceed the video duration
+                        actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+                    else:
+                        # Use start at logic: simple percentage of total duration (NO duration subtraction)
+                        actual_overlay10_start_at = int((self.overlay10_start_time / 100.0) * total_duration)
+                        # Ensure the start time doesn't exceed the video duration
+                        actual_overlay10_start_at = min(actual_overlay10_start_at, int(total_duration - 1))
+                    
+                    # Final validation to ensure start time is valid
+                    actual_overlay10_start_at = max(0, actual_overlay10_start_at)            
+                    overlay10_start_times = [actual_overlay10_start_at]
                 
                 # Additional validation for overlay10 parameters
-                if actual_overlay10_start_at < 0:                
-                    actual_overlay10_start_at = 0
+                if not overlay10_start_times:
+                    overlay10_start_times = [0]  # Fallback to start at 0
                 if self.overlay10_duration < 0:                
                     self.overlay10_duration = 1
-            
-            
+                
 
             # Create video (Overlay 1: GIF/PNG, with size)
             success, err = create_video_with_ffmpeg(
@@ -1096,7 +1123,7 @@ class VideoWorker(QObject):
                 overlay9_start_time=actual_overlay9_start_at,
                 overlay9_duration=self.overlay9_duration,
                 overlay10_effect=self.overlay10_effect,
-                overlay10_start_time=actual_overlay10_start_at,
+                overlay10_start_time=overlay10_start_times,
                 overlay10_duration=self.overlay10_duration,
                 overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox_checked,
                 # --- Add frame box parameters ---
