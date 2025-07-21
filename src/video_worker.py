@@ -815,10 +815,6 @@ class VideoWorker(QObject):
             
             # --- Generate soundwave overlay if enabled ---
             if self.use_soundwave_overlay and merged_audio_path:
-                print("🎵 Attempting to generate soundwave overlay...")
-                print(f"🎵 Soundwave settings: method={self.soundwave_method}, color={self.soundwave_color}, size={self.soundwave_size_percent}%, x={self.soundwave_x_percent}%, y={self.soundwave_y_percent}%")
-                logger.info(f"Attempting to generate soundwave overlay...")
-                logger.info(f"Soundwave settings: method={self.soundwave_method}, color={self.soundwave_color}, size={self.soundwave_size_percent}%, x={self.soundwave_x_percent}%, y={self.soundwave_y_percent}%")
                 try:
                     from src.soundwave_generator import create_soundwave_from_merged_audio
                     print("🎵 Calling soundwave generation function...")
@@ -845,9 +841,6 @@ class VideoWorker(QObject):
                     print(f"❌ Traceback: {traceback_str}")
                     logger.error(f"Traceback: {traceback_str}")
                     soundwave_overlay_path = None
-            else:
-                print(f"ℹ️ Soundwave overlay not enabled: use_soundwave_overlay={self.use_soundwave_overlay}, merged_audio_path exists={merged_audio_path is not None}")
-                logger.info(f"Soundwave overlay not enabled: use_soundwave_overlay={self.use_soundwave_overlay}, merged_audio_path exists={merged_audio_path is not None}")
             # --- End soundwave overlay ---
             
             # Calculate actual intro start time and duration based on checkbox states (only if intro is enabled)

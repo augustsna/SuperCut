@@ -731,36 +731,121 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 "bottom_right": (f"W-w", f"H-h"),
                 "center": ("(W-w)/2", "(H-h)/2")
             }
-            # Calculate intro position using X and Y percentages
-            ox_intro = f"(W-w)*{intro_x_percent}/100" if intro_x_percent != 0 else "0"
-            oy_intro = f"(H-h)*(1-({intro_y_percent}/100))" if intro_y_percent != 100 else "0"
-            ox1 = f"(W-w)*{overlay1_x_percent}/100" if overlay1_x_percent != 0 else "0"
-            oy1 = f"(H-h)*(1-({overlay1_y_percent}/100))" if overlay1_y_percent != 100 else "0"
-            ox2 = f"(W-w)*{overlay2_x_percent}/100" if overlay2_x_percent != 0 else "0"
-            oy2 = f"(H-h)*(1-({overlay2_y_percent}/100))" if overlay2_y_percent != 100 else "0"
-            ox3 = f"(W-w)*{overlay3_x_percent}/100" if overlay3_x_percent != 0 else "0"
-            oy3 = f"(H-h)*(1-({overlay3_y_percent}/100))" if overlay3_y_percent != 100 else "0"
-            ox4 = f"(W-w)*{overlay4_x_percent}/100" if overlay4_x_percent != 0 else "0"
-            oy4 = f"(H-h)*(1-({overlay4_y_percent}/100))" if overlay4_y_percent != 100 else "0"
-            ox5 = f"(W-w)*{overlay5_x_percent}/100" if overlay5_x_percent != 0 else "0"
-            oy5 = f"(H-h)*(1-({overlay5_y_percent}/100))" if overlay5_y_percent != 100 else "0"
-            ox6 = f"(W-w)*{overlay6_x_percent}/100" if overlay6_x_percent != 0 else "0"
-            oy6 = f"(H-h)*(1-({overlay6_y_percent}/100))" if overlay6_y_percent != 100 else "0"
-            ox7 = f"(W-w)*{overlay7_x_percent}/100" if overlay7_x_percent != 0 else "0"
-            oy7 = f"(H-h)*(1-({overlay7_y_percent}/100))" if overlay7_y_percent != 100 else "0"
-            ox8 = f"(W-w)*{overlay8_x_percent}/100" if overlay8_x_percent != 0 else "0"
-            oy8 = f"(H-h)*(1-({overlay8_y_percent}/100))" if overlay8_y_percent != 100 else "0"
-            ox9 = f"(W-w)*{overlay9_x_percent}/100" if overlay9_x_percent != 0 else "0"
-            oy9 = f"(H-h)*(1-({overlay9_y_percent}/100))" if overlay9_y_percent != 100 else "0"
-            ox10 = f"(W-w)*{overlay10_x_percent}/100" if overlay10_x_percent != 0 else "0"
-            oy10 = f"(H-h)*(1-({overlay10_y_percent}/100))" if overlay10_y_percent != 100 else "0"
-            # Calculate framebox position with padding
-            base_x = f"(W-w)*{frame_box_x_percent}/100" if frame_box_x_percent != 0 else "0"
-            base_y = f"(H-h)*(1-({frame_box_y_percent}/100))" if frame_box_y_percent != 100 else "0"
-            ox_frame_box = f"({base_x})+{frame_box_pad_left}"
-            oy_frame_box = f"({base_y})+{frame_box_pad_top}"
-            ox_frame_mp3cover = f"(W-w)*{frame_mp3cover_x_percent}/100" if frame_mp3cover_x_percent != 0 else "0"
-            oy_frame_mp3cover = f"(H-h)*(1-({frame_mp3cover_y_percent}/100))" if frame_mp3cover_y_percent != 100 else "0"
+            # Pre-calculate intro position for better performance
+            def precalculate_intro_position(video_width, video_height, intro_width, intro_height, x_percent, y_percent):
+                """Pre-calculate intro overlay position to avoid real-time calculations"""
+                if x_percent == 0:
+                    x_pos = 0
+                else:
+                    x_pos = int((video_width - intro_width) * (x_percent / 100))
+                
+                if y_percent == 100:
+                    y_pos = 0
+                else:
+                    y_pos = int((video_height - intro_height) * (1 - (y_percent / 100)))
+                
+                return x_pos, y_pos
+            
+            # Calculate intro dimensions (assuming intro is scaled by intro_size_percent)
+            # For testing, we'll use estimated dimensions based on size percentage
+            estimated_intro_width = int(width * (intro_size_percent / 100))
+            estimated_intro_height = int(height * (intro_size_percent / 100))
+            
+            # Pre-calculate intro position
+            intro_x_pos, intro_y_pos = precalculate_intro_position(
+                video_width=width, 
+                video_height=height,
+                intro_width=estimated_intro_width,
+                intro_height=estimated_intro_height,
+                x_percent=intro_x_percent,
+                y_percent=intro_y_percent
+            )
+            
+            # Use pre-calculated values instead of dynamic expressions
+            ox_intro = str(intro_x_pos)
+            oy_intro = str(intro_y_pos)
+            
+
+
+            
+            # 🚀 PRE-CALCULATION OPTIMIZATION: All overlay positions
+            def precalculate_overlay_position(video_width, video_height, overlay_width, overlay_height, x_percent, y_percent):
+                """Pre-calculate overlay position to avoid real-time calculations"""
+                if x_percent == 0:
+                    x_pos = 0
+                else:
+                    x_pos = int((video_width - overlay_width) * (x_percent / 100))
+                
+                if y_percent == 100:
+                    y_pos = 0
+                else:
+                    y_pos = int((video_height - overlay_height) * (1 - (y_percent / 100)))
+                
+                return x_pos, y_pos
+            
+            # 🚀 PRE-CALCULATION OPTIMIZATION: Get actual overlay dimensions
+            def get_actual_overlay_dimensions(overlay_path, size_percent):
+                """Get actual overlay dimensions from preprocessed images"""
+                # Check if overlay path is empty or invalid
+                if not overlay_path or overlay_path.strip() == "":
+                    base_size = 200  # Estimated base size for empty paths
+                    return int(base_size * (size_percent / 100)), int(base_size * (size_percent / 100))
+                
+                try:
+                    from PIL import Image
+                    with Image.open(overlay_path) as img:
+                        # For preprocessed images, use the actual dimensions directly
+                        # The preprocessing already applied the size_percent scaling
+                        actual_width, actual_height = img.size
+                        return actual_width, actual_height
+                except Exception as e:
+                    # Fallback to estimated dimensions if PIL fails
+                    print(f"⚠️ Could not get actual dimensions for {overlay_path}: {e}")
+                    base_size = 200  # Estimated base size
+                    return int(base_size * (size_percent / 100)), int(base_size * (size_percent / 100))
+            
+            # Pre-calculate all overlay positions using actual dimensions
+            overlay1_width, overlay1_height = get_actual_overlay_dimensions(overlay1_path, overlay1_size_percent)
+            ox1, oy1 = precalculate_overlay_position(width, height, overlay1_width, overlay1_height, overlay1_x_percent, overlay1_y_percent)
+            
+            overlay2_width, overlay2_height = get_actual_overlay_dimensions(overlay2_path, overlay2_size_percent)
+            ox2, oy2 = precalculate_overlay_position(width, height, overlay2_width, overlay2_height, overlay2_x_percent, overlay2_y_percent)
+            
+            overlay3_width, overlay3_height = get_actual_overlay_dimensions(overlay3_path, overlay3_size_percent)
+            ox3, oy3 = precalculate_overlay_position(width, height, overlay3_width, overlay3_height, overlay3_x_percent, overlay3_y_percent)
+            
+            overlay4_width, overlay4_height = get_actual_overlay_dimensions(overlay4_path, overlay4_size_percent)
+            ox4, oy4 = precalculate_overlay_position(width, height, overlay4_width, overlay4_height, overlay4_x_percent, overlay4_y_percent)
+            
+            overlay5_width, overlay5_height = get_actual_overlay_dimensions(overlay5_path, overlay5_size_percent)
+            ox5, oy5 = precalculate_overlay_position(width, height, overlay5_width, overlay5_height, overlay5_x_percent, overlay5_y_percent)
+            
+            overlay6_width, overlay6_height = get_actual_overlay_dimensions(overlay6_path, overlay6_size_percent)
+            ox6, oy6 = precalculate_overlay_position(width, height, overlay6_width, overlay6_height, overlay6_x_percent, overlay6_y_percent)
+            
+            overlay7_width, overlay7_height = get_actual_overlay_dimensions(overlay7_path, overlay7_size_percent)
+            ox7, oy7 = precalculate_overlay_position(width, height, overlay7_width, overlay7_height, overlay7_x_percent, overlay7_y_percent)
+            
+            overlay8_width, overlay8_height = get_actual_overlay_dimensions(overlay8_path, overlay8_size_percent)
+            ox8, oy8 = precalculate_overlay_position(width, height, overlay8_width, overlay8_height, overlay8_x_percent, overlay8_y_percent)
+            
+            overlay9_width, overlay9_height = get_actual_overlay_dimensions(overlay9_path, overlay9_size_percent)
+            ox9, oy9 = precalculate_overlay_position(width, height, overlay9_width, overlay9_height, overlay9_x_percent, overlay9_y_percent)
+            
+            overlay10_width, overlay10_height = get_actual_overlay_dimensions(overlay10_path, overlay10_size_percent)
+            ox10, oy10 = precalculate_overlay_position(width, height, overlay10_width, overlay10_height, overlay10_x_percent, overlay10_y_percent)
+            
+            # Pre-calculate frame box positions using actual dimensions
+            frame_box_width, frame_box_height = get_actual_overlay_dimensions(frame_box_path, frame_box_size_percent)
+            base_frame_x, base_frame_y = precalculate_overlay_position(width, height, frame_box_width, frame_box_height, frame_box_x_percent, frame_box_y_percent)
+            ox_frame_box = base_frame_x + frame_box_pad_left
+            oy_frame_box = base_frame_y + frame_box_pad_top
+            
+            # Pre-calculate frame mp3cover positions using actual dimensions
+            frame_mp3cover_width, frame_mp3cover_height = get_actual_overlay_dimensions(frame_mp3cover_path, frame_mp3cover_size_percent)
+            ox_frame_mp3cover, oy_frame_mp3cover = precalculate_overlay_position(width, height, frame_mp3cover_width, frame_mp3cover_height, frame_mp3cover_x_percent, frame_mp3cover_y_percent)
+            
+
             
             # Check if background is preprocessed (already correct size)
             # Background is always PNG, so no need to check for GIF
@@ -769,7 +854,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             
             if is_bg_preprocessed:
                 # Background is preprocessed PNG - no scaling needed
-                filter_bg = f"[0:v]null[bg]"
+                filter_bg = f"[0:v]format={VIDEO_SETTINGS['pixel_format']}[bg]"
             else:
                 # Background needs scaling to target resolution
                 filter_bg = f"[0:v]scale={width}:{height}[bg]"
@@ -968,13 +1053,51 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     overlay_filename = os.path.basename(overlay_path) if overlay_path else ""
                     overlay_ext = os.path.splitext(overlay_path)[1].lower() if overlay_path else ""
                     
-                    # Calculate x/y as expressions based on percent
-                    x_expr = f"(W-w)*{x_percent}/100" if x_percent != 0 else "0"
-                    y_expr = f"(H-h)*(1-({y_percent}/100))" if y_percent != 100 else "0"
-                    
-                    # Get overlay type directly from the overlay data
+                    # Get overlay type directly from the overlay data FIRST
                     # Supported types: 'song_title', 'mp3_cover'
                     overlay_type = overlay.get('type', 'unknown')
+                    
+                    # 🚀 PRE-CALCULATION OPTIMIZATION: Song title and MP3 cover positions
+                    # Get actual overlay dimensions from the image files
+                    if not overlay_path or overlay_path.strip() == "":
+                        # Handle empty overlay paths
+                        if overlay_type == 'song_title':
+                            overlay_width = int(300 * (size_percent / 100))
+                            overlay_height = int(100 * (size_percent / 100))
+                        else:  # mp3_cover
+                            overlay_width = int(200 * (size_percent / 100))
+                            overlay_height = int(200 * (size_percent / 100))
+                    else:
+                        try:
+                            from PIL import Image
+                            with Image.open(overlay_path) as img:
+                                # For preprocessed images, use the actual dimensions directly
+                                # The preprocessing already applied the size_percent scaling
+                                overlay_width, overlay_height = img.size
+                        except Exception as e:
+                            # Fallback to estimated dimensions if PIL fails
+                            print(f"⚠️ Could not get actual dimensions for {overlay_path}: {e}")
+                            if overlay_type == 'song_title':
+                                overlay_width = int(300 * (size_percent / 100))
+                                overlay_height = int(100 * (size_percent / 100))
+                            else:  # mp3_cover
+                                overlay_width = int(200 * (size_percent / 100))
+                                overlay_height = int(200 * (size_percent / 100))
+                    
+                    # Pre-calculate positions
+                    if x_percent == 0:
+                        x_pos = 0
+                    else:
+                        x_pos = int((width - overlay_width) * (x_percent / 100))
+                    
+                    if y_percent == 100:
+                        y_pos = 0
+                    else:
+                        y_pos = int((height - overlay_height) * (1 - (y_percent / 100)))
+                    
+                    # Use pre-calculated positions instead of expressions
+                    x_expr = str(x_pos)
+                    y_expr = str(y_pos)
                     
                     # Process based on explicit type
                     if overlay_type == 'song_title':
@@ -1001,10 +1124,11 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         elif effect == "zoompan":
                             chain += f",zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
                         
-                        # Add scale operation if needed
+                        # 🚀 PRE-CALCULATION OPTIMIZATION: Scale factor for song titles
+                        # Use actual dimensions instead of estimated ones
                         if size_percent != 100:
-                            scale_factor = size_percent / 100.0
-                            chain += f",scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}"
+                            # Use the already calculated overlay_width and overlay_height
+                            chain += f",scale={overlay_width}:{overlay_height}"
                         
                         chain += f"[{label}]"
                         song_title_chains.append(chain)
@@ -1034,10 +1158,11 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         elif effect == "zoompan":
                             chain += f",zoompan=z='min(1.5,zoom+0.005)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
                         
-                        # Add scale operation if needed
+                        # 🚀 PRE-CALCULATION OPTIMIZATION: Scale factor for MP3 covers
+                        # Use actual dimensions instead of estimated ones
                         if size_percent != 100:
-                            scale_factor = size_percent / 100.0
-                            chain += f",scale=iw*{scale_factor:.3f}:ih*{scale_factor:.3f}"
+                            # Use the already calculated overlay_width and overlay_height
+                            chain += f",scale={overlay_width}:{overlay_height}"
                         
                         chain += f"[{label}]"
                         mp3_cover_chains.append(chain)
@@ -1052,15 +1177,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
             # filter_chains = song_title_chains + mp3_cover_chains  # Removed to prevent duplicates
             # overlay_labels = song_title_labels + mp3_cover_labels  # Removed to prevent duplicates
             
-            # Debug output
-            if song_title_chains:
-                print(f"🎵 Found {len(song_title_chains)} song title overlays (songol1-{song_title_counter})")
-            if mp3_cover_chains:
-                print(f"🎵 Found {len(mp3_cover_chains)} MP3 cover overlays (mp3cover.ol1-{mp3_cover_counter})")
-            
-            # Show overlay types for debugging
-            if extra_overlays:
-                print(f"🎵 Extra overlays types: {[overlay.get('type', 'unknown') for overlay in extra_overlays]}")
+
             # --- End Song Title and MP3 Cover Overlay Filter Graph ---
             
             
@@ -1240,8 +1357,10 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         # Full duration
                         overlay_application_filters.append((f"{config['overlay']}:enable='gte(t,{config['start_time']})'[tmp_{layer_id}]", f"tmp_{layer_id}"))
                     else:
-                        # Limited duration
-                        overlay_application_filters.append((f"{config['overlay']}:enable='between(t,{config['start_time']},{config['start_time']+config['duration']})'[tmp_{layer_id}]", f"tmp_{layer_id}"))
+                        # 🚀 PRE-CALCULATION OPTIMIZATION: Time-based enable expressions
+                        # Pre-calculate end time instead of real-time addition
+                        end_time = config['start_time'] + config['duration']
+                        overlay_application_filters.append((f"{config['overlay']}:enable='between(t,{config['start_time']},{end_time})'[tmp_{layer_id}]", f"tmp_{layer_id}"))
             
             # Build the filter graph with 2-grouping but matching order
             filter_graph = filter_bg
@@ -1263,7 +1382,10 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 # Handle song titles (special case)
                 if layer_id == 'song_titles' and song_title_labels:
                     for i, (label, start, duration, x_expr, y_expr) in enumerate(song_title_labels):
-                        enable_expr = f"between(t,{start},{start+duration})"
+                        # 🚀 PRE-CALCULATION OPTIMIZATION: Time-based enable expressions
+                        # Pre-calculate end time instead of real-time addition
+                        end_time = start + duration
+                        enable_expr = f"between(t,{start},{end_time})"
                         is_last_song = (i == len(song_title_labels)-1) and not mp3_cover_chains and not (use_soundwave_overlay and soundwave_idx is not None)
                         out_label = f"songtmp{i+1}" if i < len(song_title_labels)-1 else "songtmp_final"
                         filter_graph += f";{last_label}[{label}]overlay={x_expr}:{y_expr}:enable='{enable_expr}'[{out_label}]"
@@ -1273,7 +1395,10 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 # Handle MP3 cover overlays (special case)
                 if layer_id == 'mp3_cover_overlay' and mp3_cover_labels:
                     for i, (label, start, duration, x_expr, y_expr) in enumerate(mp3_cover_labels):
-                        enable_expr = f"between(t,{start},{start+duration})"
+                        # 🚀 PRE-CALCULATION OPTIMIZATION: Time-based enable expressions
+                        # Pre-calculate end time instead of real-time addition
+                        end_time = start + duration
+                        enable_expr = f"between(t,{start},{end_time})"
                         # Check if this is the last MP3 cover AND if there are layers after mp3_cover_overlay in the order
                         current_layer_index = final_order.index('mp3_cover_overlay')
                         layers_after_mp3 = final_order[current_layer_index + 1:]
