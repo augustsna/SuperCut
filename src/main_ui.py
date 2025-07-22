@@ -1392,7 +1392,7 @@ class SuperCutUI(QWidget):
         on_intro_effect_changed(self.intro_effect_combo.currentIndex())
 
         # Intro duration checkbox and input
-        self.intro_duration_full_checkbox = QtWidgets.QCheckBox("Full")
+        self.intro_duration_full_checkbox = QtWidgets.QCheckBox("Full time")
         self.intro_duration_full_checkbox.setFixedWidth(80)
         self.intro_duration_full_checkbox.setChecked(False)
         def update_intro_duration_full_checkbox_style(state):
@@ -1463,17 +1463,7 @@ class SuperCutUI(QWidget):
             # Duration field is controlled by duration full checkbox, not intro checkbox
             if enabled:
                 # When intro is enabled, let the duration full checkbox control the duration field
-                # Force the duration field to match the full checkbox state
-                full_checked = self.intro_duration_full_checkbox.isChecked()
-                self.intro_duration_edit.setEnabled(not full_checked)
-                intro_duration_label.setEnabled(not full_checked)
-                if full_checked:
-                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                    self.intro_duration_edit.setStyleSheet(grey_btn_style)
-                    intro_duration_label.setStyleSheet("color: grey;")
-                else:
-                    self.intro_duration_edit.setStyleSheet("")
-                    intro_duration_label.setStyleSheet("")
+                set_intro_duration_enabled(self.intro_duration_full_checkbox.checkState())
             else:
                 # When intro is disabled, disable duration field regardless of full checkbox
                 intro_duration_label.setEnabled(False)
@@ -1487,15 +1477,17 @@ class SuperCutUI(QWidget):
                 self.intro_x_combo.setStyleSheet("")
                 self.intro_y_combo.setStyleSheet("")
                 self.intro_effect_combo.setStyleSheet("")
-                intro_duration_label.setStyleSheet("")
-                self.intro_duration_edit.setStyleSheet("")
+                # Don't reset duration styling here - let set_intro_duration_enabled handle it
                 intro_size_label.setStyleSheet("")
                 intro_x_label.setStyleSheet("")
                 intro_y_label.setStyleSheet("")
                 intro_effect_label.setStyleSheet("")
                 # When intro is enabled, reset checkbox styling and let the start at checkbox control its own styling
                 self.intro_start_checkbox.setStyleSheet("")
+                self.intro_duration_full_checkbox.setStyleSheet("")
                 set_intro_start_enabled(self.intro_start_checkbox.checkState())
+                # Also ensure duration field state is properly set
+                set_intro_duration_enabled(self.intro_duration_full_checkbox.checkState())
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 intro_btn.setStyleSheet(grey_btn_style)
@@ -1613,21 +1605,21 @@ class SuperCutUI(QWidget):
         intro_effect_layout = QHBoxLayout()        
         intro_effect_layout.addSpacing(20)  # Align with intro checkbox
         intro_effect_layout.addWidget(intro_effect_label)
-        intro_effect_layout.addSpacing(-9)
+        intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(self.intro_effect_combo)
-        intro_effect_layout.addSpacing(-6)
-        intro_effect_layout.addWidget(intro_duration_label)
-        intro_effect_layout.addSpacing(-27)
-        intro_effect_layout.addWidget(self.intro_duration_edit)
-        intro_effect_layout.addSpacing(-6)
+        intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(self.intro_duration_full_checkbox)
-        intro_effect_layout.addSpacing(-26)
+        intro_effect_layout.addSpacing(0)
+        intro_effect_layout.addWidget(intro_duration_label)
+        intro_effect_layout.addSpacing(0)
+        intro_effect_layout.addWidget(self.intro_duration_edit)
+        intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(self.intro_start_checkbox)
-        intro_effect_layout.addSpacing(-10)
+        intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(self.intro_start_edit)
-        intro_effect_layout.addSpacing(-6)
+        intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(intro_start_from_label)
-        intro_effect_layout.addSpacing(-10)
+        intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(self.intro_start_from_edit)
         intro_effect_layout.addStretch()
         intro_group_layout.addLayout(intro_effect_layout)
@@ -3307,7 +3299,7 @@ class SuperCutUI(QWidget):
         song_title_scale_label = QLabel("S:")
         song_title_scale_label.setFixedWidth(18)
         self.song_title_scale_combo = NoWheelComboBox()
-        self.song_title_scale_combo.setFixedWidth(90)
+        self.song_title_scale_combo.setFixedWidth(60)
         for percent in range(5, 101, 5):
             self.song_title_scale_combo.addItem(f"{percent}%", percent)
         self.song_title_scale_combo.setCurrentIndex(9)  # Default 50%
@@ -3670,9 +3662,9 @@ class SuperCutUI(QWidget):
         song_title_controls_layout.addSpacing(-7)
         song_title_controls_layout.addWidget(self.song_title_bg_combo)
         song_title_controls_layout.addSpacing(-5)
-        song_title_controls_layout.addWidget(self.song_title_bg_color_btn)
-        song_title_controls_layout.addSpacing(-5)
         song_title_controls_layout.addWidget(self.song_title_opacity_combo)
+        song_title_controls_layout.addSpacing(-5)
+        song_title_controls_layout.addWidget(self.song_title_bg_color_btn)
         song_title_controls_layout.addSpacing(6)
         song_title_controls_layout.addWidget(song_title_text_effect_label)
         song_title_controls_layout.addSpacing(2)
