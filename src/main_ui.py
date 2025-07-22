@@ -3727,7 +3727,7 @@ class SuperCutUI(QWidget):
         overlay_groupbox_8_layout.setSpacing(8)
         overlay_groupbox_8_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(overlay_groupbox_8)
-
+        
 
         # Overlay 8 controls (similar to Overlay 7)
         self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
@@ -4070,7 +4070,7 @@ class SuperCutUI(QWidget):
         overlay8_layout.addWidget(overlay8_start_from_label)
         overlay8_layout.addSpacing(-32)
         overlay8_layout.addWidget(self.overlay8_start_from_combo)
-        overlay8_layout.addStretch()        
+        overlay8_layout.addStretch()
         overlay_groupbox_8_layout.addLayout(overlay8_layout)
         
         # Overlay8 additional settings in separate row
@@ -4098,7 +4098,7 @@ class SuperCutUI(QWidget):
         overlay8_popup_layout.addSpacing(10)
         overlay8_popup_layout.addWidget(overlay8_popup_num_label)
         overlay8_popup_layout.addWidget(self.overlay8_popup_num_combo)
-        overlay8_popup_layout.addStretch()        
+        overlay8_popup_layout.addStretch()
         overlay_groupbox_8_layout.addLayout(overlay8_popup_layout)
         # Enable/disable popup num combo with popup checkbox AND overlay8 checkbox
         def set_overlay8_popup_num_enabled(state):
@@ -5900,8 +5900,8 @@ class SuperCutUI(QWidget):
         frame_box_effect_layout.addWidget(self.frame_box_duration_full_checkbox)
         frame_box_effect_layout.addSpacing(-6)
         frame_box_effect_layout.addWidget(frame_box_start_label)
-        frame_box_effect_layout.addWidget(self.frame_box_start_edit)        
-        frame_box_effect_layout.addStretch()        
+        frame_box_effect_layout.addWidget(self.frame_box_start_edit)
+        frame_box_effect_layout.addStretch()
         frame_box_groupbox_layout.addLayout(frame_box_effect_layout)
 
         # --- Frame Box Padding Controls (separate line below frame color) ---
@@ -6081,7 +6081,7 @@ class SuperCutUI(QWidget):
         frame_box_caption_header_layout.addWidget(caption_png_label)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_edit)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_btn)
-        frame_box_caption_header_layout.addStretch()        
+        frame_box_caption_header_layout.addStretch()
         frame_box_groupbox_layout.addLayout(frame_box_caption_header_layout)
         
         # Text styling controls (second line)
@@ -6226,7 +6226,7 @@ class SuperCutUI(QWidget):
         # Initialize effect controls state
         on_frame_box_caption_effect_changed(0)  # Default to "none"
         
-        # Add styling controls layout        
+        # Add styling controls layout
         frame_box_groupbox_layout.addLayout(frame_box_caption_styling_layout)
         
         # Function to update custom image controls state
@@ -6498,7 +6498,7 @@ class SuperCutUI(QWidget):
                 right_pad_label.setStyleSheet("")
                 top_pad_label.setStyleSheet("")
                 bottom_pad_label.setStyleSheet("")
-                
+
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.frame_box_size_combo.setStyleSheet(grey_btn_style)
@@ -6713,7 +6713,7 @@ class SuperCutUI(QWidget):
         bg_layer_layout.addSpacing(4)
         bg_layer_layout.addWidget(bg_intensity_label)
         bg_layer_layout.addWidget(self.bg_intensity_combo)
-        bg_layer_layout.addStretch()        
+        bg_layer_layout.addStretch()
         final_settings_groupbox_layout.addLayout(bg_layer_layout)
 
         # Initialize background layer enabled state
