@@ -903,7 +903,7 @@ class SuperCutUI(QWidget):
         height = max(saved_height, 400)  # Minimum reasonable height
         
         self.setMinimumSize(400, 400)  # Set a reasonable minimum size
-        self.setMaximumWidth(800)  # Set maximum width to 800px
+        self.setMaximumWidth(2000)  # Set maximum width to 800px
         self.resize(width, height)  # Set initial size from settings
         self.setStyleSheet(STYLE_SHEET)
         
@@ -5814,8 +5814,8 @@ class SuperCutUI(QWidget):
                 mp3_cover_duration_label.setStyleSheet("")
 
         # MP3 cover overlay start at control
-        mp3_cover_start_label = QLabel("Start at (first song):")
-        mp3_cover_start_label.setFixedWidth(130)
+        mp3_cover_start_label = QLabel("first song:")
+        mp3_cover_start_label.setFixedWidth(40)
         self.mp3_cover_start_edit = QLineEdit("0")
         self.mp3_cover_start_edit.setFixedWidth(60)
         self.mp3_cover_start_edit.setValidator(QIntValidator(0, 999, self))
@@ -5867,8 +5867,8 @@ class SuperCutUI(QWidget):
         on_mp3_cover_frame_size_changed(self.mp3_cover_frame_size_combo.currentIndex())
 
         # Custom image checkbox for MP3 cover overlay
-        self.mp3_cover_custom_image_checkbox = QtWidgets.QCheckBox("Custom Image:")
-        self.mp3_cover_custom_image_checkbox.setFixedWidth(100)
+        self.mp3_cover_custom_image_checkbox = QtWidgets.QCheckBox("Custom:")
+        self.mp3_cover_custom_image_checkbox.setFixedWidth(40)
         self.mp3_cover_custom_image_checkbox.setChecked(False)
         def update_mp3_cover_custom_image_checkbox_style(state):
             self.mp3_cover_custom_image_checkbox.setStyleSheet("")  # Always default color
@@ -5963,6 +5963,7 @@ class SuperCutUI(QWidget):
                 self.mp3_cover_y_combo.setStyleSheet(grey_btn_style)
                 self.mp3_cover_effect_combo.setStyleSheet(grey_btn_style)
                 self.mp3_cover_duration_edit.setStyleSheet(grey_btn_style)
+                self.mp3_cover_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.mp3_cover_start_edit.setStyleSheet(grey_btn_style)
                 self.mp3_cover_frame_color_btn.setStyleSheet(grey_btn_style)
                 self.mp3_cover_frame_size_combo.setStyleSheet(grey_btn_style)
@@ -5970,6 +5971,7 @@ class SuperCutUI(QWidget):
                 mp3_cover_x_label.setStyleSheet("color: grey;")
                 mp3_cover_y_label.setStyleSheet("color: grey;")
                 mp3_cover_effect_label.setStyleSheet("color: grey;")
+                mp3_cover_duration_label.setStyleSheet("color: grey;")
                 mp3_cover_start_label.setStyleSheet("color: grey;")
                 mp3_cover_frame_color_label.setStyleSheet("color: grey;")
                 mp3_cover_frame_size_label.setStyleSheet("color: grey;")
@@ -5985,12 +5987,8 @@ class SuperCutUI(QWidget):
         self.mp3_cover_custom_image_checkbox.stateChanged.connect(lambda _: update_mp3_cover_custom_image_controls_state())
         self.mp3_cover_duration_full_checkbox.stateChanged.connect(lambda _: set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState()))
         
-        # First line: checkbox, custom image controls, frame controls, size, x, y controls
+        # First line: checkbox, frame controls, size, x, y controls
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_overlay_checkbox)
-        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_checkbox)
-        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_edit)
-        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_btn)
-        mp3_cover_overlay_layout.addSpacing(4)
         mp3_cover_overlay_layout.addWidget(mp3_cover_frame_color_label)
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_frame_color_btn)
         mp3_cover_overlay_layout.addSpacing(4)
@@ -6008,10 +6006,14 @@ class SuperCutUI(QWidget):
         mp3_cover_overlay_layout.addStretch()
         layout.addLayout(mp3_cover_overlay_layout)
 
-        # Second line: effect, duration, and start controls
+        # Second line: custom image controls, effect, duration, and start controls
         mp3_cover_effect_layout = QHBoxLayout()
         mp3_cover_effect_layout.setSpacing(4)
         mp3_cover_effect_layout.addSpacing(0)  # Align with other controls
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_custom_image_checkbox)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_custom_image_edit)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_custom_image_btn)
+        mp3_cover_effect_layout.addSpacing(4)
         mp3_cover_effect_layout.addWidget(mp3_cover_effect_label)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_effect_combo)
         mp3_cover_effect_layout.addSpacing(4)
