@@ -910,7 +910,7 @@ class SuperCutUI(QWidget):
         # Create main layout
         layout = QVBoxLayout()
         layout.setContentsMargins(14, 18, 0, 2)  # Reduce left margin from 20px to 10px
-        layout.setSpacing(9)
+        layout.setSpacing(10)
 
         # --- Add program title with icon at the top (FIXED) ---
         layout.addSpacing(0)
@@ -1028,7 +1028,7 @@ class SuperCutUI(QWidget):
         scroll_content = QtWidgets.QWidget()
         scroll_layout = QVBoxLayout(scroll_content)
         scroll_layout.setContentsMargins(8, 0, 32, 0)  # Reduced left margin from 20px to 10px, right margin 32px for scrollbar
-        scroll_layout.setSpacing(9)
+        scroll_layout.setSpacing(10)
         
         # Add UI components to scrollable area
         self.create_folder_inputs(scroll_layout)
@@ -1207,7 +1207,10 @@ class SuperCutUI(QWidget):
         """Create video settings controls"""
         # Combined layout for codec, resolution, and fps
         settings_layout = QHBoxLayout()
-        settings_layout.setSpacing(0)  # We'll add custom spacing
+         
+        combo_width = 115
+        edit_width = 115
+        checkbox_width = 110
 
         # Codec selection
         settings_layout.addSpacing(0)
@@ -1299,19 +1302,18 @@ class SuperCutUI(QWidget):
 
         # --- INTRO OVERLAY CONTROLS ---
         self.intro_checkbox = QtWidgets.QCheckBox(" Intro :")
-        self.intro_checkbox.setFixedWidth(70)
+        self.intro_checkbox.setFixedWidth(checkbox_width)
         self.intro_checkbox.setChecked(True)
         def update_intro_checkbox_style(state):
             self.intro_checkbox.setStyleSheet("")  # Always default color
         self.intro_checkbox.stateChanged.connect(update_intro_checkbox_style)
         update_intro_checkbox_style(self.intro_checkbox.checkState())
 
-        intro_layout = QHBoxLayout()
-        intro_layout.setSpacing(4)
+        intro_layout = QHBoxLayout()        
         self.intro_edit = ImageDropLineEdit()
         self.intro_edit.setPlaceholderText("Select Intro file *.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv")
         self.intro_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select Media'")
-        self.intro_edit.setFixedWidth(125)
+        self.intro_edit.setFixedWidth(115)
         self.intro_path = ""
         def on_intro_changed():
             current_text = self.intro_edit.text()
@@ -1369,8 +1371,7 @@ class SuperCutUI(QWidget):
         on_intro_y_changed(self.intro_y_combo.currentIndex())
 
         # (1) Create all intro widgets first
-        combo_width = 130
-        intro_effect_label = QLabel("Intro :")
+        intro_effect_label = QLabel("Effect :")
         intro_effect_label.setFixedWidth(45)
         self.intro_effect_combo = NoWheelComboBox()
         self.intro_effect_combo.setFixedWidth(combo_width)
@@ -1590,19 +1591,19 @@ class SuperCutUI(QWidget):
         intro_group_layout.setContentsMargins(10, 5, 10, 10)
 
         intro_layout = QHBoxLayout()
-        intro_layout.setSpacing(4)
+        intro_layout.setSpacing(0)
         intro_layout.addWidget(self.intro_checkbox)
-        intro_layout.addSpacing(14)
+        intro_layout.addSpacing(0)
         intro_layout.addWidget(self.intro_edit)
-        intro_layout.addSpacing(2)
+        intro_layout.addSpacing(10)
         intro_layout.addWidget(intro_btn)
-        intro_layout.addSpacing(4)
+        intro_layout.addSpacing(0)
         intro_layout.addWidget(intro_size_label)
         intro_layout.addWidget(self.intro_size_combo)
-        intro_layout.addSpacing(4)
+        intro_layout.addSpacing(0)
         intro_layout.addWidget(intro_x_label)
         intro_layout.addWidget(self.intro_x_combo)
-        intro_layout.addSpacing(6)
+        intro_layout.addSpacing(0)
         intro_layout.addWidget(intro_y_label)
         intro_layout.addWidget(self.intro_y_combo)
         intro_layout.addStretch()
@@ -1635,7 +1636,7 @@ class SuperCutUI(QWidget):
 
         # Move PNG overlay checkbox below video settings
         self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1:")
-        self.overlay_checkbox.setFixedWidth(82)
+        self.overlay_checkbox.setFixedWidth(checkbox_width)
         self.overlay_checkbox.setChecked(True)
         def update_overlay_checkbox_style(state):
             self.overlay_checkbox.setStyleSheet("")  # Always default color
@@ -1649,7 +1650,7 @@ class SuperCutUI(QWidget):
         self.overlay1_edit = ImageDropLineEdit()
         self.overlay1_edit.setPlaceholderText("Overlay 1 file path (Select Intro *.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv)")
         self.overlay1_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select File'")
-        self.overlay1_edit.setFixedWidth(125)  # Make the text box shorter
+        self.overlay1_edit.setFixedWidth(edit_width)  # Make the text box shorter
         self.overlay1_path = ""
         def on_overlay1_changed():
             current_text = self.overlay1_edit.text()
@@ -1777,7 +1778,7 @@ class SuperCutUI(QWidget):
 
         # Overlay 2 controls (similar to Overlay 1)
         self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2:")
-        self.overlay2_checkbox.setFixedWidth(82)
+        self.overlay2_checkbox.setFixedWidth(checkbox_width)
         self.overlay2_checkbox.setChecked(True)
         def update_overlay2_checkbox_style(state):
             self.overlay2_checkbox.setStyleSheet("")  # Always default color
@@ -1789,7 +1790,7 @@ class SuperCutUI(QWidget):
         self.overlay2_edit = ImageDropLineEdit()
         self.overlay2_edit.setPlaceholderText("Overlay 2 file path (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv)")
         self.overlay2_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select File'")
-        self.overlay2_edit.setFixedWidth(125)
+        self.overlay2_edit.setFixedWidth(edit_width)
         self.overlay2_path = ""
         def on_overlay2_changed():
             current_text = self.overlay2_edit.text()
@@ -1893,8 +1894,6 @@ class SuperCutUI(QWidget):
         overlay_groupbox_1_2_layout.addLayout(overlay2_layout)
 
         # --- EFFECT CONTROL FOR INTRO & OVERLAY (moved below Overlay 2) ---
-        combo_width = 130
-        edit_width = 40
         effect_label = QLabel("Overlay 1_2:")
         effect_label.setFixedWidth(80)
         self.effect_combo = NoWheelComboBox()
@@ -2093,7 +2092,7 @@ class SuperCutUI(QWidget):
         def update_overlay4_checkbox_style(state):
             self.overlay4_checkbox.setStyleSheet("")  # Always default color
         self.overlay4_checkbox = QtWidgets.QCheckBox("Overlay 4:")
-        self.overlay4_checkbox.setFixedWidth(82)
+        self.overlay4_checkbox.setFixedWidth(checkbox_width)
         self.overlay4_checkbox.setChecked(False)
         self.overlay4_checkbox.stateChanged.connect(update_overlay4_checkbox_style)
         update_overlay4_checkbox_style(self.overlay4_checkbox.checkState())
@@ -2102,7 +2101,7 @@ class SuperCutUI(QWidget):
         self.overlay4_edit = ImageDropLineEdit()
         self.overlay4_edit.setPlaceholderText("Overlay 4 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay4_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay4_edit.setFixedWidth(125)
+        self.overlay4_edit.setFixedWidth(edit_width)
         self.overlay4_path = ""
         def on_overlay4_changed():
             current_text = self.overlay4_edit.text()
@@ -2225,7 +2224,7 @@ class SuperCutUI(QWidget):
         def update_overlay5_checkbox_style(state):
             self.overlay5_checkbox.setStyleSheet("")  # Always default color
         self.overlay5_checkbox = QtWidgets.QCheckBox("Overlay 5:")
-        self.overlay5_checkbox.setFixedWidth(82)
+        self.overlay5_checkbox.setFixedWidth(checkbox_width)
         self.overlay5_checkbox.setChecked(False)
         self.overlay5_checkbox.stateChanged.connect(update_overlay5_checkbox_style)
         update_overlay5_checkbox_style(self.overlay5_checkbox.checkState())
@@ -2234,7 +2233,7 @@ class SuperCutUI(QWidget):
         self.overlay5_edit = ImageDropLineEdit()
         self.overlay5_edit.setPlaceholderText("Overlay 5 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay5_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay5_edit.setFixedWidth(125)
+        self.overlay5_edit.setFixedWidth(edit_width)
         self.overlay5_path = ""
         def on_overlay5_changed():
             current_text = self.overlay5_edit.text()
@@ -2517,7 +2516,7 @@ class SuperCutUI(QWidget):
 
          # Overlay 6 controls (similar to Overlay 4)
         self.overlay6_checkbox = QtWidgets.QCheckBox("Overlay 6:")
-        self.overlay6_checkbox.setFixedWidth(82)
+        self.overlay6_checkbox.setFixedWidth(checkbox_width)
         self.overlay6_checkbox.setChecked(False)
         def update_overlay6_checkbox_style(state):
             self.overlay6_checkbox.setStyleSheet("")  # Always default color
@@ -2529,7 +2528,7 @@ class SuperCutUI(QWidget):
         self.overlay6_edit = ImageDropLineEdit()
         self.overlay6_edit.setPlaceholderText("Overlay 6 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay6_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay6_edit.setFixedWidth(125)
+        self.overlay6_edit.setFixedWidth(edit_width)
         self.overlay6_path = ""
         def on_overlay6_changed():
             current_text = self.overlay6_edit.text()
@@ -2654,7 +2653,7 @@ class SuperCutUI(QWidget):
 
         # Overlay 7 controls (similar to Overlay 6)
         self.overlay7_checkbox = QtWidgets.QCheckBox("Overlay 7:")
-        self.overlay7_checkbox.setFixedWidth(82)
+        self.overlay7_checkbox.setFixedWidth(checkbox_width)
         self.overlay7_checkbox.setChecked(False)
         def update_overlay7_checkbox_style(state):
             self.overlay7_checkbox.setStyleSheet("")  # Always default color
@@ -2666,7 +2665,7 @@ class SuperCutUI(QWidget):
         self.overlay7_edit = ImageDropLineEdit()
         self.overlay7_edit.setPlaceholderText("Overlay 7 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay7_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay7_edit.setFixedWidth(125)
+        self.overlay7_edit.setFixedWidth(edit_width)
         self.overlay7_path = ""
         def on_overlay7_changed():
             current_text = self.overlay7_edit.text()
@@ -2963,133 +2962,7 @@ class SuperCutUI(QWidget):
         set_overlay6_7_duration_enabled(self.overlay6_7_duration_full_checkbox.checkState())
         # Initialize start at/from fields based on checkbox state
         set_overlay6_7_start_at_enabled(self.overlay6_7_start_at_checkbox.checkState())
-        
-        # Overlay 3 controls (similar to Overlay 2)
-        self.overlay3_checkbox = QtWidgets.QCheckBox("Overlay 3:")
-        self.overlay3_checkbox.setFixedWidth(82)
-        self.overlay3_checkbox.setChecked(False)
-        def update_overlay3_checkbox_style(state):
-            self.overlay3_checkbox.setStyleSheet("")  # Always default color
-        self.overlay3_checkbox.stateChanged.connect(update_overlay3_checkbox_style)
-        update_overlay3_checkbox_style(self.overlay3_checkbox.checkState())
 
-        overlay3_layout = QHBoxLayout()
-        overlay3_layout.setSpacing(4)
-        self.overlay3_edit = ImageDropLineEdit()
-        self.overlay3_edit.setPlaceholderText("Overlay 3 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
-        self.overlay3_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay3_edit.setFixedWidth(125)
-        self.overlay3_path = ""
-        def on_overlay3_changed():
-            current_text = self.overlay3_edit.text()
-            cleaned_text = clean_file_path(current_text)
-            if cleaned_text != current_text:
-                self.overlay3_edit.setText(cleaned_text)
-            self.overlay3_path = self.overlay3_edit.text().strip()
-        self.overlay3_edit.textChanged.connect(on_overlay3_changed)
-        overlay3_btn = QPushButton("Select")
-        overlay3_btn.setFixedWidth(60)
-        def select_overlay3_image():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 3 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
-            if file_path:
-                self.overlay3_edit.setText(file_path)
-        overlay3_btn.clicked.connect(select_overlay3_image)
-        overlay3_size_label = QLabel("S:")
-        overlay3_size_label.setFixedWidth(18)
-        self.overlay3_size_combo = NoWheelComboBox()
-        self.overlay3_size_combo.setFixedWidth(60)
-        for percent in range(5, 101, 5):
-            self.overlay3_size_combo.addItem(f"{percent}%", percent)
-        self.overlay3_size_combo.setCurrentIndex(9)  # Default 50%
-        self.overlay3_size_percent = 50
-        def on_overlay3_size_changed(idx):
-            self.overlay3_size_percent = self.overlay3_size_combo.itemData(idx)
-        self.overlay3_size_combo.setEditable(False)
-        self.overlay3_size_combo.currentIndexChanged.connect(on_overlay3_size_changed)
-        on_overlay3_size_changed(self.overlay3_size_combo.currentIndex())
-        # Overlay3 X coordinate
-        overlay3_x_label = QLabel("X:")
-        overlay3_x_label.setFixedWidth(18)
-        self.overlay3_x_combo = NoWheelComboBox()
-        self.overlay3_x_combo.setFixedWidth(60)
-        for percent in range(0, 101, 1):
-            self.overlay3_x_combo.addItem(f"{percent}%", percent)
-        self.overlay3_x_combo.setCurrentIndex(0)  # Default 0%
-        self.overlay3_x_percent = 0
-        def on_overlay3_x_changed(idx):
-            self.overlay3_x_percent = self.overlay3_x_combo.itemData(idx)
-        self.overlay3_x_combo.currentIndexChanged.connect(on_overlay3_x_changed)
-        on_overlay3_x_changed(self.overlay3_x_combo.currentIndex())
-
-        # Overlay3 Y coordinate
-        overlay3_y_label = QLabel("Y:")
-        overlay3_y_label.setFixedWidth(18)
-        self.overlay3_y_combo = NoWheelComboBox()
-        self.overlay3_y_combo.setFixedWidth(60)
-        for percent in range(0, 101, 1):
-            self.overlay3_y_combo.addItem(f"{percent}%", percent)
-        self.overlay3_y_combo.setCurrentIndex(0)  # Default 0%
-        self.overlay3_y_percent = 0
-        def on_overlay3_y_changed(idx):
-            self.overlay3_y_percent = self.overlay3_y_combo.itemData(idx)
-        self.overlay3_y_combo.currentIndexChanged.connect(on_overlay3_y_changed)
-        on_overlay3_y_changed(self.overlay3_y_combo.currentIndex())
-        def set_overlay3_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            self.overlay3_edit.setEnabled(enabled)
-            overlay3_btn.setEnabled(enabled)
-            self.overlay3_size_combo.setEnabled(enabled)
-            self.overlay3_x_combo.setEnabled(enabled)
-            self.overlay3_y_combo.setEnabled(enabled)
-            
-            # Also enable/disable song title start at field when overlay 3 is checked
-            # Check if song_title_checkbox exists before accessing it
-            if hasattr(self, 'song_title_checkbox') and hasattr(self, 'song_title_start_edit'):
-                song_title_enabled = self.song_title_checkbox.isChecked()
-                song_title_start_enabled = song_title_enabled or enabled
-                self.song_title_start_edit.setEnabled(song_title_start_enabled)
-                song_title_start_label.setStyleSheet("" if song_title_start_enabled else "color: grey;")
-            
-            if enabled:
-                overlay3_btn.setStyleSheet("")
-                self.overlay3_edit.setStyleSheet("")
-                self.overlay3_size_combo.setStyleSheet("")
-                self.overlay3_x_combo.setStyleSheet("")
-                self.overlay3_y_combo.setStyleSheet("")
-                overlay3_size_label.setStyleSheet("")
-                overlay3_x_label.setStyleSheet("")
-                overlay3_y_label.setStyleSheet("")
-            else:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                overlay3_btn.setStyleSheet(grey_btn_style)
-                self.overlay3_edit.setStyleSheet(grey_btn_style)
-                self.overlay3_size_combo.setStyleSheet(grey_btn_style)
-                self.overlay3_x_combo.setStyleSheet(grey_btn_style)
-                self.overlay3_y_combo.setStyleSheet(grey_btn_style)
-                overlay3_size_label.setStyleSheet("color: grey;")
-                overlay3_x_label.setStyleSheet("color: grey;")
-                overlay3_y_label.setStyleSheet("color: grey;")
-            
-            # Update song title controls styling to ensure proper appearance
-            if hasattr(self, 'song_title_checkbox'):
-                set_song_title_controls_enabled(self.song_title_checkbox.checkState())
-        self.overlay3_checkbox.stateChanged.connect(lambda _: set_overlay3_enabled(self.overlay3_checkbox.checkState()))
-        set_overlay3_enabled(self.overlay3_checkbox.checkState())
-        overlay3_layout.addWidget(self.overlay3_checkbox)
-        overlay3_layout.addSpacing(3)
-        overlay3_layout.addWidget(self.overlay3_edit)
-        overlay3_layout.addSpacing(3)
-        overlay3_layout.addWidget(overlay3_btn)
-        overlay3_layout.addSpacing(4)
-        overlay3_layout.addWidget(overlay3_size_label)
-        overlay3_layout.addWidget(self.overlay3_size_combo)
-        overlay3_layout.addSpacing(4)
-        overlay3_layout.addWidget(overlay3_x_label)
-        overlay3_layout.addWidget(self.overlay3_x_combo)
-        overlay3_layout.addSpacing(4)
-        overlay3_layout.addWidget(overlay3_y_label)
-        overlay3_layout.addWidget(self.overlay3_y_combo)
-        overlay3_layout.addStretch()
         # --- Overlay 3, Song Titles, and Soundwave Group Box ---
         overlay_groupbox_3_titles_wave = QtWidgets.QGroupBox("Overlay 3, Song Titles, and Soundwave")
         overlay_groupbox_3_titles_wave.setStyleSheet("""
@@ -3109,13 +2982,12 @@ class SuperCutUI(QWidget):
         """)
         overlay_groupbox_3_titles_wave_layout = QVBoxLayout(overlay_groupbox_3_titles_wave)
         overlay_groupbox_3_titles_wave_layout.setSpacing(8)
-        overlay_groupbox_3_titles_wave_layout.setContentsMargins(10, 5, 10, 10)
-        overlay_groupbox_3_titles_wave_layout.addLayout(overlay3_layout)
-
+        overlay_groupbox_3_titles_wave_layout.setContentsMargins(10, 5, 10, 10)        
+        layout.addWidget(overlay_groupbox_3_titles_wave)
 
         # --- SOUNDWAVE OVERLAY CONTROLS ---
         self.soundwave_checkbox = QtWidgets.QCheckBox("Soundwave:")
-        self.soundwave_checkbox.setFixedWidth(85)
+        self.soundwave_checkbox.setFixedWidth(checkbox_width)
         self.soundwave_checkbox.setChecked(False)
         def update_soundwave_checkbox_style(state):
             self.soundwave_checkbox.setStyleSheet("")
@@ -3126,7 +2998,7 @@ class SuperCutUI(QWidget):
         soundwave_method_label = QLabel("Method:")
         soundwave_method_label.setFixedWidth(50)
         self.soundwave_method_combo = NoWheelComboBox()
-        self.soundwave_method_combo.setFixedWidth(100)
+        self.soundwave_method_combo.setFixedWidth(combo_width)
         soundwave_method_options = [
             ("Bars", "bars"),
             ("Spectrum", "spectrum"),
@@ -3146,7 +3018,7 @@ class SuperCutUI(QWidget):
         soundwave_color_label = QLabel("Color:")
         soundwave_color_label.setFixedWidth(40)
         self.soundwave_color_combo = NoWheelComboBox()
-        self.soundwave_color_combo.setFixedWidth(120)
+        self.soundwave_color_combo.setFixedWidth(combo_width)
         soundwave_color_options = [
             ("Hue Rotate", "hue_rotate"),
             ("Red", "#ff0000"),
@@ -3265,10 +3137,137 @@ class SuperCutUI(QWidget):
         overlay_groupbox_3_titles_wave_layout.addLayout(soundwave_layout)
         layout.addWidget(overlay_groupbox_3_titles_wave)
 
+        # Overlay 3 controls (similar to Overlay 2)
+        self.overlay3_checkbox = QtWidgets.QCheckBox("Overlay 3:")
+        self.overlay3_checkbox.setFixedWidth(checkbox_width)
+        self.overlay3_checkbox.setChecked(False)
+        def update_overlay3_checkbox_style(state):
+            self.overlay3_checkbox.setStyleSheet("")  # Always default color
+        self.overlay3_checkbox.stateChanged.connect(update_overlay3_checkbox_style)
+        update_overlay3_checkbox_style(self.overlay3_checkbox.checkState())
+
+        overlay3_layout = QHBoxLayout()
+        overlay3_layout.setSpacing(4)
+        self.overlay3_edit = ImageDropLineEdit()
+        self.overlay3_edit.setPlaceholderText("Overlay 3 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
+        self.overlay3_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
+        self.overlay3_edit.setFixedWidth(edit_width)
+        self.overlay3_path = ""
+        def on_overlay3_changed():
+            current_text = self.overlay3_edit.text()
+            cleaned_text = clean_file_path(current_text)
+            if cleaned_text != current_text:
+                self.overlay3_edit.setText(cleaned_text)
+            self.overlay3_path = self.overlay3_edit.text().strip()
+        self.overlay3_edit.textChanged.connect(on_overlay3_changed)
+        overlay3_btn = QPushButton("Select")
+        overlay3_btn.setFixedWidth(60)
+        def select_overlay3_image():
+            file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 3 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
+            if file_path:
+                self.overlay3_edit.setText(file_path)
+        overlay3_btn.clicked.connect(select_overlay3_image)
+        overlay3_size_label = QLabel("S:")
+        overlay3_size_label.setFixedWidth(18)
+        self.overlay3_size_combo = NoWheelComboBox()
+        self.overlay3_size_combo.setFixedWidth(60)
+        for percent in range(5, 101, 5):
+            self.overlay3_size_combo.addItem(f"{percent}%", percent)
+        self.overlay3_size_combo.setCurrentIndex(9)  # Default 50%
+        self.overlay3_size_percent = 50
+        def on_overlay3_size_changed(idx):
+            self.overlay3_size_percent = self.overlay3_size_combo.itemData(idx)
+        self.overlay3_size_combo.setEditable(False)
+        self.overlay3_size_combo.currentIndexChanged.connect(on_overlay3_size_changed)
+        on_overlay3_size_changed(self.overlay3_size_combo.currentIndex())
+        # Overlay3 X coordinate
+        overlay3_x_label = QLabel("X:")
+        overlay3_x_label.setFixedWidth(18)
+        self.overlay3_x_combo = NoWheelComboBox()
+        self.overlay3_x_combo.setFixedWidth(60)
+        for percent in range(0, 101, 1):
+            self.overlay3_x_combo.addItem(f"{percent}%", percent)
+        self.overlay3_x_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay3_x_percent = 0
+        def on_overlay3_x_changed(idx):
+            self.overlay3_x_percent = self.overlay3_x_combo.itemData(idx)
+        self.overlay3_x_combo.currentIndexChanged.connect(on_overlay3_x_changed)
+        on_overlay3_x_changed(self.overlay3_x_combo.currentIndex())
+
+        # Overlay3 Y coordinate
+        overlay3_y_label = QLabel("Y:")
+        overlay3_y_label.setFixedWidth(18)
+        self.overlay3_y_combo = NoWheelComboBox()
+        self.overlay3_y_combo.setFixedWidth(60)
+        for percent in range(0, 101, 1):
+            self.overlay3_y_combo.addItem(f"{percent}%", percent)
+        self.overlay3_y_combo.setCurrentIndex(0)  # Default 0%
+        self.overlay3_y_percent = 0
+        def on_overlay3_y_changed(idx):
+            self.overlay3_y_percent = self.overlay3_y_combo.itemData(idx)
+        self.overlay3_y_combo.currentIndexChanged.connect(on_overlay3_y_changed)
+        on_overlay3_y_changed(self.overlay3_y_combo.currentIndex())
+        def set_overlay3_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.overlay3_edit.setEnabled(enabled)
+            overlay3_btn.setEnabled(enabled)
+            self.overlay3_size_combo.setEnabled(enabled)
+            self.overlay3_x_combo.setEnabled(enabled)
+            self.overlay3_y_combo.setEnabled(enabled)
+            
+            # Also enable/disable song title start at field when overlay 3 is checked
+            # Check if song_title_checkbox exists before accessing it
+            if hasattr(self, 'song_title_checkbox') and hasattr(self, 'song_title_start_edit'):
+                song_title_enabled = self.song_title_checkbox.isChecked()
+                song_title_start_enabled = song_title_enabled or enabled
+                self.song_title_start_edit.setEnabled(song_title_start_enabled)
+                song_title_start_label.setStyleSheet("" if song_title_start_enabled else "color: grey;")
+            
+            if enabled:
+                overlay3_btn.setStyleSheet("")
+                self.overlay3_edit.setStyleSheet("")
+                self.overlay3_size_combo.setStyleSheet("")
+                self.overlay3_x_combo.setStyleSheet("")
+                self.overlay3_y_combo.setStyleSheet("")
+                overlay3_size_label.setStyleSheet("")
+                overlay3_x_label.setStyleSheet("")
+                overlay3_y_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                overlay3_btn.setStyleSheet(grey_btn_style)
+                self.overlay3_edit.setStyleSheet(grey_btn_style)
+                self.overlay3_size_combo.setStyleSheet(grey_btn_style)
+                self.overlay3_x_combo.setStyleSheet(grey_btn_style)
+                self.overlay3_y_combo.setStyleSheet(grey_btn_style)
+                overlay3_size_label.setStyleSheet("color: grey;")
+                overlay3_x_label.setStyleSheet("color: grey;")
+                overlay3_y_label.setStyleSheet("color: grey;")
+            
+            # Update song title controls styling to ensure proper appearance
+            if hasattr(self, 'song_title_checkbox'):
+                set_song_title_controls_enabled(self.song_title_checkbox.checkState())
+        self.overlay3_checkbox.stateChanged.connect(lambda _: set_overlay3_enabled(self.overlay3_checkbox.checkState()))
+        set_overlay3_enabled(self.overlay3_checkbox.checkState())
+        overlay3_layout.addWidget(self.overlay3_checkbox)
+        overlay3_layout.addSpacing(3)
+        overlay3_layout.addWidget(self.overlay3_edit)
+        overlay3_layout.addSpacing(3)
+        overlay3_layout.addWidget(overlay3_btn)
+        overlay3_layout.addSpacing(4)
+        overlay3_layout.addWidget(overlay3_size_label)
+        overlay3_layout.addWidget(self.overlay3_size_combo)
+        overlay3_layout.addSpacing(4)
+        overlay3_layout.addWidget(overlay3_x_label)
+        overlay3_layout.addWidget(self.overlay3_x_combo)
+        overlay3_layout.addSpacing(4)
+        overlay3_layout.addWidget(overlay3_y_label)
+        overlay3_layout.addWidget(self.overlay3_y_combo)
+        overlay3_layout.addStretch()  
+        overlay_groupbox_3_titles_wave_layout.addLayout(overlay3_layout)
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
         self.song_title_checkbox = QtWidgets.QCheckBox("  Titles:")
-        self.song_title_checkbox.setFixedWidth(80)
+        self.song_title_checkbox.setFixedWidth(checkbox_width)
         self.song_title_checkbox.setChecked(False)
         def update_song_title_checkbox_style(state):
             self.song_title_checkbox.setStyleSheet("")
@@ -3283,7 +3282,7 @@ class SuperCutUI(QWidget):
         song_title_font_label = QLabel("Font:")
         song_title_font_label.setFixedWidth(40)
         self.song_title_font_combo = NoWheelComboBox()
-        self.song_title_font_combo.setFixedWidth(125)
+        self.song_title_font_combo.setFixedWidth(combo_width)
         song_title_font_options = [
             ("Default", "default"),
             ("Kantumruy Pro", "KantumruyPro-VariableFont_wght.ttf"),
@@ -3336,7 +3335,7 @@ class SuperCutUI(QWidget):
         song_title_bg_label = QLabel("BG:")
         song_title_bg_label.setFixedWidth(26)
         self.song_title_bg_combo = NoWheelComboBox()
-        self.song_title_bg_combo.setFixedWidth(120)
+        self.song_title_bg_combo.setFixedWidth(combo_width)
         bg_options = [
             ("Transparent", "transparent"),
             ("Black", "black"),
@@ -3408,7 +3407,7 @@ class SuperCutUI(QWidget):
         
         # Opacity control
         self.song_title_opacity_combo = NoWheelComboBox()
-        self.song_title_opacity_combo.setFixedWidth(86)
+        self.song_title_opacity_combo.setFixedWidth(60)
         opacity_options = [
             (f"{percent}%", percent / 100.0) for percent in range(5, 101, 5)
         ]
@@ -3727,7 +3726,7 @@ class SuperCutUI(QWidget):
 
         # Overlay 8 controls (similar to Overlay 7)
         self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
-        self.overlay8_checkbox.setFixedWidth(82)
+        self.overlay8_checkbox.setFixedWidth(checkbox_width)
         self.overlay8_checkbox.setChecked(False)
         def update_overlay8_checkbox_style(state):
             self.overlay8_checkbox.setStyleSheet("")  # Always default color
@@ -3739,7 +3738,7 @@ class SuperCutUI(QWidget):
         self.overlay8_edit = ImageDropLineEdit()
         self.overlay8_edit.setPlaceholderText("Overlay 8 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv)")
         self.overlay8_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay8_edit.setFixedWidth(125)
+        self.overlay8_edit.setFixedWidth(edit_width)
         self.overlay8_path = ""
         def on_overlay8_changed():
             current_text = self.overlay8_edit.text()
@@ -4188,7 +4187,7 @@ class SuperCutUI(QWidget):
 
         # --- OVERLAY 9 (exact copy of overlay8) ---
         self.overlay9_checkbox = QtWidgets.QCheckBox("Overlay 9:")
-        self.overlay9_checkbox.setFixedWidth(82)
+        self.overlay9_checkbox.setFixedWidth(checkbox_width)
         self.overlay9_checkbox.setChecked(False)
         def update_overlay9_checkbox_style(state):
             self.overlay9_checkbox.setStyleSheet("")  # Always default color
@@ -4200,7 +4199,7 @@ class SuperCutUI(QWidget):
         self.overlay9_edit = ImageDropLineEdit()
         self.overlay9_edit.setPlaceholderText("Overlay 9 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv")
         self.overlay9_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay9_edit.setFixedWidth(125)
+        self.overlay9_edit.setFixedWidth(edit_width)
         self.overlay9_path = ""
         def on_overlay9_changed():
             current_text = self.overlay9_edit.text()
@@ -4650,7 +4649,7 @@ class SuperCutUI(QWidget):
 
         # --- OVERLAY 10 (simplified version of overlay9 without popup and full duration) ---
         self.overlay10_checkbox = QtWidgets.QCheckBox("Overlay 10:")
-        self.overlay10_checkbox.setFixedWidth(82)
+        self.overlay10_checkbox.setFixedWidth(checkbox_width)
         self.overlay10_checkbox.setChecked(False)
         def update_overlay10_checkbox_style(state):
             self.overlay10_checkbox.setStyleSheet("")  # Always default color
@@ -4662,7 +4661,7 @@ class SuperCutUI(QWidget):
         self.overlay10_edit = ImageDropLineEdit()
         self.overlay10_edit.setPlaceholderText("Overlay 10 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv")
         self.overlay10_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image")
-        self.overlay10_edit.setFixedWidth(125)
+        self.overlay10_edit.setFixedWidth(edit_width)
         self.overlay10_path = ""
         def on_overlay10_changed():
             current_text = self.overlay10_edit.text()
@@ -5007,7 +5006,7 @@ class SuperCutUI(QWidget):
 
         # --- FRAME MP3COVER OVERLAY ---
         self.frame_mp3cover_checkbox = QtWidgets.QCheckBox("Frame_mp3cover:")
-        self.frame_mp3cover_checkbox.setFixedWidth(82)
+        self.frame_mp3cover_checkbox.setFixedWidth(checkbox_width)
         self.frame_mp3cover_checkbox.setChecked(False)
         def update_frame_mp3cover_checkbox_style(state):
             self.frame_mp3cover_checkbox.setStyleSheet("")  # Always default color
@@ -5025,7 +5024,7 @@ class SuperCutUI(QWidget):
 
         # Custom image file selection for frame_mp3cover
         self.frame_mp3cover_custom_image_edit = ImageDropLineEdit()
-        self.frame_mp3cover_custom_image_edit.setFixedWidth(120)
+        self.frame_mp3cover_custom_image_edit.setFixedWidth(combo_width)
         self.frame_mp3cover_custom_image_edit.setPlaceholderText("Select custom image...")
         self.frame_mp3cover_custom_image_path = None
         
@@ -5328,8 +5327,8 @@ class SuperCutUI(QWidget):
         layout.addWidget(mp3_cover_groupbox)
 
         # --- DYNAMIC MP3 COVER OVERLAY ---
-        self.mp3_cover_overlay_checkbox = QtWidgets.QCheckBox("MP3 Cover Overlay:")
-        self.mp3_cover_overlay_checkbox.setFixedWidth(120)
+        self.mp3_cover_overlay_checkbox = QtWidgets.QCheckBox("MP3 Cover:")
+        self.mp3_cover_overlay_checkbox.setFixedWidth(checkbox_width)
         self.mp3_cover_overlay_checkbox.setChecked(False)
         def update_mp3_cover_overlay_checkbox_style(state):
             self.mp3_cover_overlay_checkbox.setStyleSheet("")  # Always default color
@@ -5500,7 +5499,7 @@ class SuperCutUI(QWidget):
 
         # Custom image file selection for MP3 cover overlay
         self.mp3_cover_custom_image_edit = ImageDropLineEdit()
-        self.mp3_cover_custom_image_edit.setFixedWidth(120)
+        self.mp3_cover_custom_image_edit.setFixedWidth(115)
         self.mp3_cover_custom_image_edit.setPlaceholderText("Select custom image...")
         self.mp3_cover_custom_image_path = None
         
@@ -5680,7 +5679,7 @@ class SuperCutUI(QWidget):
 
         # --- FRAME BOX OVERLAY ---
         self.frame_box_checkbox = QtWidgets.QCheckBox("Frame Box:")
-        self.frame_box_checkbox.setFixedWidth(82)
+        self.frame_box_checkbox.setFixedWidth(checkbox_width)
         self.frame_box_checkbox.setChecked(False)
         def update_frame_box_checkbox_style(state):
             self.frame_box_checkbox.setStyleSheet("")  # Always default color
@@ -5698,7 +5697,7 @@ class SuperCutUI(QWidget):
 
         # Custom image file selection
         self.frame_box_custom_image_edit = ImageDropLineEdit()
-        self.frame_box_custom_image_edit.setFixedWidth(120)
+        self.frame_box_custom_image_edit.setFixedWidth(115)
         self.frame_box_custom_image_edit.setPlaceholderText("Select custom image...")
         self.frame_box_custom_image_path = None
         
@@ -5987,8 +5986,8 @@ class SuperCutUI(QWidget):
         frame_box_caption_header_layout.setSpacing(4)
         
         # Frame Box Caption Checkbox
-        self.frame_box_caption_checkbox = QtWidgets.QCheckBox("Frame Box Caption:")
-        self.frame_box_caption_checkbox.setFixedWidth(140)
+        self.frame_box_caption_checkbox = QtWidgets.QCheckBox("Caption:")
+        self.frame_box_caption_checkbox.setFixedWidth(checkbox_width)
         self.frame_box_caption_checkbox.setChecked(False)
         def update_frame_box_caption_checkbox_style(state):
             self.frame_box_caption_checkbox.setStyleSheet("")  # Always default color
@@ -6590,7 +6589,7 @@ class SuperCutUI(QWidget):
 
         # --- BACKGROUND LAYER SCALE CONTROL ---
         self.bg_layer_checkbox = QtWidgets.QCheckBox("BG Layer:")
-        self.bg_layer_checkbox.setFixedWidth(80)
+        self.bg_layer_checkbox.setFixedWidth(checkbox_width)
         self.bg_layer_checkbox.setChecked(False)
         def update_bg_layer_checkbox_style(state):
             self.bg_layer_checkbox.setStyleSheet("")  # Always default color
