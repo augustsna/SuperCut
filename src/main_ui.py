@@ -1741,7 +1741,27 @@ class SuperCutUI(QWidget):
         overlay1_layout.addWidget(overlay1_y_label)
         overlay1_layout.addWidget(self.overlay1_y_combo)
         set_overlay1_enabled(self.overlay_checkbox.checkState())
-        layout.addLayout(overlay1_layout)
+        # --- Overlay 1, 2, and 1_2 Effect Group Box ---
+        overlay_groupbox_1_2 = QtWidgets.QGroupBox("Overlay 1 && 2")
+        overlay_groupbox_1_2.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        overlay_groupbox_1_2_layout = QVBoxLayout(overlay_groupbox_1_2)
+        overlay_groupbox_1_2_layout.setSpacing(8)
+        overlay_groupbox_1_2_layout.setContentsMargins(10, 5, 10, 10)
+        overlay_groupbox_1_2_layout.addLayout(overlay1_layout)
 
         # Overlay 2 controls (similar to Overlay 1)
         self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2:")
@@ -1857,7 +1877,7 @@ class SuperCutUI(QWidget):
         overlay2_layout.addWidget(overlay2_y_label)
         overlay2_layout.addWidget(self.overlay2_y_combo)
         set_overlay2_enabled(self.overlay2_checkbox.checkState())
-        layout.addLayout(overlay2_layout)
+        overlay_groupbox_1_2_layout.addLayout(overlay2_layout)
 
         # --- EFFECT CONTROL FOR INTRO & OVERLAY (moved below Overlay 2) ---
         combo_width = 130
@@ -2005,7 +2025,8 @@ class SuperCutUI(QWidget):
         effect_layout.addSpacing(-6)
         effect_layout.addWidget(self.overlay1_2_duration_full_checkbox)
         effect_layout.addStretch()
-        layout.addLayout(effect_layout)
+        overlay_groupbox_1_2_layout.addLayout(effect_layout)
+        layout.addWidget(overlay_groupbox_1_2)
 
         # --- Overlay effect label greying logic ---
         def update_overlay_effect_label_style():
