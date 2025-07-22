@@ -4963,6 +4963,28 @@ class SuperCutUI(QWidget):
         self.overlay10_start_end_combo.currentIndexChanged.connect(lambda _: update_overlay10_effect_label_style())
         update_overlay10_effect_label_style()
 
+        # --- FRAME BOX GROUP BOX ---
+        frame_box_groupbox = QtWidgets.QGroupBox("Frame Box Settings")
+        frame_box_groupbox.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        frame_box_groupbox_layout = QVBoxLayout(frame_box_groupbox)
+        frame_box_groupbox_layout.setSpacing(8)
+        frame_box_groupbox_layout.setContentsMargins(10, 5, 10, 10)
+        layout.addWidget(frame_box_groupbox)
+
         # --- FRAME BOX OVERLAY ---
         self.frame_box_checkbox = QtWidgets.QCheckBox("Frame Box:")
         self.frame_box_checkbox.setFixedWidth(82)
@@ -5064,7 +5086,7 @@ class SuperCutUI(QWidget):
         frame_box_layout.addSpacing(4)
         frame_box_layout.addWidget(frame_box_y_label)
         frame_box_layout.addWidget(self.frame_box_y_combo)
-        layout.addLayout(frame_box_layout)
+        frame_box_groupbox_layout.addLayout(frame_box_layout)
 
         # --- EFFECT CONTROL FOR FRAME BOX ---
         frame_box_label = QLabel("Frame Box:")
@@ -5135,10 +5157,47 @@ class SuperCutUI(QWidget):
                 self.frame_box_start_time = 5
         self.frame_box_start_edit.textChanged.connect(on_frame_box_start_changed)
         on_frame_box_start_changed()
+        # --- Frame Box Color Picker and Opacity Control (same line) ---
+        frame_box_color_layout = QHBoxLayout()
+        frame_box_color_layout.setContentsMargins(0, 0, 0, 0)
+        frame_box_color_label = QLabel("Frame Color:")
+        frame_box_color_label.setFixedWidth(80)
+        self.frame_box_color_btn = QPushButton()        
+        self.frame_box_color_btn.setFixedWidth(27)
+        self.frame_box_color_btn.setFixedHeight(27)
+        self.frame_box_color = (255, 255, 255)  # Default white
+        self.frame_box_color_btn.setStyleSheet(
+            f"background-color: white; border: 1px solid #ccc;")
+        
+        def on_frame_box_color_clicked():
+            color = QColorDialog.getColor()
+            if color.isValid():
+                self.frame_box_color = (color.red(), color.green(), color.blue())
+                self.frame_box_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc;")
+        self.frame_box_color_btn.clicked.connect(on_frame_box_color_clicked)
+        self.frame_box_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")        
+
+        frame_box_opacity_label = QLabel("Frame Opacity:")
+        frame_box_opacity_label.setFixedWidth(80)
+        self.frame_box_opacity_combo = NoWheelComboBox()
+        self.frame_box_opacity_combo.setFixedWidth(80)
+        for percent in range(0, 101, 5):
+            self.frame_box_opacity_combo.addItem(f"{percent}%", percent / 100.0)
+        self.frame_box_opacity_combo.setCurrentIndex(100 // 5)  # Default 100%
+        self.frame_box_opacity = 1.0
+        def on_frame_box_opacity_changed(idx):
+            self.frame_box_opacity = self.frame_box_opacity_combo.itemData(idx)
+        self.frame_box_opacity_combo.currentIndexChanged.connect(on_frame_box_opacity_changed)
+        on_frame_box_opacity_changed(self.frame_box_opacity_combo.currentIndex())    
 
         frame_box_effect_layout = QHBoxLayout()
         frame_box_effect_layout.setContentsMargins(0, 0, 0, 0)
         frame_box_effect_layout.addSpacing(-80)
+        frame_box_effect_layout.addWidget(self.frame_box_start_edit)
+        frame_box_effect_layout.addWidget(frame_box_color_label)
+        frame_box_effect_layout.addWidget(self.frame_box_color_btn)
+        frame_box_effect_layout.addWidget(frame_box_opacity_label)
+        frame_box_effect_layout.addWidget(self.frame_box_opacity_combo)
         frame_box_effect_layout.addWidget(frame_box_label)
         frame_box_effect_layout.addSpacing(-3)
         frame_box_effect_layout.addWidget(self.frame_box_effect_combo)
@@ -5148,10 +5207,85 @@ class SuperCutUI(QWidget):
         frame_box_effect_layout.addSpacing(-6)
         frame_box_effect_layout.addWidget(self.frame_box_duration_full_checkbox)
         frame_box_effect_layout.addSpacing(-6)
-        frame_box_effect_layout.addWidget(frame_box_start_label)
-        frame_box_effect_layout.addWidget(self.frame_box_start_edit)
-        frame_box_effect_layout.addStretch()
-        layout.addLayout(frame_box_effect_layout)
+        frame_box_effect_layout.addWidget(frame_box_start_label)        
+        frame_box_effect_layout.addStretch()        
+        frame_box_groupbox_layout.addLayout(frame_box_effect_layout)
+
+        # --- Frame Box Padding Controls (separate line below frame color) ---
+        frame_box_padding_layout = QHBoxLayout()
+        frame_box_padding_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Padding label
+        pad_label = QLabel("Frame Padding:")
+        pad_label.setFixedWidth(80)        
+        
+        # Left padding
+        left_pad_label = QLabel("Left:")
+        left_pad_label.setFixedWidth(35)
+        self.frame_box_pad_left_combo = NoWheelComboBox()
+        self.frame_box_pad_left_combo.setFixedWidth(80)
+        
+        # Right padding
+        right_pad_label = QLabel("Right:")
+        right_pad_label.setFixedWidth(35)
+        self.frame_box_pad_right_combo = NoWheelComboBox()
+        self.frame_box_pad_right_combo.setFixedWidth(80)
+        
+        # Top padding
+        top_pad_label = QLabel("Top:")
+        top_pad_label.setFixedWidth(35)
+        self.frame_box_pad_top_combo = NoWheelComboBox()
+        self.frame_box_pad_top_combo.setFixedWidth(80)
+        
+        # Bottom padding
+        bottom_pad_label = QLabel("Bottom:")
+        bottom_pad_label.setFixedWidth(35)
+        self.frame_box_pad_bottom_combo = NoWheelComboBox()
+        self.frame_box_pad_bottom_combo.setFixedWidth(80)
+        
+        # Populate padding dropdowns with values 0-250 (step 1)
+        for px in range(0, 251, 1):
+            self.frame_box_pad_left_combo.addItem(f"{px}px", px)
+            self.frame_box_pad_right_combo.addItem(f"{px}px", px)
+            self.frame_box_pad_top_combo.addItem(f"{px}px", px)
+            self.frame_box_pad_bottom_combo.addItem(f"{px}px", px)
+        self.frame_box_pad_left_combo.setCurrentIndex(12)   # 12px
+        self.frame_box_pad_right_combo.setCurrentIndex(12)  # 12px
+        self.frame_box_pad_top_combo.setCurrentIndex(12)    # 12px
+        self.frame_box_pad_bottom_combo.setCurrentIndex(48) # 48px
+        self.frame_box_pad_left = 12
+        self.frame_box_pad_right = 12
+        self.frame_box_pad_top = 12
+        self.frame_box_pad_bottom = 48
+        def on_frame_box_pad_left_changed(idx):
+            self.frame_box_pad_left = self.frame_box_pad_left_combo.itemData(idx)
+        def on_frame_box_pad_right_changed(idx):
+            self.frame_box_pad_right = self.frame_box_pad_right_combo.itemData(idx)
+        def on_frame_box_pad_top_changed(idx):
+            self.frame_box_pad_top = self.frame_box_pad_top_combo.itemData(idx)
+        def on_frame_box_pad_bottom_changed(idx):
+            self.frame_box_pad_bottom = self.frame_box_pad_bottom_combo.itemData(idx)
+        self.frame_box_pad_left_combo.currentIndexChanged.connect(on_frame_box_pad_left_changed)
+        self.frame_box_pad_right_combo.currentIndexChanged.connect(on_frame_box_pad_right_changed)
+        self.frame_box_pad_top_combo.currentIndexChanged.connect(on_frame_box_pad_top_changed)
+        self.frame_box_pad_bottom_combo.currentIndexChanged.connect(on_frame_box_pad_bottom_changed)
+        on_frame_box_pad_left_changed(self.frame_box_pad_left_combo.currentIndex())
+        on_frame_box_pad_right_changed(self.frame_box_pad_right_combo.currentIndex())
+        on_frame_box_pad_top_changed(self.frame_box_pad_top_combo.currentIndex())
+        on_frame_box_pad_bottom_changed(self.frame_box_pad_bottom_combo.currentIndex())
+        
+        # Add padding controls with labels        
+        frame_box_padding_layout.addWidget(pad_label)
+        frame_box_padding_layout.addWidget(left_pad_label)
+        frame_box_padding_layout.addWidget(self.frame_box_pad_left_combo)
+        frame_box_padding_layout.addWidget(right_pad_label)
+        frame_box_padding_layout.addWidget(self.frame_box_pad_right_combo)
+        frame_box_padding_layout.addWidget(top_pad_label)
+        frame_box_padding_layout.addWidget(self.frame_box_pad_top_combo)
+        frame_box_padding_layout.addWidget(bottom_pad_label)
+        frame_box_padding_layout.addWidget(self.frame_box_pad_bottom_combo)        
+        frame_box_padding_layout.addStretch()        
+        frame_box_groupbox_layout.addLayout(frame_box_padding_layout)
 
         # --- Frame Box Caption Checkbox and Position Selection ---
         frame_box_caption_header_layout = QHBoxLayout()
@@ -5254,8 +5388,8 @@ class SuperCutUI(QWidget):
         frame_box_caption_header_layout.addWidget(caption_png_label)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_edit)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_btn)
-        frame_box_caption_header_layout.addStretch()
-        layout.addLayout(frame_box_caption_header_layout)
+        frame_box_caption_header_layout.addStretch()        
+        frame_box_groupbox_layout.addLayout(frame_box_caption_header_layout)
         
         # Text styling controls (second line)
         frame_box_caption_styling_layout = QHBoxLayout()
@@ -5399,8 +5533,8 @@ class SuperCutUI(QWidget):
         # Initialize effect controls state
         on_frame_box_caption_effect_changed(0)  # Default to "none"
         
-        # Add styling controls layout
-        layout.addLayout(frame_box_caption_styling_layout)
+        # Add styling controls layout        
+        frame_box_groupbox_layout.addLayout(frame_box_caption_styling_layout)
         
         # Function to update custom image controls state
         def update_custom_image_controls_state():
@@ -5626,122 +5760,6 @@ class SuperCutUI(QWidget):
             update_caption_controls_state()
         self.frame_box_caption_checkbox.stateChanged.connect(on_frame_box_caption_checked)
 
-        # --- Frame Box Color Picker and Opacity Control (same line) ---
-        frame_box_color_layout = QHBoxLayout()
-        frame_box_color_layout.setContentsMargins(0, 0, 0, 0)
-        frame_box_color_label = QLabel("Frame Color:")
-        frame_box_color_label.setFixedWidth(80)
-        self.frame_box_color_btn = QPushButton()        
-        self.frame_box_color_btn.setFixedWidth(27)
-        self.frame_box_color_btn.setFixedHeight(27)
-        self.frame_box_color = (255, 255, 255)  # Default white
-        self.frame_box_color_btn.setStyleSheet(
-            f"background-color: white; border: 1px solid #ccc;")
-        
-        def on_frame_box_color_clicked():
-            color = QColorDialog.getColor()
-            if color.isValid():
-                self.frame_box_color = (color.red(), color.green(), color.blue())
-                self.frame_box_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc;")
-        self.frame_box_color_btn.clicked.connect(on_frame_box_color_clicked)
-        self.frame_box_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
-        frame_box_color_layout.addWidget(frame_box_color_label)
-        frame_box_color_layout.addWidget(self.frame_box_color_btn)
-        frame_box_color_layout.addSpacing(16)
-
-        frame_box_opacity_label = QLabel("Frame Opacity:")
-        frame_box_opacity_label.setFixedWidth(80)
-        self.frame_box_opacity_combo = NoWheelComboBox()
-        self.frame_box_opacity_combo.setFixedWidth(80)
-        for percent in range(0, 101, 5):
-            self.frame_box_opacity_combo.addItem(f"{percent}%", percent / 100.0)
-        self.frame_box_opacity_combo.setCurrentIndex(100 // 5)  # Default 100%
-        self.frame_box_opacity = 1.0
-        def on_frame_box_opacity_changed(idx):
-            self.frame_box_opacity = self.frame_box_opacity_combo.itemData(idx)
-        self.frame_box_opacity_combo.currentIndexChanged.connect(on_frame_box_opacity_changed)
-        on_frame_box_opacity_changed(self.frame_box_opacity_combo.currentIndex())
-        frame_box_color_layout.addWidget(frame_box_opacity_label)
-        frame_box_color_layout.addWidget(self.frame_box_opacity_combo)
-        frame_box_color_layout.addStretch()
-        layout.addLayout(frame_box_color_layout)
-
-        # --- Frame Box Padding Controls (separate line below frame color) ---
-        frame_box_padding_layout = QHBoxLayout()
-        frame_box_padding_layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Padding label
-        pad_label = QLabel("Frame Padding:")
-        pad_label.setFixedWidth(80)
-        frame_box_padding_layout.addWidget(pad_label)
-        
-        # Left padding
-        left_pad_label = QLabel("Left:")
-        left_pad_label.setFixedWidth(35)
-        self.frame_box_pad_left_combo = NoWheelComboBox()
-        self.frame_box_pad_left_combo.setFixedWidth(80)
-        
-        # Right padding
-        right_pad_label = QLabel("Right:")
-        right_pad_label.setFixedWidth(35)
-        self.frame_box_pad_right_combo = NoWheelComboBox()
-        self.frame_box_pad_right_combo.setFixedWidth(80)
-        
-        # Top padding
-        top_pad_label = QLabel("Top:")
-        top_pad_label.setFixedWidth(35)
-        self.frame_box_pad_top_combo = NoWheelComboBox()
-        self.frame_box_pad_top_combo.setFixedWidth(80)
-        
-        # Bottom padding
-        bottom_pad_label = QLabel("Bottom:")
-        bottom_pad_label.setFixedWidth(35)
-        self.frame_box_pad_bottom_combo = NoWheelComboBox()
-        self.frame_box_pad_bottom_combo.setFixedWidth(80)
-        
-        # Populate padding dropdowns with values 0-250 (step 1)
-        for px in range(0, 251, 1):
-            self.frame_box_pad_left_combo.addItem(f"{px}px", px)
-            self.frame_box_pad_right_combo.addItem(f"{px}px", px)
-            self.frame_box_pad_top_combo.addItem(f"{px}px", px)
-            self.frame_box_pad_bottom_combo.addItem(f"{px}px", px)
-        self.frame_box_pad_left_combo.setCurrentIndex(12)   # 12px
-        self.frame_box_pad_right_combo.setCurrentIndex(12)  # 12px
-        self.frame_box_pad_top_combo.setCurrentIndex(12)    # 12px
-        self.frame_box_pad_bottom_combo.setCurrentIndex(48) # 48px
-        self.frame_box_pad_left = 12
-        self.frame_box_pad_right = 12
-        self.frame_box_pad_top = 12
-        self.frame_box_pad_bottom = 48
-        def on_frame_box_pad_left_changed(idx):
-            self.frame_box_pad_left = self.frame_box_pad_left_combo.itemData(idx)
-        def on_frame_box_pad_right_changed(idx):
-            self.frame_box_pad_right = self.frame_box_pad_right_combo.itemData(idx)
-        def on_frame_box_pad_top_changed(idx):
-            self.frame_box_pad_top = self.frame_box_pad_top_combo.itemData(idx)
-        def on_frame_box_pad_bottom_changed(idx):
-            self.frame_box_pad_bottom = self.frame_box_pad_bottom_combo.itemData(idx)
-        self.frame_box_pad_left_combo.currentIndexChanged.connect(on_frame_box_pad_left_changed)
-        self.frame_box_pad_right_combo.currentIndexChanged.connect(on_frame_box_pad_right_changed)
-        self.frame_box_pad_top_combo.currentIndexChanged.connect(on_frame_box_pad_top_changed)
-        self.frame_box_pad_bottom_combo.currentIndexChanged.connect(on_frame_box_pad_bottom_changed)
-        on_frame_box_pad_left_changed(self.frame_box_pad_left_combo.currentIndex())
-        on_frame_box_pad_right_changed(self.frame_box_pad_right_combo.currentIndex())
-        on_frame_box_pad_top_changed(self.frame_box_pad_top_combo.currentIndex())
-        on_frame_box_pad_bottom_changed(self.frame_box_pad_bottom_combo.currentIndex())
-        
-        # Add padding controls with labels
-        frame_box_padding_layout.addWidget(left_pad_label)
-        frame_box_padding_layout.addWidget(self.frame_box_pad_left_combo)
-        frame_box_padding_layout.addWidget(right_pad_label)
-        frame_box_padding_layout.addWidget(self.frame_box_pad_right_combo)
-        frame_box_padding_layout.addWidget(top_pad_label)
-        frame_box_padding_layout.addWidget(self.frame_box_pad_top_combo)
-        frame_box_padding_layout.addWidget(bottom_pad_label)
-        frame_box_padding_layout.addWidget(self.frame_box_pad_bottom_combo)        
-        frame_box_padding_layout.addStretch()
-        layout.addLayout(frame_box_padding_layout)
-
         def set_frame_box_enabled(state):
             enabled = state == Qt.CheckState.Checked
             self.frame_box_size_combo.setEnabled(enabled)
@@ -5788,7 +5806,6 @@ class SuperCutUI(QWidget):
                 top_pad_label.setStyleSheet("")
                 bottom_pad_label.setStyleSheet("")
                 
-
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.frame_box_size_combo.setStyleSheet(grey_btn_style)
@@ -5854,6 +5871,28 @@ class SuperCutUI(QWidget):
         update_frame_box_effect_label_style()
         set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
         update_custom_image_controls_state()
+
+        # --- MP3 COVER OVERLAY GROUP BOX ---
+        mp3_cover_groupbox = QtWidgets.QGroupBox("MP3 Cover Overlay Settings")
+        mp3_cover_groupbox.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        mp3_cover_groupbox_layout = QVBoxLayout(mp3_cover_groupbox)
+        mp3_cover_groupbox_layout.setSpacing(8)
+        mp3_cover_groupbox_layout.setContentsMargins(10, 5, 10, 10)
+        layout.addWidget(mp3_cover_groupbox)
 
         # --- DYNAMIC MP3 COVER OVERLAY ---
         self.mp3_cover_overlay_checkbox = QtWidgets.QCheckBox("MP3 Cover Overlay:")
@@ -6154,8 +6193,8 @@ class SuperCutUI(QWidget):
         mp3_cover_overlay_layout.addSpacing(4)
         mp3_cover_overlay_layout.addWidget(mp3_cover_y_label)
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_y_combo)
-        mp3_cover_overlay_layout.addStretch()
-        layout.addLayout(mp3_cover_overlay_layout)
+        mp3_cover_overlay_layout.addStretch()        
+        mp3_cover_groupbox_layout.addLayout(mp3_cover_overlay_layout)
 
         # Second line: custom image controls, effect, duration, and start controls
         mp3_cover_effect_layout = QHBoxLayout()
@@ -6175,13 +6214,35 @@ class SuperCutUI(QWidget):
         mp3_cover_effect_layout.addSpacing(4)
         mp3_cover_effect_layout.addWidget(mp3_cover_start_label)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_start_edit)
-        mp3_cover_effect_layout.addStretch()
-        layout.addLayout(mp3_cover_effect_layout)
+        mp3_cover_effect_layout.addStretch()        
+        mp3_cover_groupbox_layout.addLayout(mp3_cover_effect_layout)
 
         # Initialize MP3 cover overlay enabled state
         set_mp3_cover_overlay_enabled(self.mp3_cover_overlay_checkbox.checkState())
         set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState())
         # --- END DYNAMIC MP3 COVER OVERLAY ---
+
+        # --- FRAME MP3 COVER GROUP BOX ---
+        frame_mp3cover_groupbox = QtWidgets.QGroupBox("Frame MP3 Cover Settings")
+        frame_mp3cover_groupbox.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        frame_mp3cover_groupbox_layout = QVBoxLayout(frame_mp3cover_groupbox)
+        frame_mp3cover_groupbox_layout.setSpacing(8)
+        frame_mp3cover_groupbox_layout.setContentsMargins(10, 5, 10, 10)
+        layout.addWidget(frame_mp3cover_groupbox)
 
         # --- FRAME MP3COVER OVERLAY ---
         self.frame_mp3cover_checkbox = QtWidgets.QCheckBox("Frame_mp3cover:")
@@ -6350,8 +6411,8 @@ class SuperCutUI(QWidget):
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_x_combo)
         frame_mp3cover_layout.addSpacing(4)
         frame_mp3cover_layout.addWidget(frame_mp3cover_y_label)
-        frame_mp3cover_layout.addWidget(self.frame_mp3cover_y_combo)
-        layout.addLayout(frame_mp3cover_layout)
+        frame_mp3cover_layout.addWidget(self.frame_mp3cover_y_combo)        
+        frame_mp3cover_groupbox_layout.addLayout(frame_mp3cover_layout)
 
         # --- EFFECT CONTROL FOR FRAME MP3COVER ---
         frame_mp3cover_label = QLabel("Frame_mp3cover:")
@@ -6438,7 +6499,7 @@ class SuperCutUI(QWidget):
         frame_mp3cover_effect_layout.addWidget(frame_mp3cover_start_label)
         frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_start_edit)
         frame_mp3cover_effect_layout.addStretch()
-        layout.addLayout(frame_mp3cover_effect_layout)
+        frame_mp3cover_groupbox_layout.addLayout(frame_mp3cover_effect_layout)
         
         # Initialize frame mp3cover enabled state after all controls are created
         set_frame_mp3cover_enabled(self.frame_mp3cover_checkbox.checkState())
@@ -6481,6 +6542,28 @@ class SuperCutUI(QWidget):
         update_frame_mp3cover_effect_label_style()
         set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState())
         update_frame_mp3cover_custom_image_controls_state()
+
+        # --- FINAL SETTINGS GROUP BOX ---
+        final_settings_groupbox = QtWidgets.QGroupBox("Final Settings")
+        final_settings_groupbox.setStyleSheet("""
+        QGroupBox {
+            font-weight: bold;
+            border: 2px solid #cccccc;
+            border-radius: 5px;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+        QGroupBox::title {
+            subcontrol-origin: margin;
+            left: 10px;
+            padding: 0 5px 0 5px;
+            color: #333333;
+            }
+        """)
+        final_settings_groupbox_layout = QVBoxLayout(final_settings_groupbox)
+        final_settings_groupbox_layout.setSpacing(8)
+        final_settings_groupbox_layout.setContentsMargins(10, 5, 10, 10)
+        layout.addWidget(final_settings_groupbox)
 
         # --- BACKGROUND LAYER SCALE CONTROL ---
         self.bg_layer_checkbox = QtWidgets.QCheckBox("BG Layer:")
@@ -6608,15 +6691,15 @@ class SuperCutUI(QWidget):
         bg_layer_layout.addSpacing(4)
         bg_layer_layout.addWidget(bg_intensity_label)
         bg_layer_layout.addWidget(self.bg_intensity_combo)
-        bg_layer_layout.addStretch()
-        layout.addLayout(bg_layer_layout)
+        bg_layer_layout.addStretch()        
+        final_settings_groupbox_layout.addLayout(bg_layer_layout)
 
         # Initialize background layer enabled state
         set_bg_layer_enabled(self.bg_layer_checkbox.checkState())
         # --- END BACKGROUND LAYER SCALE CONTROL ---
 
         # Placeholder checkbox (placeholder - does nothing for now)
-        self.lyric_checkbox = QtWidgets.QCheckBox("Placeholder:")
+        self.lyric_checkbox = QtWidgets.QCheckBox("Lyric:")
         self.lyric_checkbox.setFixedWidth(100)
         self.lyric_checkbox.setChecked(False)
         def update_lyric_checkbox_style(state):
@@ -6625,7 +6708,7 @@ class SuperCutUI(QWidget):
         update_lyric_checkbox_style(self.lyric_checkbox.checkState())
 
         # Placeholder dropdown (placeholder - does nothing for now)
-        self.lyric_dropdown_label = QtWidgets.QLabel("Placeholder:")
+        self.lyric_dropdown_label = QtWidgets.QLabel("Lyric:")
         self.lyric_dropdown_label.setFixedWidth(80)
         self.lyric_dropdown = NoWheelComboBox()
         self.lyric_dropdown.setFixedWidth(125)
@@ -6655,7 +6738,7 @@ class SuperCutUI(QWidget):
         lyric_layout.addWidget(self.lyric_dropdown_label)
         lyric_layout.addWidget(self.lyric_dropdown)
         lyric_layout.addStretch()
-        layout.addLayout(lyric_layout)
+        final_settings_groupbox_layout.addLayout(lyric_layout)        
 
         # last_item label
         self.last_item_label = QtWidgets.QLabel("Let's fucking go!")
