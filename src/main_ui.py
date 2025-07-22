@@ -1054,6 +1054,7 @@ class SuperCutUI(QWidget):
         # Store scroll area reference for resize handling
         self.scroll_area = scroll_area
 
+
     def create_folder_inputs(self, layout):
         """Create folder selection inputs"""
         folder_row_style = {
@@ -1263,7 +1264,7 @@ class SuperCutUI(QWidget):
 
         settings_layout.addSpacing(10)
 
-# Preset selection
+        # Preset selection
         preset_label = QLabel("Preset:")
         preset_label.setFixedWidth(45)
         self.preset_combo = NoWheelComboBox()
@@ -1277,12 +1278,9 @@ class SuperCutUI(QWidget):
         preset_index = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 6)  # Default to "slow"
         self.preset_combo.setCurrentIndex(preset_index)
         
-
-        
         settings_layout.addWidget(preset_label)
         settings_layout.addSpacing(0)
         settings_layout.addWidget(self.preset_combo)     
-        
         settings_layout.addStretch()
         layout.addLayout(settings_layout)
 
@@ -5864,8 +5862,7 @@ class SuperCutUI(QWidget):
 
         frame_box_effect_layout = QHBoxLayout()
         frame_box_effect_layout.setContentsMargins(0, 0, 0, 0)
-        frame_box_effect_layout.addSpacing(-80)
-        frame_box_effect_layout.addWidget(self.frame_box_start_edit)
+        frame_box_effect_layout.addSpacing(0)        
         frame_box_effect_layout.addWidget(frame_box_color_label)
         frame_box_effect_layout.addWidget(self.frame_box_color_btn)
         frame_box_effect_layout.addWidget(frame_box_opacity_label)
@@ -5879,7 +5876,8 @@ class SuperCutUI(QWidget):
         frame_box_effect_layout.addSpacing(-6)
         frame_box_effect_layout.addWidget(self.frame_box_duration_full_checkbox)
         frame_box_effect_layout.addSpacing(-6)
-        frame_box_effect_layout.addWidget(frame_box_start_label)        
+        frame_box_effect_layout.addWidget(frame_box_start_label)
+        frame_box_effect_layout.addWidget(self.frame_box_start_edit)        
         frame_box_effect_layout.addStretch()        
         frame_box_groupbox_layout.addLayout(frame_box_effect_layout)
 
