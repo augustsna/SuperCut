@@ -2185,7 +2185,27 @@ class SuperCutUI(QWidget):
         overlay4_layout.addWidget(overlay4_y_label)
         overlay4_layout.addWidget(self.overlay4_y_combo)
         set_overlay4_enabled(self.overlay4_checkbox.checkState())
-        layout.addLayout(overlay4_layout)
+        # --- Overlay 4, 5, and 4_5 Effect Group Box ---
+        overlay_groupbox_4_5 = QtWidgets.QGroupBox("Overlay 4, 5, and 4_5 Effect")
+        overlay_groupbox_4_5.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        overlay_groupbox_4_5_layout = QVBoxLayout(overlay_groupbox_4_5)
+        overlay_groupbox_4_5_layout.setSpacing(8)
+        overlay_groupbox_4_5_layout.setContentsMargins(10, 5, 10, 10)
+        overlay_groupbox_4_5_layout.addLayout(overlay4_layout)
 
         # Overlay 5 controls (similar to Overlay 4)
         def update_overlay5_checkbox_style(state):
@@ -2295,7 +2315,7 @@ class SuperCutUI(QWidget):
         overlay5_layout.addWidget(overlay5_y_label)
         overlay5_layout.addWidget(self.overlay5_y_combo)
         set_overlay5_enabled(self.overlay5_checkbox.checkState())
-        layout.addLayout(overlay5_layout)
+        overlay_groupbox_4_5_layout.addLayout(overlay5_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 4_5 (identical for both overlays) ---
         overlay4_5_label = QLabel("Overlay 4_5:")
@@ -2436,7 +2456,8 @@ class SuperCutUI(QWidget):
         overlay4_5_layout.addSpacing(-6)
         overlay4_5_layout.addWidget(self.overlay4_5_duration_full_checkbox)
         overlay4_5_layout.addStretch()
-        layout.addLayout(overlay4_5_layout)
+        overlay_groupbox_4_5_layout.addLayout(overlay4_5_layout)
+        layout.addWidget(overlay_groupbox_4_5)
         def update_overlay4_5_effect_label_style():
             if not (self.overlay4_checkbox.isChecked() or self.overlay5_checkbox.isChecked()):
                 overlay4_5_label.setStyleSheet("color: grey;")
