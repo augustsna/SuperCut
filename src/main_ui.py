@@ -3685,7 +3685,28 @@ class SuperCutUI(QWidget):
         song_title_effects_layout.addStretch()
         overlay_groupbox_3_titles_wave_layout.addLayout(song_title_effects_layout)
 
-        
+        # --- OVERLAY 8 GROUP BOX ---
+        overlay_groupbox_8 = QtWidgets.QGroupBox("Overlay 8 Settings")
+        overlay_groupbox_8.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        overlay_groupbox_8_layout = QVBoxLayout(overlay_groupbox_8)
+        overlay_groupbox_8_layout.setSpacing(8)
+        overlay_groupbox_8_layout.setContentsMargins(10, 5, 10, 10)
+        layout.addWidget(overlay_groupbox_8)
+
 
         # Overlay 8 controls (similar to Overlay 7)
         self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
@@ -3868,7 +3889,7 @@ class SuperCutUI(QWidget):
         self.overlay8_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState()))
         set_overlay8_enabled(self.overlay8_checkbox.checkState())
         set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
-        layout.addLayout(overlay8_layout)
+        overlay_groupbox_8_layout.addLayout(overlay8_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 8 (individual effect control) ---
         overlay8_label = QLabel("Overlay 8:")
@@ -4028,8 +4049,8 @@ class SuperCutUI(QWidget):
         overlay8_layout.addWidget(overlay8_start_from_label)
         overlay8_layout.addSpacing(-32)
         overlay8_layout.addWidget(self.overlay8_start_from_combo)
-        overlay8_layout.addStretch()
-        layout.addLayout(overlay8_layout)
+        overlay8_layout.addStretch()        
+        overlay_groupbox_8_layout.addLayout(overlay8_layout)
         
         # Overlay8 additional settings in separate row
         overlay8_popup_layout = QHBoxLayout()
@@ -4056,8 +4077,8 @@ class SuperCutUI(QWidget):
         overlay8_popup_layout.addSpacing(10)
         overlay8_popup_layout.addWidget(overlay8_popup_num_label)
         overlay8_popup_layout.addWidget(self.overlay8_popup_num_combo)
-        overlay8_popup_layout.addStretch()
-        layout.addLayout(overlay8_popup_layout)
+        overlay8_popup_layout.addStretch()        
+        overlay_groupbox_8_layout.addLayout(overlay8_popup_layout)
         # Enable/disable popup num combo with popup checkbox AND overlay8 checkbox
         def set_overlay8_popup_num_enabled(state):
             popup_enabled = (state == Qt.CheckState.Checked or state == 2)
