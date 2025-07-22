@@ -2614,7 +2614,27 @@ class SuperCutUI(QWidget):
         overlay6_layout.addWidget(overlay6_y_label)
         overlay6_layout.addWidget(self.overlay6_y_combo)
         set_overlay6_enabled(self.overlay6_checkbox.checkState())
-        layout.addLayout(overlay6_layout)
+        # --- Overlay 6, 7, and 6_7 Effect Group Box ---
+        overlay_groupbox_6_7 = QtWidgets.QGroupBox("Overlay 6, 7, and 6_7 Effect")
+        overlay_groupbox_6_7.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        overlay_groupbox_6_7_layout = QVBoxLayout(overlay_groupbox_6_7)
+        overlay_groupbox_6_7_layout.setSpacing(8)
+        overlay_groupbox_6_7_layout.setContentsMargins(10, 5, 10, 10)
+        overlay_groupbox_6_7_layout.addLayout(overlay6_layout)
 
         # Overlay 7 controls (similar to Overlay 6)
         self.overlay7_checkbox = QtWidgets.QCheckBox("Overlay 7:")
@@ -2730,7 +2750,7 @@ class SuperCutUI(QWidget):
         overlay7_layout.addWidget(overlay7_y_label)
         overlay7_layout.addWidget(self.overlay7_y_combo)
         set_overlay7_enabled(self.overlay7_checkbox.checkState())
-        layout.addLayout(overlay7_layout)
+        overlay_groupbox_6_7_layout.addLayout(overlay7_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 6_7 (identical for both overlays) ---
         overlay6_7_label = QLabel("Overlay 6_7:")
@@ -2881,7 +2901,8 @@ class SuperCutUI(QWidget):
         overlay6_7_layout.addSpacing(-6)
         overlay6_7_layout.addWidget(self.overlay6_7_duration_full_checkbox)
         overlay6_7_layout.addStretch()
-        layout.addLayout(overlay6_7_layout)
+        overlay_groupbox_6_7_layout.addLayout(overlay6_7_layout)
+        layout.addWidget(overlay_groupbox_6_7)
 
         # --- Overlay 6_7 effect greying logic ---
         def update_overlay6_7_effect_label_style():
