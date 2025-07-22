@@ -4146,6 +4146,28 @@ class SuperCutUI(QWidget):
         self.overlay8_start_at_checkbox.stateChanged.connect(lambda _: set_overlay8_start_enabled(self.overlay8_start_at_checkbox.checkState()))
         update_overlay8_effect_label_style()
 
+        # --- OVERLAY 9 GROUP BOX ---
+        overlay_groupbox_9 = QtWidgets.QGroupBox("Overlay 9 Settings")
+        overlay_groupbox_9.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+            """)
+        overlay_groupbox_9_layout = QVBoxLayout(overlay_groupbox_9)
+        overlay_groupbox_9_layout.setSpacing(8)
+        overlay_groupbox_9_layout.setContentsMargins(10, 5, 10, 10)
+        layout.addWidget(overlay_groupbox_9)
+
         # --- OVERLAY 9 (exact copy of overlay8) ---
         self.overlay9_checkbox = QtWidgets.QCheckBox("Overlay 9:")
         self.overlay9_checkbox.setFixedWidth(82)
@@ -4327,7 +4349,7 @@ class SuperCutUI(QWidget):
         self.overlay9_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay9_duration_enabled(self.overlay9_duration_full_checkbox.checkState()))
         set_overlay9_enabled(self.overlay9_checkbox.checkState())
         set_overlay9_duration_enabled(self.overlay9_duration_full_checkbox.checkState())
-        layout.addLayout(overlay9_layout)
+        overlay_groupbox_9_layout.addLayout(overlay9_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 9 (individual effect control) ---
         overlay9_label = QLabel("Overlay 9:")
@@ -4489,7 +4511,7 @@ class SuperCutUI(QWidget):
         overlay9_layout.addSpacing(-32)
         overlay9_layout.addWidget(self.overlay9_start_from_combo)
         overlay9_layout.addStretch()
-        layout.addLayout(overlay9_layout)
+        overlay_groupbox_9_layout.addLayout(overlay9_layout)
         
         # Overlay9 additional settings in separate row
         overlay9_popup_layout = QHBoxLayout()
@@ -4517,7 +4539,7 @@ class SuperCutUI(QWidget):
         overlay9_popup_layout.addWidget(overlay9_popup_num_label)
         overlay9_popup_layout.addWidget(self.overlay9_popup_num_combo)
         overlay9_popup_layout.addStretch()
-        layout.addLayout(overlay9_popup_layout)
+        overlay_groupbox_9_layout.addLayout(overlay9_popup_layout)
         # Enable/disable popup num combo with popup checkbox AND overlay9 checkbox
         def set_overlay9_popup_num_enabled(state):
             popup_enabled = (state == Qt.CheckState.Checked or state == 2)
@@ -4585,7 +4607,27 @@ class SuperCutUI(QWidget):
         self.overlay9_start_at_checkbox.stateChanged.connect(lambda _: set_overlay9_start_enabled(self.overlay9_start_at_checkbox.checkState()))
         update_overlay9_effect_label_style()
 
-        
+        # --- OVERLAY 10 GROUP BOX ---
+        overlay_groupbox_10 = QtWidgets.QGroupBox("Overlay 10 Settings")
+        overlay_groupbox_10.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+            """)
+        overlay_groupbox_10_layout = QVBoxLayout(overlay_groupbox_10)
+        overlay_groupbox_10_layout.setSpacing(8)
+        overlay_groupbox_10_layout.setContentsMargins(10, 5, 10, 10)
+        layout.addWidget(overlay_groupbox_10)
 
         # --- OVERLAY 10 (simplified version of overlay9 without popup and full duration) ---
         self.overlay10_checkbox = QtWidgets.QCheckBox("Overlay 10:")
@@ -4725,7 +4767,7 @@ class SuperCutUI(QWidget):
         overlay10_layout.addSpacing(4)
         overlay10_layout.addWidget(overlay10_y_label)
         overlay10_layout.addWidget(self.overlay10_y_combo)
-        layout.addLayout(overlay10_layout)
+        overlay_groupbox_10_layout.addLayout(overlay10_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 10 (individual effect control) ---
         overlay10_label = QLabel("Overlay 10:")
@@ -4840,7 +4882,7 @@ class SuperCutUI(QWidget):
         overlay10_layout.addWidget(overlay10_start_label)
         overlay10_layout.addWidget(self.overlay10_start_edit)
         overlay10_layout.addStretch()
-        layout.addLayout(overlay10_layout)
+        overlay_groupbox_10_layout.addLayout(overlay10_layout)
 
         # Initialize overlay10 enabled state after all controls are created
         set_overlay10_enabled(self.overlay10_checkbox.checkState())
