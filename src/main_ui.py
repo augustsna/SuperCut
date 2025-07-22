@@ -1119,7 +1119,7 @@ class SuperCutUI(QWidget):
 
     def create_export_inputs(self, layout):
         """Create export name, number, and mp3 per video inputs"""
-        part_layout = QHBoxLayout()
+        self.part_layout = QHBoxLayout()
         self.part1_edit = KhmerSupportLineEdit(DEFAULT_EXPORT_NAME)
         self.part1_edit.setPlaceholderText("Export Name")
         self.part1_edit.setFixedWidth(100)  # Make Name textbox wider
@@ -1180,24 +1180,24 @@ class SuperCutUI(QWidget):
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.update_output_name)
-        part_layout.addSpacing(0)
-        part_layout.addWidget(self.name_list_checkbox)
-        part_layout.addSpacing(-40)
-        part_layout.addWidget(self.name_list_enter_btn)
-        part_layout.addSpacing(15)
-        part_layout.addWidget(QLabel("Name:"))
-        part_layout.addSpacing(-88)  # Reduce space between label and textbox
-        part_layout.addWidget(self.part1_edit)
-        part_layout.addSpacing(0)
-        part_layout.addWidget(QLabel("#"))
-        part_layout.addSpacing(-120) 
-        part_layout.addWidget(self.part2_edit)
-        part_layout.addSpacing(15)
-        part_layout.addWidget(self.mp3_count_checkbox)
-        part_layout.addSpacing(-70)
-        part_layout.addWidget(self.mp3_count_edit)
-        part_layout.addSpacing(50)
-        layout.addLayout(part_layout)
+        self.part_layout.addSpacing(0)
+        self.part_layout.addWidget(self.name_list_checkbox)
+        self.part_layout.addSpacing(-40)
+        self.part_layout.addWidget(self.name_list_enter_btn)
+        self.part_layout.addSpacing(15)
+        self.part_layout.addWidget(QLabel("Name:"))
+        self.part_layout.addSpacing(-88)  # Reduce space between label and textbox
+        self.part_layout.addWidget(self.part1_edit)
+        self.part_layout.addSpacing(0)
+        self.part_layout.addWidget(QLabel("#"))
+        self.part_layout.addSpacing(-120) 
+        self.part_layout.addWidget(self.part2_edit)
+        self.part_layout.addSpacing(15)
+        self.part_layout.addWidget(self.mp3_count_checkbox)
+        self.part_layout.addSpacing(-70)
+        self.part_layout.addWidget(self.mp3_count_edit)
+        self.part_layout.addSpacing(50)
+        # Don't add to main layout here - will be added to core settings group box
         layout.addSpacing(1)  # Add spacing after export inputs
 
     def create_video_settings(self, layout):
@@ -1282,7 +1282,30 @@ class SuperCutUI(QWidget):
         settings_layout.addSpacing(0)
         settings_layout.addWidget(self.preset_combo)     
         settings_layout.addStretch()
-        layout.addLayout(settings_layout)
+        # Don't add to main layout here - will be added to core settings group box
+
+        # --- CORE SETTINGS GROUP BOX ---
+        core_settings_groupbox = QtWidgets.QGroupBox("Core Settings")
+        core_settings_groupbox.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        core_settings_groupbox_layout = QVBoxLayout()
+        core_settings_groupbox_layout.addLayout(self.part_layout)
+        core_settings_groupbox_layout.addLayout(settings_layout)
+        core_settings_groupbox.setLayout(core_settings_groupbox_layout)
+        layout.addWidget(core_settings_groupbox)
 
         # --- INTRO OVERLAY CONTROLS ---
         self.intro_checkbox = QtWidgets.QCheckBox(" Intro :")
