@@ -960,7 +960,6 @@ class SuperCutUI(QWidget):
         title_layout.addWidget(self.title_placeholder_btn)
         title_layout.addWidget(spinner_label, alignment=Qt.AlignmentFlag.AlignVCenter)
         title_layout.addWidget(loading_label, alignment=Qt.AlignmentFlag.AlignVCenter)
-        
         title_layout.addStretch()
         title_widget.setLayout(title_layout)
         layout.addWidget(title_widget)
@@ -1115,7 +1114,7 @@ class SuperCutUI(QWidget):
         folder_layout.addWidget(self.folder_edit)
         folder_layout.addWidget(folder_btn)
         layout.addLayout(folder_layout)
-        layout.addSpacing(3)  # Add spacing after output folder
+        layout.addSpacing(0)  # Add spacing after output folder
 
     def create_export_inputs(self, layout):
         """Create export name, number, and mp3 per video inputs"""
@@ -1182,23 +1181,23 @@ class SuperCutUI(QWidget):
         self.folder_edit.textChanged.connect(self.update_output_name)
         self.part_layout.addSpacing(0)
         self.part_layout.addWidget(self.name_list_checkbox)
-        self.part_layout.addSpacing(-40)
+        self.part_layout.addSpacing(0)
         self.part_layout.addWidget(self.name_list_enter_btn)
-        self.part_layout.addSpacing(15)
+        self.part_layout.addSpacing(0)
         self.part_layout.addWidget(QLabel("Name:"))
-        self.part_layout.addSpacing(-88)  # Reduce space between label and textbox
+        self.part_layout.addSpacing(0)  # Reduce space between label and textbox
         self.part_layout.addWidget(self.part1_edit)
         self.part_layout.addSpacing(0)
         self.part_layout.addWidget(QLabel("#"))
-        self.part_layout.addSpacing(-120) 
+        self.part_layout.addSpacing(0) 
         self.part_layout.addWidget(self.part2_edit)
-        self.part_layout.addSpacing(15)
+        self.part_layout.addSpacing(0)
         self.part_layout.addWidget(self.mp3_count_checkbox)
-        self.part_layout.addSpacing(-70)
+        self.part_layout.addSpacing(0)
         self.part_layout.addWidget(self.mp3_count_edit)
-        self.part_layout.addSpacing(50)
+        self.part_layout.addStretch()
         # Don't add to main layout here - will be added to core settings group box
-        layout.addSpacing(1)  # Add spacing after export inputs
+        layout.addSpacing(0)  # Add spacing after export inputs
 
     def create_video_settings(self, layout):
         """Create video settings controls"""
@@ -1207,12 +1206,12 @@ class SuperCutUI(QWidget):
         settings_layout.setSpacing(0)  # We'll add custom spacing
 
         # Codec selection
-        settings_layout.addSpacing(2)
+        settings_layout.addSpacing(0)
         codec_label = QLabel("Codec:")        
         self.codec_combo = NoWheelComboBox()
-        self.codec_combo.setFixedWidth(130)
-        self.codec_combo.setMinimumHeight(28)
-        self.codec_combo.setMaximumHeight(28)
+        self.codec_combo.setFixedWidth(100) 
+        self.codec_combo.setMinimumHeight(38)
+        self.codec_combo.setMaximumHeight(38)       
         for label, value in DEFAULT_CODECS:
             self.codec_combo.addItem(label, value)
         self.codec_combo.setCurrentIndex(0)
@@ -1225,14 +1224,10 @@ class SuperCutUI(QWidget):
         resolution_label = QLabel("Size:")
         resolution_label.setFixedWidth(35)
         self.resolution_combo = NoWheelComboBox()
-        self.resolution_combo.setFixedWidth(100)
-        self.resolution_combo.setMinimumHeight(28)
-        self.resolution_combo.setMaximumHeight(28)
+        self.resolution_combo.setFixedWidth(70)        
         for label, value in DEFAULT_RESOLUTIONS:
             self.resolution_combo.addItem(label, value)
         self.resolution_combo.setCurrentIndex(0)
-        
-
         
         settings_layout.addWidget(resolution_label)
         settings_layout.addSpacing(0)
@@ -1243,9 +1238,7 @@ class SuperCutUI(QWidget):
         fps_label = QLabel("FPS:")
         fps_label.setFixedWidth(30)
         self.fps_combo = NoWheelComboBox()
-        self.fps_combo.setFixedWidth(95)
-        self.fps_combo.setMinimumHeight(28)
-        self.fps_combo.setMaximumHeight(28)
+        self.fps_combo.setFixedWidth(70)        
         for label, value in DEFAULT_FPS_OPTIONS:
             self.fps_combo.addItem(label, value)
         # Load default FPS from settings
@@ -1256,21 +1249,16 @@ class SuperCutUI(QWidget):
         else:
             self.fps_combo.setCurrentIndex(0)
         
-
-        
         settings_layout.addWidget(fps_label)
         settings_layout.addSpacing(0)
         settings_layout.addWidget(self.fps_combo)
-
         settings_layout.addSpacing(10)
 
         # Preset selection
         preset_label = QLabel("Preset:")
         preset_label.setFixedWidth(45)
         self.preset_combo = NoWheelComboBox()
-        self.preset_combo.setFixedWidth(105)
-        self.preset_combo.setMinimumHeight(28)
-        self.preset_combo.setMaximumHeight(28)
+        self.preset_combo.setFixedWidth(70)        
         for label, value in DEFAULT_FFMPEG_PRESETS:
             self.preset_combo.addItem(label, value)
         # Load default preset from settings
@@ -1319,7 +1307,7 @@ class SuperCutUI(QWidget):
         intro_layout = QHBoxLayout()
         intro_layout.setSpacing(4)
         self.intro_edit = ImageDropLineEdit()
-        self.intro_edit.setPlaceholderText("*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv")
+        self.intro_edit.setPlaceholderText("Select Intro file *.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv")
         self.intro_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select Media'")
         self.intro_edit.setFixedWidth(125)
         self.intro_path = ""
@@ -1615,7 +1603,7 @@ class SuperCutUI(QWidget):
         intro_layout.addSpacing(6)
         intro_layout.addWidget(intro_y_label)
         intro_layout.addWidget(self.intro_y_combo)
-        
+        intro_layout.addStretch()
         intro_group_layout.addLayout(intro_layout)
 
         # Intro effect controls - moved directly below intro line
@@ -1657,7 +1645,7 @@ class SuperCutUI(QWidget):
         overlay1_layout = QHBoxLayout()
         overlay1_layout.setSpacing(4)  # Reduce spacing between widgets
         self.overlay1_edit = ImageDropLineEdit()
-        self.overlay1_edit.setPlaceholderText("Overlay 1 file path (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv)")
+        self.overlay1_edit.setPlaceholderText("Overlay 1 file path (Select Intro *.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv)")
         self.overlay1_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select File'")
         self.overlay1_edit.setFixedWidth(125)  # Make the text box shorter
         self.overlay1_path = ""
@@ -1761,6 +1749,7 @@ class SuperCutUI(QWidget):
         overlay1_layout.addSpacing(4)
         overlay1_layout.addWidget(overlay1_y_label)
         overlay1_layout.addWidget(self.overlay1_y_combo)
+        overlay1_layout.addStretch()
         set_overlay1_enabled(self.overlay_checkbox.checkState())
         # --- Overlay 1, 2, and 1_2 Effect Group Box ---
         overlay_groupbox_1_2 = QtWidgets.QGroupBox("Overlay 1 && 2")
@@ -1897,6 +1886,7 @@ class SuperCutUI(QWidget):
         overlay2_layout.addSpacing(4)
         overlay2_layout.addWidget(overlay2_y_label)
         overlay2_layout.addWidget(self.overlay2_y_combo)
+        overlay2_layout.addStretch()
         set_overlay2_enabled(self.overlay2_checkbox.checkState())
         overlay_groupbox_1_2_layout.addLayout(overlay2_layout)
 
@@ -2205,6 +2195,7 @@ class SuperCutUI(QWidget):
         overlay4_layout.addSpacing(4)
         overlay4_layout.addWidget(overlay4_y_label)
         overlay4_layout.addWidget(self.overlay4_y_combo)
+        overlay4_layout.addStretch()
         set_overlay4_enabled(self.overlay4_checkbox.checkState())
         # --- Overlay 4, 5, and 4_5 Effect Group Box ---
         overlay_groupbox_4_5 = QtWidgets.QGroupBox("Overlay 4, 5, and 4_5 Effect")
@@ -2335,6 +2326,7 @@ class SuperCutUI(QWidget):
         overlay5_layout.addSpacing(4)
         overlay5_layout.addWidget(overlay5_y_label)
         overlay5_layout.addWidget(self.overlay5_y_combo)
+        overlay5_layout.addStretch()
         set_overlay5_enabled(self.overlay5_checkbox.checkState())
         overlay_groupbox_4_5_layout.addLayout(overlay5_layout)
 
@@ -2634,6 +2626,7 @@ class SuperCutUI(QWidget):
         overlay6_layout.addSpacing(4)
         overlay6_layout.addWidget(overlay6_y_label)
         overlay6_layout.addWidget(self.overlay6_y_combo)
+        overlay6_layout.addStretch()
         set_overlay6_enabled(self.overlay6_checkbox.checkState())
         # --- Overlay 6, 7, and 6_7 Effect Group Box ---
         overlay_groupbox_6_7 = QtWidgets.QGroupBox("Overlay 6, 7, and 6_7 Effect")
@@ -2770,6 +2763,7 @@ class SuperCutUI(QWidget):
         overlay7_layout.addSpacing(4)
         overlay7_layout.addWidget(overlay7_y_label)
         overlay7_layout.addWidget(self.overlay7_y_combo)
+        overlay7_layout.addStretch()
         set_overlay7_enabled(self.overlay7_checkbox.checkState())
         overlay_groupbox_6_7_layout.addLayout(overlay7_layout)
 
@@ -3093,6 +3087,7 @@ class SuperCutUI(QWidget):
         overlay3_layout.addSpacing(4)
         overlay3_layout.addWidget(overlay3_y_label)
         overlay3_layout.addWidget(self.overlay3_y_combo)
+        overlay3_layout.addStretch()
         # --- Overlay 3, Song Titles, and Soundwave Group Box ---
         overlay_groupbox_3_titles_wave = QtWidgets.QGroupBox("Overlay 3, Song Titles, and Soundwave")
         overlay_groupbox_3_titles_wave.setStyleSheet("""
@@ -3906,6 +3901,7 @@ class SuperCutUI(QWidget):
         overlay8_layout.addSpacing(4)
         overlay8_layout.addWidget(overlay8_y_label)
         overlay8_layout.addWidget(self.overlay8_y_combo)
+        overlay8_layout.addStretch()
         self.overlay8_checkbox.stateChanged.connect(lambda _: set_overlay8_enabled(self.overlay8_checkbox.checkState()))
         self.overlay8_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState()))
         set_overlay8_enabled(self.overlay8_checkbox.checkState())
@@ -4366,6 +4362,7 @@ class SuperCutUI(QWidget):
         overlay9_layout.addSpacing(4)
         overlay9_layout.addWidget(overlay9_y_label)
         overlay9_layout.addWidget(self.overlay9_y_combo)
+        overlay9_layout.addStretch()
         self.overlay9_checkbox.stateChanged.connect(lambda _: set_overlay9_enabled(self.overlay9_checkbox.checkState()))
         self.overlay9_duration_full_checkbox.stateChanged.connect(lambda _: set_overlay9_duration_enabled(self.overlay9_duration_full_checkbox.checkState()))
         set_overlay9_enabled(self.overlay9_checkbox.checkState())
@@ -4788,6 +4785,7 @@ class SuperCutUI(QWidget):
         overlay10_layout.addSpacing(4)
         overlay10_layout.addWidget(overlay10_y_label)
         overlay10_layout.addWidget(self.overlay10_y_combo)
+        overlay10_layout.addStretch()
         overlay_groupbox_10_layout.addLayout(overlay10_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 10 (individual effect control) ---
@@ -5174,6 +5172,7 @@ class SuperCutUI(QWidget):
         frame_mp3cover_layout.addSpacing(4)
         frame_mp3cover_layout.addWidget(frame_mp3cover_y_label)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_y_combo)        
+        frame_mp3cover_layout.addStretch()
         frame_mp3cover_groupbox_layout.addLayout(frame_mp3cover_layout)
 
         # --- EFFECT CONTROL FOR FRAME MP3COVER ---
@@ -5779,6 +5778,7 @@ class SuperCutUI(QWidget):
         frame_box_layout.addSpacing(4)
         frame_box_layout.addWidget(frame_box_y_label)
         frame_box_layout.addWidget(self.frame_box_y_combo)
+        frame_box_layout.addStretch()
         frame_box_groupbox_layout.addLayout(frame_box_layout)
 
         # --- EFFECT CONTROL FOR FRAME BOX ---
@@ -5850,6 +5850,7 @@ class SuperCutUI(QWidget):
                 self.frame_box_start_time = 5
         self.frame_box_start_edit.textChanged.connect(on_frame_box_start_changed)
         on_frame_box_start_changed()
+
         # --- Frame Box Color Picker and Opacity Control (same line) ---
         frame_box_color_layout = QHBoxLayout()
         frame_box_color_layout.setContentsMargins(0, 0, 0, 0)
@@ -5887,9 +5888,7 @@ class SuperCutUI(QWidget):
         frame_box_effect_layout.setContentsMargins(0, 0, 0, 0)
         frame_box_effect_layout.addSpacing(0)        
         frame_box_effect_layout.addWidget(frame_box_color_label)
-        frame_box_effect_layout.addWidget(self.frame_box_color_btn)
-        frame_box_effect_layout.addWidget(frame_box_opacity_label)
-        frame_box_effect_layout.addWidget(self.frame_box_opacity_combo)
+        frame_box_effect_layout.addWidget(self.frame_box_color_btn)        
         frame_box_effect_layout.addWidget(frame_box_label)
         frame_box_effect_layout.addSpacing(-3)
         frame_box_effect_layout.addWidget(self.frame_box_effect_combo)
@@ -5967,7 +5966,9 @@ class SuperCutUI(QWidget):
         on_frame_box_pad_top_changed(self.frame_box_pad_top_combo.currentIndex())
         on_frame_box_pad_bottom_changed(self.frame_box_pad_bottom_combo.currentIndex())
         
-        # Add padding controls with labels        
+        # Add padding controls with labels   
+        frame_box_padding_layout.addWidget(frame_box_opacity_label)
+        frame_box_padding_layout.addWidget(self.frame_box_opacity_combo)     
         frame_box_padding_layout.addWidget(pad_label)
         frame_box_padding_layout.addWidget(left_pad_label)
         frame_box_padding_layout.addWidget(self.frame_box_pad_left_combo)
