@@ -915,9 +915,9 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 elif ext in [".mp4", ".mov", ".mkv"]:
                     pass
                 chain += "format=rgba"
-                # Special case for overlay10 with effect 'null'
-                if label == "ol10" and effect == "null":
-                    chain += ",null[ol10]"
+                # Special case for overlay8, overlay9, and overlay10 with effect 'null'
+                if label in ["ol8", "ol9", "ol10"] and effect == "null":
+                    chain += ",null[" + label + "]"
                     return chain
                 chain += ","
                 fade_alpha = ":alpha=1" if ext == ".png" else ""

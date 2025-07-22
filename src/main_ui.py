@@ -3970,9 +3970,11 @@ class SuperCutUI(QWidget):
         overlay8_popup_layout.addWidget(self.overlay8_popup_num_combo)
         overlay8_popup_layout.addStretch()
         layout.addLayout(overlay8_popup_layout)
-        # Enable/disable popup num combo with popup checkbox
+        # Enable/disable popup num combo with popup checkbox AND overlay8 checkbox
         def set_overlay8_popup_num_enabled(state):
-            enabled = (state == Qt.CheckState.Checked or state == 2)
+            popup_enabled = (state == Qt.CheckState.Checked or state == 2)
+            overlay8_enabled = self.overlay8_checkbox.isChecked()
+            enabled = popup_enabled and overlay8_enabled
             self.overlay8_popup_num_combo.setEnabled(enabled)
             overlay8_popup_num_label.setEnabled(enabled)
             if enabled:
@@ -4031,6 +4033,7 @@ class SuperCutUI(QWidget):
                 # Let the popup checkbox control the timing controls
                 set_overlay8_timing_controls_enabled(self.overlay8_popup_checkbox.checkState())
         self.overlay8_checkbox.stateChanged.connect(lambda _: update_overlay8_effect_label_style())
+        self.overlay8_checkbox.stateChanged.connect(lambda _: set_overlay8_popup_num_enabled(self.overlay8_popup_checkbox.checkState()))
         self.overlay8_start_at_checkbox.stateChanged.connect(lambda _: set_overlay8_start_enabled(self.overlay8_start_at_checkbox.checkState()))
         update_overlay8_effect_label_style()
 
@@ -4406,9 +4409,11 @@ class SuperCutUI(QWidget):
         overlay9_popup_layout.addWidget(self.overlay9_popup_num_combo)
         overlay9_popup_layout.addStretch()
         layout.addLayout(overlay9_popup_layout)
-        # Enable/disable popup num combo with popup checkbox
+        # Enable/disable popup num combo with popup checkbox AND overlay9 checkbox
         def set_overlay9_popup_num_enabled(state):
-            enabled = (state == Qt.CheckState.Checked or state == 2)
+            popup_enabled = (state == Qt.CheckState.Checked or state == 2)
+            overlay9_enabled = self.overlay9_checkbox.isChecked()
+            enabled = popup_enabled and overlay9_enabled
             self.overlay9_popup_num_combo.setEnabled(enabled)
             overlay9_popup_num_label.setEnabled(enabled)
             if enabled:
@@ -4467,6 +4472,7 @@ class SuperCutUI(QWidget):
                 # Let the popup checkbox control the timing controls
                 set_overlay9_timing_controls_enabled(self.overlay9_popup_checkbox.checkState())
         self.overlay9_checkbox.stateChanged.connect(lambda _: update_overlay9_effect_label_style())
+        self.overlay9_checkbox.stateChanged.connect(lambda _: set_overlay9_popup_num_enabled(self.overlay9_popup_checkbox.checkState()))
         self.overlay9_start_at_checkbox.stateChanged.connect(lambda _: set_overlay9_start_enabled(self.overlay9_start_at_checkbox.checkState()))
         update_overlay9_effect_label_style()
 
@@ -7405,11 +7411,11 @@ class SuperCutUI(QWidget):
                                 if hasattr(self, 'overlay8_start_from_combo'):
                                     self.overlay8_start_from_combo.setEnabled(False)
                         
-                        # Popup timing controls (enabled when popup is ON)
+                        # Popup timing controls (enabled when popup is ON AND overlay8 is enabled)
                         if hasattr(self, 'overlay8_popup_start_at_combo'):
                             self.overlay8_popup_start_at_combo.setEnabled(popup_checked)
                         if hasattr(self, 'overlay8_popup_interval_combo'):
-                            self.overlay8_popup_interval_combo.setEnabled(popup_checked)
+                            self.overlay8_popup_interval_combo.setEnabled(popup_checked and overlay8_enabled)
                         # Duration controls
                         if hasattr(self, 'overlay8_duration_full_checkbox'):
                             if popup_checked:
@@ -7475,11 +7481,11 @@ class SuperCutUI(QWidget):
                                 if hasattr(self, 'overlay9_start_from_combo'):
                                     self.overlay9_start_from_combo.setEnabled(False)
                         
-                        # Popup timing controls (enabled when popup is ON)
+                        # Popup timing controls (enabled when popup is ON AND overlay9 is enabled)
                         if hasattr(self, 'overlay9_popup_start_at_combo'):
                             self.overlay9_popup_start_at_combo.setEnabled(popup_checked)
                         if hasattr(self, 'overlay9_popup_interval_combo'):
-                            self.overlay9_popup_interval_combo.setEnabled(popup_checked)
+                            self.overlay9_popup_interval_combo.setEnabled(popup_checked and overlay9_enabled)
                         
                         # Duration controls
                         if hasattr(self, 'overlay9_duration_full_checkbox'):
