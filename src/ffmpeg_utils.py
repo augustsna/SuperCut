@@ -177,10 +177,12 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     overlay8_start_time: int = 5,
     overlay8_duration: int = 6,
     overlay8_duration_full_checkbox_checked: bool = False,
+    overlay8_intervals: Optional[list] = None,  # NEW: list of (start, duration)
     overlay9_effect: str = "fadein",
     overlay9_start_time: int = 5,
     overlay9_duration: int = 6,
     overlay9_duration_full_checkbox_checked: bool = False,
+    overlay9_intervals: Optional[list] = None,  # NEW: list of (start, duration)
     overlay10_effect: str = "fadein",
     overlay10_start_time: int = 5,
     overlay10_duration: int = 6,
@@ -1277,14 +1279,16 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     'overlay': f"[ol8]overlay={ox8}:{oy8}",
                     'duration_control': overlay8_duration_full_checkbox_checked,
                     'start_time': overlay8_start_time,
-                    'duration': overlay8_duration
+                    'duration': overlay8_duration,
+                    'intervals': overlay8_intervals  # NEW
                 },
                 'overlay9': {
                     'filter': filter_overlay9,
                     'overlay': f"[ol9]overlay={ox9}:{oy9}",
                     'duration_control': overlay9_duration_full_checkbox_checked,
                     'start_time': overlay9_start_time,
-                    'duration': overlay9_duration
+                    'duration': overlay9_duration,
+                    'intervals': overlay9_intervals  # NEW
                 },
                 'overlay10': {
                     'filter': filter_overlay10,
@@ -1398,7 +1402,21 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     input_processing_filters.append(config['filter'])
                     
                     # Prepare overlay application
-                    if layer_id == 'overlay10' and config.get('intervals'):
+                    if layer_id == 'overlay8' and config.get('intervals'):
+                        # Build combined enable expression for all intervals
+                        intervals = config['intervals']
+                        enable_expr = "+".join([
+                            f"between(t,{start},{start+duration})" for start, duration in intervals if duration > 0
+                        ])
+                        overlay_application_filters.append((f"{config['overlay']}:enable='{enable_expr}'[tmp_{layer_id}]", f"tmp_{layer_id}"))
+                    elif layer_id == 'overlay9' and config.get('intervals'):
+                        # Build combined enable expression for all intervals
+                        intervals = config['intervals']
+                        enable_expr = "+".join([
+                            f"between(t,{start},{start+duration})" for start, duration in intervals if duration > 0
+                        ])
+                        overlay_application_filters.append((f"{config['overlay']}:enable='{enable_expr}'[tmp_{layer_id}]", f"tmp_{layer_id}"))
+                    elif layer_id == 'overlay10' and config.get('intervals'):
                         # Build combined enable expression for all intervals
                         intervals = config['intervals']
                         enable_expr = "+".join([
@@ -1482,7 +1500,29 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         filter_graph += f";{config['filter']}"
                         
                         # Apply overlay immediately
-                        if config['duration_control'] is None:
+                        if layer_id == 'overlay8' and config.get('intervals'):
+                            # Build combined enable expression for all intervals
+                            intervals = config['intervals']
+                            enable_expr = "+".join([
+                                f"between(t,{start},{start+duration})" for start, duration in intervals if duration > 0
+                            ])
+                            input_label = config['overlay'].split(']')[0] + ']' if ']' in config['overlay'] else config['overlay']
+                            output_label = f"tmp_{layer_id}"
+                            overlay_params = config['overlay'].split('overlay=')[1]
+                            filter_graph += f";{last_label}{input_label}overlay={overlay_params}:enable='{enable_expr}'[{output_label}]"
+                            last_label = f"[{output_label}]"
+                        elif layer_id == 'overlay9' and config.get('intervals'):
+                            # Build combined enable expression for all intervals
+                            intervals = config['intervals']
+                            enable_expr = "+".join([
+                                f"between(t,{start},{start+duration})" for start, duration in intervals if duration > 0
+                            ])
+                            input_label = config['overlay'].split(']')[0] + ']' if ']' in config['overlay'] else config['overlay']
+                            output_label = f"tmp_{layer_id}"
+                            overlay_params = config['overlay'].split('overlay=')[1]
+                            filter_graph += f";{last_label}{input_label}overlay={overlay_params}:enable='{enable_expr}'[{output_label}]"
+                            last_label = f"[{output_label}]"
+                        elif config['duration_control'] is None:
                             # No duration control (like overlay3)
                             # Extract the input label from the overlay filter (e.g., "[ol1]" from "[ol1]overlay={ox1}:{oy1}")
                             input_label = config['overlay'].split(']')[0] + ']' if ']' in config['overlay'] else config['overlay']

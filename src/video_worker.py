@@ -57,9 +57,11 @@ class VideoWorker(QObject):
                  # --- Add overlay8, overlay8 effect ---
                  use_overlay8: bool = False, overlay8_path: str = "", overlay8_size_percent: int = 10, overlay8_x_percent: int = 75, overlay8_y_percent: int = 0,
                  overlay8_effect: str = "fadein", overlay8_start_time: int = 5, overlay8_start_from: int = 0, overlay8_duration: int = 6, overlay8_duration_full_checkbox_checked: bool = False, overlay8_start_at_checkbox_checked: bool = True,
+                 overlay8_popup_start_at: int = 5, overlay8_popup_checkbox_checked: bool = False, overlay8_popup_num: int = 1,
                  # --- Add overlay9, overlay9 effect ---
                  use_overlay9: bool = False, overlay9_path: str = "", overlay9_size_percent: int = 10, overlay9_x_percent: int = 75, overlay9_y_percent: int = 0,
                  overlay9_effect: str = "fadein", overlay9_start_time: int = 5, overlay9_start_from: int = 0, overlay9_duration: int = 6, overlay9_duration_full_checkbox_checked: bool = False, overlay9_start_at_checkbox_checked: bool = True,
+                 overlay9_popup_start_at: int = 5, overlay9_popup_checkbox_checked: bool = False, overlay9_popup_num: int = 1,
                  # --- Add overlay10, overlay10 effect ---
                  use_overlay10: bool = False, overlay10_path: str = "", overlay10_size_percent: int = 10, overlay10_x_percent: int = 75, overlay10_y_percent: int = 0,
                  overlay10_effect: str = "fadein", overlay10_start_time: int = 5, overlay10_start_from: int = 0, overlay10_duration: int = 6, overlay10_start_at_checkbox_checked: bool = True,
@@ -220,6 +222,9 @@ class VideoWorker(QObject):
         self.overlay8_duration = overlay8_duration
         self.overlay8_duration_full_checkbox_checked = overlay8_duration_full_checkbox_checked
         self.overlay8_start_at_checkbox_checked = overlay8_start_at_checkbox_checked
+        self.overlay8_popup_start_at = overlay8_popup_start_at
+        self.overlay8_popup_checkbox_checked = overlay8_popup_checkbox_checked
+        self.overlay8_popup_num = overlay8_popup_num
         # --- Add overlay9 attributes ---
         self.use_overlay9 = use_overlay9
         self.overlay9_path = overlay9_path
@@ -232,6 +237,9 @@ class VideoWorker(QObject):
         self.overlay9_duration = overlay9_duration
         self.overlay9_duration_full_checkbox_checked = overlay9_duration_full_checkbox_checked
         self.overlay9_start_at_checkbox_checked = overlay9_start_at_checkbox_checked
+        self.overlay9_popup_start_at = overlay9_popup_start_at
+        self.overlay9_popup_checkbox_checked = overlay9_popup_checkbox_checked
+        self.overlay9_popup_num = overlay9_popup_num
         # --- Add overlay10 attributes ---
         self.use_overlay10 = use_overlay10
         self.overlay10_path = overlay10_path
@@ -891,11 +899,52 @@ class VideoWorker(QObject):
                     actual_overlay6_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
                     actual_overlay7_start_at = int(max(0, total_duration - self.overlay6_7_start_from))
             
-            # Calculate actual overlay8 start time based on checkbox state (only if overlay8 is enabled)
+            # Calculate actual overlay8 start time and intervals based on checkbox state (only if overlay8 is enabled)
             actual_overlay8_start_at = 0  # Default value
+            overlay8_intervals = None  # For popup mode with multiple intervals
             
             if self.use_overlay8:
-                if not self.overlay8_start_at_checkbox_checked:
+                # Check if popup checkbox is checked - if so, create multiple intervals
+                if self.overlay8_popup_checkbox_checked:
+                    # First interval starts at popup start percentage
+                    first_start = int((self.overlay8_popup_start_at / 100.0) * total_duration)
+                    first_start = min(first_start, int(total_duration - 1))
+                    first_start = max(0, first_start)
+                    
+                    # Calculate remaining duration after first interval
+                    remaining_duration = total_duration - first_start
+                    
+                    # Calculate spacing so that the last interval ends exactly at video end
+                    # Formula: spacing = (total_duration - first_start) / popup_num (only account for first start time)
+                    if self.overlay8_popup_num > 0 and remaining_duration > 0:
+                        # Calculate spacing to ensure last interval ends at video end
+                        spacing = (total_duration - first_start) / self.overlay8_popup_num
+                        overlay8_intervals = []
+                        
+                        # Add first interval
+                        overlay8_intervals.append((first_start, self.overlay8_duration))
+                        
+                        # Add additional intervals based on popup number
+                        for i in range(self.overlay8_popup_num):
+                            if i == 0:
+                                # Special case for second popup: use first popup start time
+                                interval_start = first_start + spacing - self.overlay8_duration
+                            else:
+                                # For third and subsequent popups: use previous end
+                                previous_end = overlay8_intervals[-1][0] + self.overlay8_duration
+                                interval_start = previous_end + spacing - self.overlay8_duration
+                            
+                            interval_start = int(interval_start)
+                            # Ensure interval doesn't exceed video duration
+                            if interval_start + self.overlay8_duration <= total_duration:
+                                overlay8_intervals.append((interval_start, self.overlay8_duration))
+                            else:
+                                break  # Stop if we exceed video duration
+                    else:
+                        # Single interval at popup start time
+                        actual_overlay8_start_at = first_start
+                    
+                elif not self.overlay8_start_at_checkbox_checked:
                     # Use start from logic
                     if self.overlay8_duration_full_checkbox_checked:
                         # Full duration: simple percentage of total duration
@@ -913,20 +962,61 @@ class VideoWorker(QObject):
                     # Ensure the start time doesn't exceed the video duration
                     actual_overlay8_start_at = min(actual_overlay8_start_at, int(total_duration - 1))
                 
-                # Final validation to ensure start time is valid
-                actual_overlay8_start_at = max(0, actual_overlay8_start_at)           
-                
-                # Additional validation for overlay8 parameters
-                if actual_overlay8_start_at < 0:                
-                    actual_overlay8_start_at = 0
-                if self.overlay8_duration < 0:                
-                    self.overlay8_duration = 1
+                # Final validation to ensure start time is valid (only for non-popup mode)
+                if overlay8_intervals is None:
+                    actual_overlay8_start_at = max(0, actual_overlay8_start_at)           
+                    
+                    # Additional validation for overlay8 parameters
+                    if actual_overlay8_start_at < 0:                
+                        actual_overlay8_start_at = 0
+                    if self.overlay8_duration < 0:                
+                        self.overlay8_duration = 1
             
-            # Calculate actual overlay9 start time based on checkbox state (only if overlay9 is enabled)
+            # Calculate actual overlay9 start time and intervals based on checkbox state (only if overlay9 is enabled)
             actual_overlay9_start_at = 0  # Default value
+            overlay9_intervals = None  # For popup mode with multiple intervals
             
             if self.use_overlay9:
-                if not self.overlay9_start_at_checkbox_checked:
+                # Check if popup checkbox is checked - if so, create multiple intervals
+                if self.overlay9_popup_checkbox_checked:
+                    # First interval starts at popup start percentage
+                    first_start = int((self.overlay9_popup_start_at / 100.0) * total_duration)
+                    first_start = min(first_start, int(total_duration - 1))
+                    first_start = max(0, first_start)
+                    
+                    # Calculate remaining duration after first interval
+                    remaining_duration = total_duration - first_start
+                    
+                    # Calculate spacing so that the last interval ends exactly at video end
+                    # Formula: spacing = (total_duration - first_start) / popup_num (only account for first start time)
+                    if self.overlay9_popup_num > 0 and remaining_duration > 0:
+                        # Calculate spacing to ensure last interval ends at video end
+                        spacing = (total_duration - first_start) / self.overlay9_popup_num
+                        overlay9_intervals = []
+                        
+                        # Add first interval
+                        overlay9_intervals.append((first_start, self.overlay9_duration))
+                        
+                        # Add additional intervals based on popup number
+                        for i in range(self.overlay9_popup_num):
+                            if i == 0:
+                                # Special case for second popup: use first popup start time
+                                interval_start = first_start + spacing - self.overlay9_duration
+                            else:
+                                # For third and subsequent popups: use previous end
+                                previous_end = overlay9_intervals[-1][0] + self.overlay9_duration
+                                interval_start = previous_end + spacing - self.overlay9_duration
+                            
+                            interval_start = int(interval_start)
+                            # Ensure interval doesn't exceed video duration
+                            if interval_start + self.overlay9_duration <= total_duration:
+                                overlay9_intervals.append((interval_start, self.overlay9_duration))
+                            else:
+                                break  # Stop if we exceed video duration
+                    else:
+                        # Single interval at popup start time
+                        actual_overlay9_start_at = first_start
+                elif not self.overlay9_start_at_checkbox_checked:
                     # Use start from logic
                     if self.overlay9_duration_full_checkbox_checked:
                         # Full duration: simple percentage of total duration
@@ -1097,9 +1187,11 @@ class VideoWorker(QObject):
                 overlay8_start_time=actual_overlay8_start_at,
                 overlay8_duration=self.overlay8_duration,
                 overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox_checked,
+                overlay8_intervals=overlay8_intervals,
                 overlay9_effect=self.overlay9_effect,
                 overlay9_start_time=actual_overlay9_start_at,
                 overlay9_duration=self.overlay9_duration,
+                overlay9_intervals=overlay9_intervals,
                 overlay10_effect=overlay10_effect_to_use,
                 overlay10_start_time=overlay10_start_time_for_effect if 'overlay10_start_time_for_effect' in locals() else 0,
                 overlay10_intervals=overlay10_intervals,

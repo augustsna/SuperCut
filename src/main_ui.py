@@ -7385,6 +7385,10 @@ class SuperCutUI(QWidget):
                         # Handle timing controls based on popup state
                         popup_checked = self.overlay8_popup_checkbox.isChecked()
                         
+                        # Trigger popup checkbox state change to restore all dependent controls
+                        popup_state = Qt.CheckState.Checked.value if popup_checked else Qt.CheckState.Unchecked.value
+                        self.overlay8_popup_checkbox.stateChanged.emit(popup_state)
+                        
                         # Non-popup timing controls (enabled when popup is OFF)
                         if hasattr(self, 'overlay8_start_at_checkbox'):
                             self.overlay8_start_at_checkbox.setEnabled(not popup_checked)
@@ -7404,6 +7408,8 @@ class SuperCutUI(QWidget):
                         # Popup timing controls (enabled when popup is ON)
                         if hasattr(self, 'overlay8_popup_start_at_combo'):
                             self.overlay8_popup_start_at_combo.setEnabled(popup_checked)
+                        if hasattr(self, 'overlay8_popup_interval_combo'):
+                            self.overlay8_popup_interval_combo.setEnabled(popup_checked)
                         # Duration controls
                         if hasattr(self, 'overlay8_duration_full_checkbox'):
                             if popup_checked:
@@ -7448,6 +7454,10 @@ class SuperCutUI(QWidget):
                         
                         # Handle timing controls based on popup state
                         popup_checked = self.overlay9_popup_checkbox.isChecked()
+                        
+                        # Trigger popup checkbox state change to restore all dependent controls
+                        popup_state = Qt.CheckState.Checked.value if popup_checked else Qt.CheckState.Unchecked.value
+                        self.overlay9_popup_checkbox.stateChanged.emit(popup_state)
                         
                         # Non-popup timing controls (enabled when popup is OFF)
                         if hasattr(self, 'overlay9_start_at_checkbox'):
@@ -7888,6 +7898,8 @@ class SuperCutUI(QWidget):
             overlay8_duration=self.overlay8_duration,
             overlay8_duration_full_checkbox_checked=self.overlay8_duration_full_checkbox.isChecked(),
             overlay8_start_at_checkbox_checked=self.overlay8_start_at_checkbox.isChecked(),
+            overlay8_popup_start_at=self.overlay8_popup_start_at_percent,
+            overlay8_popup_checkbox_checked=self.overlay8_popup_checkbox.isChecked(),
             overlay8_popup_num=self.overlay8_popup_num,
 
             # --- Add overlay9, overlay9 effect ---
@@ -7912,6 +7924,9 @@ class SuperCutUI(QWidget):
                                 overlay10_start_end_value=self.overlay10_start_end_value,
             overlay9_duration_full_checkbox_checked=self.overlay9_duration_full_checkbox.isChecked(),
                 overlay9_start_at_checkbox_checked=self.overlay9_start_at_checkbox.isChecked(),
+                overlay9_popup_start_at=self.overlay9_popup_start_at_percent,
+                overlay9_popup_checkbox_checked=self.overlay9_popup_checkbox.isChecked(),
+                overlay9_popup_num=self.overlay9_popup_num,
 
             # --- Add frame box parameters ---
             use_frame_box=use_frame_box,
