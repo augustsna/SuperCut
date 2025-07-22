@@ -1210,6 +1210,7 @@ class SuperCutUI(QWidget):
          
         combo_width = 115
         edit_width = 115
+        edit_short_width = 40
         checkbox_width = 110
 
         # Codec selection
@@ -1400,8 +1401,8 @@ class SuperCutUI(QWidget):
         self.intro_duration_full_checkbox.stateChanged.connect(update_intro_duration_full_checkbox_style)
         update_intro_duration_full_checkbox_style(self.intro_duration_full_checkbox.checkState())
         
-        intro_duration_label = QLabel("Duration:")
-        intro_duration_label.setFixedWidth(80)
+        intro_duration_label = QLabel("For")
+        intro_duration_label.setFixedWidth(30)
         self.intro_duration_edit = QLineEdit("6")
         self.intro_duration_edit.setFixedWidth(40)
         self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
@@ -1608,11 +1609,11 @@ class SuperCutUI(QWidget):
         intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(self.intro_effect_combo)
         intro_effect_layout.addSpacing(0)
-        intro_effect_layout.addWidget(self.intro_duration_full_checkbox)
-        intro_effect_layout.addSpacing(0)
-        intro_effect_layout.addWidget(intro_duration_label)
+        intro_effect_layout.addWidget(intro_duration_label)        
         intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(self.intro_duration_edit)
+        intro_effect_layout.addSpacing(0)
+        intro_effect_layout.addWidget(self.intro_duration_full_checkbox)
         intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(self.intro_start_checkbox)
         intro_effect_layout.addSpacing(0)
@@ -1620,7 +1621,7 @@ class SuperCutUI(QWidget):
         intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(intro_start_from_label)
         intro_effect_layout.addSpacing(0)
-        intro_effect_layout.addWidget(self.intro_start_from_edit)
+        intro_effect_layout.addWidget(self.intro_start_from_edit)       
         intro_effect_layout.addStretch()
         intro_group_layout.addLayout(intro_effect_layout)
         
@@ -1974,8 +1975,8 @@ class SuperCutUI(QWidget):
         self.overlay1_2_duration_full_checkbox.stateChanged.connect(update_overlay1_2_duration_full_checkbox_style)
         update_overlay1_2_duration_full_checkbox_style(self.overlay1_2_duration_full_checkbox.checkState())
         
-        overlay1_2_duration_label = QLabel("Duration:")
-        overlay1_2_duration_label.setFixedWidth(80)
+        overlay1_2_duration_label = QLabel("For:")
+        overlay1_2_duration_label.setFixedWidth(40)
         self.overlay1_2_duration_edit = QLineEdit("6")
         self.overlay1_2_duration_edit.setFixedWidth(40)
         self.overlay1_2_duration_edit.setValidator(QIntValidator(1, 999, self))
