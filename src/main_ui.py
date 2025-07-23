@@ -1216,6 +1216,8 @@ class SuperCutUI(QWidget):
 
         combo_long_width = 115
 
+        combo_medium_width = 90
+
         combo_short_width = 70        
 
         edit_long_width = 115        
@@ -3164,6 +3166,7 @@ class SuperCutUI(QWidget):
         # --- SOUNDWAVE OVERLAY CONTROLS ---
         self.soundwave_checkbox = QtWidgets.QCheckBox("Soundwave:")
         self.soundwave_checkbox.setFixedWidth(label_checkbox_width)
+        self.soundwave_checkbox.setFixedHeight(unified_height)
         self.soundwave_checkbox.setChecked(False)
         def update_soundwave_checkbox_style(state):
             self.soundwave_checkbox.setStyleSheet("")
@@ -3175,7 +3178,7 @@ class SuperCutUI(QWidget):
         soundwave_method_label.setFixedWidth(label_long_width)
         soundwave_method_label.setFixedHeight(unified_height)
         self.soundwave_method_combo = NoWheelComboBox()
-        self.soundwave_method_combo.setFixedWidth(combo_short_width)
+        self.soundwave_method_combo.setFixedWidth(combo_medium_width)
         self.soundwave_method_combo.setFixedHeight(unified_height)
         soundwave_method_options = [
             ("Bars", "bars"),
@@ -3194,10 +3197,10 @@ class SuperCutUI(QWidget):
         
         # Soundwave color dropdown
         soundwave_color_label = QLabel("C:")
-        soundwave_color_label.setFixedWidth(label_short_width)
+        soundwave_color_label.setFixedWidth(label_mini_width)
         soundwave_color_label.setFixedHeight(unified_height)
         self.soundwave_color_combo = NoWheelComboBox()
-        self.soundwave_color_combo.setFixedWidth(combo_short_width)
+        self.soundwave_color_combo.setFixedWidth(combo_medium_width)
         self.soundwave_color_combo.setFixedHeight(unified_height)
         soundwave_color_options = [
             ("Hue Rotate", "hue_rotate"),
@@ -3219,7 +3222,8 @@ class SuperCutUI(QWidget):
         
         # Soundwave size control
         soundwave_size_label = QLabel("S:")
-        soundwave_size_label.setFixedWidth(35)
+        soundwave_size_label.setFixedWidth(label_mini_width)
+        soundwave_size_label.setFixedHeight(unified_height)
         self.soundwave_size_combo = NoWheelComboBox()
         self.soundwave_size_combo.setFixedWidth(combo_short_width)
         self.soundwave_size_combo.setFixedHeight(unified_height)
@@ -3234,7 +3238,7 @@ class SuperCutUI(QWidget):
         
         # Soundwave X position
         soundwave_x_label = QLabel("X:")
-        soundwave_x_label.setFixedWidth(label_short_width)
+        soundwave_x_label.setFixedWidth(label_mini_width)
         soundwave_x_label.setFixedHeight(unified_height)
         self.soundwave_x_combo = NoWheelComboBox()
         self.soundwave_x_combo.setFixedWidth(combo_short_width)
@@ -3250,7 +3254,7 @@ class SuperCutUI(QWidget):
         
         # Soundwave Y position
         soundwave_y_label = QLabel("Y:")
-        soundwave_y_label.setFixedWidth(label_short_width)
+        soundwave_y_label.setFixedWidth(label_mini_width)
         soundwave_y_label.setFixedHeight(unified_height)
         self.soundwave_y_combo = NoWheelComboBox()
         self.soundwave_y_combo.setFixedWidth(combo_short_width)
@@ -3302,37 +3306,35 @@ class SuperCutUI(QWidget):
         
         # Soundwave layout
         soundwave_layout = QHBoxLayout()
-        soundwave_layout.setSpacing(4)
+        soundwave_layout.setSpacing(0)
         soundwave_layout.addWidget(self.soundwave_checkbox)
-        soundwave_layout.addSpacing(5)        
+        soundwave_layout.addSpacing(0)        
         soundwave_layout.addWidget(self.soundwave_method_combo)
-        soundwave_layout.addSpacing(4)
+        soundwave_layout.addSpacing(0)
         soundwave_layout.addWidget(soundwave_color_label)
         soundwave_layout.addWidget(self.soundwave_color_combo)
-        soundwave_layout.addSpacing(4)
+        soundwave_layout.addSpacing(0)
         soundwave_layout.addWidget(soundwave_size_label)
         soundwave_layout.addWidget(self.soundwave_size_combo)
-        soundwave_layout.addSpacing(4)
+        soundwave_layout.addSpacing(0)
         soundwave_layout.addWidget(soundwave_x_label)
         soundwave_layout.addWidget(self.soundwave_x_combo)
-        soundwave_layout.addSpacing(4)
+        soundwave_layout.addSpacing(0)
         soundwave_layout.addWidget(soundwave_y_label)
         soundwave_layout.addWidget(self.soundwave_y_combo)
         soundwave_layout.addStretch()
         overlay_groupbox_3_titles_wave_layout.addLayout(soundwave_layout)
-        layout.addWidget(overlay_groupbox_3_titles_wave)
-
+        
         # Overlay 3 controls (similar to Overlay 2)
         self.overlay3_checkbox = QtWidgets.QCheckBox("Overlay 3:")
         self.overlay3_checkbox.setFixedWidth(label_checkbox_width)
+        self.overlay3_checkbox.setFixedHeight(unified_height)
         self.overlay3_checkbox.setChecked(False)
         def update_overlay3_checkbox_style(state):
             self.overlay3_checkbox.setStyleSheet("")  # Always default color
         self.overlay3_checkbox.stateChanged.connect(update_overlay3_checkbox_style)
         update_overlay3_checkbox_style(self.overlay3_checkbox.checkState())
 
-        overlay3_layout = QHBoxLayout()
-        overlay3_layout.setSpacing(4)
         self.overlay3_edit = ImageDropLineEdit()
         self.overlay3_edit.setPlaceholderText("Overlay 3 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay3_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
@@ -3355,7 +3357,7 @@ class SuperCutUI(QWidget):
                 self.overlay3_edit.setText(file_path)
         overlay3_btn.clicked.connect(select_overlay3_image)
         overlay3_size_label = QLabel("S:")
-        overlay3_size_label.setFixedWidth(label_short_width)
+        overlay3_size_label.setFixedWidth(label_mini_width)
         overlay3_size_label.setFixedHeight(unified_height)
         self.overlay3_size_combo = NoWheelComboBox()
         self.overlay3_size_combo.setFixedWidth(combo_short_width)
@@ -3371,7 +3373,7 @@ class SuperCutUI(QWidget):
         on_overlay3_size_changed(self.overlay3_size_combo.currentIndex())
         # Overlay3 X coordinate
         overlay3_x_label = QLabel("X:")
-        overlay3_x_label.setFixedWidth(label_short_width)
+        overlay3_x_label.setFixedWidth(label_mini_width)
         overlay3_x_label.setFixedHeight(unified_height)
         self.overlay3_x_combo = NoWheelComboBox()
         self.overlay3_x_combo.setFixedWidth(combo_short_width)
@@ -3387,7 +3389,7 @@ class SuperCutUI(QWidget):
 
         # Overlay3 Y coordinate
         overlay3_y_label = QLabel("Y:")
-        overlay3_y_label.setFixedWidth(label_short_width)
+        overlay3_y_label.setFixedWidth(label_mini_width)
         overlay3_y_label.setFixedHeight(unified_height)
         self.overlay3_y_combo = NoWheelComboBox()
         self.overlay3_y_combo.setFixedWidth(combo_short_width)
@@ -3441,26 +3443,31 @@ class SuperCutUI(QWidget):
                 set_song_title_controls_enabled(self.song_title_checkbox.checkState())
         self.overlay3_checkbox.stateChanged.connect(lambda _: set_overlay3_enabled(self.overlay3_checkbox.checkState()))
         set_overlay3_enabled(self.overlay3_checkbox.checkState())
+        
+        # Overlay 4 layout
+        overlay3_layout = QHBoxLayout()
+        overlay3_layout.setSpacing(0)
         overlay3_layout.addWidget(self.overlay3_checkbox)
-        overlay3_layout.addSpacing(3)
+        overlay3_layout.addSpacing(0)
         overlay3_layout.addWidget(self.overlay3_edit)
-        overlay3_layout.addSpacing(3)
+        overlay3_layout.addSpacing(10)
         overlay3_layout.addWidget(overlay3_btn)
-        overlay3_layout.addSpacing(4)
+        overlay3_layout.addSpacing(0)
         overlay3_layout.addWidget(overlay3_size_label)
         overlay3_layout.addWidget(self.overlay3_size_combo)
-        overlay3_layout.addSpacing(4)
+        overlay3_layout.addSpacing(0)
         overlay3_layout.addWidget(overlay3_x_label)
         overlay3_layout.addWidget(self.overlay3_x_combo)
-        overlay3_layout.addSpacing(4)
+        overlay3_layout.addSpacing(0)
         overlay3_layout.addWidget(overlay3_y_label)
         overlay3_layout.addWidget(self.overlay3_y_combo)
         overlay3_layout.addStretch()  
         overlay_groupbox_3_titles_wave_layout.addLayout(overlay3_layout)
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
-        self.song_title_checkbox = QtWidgets.QCheckBox("  Titles:")
+        self.song_title_checkbox = QtWidgets.QCheckBox("Song Titles:")
         self.song_title_checkbox.setFixedWidth(label_checkbox_width)
+        self.song_title_checkbox.setFixedHeight(unified_height)
         self.song_title_checkbox.setChecked(False)
         def update_song_title_checkbox_style(state):
             self.song_title_checkbox.setStyleSheet("")
@@ -3473,7 +3480,8 @@ class SuperCutUI(QWidget):
         
         # Font control
         song_title_font_label = QLabel("Font:")
-        song_title_font_label.setFixedWidth(40)
+        song_title_font_label.setFixedWidth(label_short_width)
+        
         self.song_title_font_combo = NoWheelComboBox()
         self.song_title_font_combo.setFixedWidth(combo_long_width)
         self.song_title_font_combo.setFixedHeight(unified_height)
