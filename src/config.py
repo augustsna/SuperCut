@@ -159,16 +159,16 @@ DEFAULT_CODECS = [
 ]
 
 DEFAULT_RESOLUTIONS = [
-    ("1080p", "1920x1080"),
+    (" 1080p", "1920x1080"),
     ("4K 2160p", "3840x2160"),
     ("9:16", "1080x1920"),
     ("Square", "1080x1080")
 ]
 
 DEFAULT_FPS_OPTIONS = [
-    ("24 FPS", 24),
-    ("30 FPS", 30),
-    ("60 FPS", 60)
+    ("   24", 24),
+    ("   30", 30),
+    ("   60", 60)
 ]
 
 # File Extensions

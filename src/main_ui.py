@@ -1122,12 +1122,12 @@ class SuperCutUI(QWidget):
         self.part1_edit = KhmerSupportLineEdit(DEFAULT_EXPORT_NAME)
         self.part1_edit.setPlaceholderText("Export Name")
         self.part1_edit.setFixedWidth(100)
-        self.part1_edit.setFixedHeight(31)
+        self.part1_edit.setFixedHeight(30)
         self.part2_edit = KhmerSupportLineEdit(DEFAULT_START_NUMBER)
         self.part2_edit.setPlaceholderText("12345")
         self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
-        self.part2_edit.setFixedWidth(60)
-        self.part2_edit.setFixedHeight(31)
+        self.part2_edit.setFixedWidth(70)
+        self.part2_edit.setFixedHeight(30)
         self.name_list_checkbox = QtWidgets.QCheckBox("List name:")
         self.name_list_checkbox.setChecked(True)
         self.name_list_enter_btn = QPushButton("Enter")
@@ -1163,8 +1163,8 @@ class SuperCutUI(QWidget):
         self.mp3_count_edit.setPlaceholderText("MP3")
         self.mp3_count_edit.setValidator(QIntValidator(1, 999, self))
         self.mp3_count_edit.setEnabled(False)
-        self.mp3_count_edit.setFixedWidth(40)
-        self.mp3_count_edit.setFixedHeight(31)
+        self.mp3_count_edit.setFixedWidth(35)
+        self.mp3_count_edit.setFixedHeight(30)
         def set_mp3_count_edit_enabled(state):
             if isinstance(state, int):
                 state = Qt.CheckState(state)
@@ -1208,43 +1208,49 @@ class SuperCutUI(QWidget):
         # Combined layout for codec, resolution, and fps
         settings_layout = QHBoxLayout()
          
-        combo_width = 115
-        edit_width = 115
-        edit_short_width = 40
-        checkbox_width = 110
+        unified_height = 30
+    
+        select_btn_width = 60        
 
-        # Codec selection
-        settings_layout.addSpacing(0)
+        combo_long_width = 115
+
+        combo_short_width = 60        
+
+        edit_long_width = 115        
+
+        edit_short_width = 35        
+
+        label_small_width = 30        
+
+        label_long_width = 30        
+
+        label_checkbox_width = 110        
+
+        # Codec selection        
         codec_label = QLabel("Codec:")        
         self.codec_combo = NoWheelComboBox()
-        self.codec_combo.setFixedWidth(100)             
+        self.codec_combo.setFixedWidth(combo_long_width)
+        self.codec_combo.setFixedHeight(unified_height)
         for label, value in DEFAULT_CODECS:
             self.codec_combo.addItem(label, value)
         self.codec_combo.setCurrentIndex(0)
-        settings_layout.addWidget(codec_label)
-        settings_layout.addSpacing(0)  # Small space between label and combo
-        settings_layout.addWidget(self.codec_combo)
-        settings_layout.addSpacing(10)  # Space between groups
 
         # Video resolution selection
         resolution_label = QLabel("Size:")
         resolution_label.setFixedWidth(35)
         self.resolution_combo = NoWheelComboBox()
-        self.resolution_combo.setFixedWidth(70)        
+        self.resolution_combo.setFixedWidth(combo_short_width) 
+        self.resolution_combo.setFixedHeight(unified_height)
         for label, value in DEFAULT_RESOLUTIONS:
             self.resolution_combo.addItem(label, value)
         self.resolution_combo.setCurrentIndex(0)
-        
-        settings_layout.addWidget(resolution_label)
-        settings_layout.addSpacing(0)
-        settings_layout.addWidget(self.resolution_combo)
-        settings_layout.addSpacing(10)
 
          # FPS selection
         fps_label = QLabel("FPS:")
         fps_label.setFixedWidth(30)
         self.fps_combo = NoWheelComboBox()
-        self.fps_combo.setFixedWidth(70)        
+        self.fps_combo.setFixedWidth(combo_short_width)
+        self.fps_combo.setFixedHeight(unified_height)
         for label, value in DEFAULT_FPS_OPTIONS:
             self.fps_combo.addItem(label, value)
         # Load default FPS from settings
@@ -1255,16 +1261,12 @@ class SuperCutUI(QWidget):
         else:
             self.fps_combo.setCurrentIndex(0)
         
-        settings_layout.addWidget(fps_label)
-        settings_layout.addSpacing(0)
-        settings_layout.addWidget(self.fps_combo)
-        settings_layout.addSpacing(10)
-
         # Preset selection
         preset_label = QLabel("Preset:")
         preset_label.setFixedWidth(45)
         self.preset_combo = NoWheelComboBox()
-        self.preset_combo.setFixedWidth(70)        
+        self.preset_combo.setFixedWidth(combo_short_width)
+        self.preset_combo.setFixedHeight(unified_height)
         for label, value in DEFAULT_FFMPEG_PRESETS:
             self.preset_combo.addItem(label, value)
         # Load default preset from settings
@@ -1272,6 +1274,19 @@ class SuperCutUI(QWidget):
         preset_index = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 6)  # Default to "slow"
         self.preset_combo.setCurrentIndex(preset_index)
         
+        # core setting setting layout
+        settings_layout.addWidget(codec_label)
+        settings_layout.addSpacing(0)  # Small space between label and combo
+        settings_layout.addWidget(self.codec_combo)
+        settings_layout.addSpacing(10)  # Space between groups
+        settings_layout.addWidget(resolution_label)
+        settings_layout.addSpacing(0)
+        settings_layout.addWidget(self.resolution_combo)
+        settings_layout.addSpacing(10)
+        settings_layout.addWidget(fps_label)
+        settings_layout.addSpacing(0)
+        settings_layout.addWidget(self.fps_combo)
+        settings_layout.addSpacing(10)
         settings_layout.addWidget(preset_label)
         settings_layout.addSpacing(0)
         settings_layout.addWidget(self.preset_combo)     
@@ -1303,7 +1318,7 @@ class SuperCutUI(QWidget):
 
         # --- INTRO OVERLAY CONTROLS ---
         self.intro_checkbox = QtWidgets.QCheckBox(" Intro :")
-        self.intro_checkbox.setFixedWidth(checkbox_width)
+        self.intro_checkbox.setFixedWidth(label_checkbox_width)
         self.intro_checkbox.setChecked(True)
         def update_intro_checkbox_style(state):
             self.intro_checkbox.setStyleSheet("")  # Always default color
@@ -1314,7 +1329,8 @@ class SuperCutUI(QWidget):
         self.intro_edit = ImageDropLineEdit()
         self.intro_edit.setPlaceholderText("Select Intro file *.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv")
         self.intro_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select Media'")
-        self.intro_edit.setFixedWidth(115)
+        self.intro_edit.setFixedWidth(edit_long_width)
+        self.intro_edit.setFixedHeight(unified_height)
         self.intro_path = ""
         def on_intro_changed():
             current_text = self.intro_edit.text()
@@ -1324,16 +1340,19 @@ class SuperCutUI(QWidget):
             self.intro_path = self.intro_edit.text().strip()
         self.intro_edit.textChanged.connect(on_intro_changed)
         intro_btn = QPushButton("Select")
-        intro_btn.setFixedWidth(60)
+        intro_btn.setFixedWidth(select_btn_width)
+        intro_btn.setFixedHeight(unified_height)
         def select_intro_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Intro Media", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
                 self.intro_edit.setText(file_path)
         intro_btn.clicked.connect(select_intro_image)
         intro_size_label = QLabel("S:")
-        intro_size_label.setFixedWidth(18)
+        intro_size_label.setFixedWidth(label_small_width)
+        intro_size_label.setFixedHeight(unified_height)
         self.intro_size_combo = NoWheelComboBox()
-        self.intro_size_combo.setFixedWidth(60)
+        self.intro_size_combo.setFixedWidth(combo_short_width)
+        self.intro_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.intro_size_combo.addItem(f"{percent}%", percent)
         self.intro_size_combo.setCurrentIndex(9)  # Default 50%
@@ -1345,9 +1364,11 @@ class SuperCutUI(QWidget):
         on_intro_size_changed(self.intro_size_combo.currentIndex())
         # Intro X coordinate
         intro_x_label = QLabel("X:")
-        intro_x_label.setFixedWidth(18)
+        intro_x_label.setFixedWidth(label_small_width)
+        intro_x_label.setFixedHeight(unified_height)
         self.intro_x_combo = NoWheelComboBox()
-        self.intro_x_combo.setFixedWidth(60)
+        self.intro_x_combo.setFixedWidth(combo_short_width)
+        self.intro_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.intro_x_combo.addItem(f"{percent}%", percent)
         self.intro_x_combo.setCurrentIndex(50)  # Default 50%
@@ -1359,9 +1380,11 @@ class SuperCutUI(QWidget):
 
         # Intro Y coordinate
         intro_y_label = QLabel("Y:")
-        intro_y_label.setFixedWidth(18)
+        intro_y_label.setFixedWidth(label_small_width)
+        intro_y_label.setFixedHeight(unified_height)
         self.intro_y_combo = NoWheelComboBox()
-        self.intro_y_combo.setFixedWidth(60)
+        self.intro_y_combo.setFixedWidth(combo_short_width)
+        self.intro_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.intro_y_combo.addItem(f"{percent}%", percent)
         self.intro_y_combo.setCurrentIndex(50)  # Default 50%
@@ -1375,7 +1398,7 @@ class SuperCutUI(QWidget):
         intro_effect_label = QLabel("Effect :")
         intro_effect_label.setFixedWidth(45)
         self.intro_effect_combo = NoWheelComboBox()
-        self.intro_effect_combo.setFixedWidth(combo_width)
+        self.intro_effect_combo.setFixedWidth(combo_long_width)
         intro_effect_options = [
             ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
@@ -1629,7 +1652,7 @@ class SuperCutUI(QWidget):
 
         # Move PNG overlay checkbox below video settings
         self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1:")
-        self.overlay_checkbox.setFixedWidth(checkbox_width)
+        self.overlay_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay_checkbox.setChecked(True)
         def update_overlay_checkbox_style(state):
             self.overlay_checkbox.setStyleSheet("")  # Always default color
@@ -1643,7 +1666,8 @@ class SuperCutUI(QWidget):
         self.overlay1_edit = ImageDropLineEdit()
         self.overlay1_edit.setPlaceholderText("Overlay 1 file path (Select Intro *.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv)")
         self.overlay1_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select File'")
-        self.overlay1_edit.setFixedWidth(edit_width)  # Make the text box shorter
+        self.overlay1_edit.setFixedWidth(edit_long_width)
+        self.overlay1_edit.setFixedHeight(unified_height)
         self.overlay1_path = ""
         def on_overlay1_changed():
             current_text = self.overlay1_edit.text()
@@ -1661,9 +1685,11 @@ class SuperCutUI(QWidget):
         overlay1_btn.clicked.connect(select_overlay1_image)
         # Overlay 1 size option (5% to 100%)
         overlay1_size_label = QLabel("S:")
-        overlay1_size_label.setFixedWidth(18)
+        overlay1_size_label.setFixedWidth(label_small_width)
+        overlay1_size_label.setFixedHeight(unified_height)
         self.overlay1_size_combo = NoWheelComboBox()
-        self.overlay1_size_combo.setFixedWidth(60)
+        self.overlay1_size_combo.setFixedWidth(combo_short_width)
+        self.overlay1_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay1_size_combo.addItem(f"{percent}%", percent)
         self.overlay1_size_combo.setCurrentIndex(9)  # Default 50%
@@ -1714,9 +1740,11 @@ class SuperCutUI(QWidget):
         overlay1_layout.addSpacing(4)
         # Overlay1 X coordinate
         overlay1_x_label = QLabel("X:")
-        overlay1_x_label.setFixedWidth(18)
+        overlay1_x_label.setFixedWidth(label_small_width)
+        overlay1_x_label.setFixedHeight(unified_height)
         self.overlay1_x_combo = NoWheelComboBox()
-        self.overlay1_x_combo.setFixedWidth(60)
+        self.overlay1_x_combo.setFixedWidth(combo_short_width)
+        self.overlay1_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay1_x_combo.addItem(f"{percent}%", percent)
         self.overlay1_x_combo.setCurrentIndex(0)  # Default 0%
@@ -1728,9 +1756,11 @@ class SuperCutUI(QWidget):
 
         # Overlay1 Y coordinate
         overlay1_y_label = QLabel("Y:")
-        overlay1_y_label.setFixedWidth(18)
+        overlay1_y_label.setFixedWidth(label_small_width)
+        overlay1_y_label.setFixedHeight(unified_height)
         self.overlay1_y_combo = NoWheelComboBox()
-        self.overlay1_y_combo.setFixedWidth(60)
+        self.overlay1_y_combo.setFixedWidth(combo_short_width)
+        self.overlay1_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay1_y_combo.addItem(f"{percent}%", percent)
         self.overlay1_y_combo.setCurrentIndex(0)  # Default 0%
@@ -1771,7 +1801,7 @@ class SuperCutUI(QWidget):
 
         # Overlay 2 controls (similar to Overlay 1)
         self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2:")
-        self.overlay2_checkbox.setFixedWidth(checkbox_width)
+        self.overlay2_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay2_checkbox.setChecked(True)
         def update_overlay2_checkbox_style(state):
             self.overlay2_checkbox.setStyleSheet("")  # Always default color
@@ -1783,7 +1813,8 @@ class SuperCutUI(QWidget):
         self.overlay2_edit = ImageDropLineEdit()
         self.overlay2_edit.setPlaceholderText("Overlay 2 file path (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv)")
         self.overlay2_edit.setToolTip("Drag and drop a GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file here or click 'Select File'")
-        self.overlay2_edit.setFixedWidth(edit_width)
+        self.overlay2_edit.setFixedWidth(edit_long_width)
+        self.overlay2_edit.setFixedHeight(unified_height)
         self.overlay2_path = ""
         def on_overlay2_changed():
             current_text = self.overlay2_edit.text()
@@ -1800,9 +1831,11 @@ class SuperCutUI(QWidget):
                 self.overlay2_edit.setText(file_path)
         overlay2_btn.clicked.connect(select_overlay2_image)
         overlay2_size_label = QLabel("S:")
-        overlay2_size_label.setFixedWidth(18)
+        overlay2_size_label.setFixedWidth(label_small_width)
+        overlay2_size_label.setFixedHeight(unified_height)
         self.overlay2_size_combo = NoWheelComboBox()
-        self.overlay2_size_combo.setFixedWidth(60)
+        self.overlay2_size_combo.setFixedWidth(combo_short_width)
+        self.overlay2_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay2_size_combo.addItem(f"{percent}%", percent)
         self.overlay2_size_combo.setCurrentIndex(9)  # Default 50%
@@ -1851,9 +1884,11 @@ class SuperCutUI(QWidget):
         overlay2_layout.addSpacing(4)
         # Overlay2 X coordinate
         overlay2_x_label = QLabel("X:")
-        overlay2_x_label.setFixedWidth(18)
+        overlay2_x_label.setFixedWidth(label_small_width)
+        overlay2_x_label.setFixedHeight(unified_height)
         self.overlay2_x_combo = NoWheelComboBox()
-        self.overlay2_x_combo.setFixedWidth(60)
+        self.overlay2_x_combo.setFixedWidth(combo_short_width)
+        self.overlay2_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay2_x_combo.addItem(f"{percent}%", percent)
         self.overlay2_x_combo.setCurrentIndex(0)  # Default 0%
@@ -1865,9 +1900,11 @@ class SuperCutUI(QWidget):
 
         # Overlay2 Y coordinate
         overlay2_y_label = QLabel("Y:")
-        overlay2_y_label.setFixedWidth(18)
+        overlay2_y_label.setFixedWidth(label_small_width)
+        overlay2_y_label.setFixedHeight(unified_height)
         self.overlay2_y_combo = NoWheelComboBox()
-        self.overlay2_y_combo.setFixedWidth(60)
+        self.overlay2_y_combo.setFixedWidth(combo_short_width)
+        self.overlay2_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay2_y_combo.addItem(f"{percent}%", percent)
         self.overlay2_y_combo.setCurrentIndex(0)  # Default 0%
@@ -1890,7 +1927,7 @@ class SuperCutUI(QWidget):
         effect_label = QLabel("Overlay 1_2:")
         effect_label.setFixedWidth(80)
         self.effect_combo = NoWheelComboBox()
-        self.effect_combo.setFixedWidth(combo_width)
+        self.effect_combo.setFixedWidth(combo_long_width)
         effect_options = [
             ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
@@ -2085,7 +2122,7 @@ class SuperCutUI(QWidget):
         def update_overlay4_checkbox_style(state):
             self.overlay4_checkbox.setStyleSheet("")  # Always default color
         self.overlay4_checkbox = QtWidgets.QCheckBox("Overlay 4:")
-        self.overlay4_checkbox.setFixedWidth(checkbox_width)
+        self.overlay4_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay4_checkbox.setChecked(False)
         self.overlay4_checkbox.stateChanged.connect(update_overlay4_checkbox_style)
         update_overlay4_checkbox_style(self.overlay4_checkbox.checkState())
@@ -2094,7 +2131,8 @@ class SuperCutUI(QWidget):
         self.overlay4_edit = ImageDropLineEdit()
         self.overlay4_edit.setPlaceholderText("Overlay 4 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay4_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay4_edit.setFixedWidth(edit_width)
+        self.overlay4_edit.setFixedWidth(edit_long_width)
+        self.overlay4_edit.setFixedHeight(unified_height)
         self.overlay4_path = ""
         def on_overlay4_changed():
             current_text = self.overlay4_edit.text()
@@ -2111,9 +2149,11 @@ class SuperCutUI(QWidget):
                 self.overlay4_edit.setText(file_path)
         overlay4_btn.clicked.connect(select_overlay4_image)
         overlay4_size_label = QLabel("S:")
-        overlay4_size_label.setFixedWidth(18)
+        overlay4_size_label.setFixedWidth(label_small_width)
+        overlay4_size_label.setFixedHeight(unified_height)
         self.overlay4_size_combo = NoWheelComboBox()
-        self.overlay4_size_combo.setFixedWidth(60)
+        self.overlay4_size_combo.setFixedWidth(combo_short_width)
+        self.overlay4_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay4_size_combo.addItem(f"{percent}%", percent)
         self.overlay4_size_combo.setCurrentIndex(9)  # Default 50%
@@ -2124,9 +2164,11 @@ class SuperCutUI(QWidget):
         self.overlay4_size_combo.currentIndexChanged.connect(on_overlay4_size_changed)
         on_overlay4_size_changed(self.overlay4_size_combo.currentIndex())
         overlay4_x_label = QLabel("X:")
-        overlay4_x_label.setFixedWidth(18)
+        overlay4_x_label.setFixedWidth(label_small_width)
+        overlay4_x_label.setFixedHeight(unified_height)
         self.overlay4_x_combo = NoWheelComboBox()
-        self.overlay4_x_combo.setFixedWidth(60)
+        self.overlay4_x_combo.setFixedWidth(combo_short_width)
+        self.overlay4_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay4_x_combo.addItem(f"{percent}%", percent)
         self.overlay4_x_combo.setCurrentIndex(0)  # Default 0%
@@ -2136,9 +2178,11 @@ class SuperCutUI(QWidget):
         self.overlay4_x_combo.currentIndexChanged.connect(on_overlay4_x_changed)
         on_overlay4_x_changed(self.overlay4_x_combo.currentIndex())
         overlay4_y_label = QLabel("Y:")
-        overlay4_y_label.setFixedWidth(18)
+        overlay4_y_label.setFixedWidth(label_small_width)
+        overlay4_y_label.setFixedHeight(unified_height)
         self.overlay4_y_combo = NoWheelComboBox()
-        self.overlay4_y_combo.setFixedWidth(60)
+        self.overlay4_y_combo.setFixedWidth(combo_short_width)
+        self.overlay4_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay4_y_combo.addItem(f"{percent}%", percent)
         self.overlay4_y_combo.setCurrentIndex(0)  # Default 0%
@@ -2217,7 +2261,7 @@ class SuperCutUI(QWidget):
         def update_overlay5_checkbox_style(state):
             self.overlay5_checkbox.setStyleSheet("")  # Always default color
         self.overlay5_checkbox = QtWidgets.QCheckBox("Overlay 5:")
-        self.overlay5_checkbox.setFixedWidth(checkbox_width)
+        self.overlay5_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay5_checkbox.setChecked(False)
         self.overlay5_checkbox.stateChanged.connect(update_overlay5_checkbox_style)
         update_overlay5_checkbox_style(self.overlay5_checkbox.checkState())
@@ -2226,7 +2270,7 @@ class SuperCutUI(QWidget):
         self.overlay5_edit = ImageDropLineEdit()
         self.overlay5_edit.setPlaceholderText("Overlay 5 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay5_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay5_edit.setFixedWidth(edit_width)
+        self.overlay5_edit.setFixedWidth(edit_long_width)
         self.overlay5_path = ""
         def on_overlay5_changed():
             current_text = self.overlay5_edit.text()
@@ -2243,9 +2287,11 @@ class SuperCutUI(QWidget):
                 self.overlay5_edit.setText(file_path)
         overlay5_btn.clicked.connect(select_overlay5_image)
         overlay5_size_label = QLabel("S:")
-        overlay5_size_label.setFixedWidth(18)
+        overlay5_size_label.setFixedWidth(label_small_width)
+        overlay5_size_label.setFixedHeight(unified_height)
         self.overlay5_size_combo = NoWheelComboBox()
-        self.overlay5_size_combo.setFixedWidth(60)
+        self.overlay5_size_combo.setFixedWidth(combo_short_width)
+        self.overlay5_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay5_size_combo.addItem(f"{percent}%", percent)
         self.overlay5_size_combo.setCurrentIndex(9)  # Default 50%
@@ -2256,9 +2302,11 @@ class SuperCutUI(QWidget):
         self.overlay5_size_combo.currentIndexChanged.connect(on_overlay5_size_changed)
         on_overlay5_size_changed(self.overlay5_size_combo.currentIndex())
         overlay5_x_label = QLabel("X:")
-        overlay5_x_label.setFixedWidth(18)
+        overlay5_x_label.setFixedWidth(label_small_width)
+        overlay5_x_label.setFixedHeight(unified_height)
         self.overlay5_x_combo = NoWheelComboBox()
-        self.overlay5_x_combo.setFixedWidth(60)
+        self.overlay5_x_combo.setFixedWidth(combo_short_width)
+        self.overlay5_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay5_x_combo.addItem(f"{percent}%", percent)
         self.overlay5_x_combo.setCurrentIndex(0)  # Default 0%
@@ -2268,9 +2316,11 @@ class SuperCutUI(QWidget):
         self.overlay5_x_combo.currentIndexChanged.connect(on_overlay5_x_changed)
         on_overlay5_x_changed(self.overlay5_x_combo.currentIndex())
         overlay5_y_label = QLabel("Y:")
-        overlay5_y_label.setFixedWidth(18)
+        overlay5_y_label.setFixedWidth(label_small_width)
+        overlay5_y_label.setFixedHeight(unified_height)
         self.overlay5_y_combo = NoWheelComboBox()
-        self.overlay5_y_combo.setFixedWidth(60)
+        self.overlay5_y_combo.setFixedWidth(combo_short_width)
+        self.overlay5_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay5_y_combo.addItem(f"{percent}%", percent)
         self.overlay5_y_combo.setCurrentIndex(0)  # Default 0%
@@ -2328,7 +2378,7 @@ class SuperCutUI(QWidget):
         overlay4_5_label = QLabel("Overlay 4_5:")
         overlay4_5_label.setFixedWidth(80)
         self.overlay4_5_effect_combo = NoWheelComboBox()
-        self.overlay4_5_effect_combo.setFixedWidth(combo_width)
+        self.overlay4_5_effect_combo.setFixedWidth(combo_long_width)
         for label, value in effect_options:
             self.overlay4_5_effect_combo.addItem(label, value)
         self.overlay4_5_effect_combo.setCurrentIndex(1)  # Default to 'Fade in' for Overlay 4_5 effect
@@ -2509,7 +2559,7 @@ class SuperCutUI(QWidget):
 
          # Overlay 6 controls (similar to Overlay 4)
         self.overlay6_checkbox = QtWidgets.QCheckBox("Overlay 6:")
-        self.overlay6_checkbox.setFixedWidth(checkbox_width)
+        self.overlay6_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay6_checkbox.setChecked(False)
         def update_overlay6_checkbox_style(state):
             self.overlay6_checkbox.setStyleSheet("")  # Always default color
@@ -2521,7 +2571,7 @@ class SuperCutUI(QWidget):
         self.overlay6_edit = ImageDropLineEdit()
         self.overlay6_edit.setPlaceholderText("Overlay 6 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay6_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay6_edit.setFixedWidth(edit_width)
+        self.overlay6_edit.setFixedWidth(edit_long_width)
         self.overlay6_path = ""
         def on_overlay6_changed():
             current_text = self.overlay6_edit.text()
@@ -2538,9 +2588,11 @@ class SuperCutUI(QWidget):
                 self.overlay6_edit.setText(file_path)
         overlay6_btn.clicked.connect(select_overlay6_image)
         overlay6_size_label = QLabel("S:")
-        overlay6_size_label.setFixedWidth(18)
+        overlay6_size_label.setFixedWidth(label_small_width)
+        overlay6_size_label.setFixedHeight(unified_height)
         self.overlay6_size_combo = NoWheelComboBox()
-        self.overlay6_size_combo.setFixedWidth(60)
+        self.overlay6_size_combo.setFixedWidth(combo_short_width)
+        self.overlay6_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay6_size_combo.addItem(f"{percent}%", percent)
         self.overlay6_size_combo.setCurrentIndex(9)  # Default 50%
@@ -2552,9 +2604,11 @@ class SuperCutUI(QWidget):
         on_overlay6_size_changed(self.overlay6_size_combo.currentIndex())
         # Overlay6 X coordinate
         overlay6_x_label = QLabel("X:")
-        overlay6_x_label.setFixedWidth(18)
+        overlay6_x_label.setFixedWidth(label_small_width)
+        overlay6_x_label.setFixedHeight(unified_height)
         self.overlay6_x_combo = NoWheelComboBox()
-        self.overlay6_x_combo.setFixedWidth(60)
+        self.overlay6_x_combo.setFixedWidth(combo_short_width)
+        self.overlay6_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay6_x_combo.addItem(f"{percent}%", percent)
         self.overlay6_x_combo.setCurrentIndex(0)  # Default 0%
@@ -2566,9 +2620,11 @@ class SuperCutUI(QWidget):
 
         # Overlay6 Y coordinate
         overlay6_y_label = QLabel("Y:")
-        overlay6_y_label.setFixedWidth(18)
+        overlay6_y_label.setFixedWidth(label_small_width)
+        overlay6_y_label.setFixedHeight(unified_height)
         self.overlay6_y_combo = NoWheelComboBox()
-        self.overlay6_y_combo.setFixedWidth(60)
+        self.overlay6_y_combo.setFixedWidth(combo_short_width)
+        self.overlay6_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay6_y_combo.addItem(f"{percent}%", percent)
         self.overlay6_y_combo.setCurrentIndex(0)  # Default 0%
@@ -2646,7 +2702,7 @@ class SuperCutUI(QWidget):
 
         # Overlay 7 controls (similar to Overlay 6)
         self.overlay7_checkbox = QtWidgets.QCheckBox("Overlay 7:")
-        self.overlay7_checkbox.setFixedWidth(checkbox_width)
+        self.overlay7_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay7_checkbox.setChecked(False)
         def update_overlay7_checkbox_style(state):
             self.overlay7_checkbox.setStyleSheet("")  # Always default color
@@ -2658,7 +2714,7 @@ class SuperCutUI(QWidget):
         self.overlay7_edit = ImageDropLineEdit()
         self.overlay7_edit.setPlaceholderText("Overlay 7 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay7_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay7_edit.setFixedWidth(edit_width)
+        self.overlay7_edit.setFixedWidth(edit_long_width)
         self.overlay7_path = ""
         def on_overlay7_changed():
             current_text = self.overlay7_edit.text()
@@ -2675,9 +2731,11 @@ class SuperCutUI(QWidget):
                 self.overlay7_edit.setText(file_path)
         overlay7_btn.clicked.connect(select_overlay7_image)
         overlay7_size_label = QLabel("S:")
-        overlay7_size_label.setFixedWidth(18)
+        overlay7_size_label.setFixedWidth(label_small_width)
+        overlay7_size_label.setFixedHeight(unified_height)
         self.overlay7_size_combo = NoWheelComboBox()
-        self.overlay7_size_combo.setFixedWidth(60)
+        self.overlay7_size_combo.setFixedWidth(combo_short_width)
+        self.overlay7_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay7_size_combo.addItem(f"{percent}%", percent)
         self.overlay7_size_combo.setCurrentIndex(9)  # Default 50%
@@ -2689,9 +2747,11 @@ class SuperCutUI(QWidget):
         on_overlay7_size_changed(self.overlay7_size_combo.currentIndex())
         # Overlay7 X coordinate
         overlay7_x_label = QLabel("X:")
-        overlay7_x_label.setFixedWidth(18)
+        overlay7_x_label.setFixedWidth(label_small_width)
+        overlay7_x_label.setFixedHeight(unified_height)
         self.overlay7_x_combo = NoWheelComboBox()
-        self.overlay7_x_combo.setFixedWidth(60)
+        self.overlay7_x_combo.setFixedWidth(combo_short_width)
+        self.overlay7_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay7_x_combo.addItem(f"{percent}%", percent)
         self.overlay7_x_combo.setCurrentIndex(0)  # Default 0%
@@ -2703,9 +2763,11 @@ class SuperCutUI(QWidget):
 
         # Overlay7 Y coordinate
         overlay7_y_label = QLabel("Y:")
-        overlay7_y_label.setFixedWidth(18)
+        overlay7_y_label.setFixedWidth(label_small_width)
+        overlay7_y_label.setFixedHeight(unified_height)
         self.overlay7_y_combo = NoWheelComboBox()
-        self.overlay7_y_combo.setFixedWidth(60)
+        self.overlay7_y_combo.setFixedWidth(combo_short_width)
+        self.overlay7_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay7_y_combo.addItem(f"{percent}%", percent)
         self.overlay7_y_combo.setCurrentIndex(0)  # Default 0%
@@ -2765,7 +2827,7 @@ class SuperCutUI(QWidget):
         overlay6_7_label = QLabel("Overlay 6_7:")
         overlay6_7_label.setFixedWidth(80)
         self.overlay6_7_effect_combo = NoWheelComboBox()
-        self.overlay6_7_effect_combo.setFixedWidth(combo_width)
+        self.overlay6_7_effect_combo.setFixedWidth(combo_long_width)
         for label, value in effect_options:
             self.overlay6_7_effect_combo.addItem(label, value)
         self.overlay6_7_effect_combo.setCurrentIndex(1)
@@ -2980,7 +3042,7 @@ class SuperCutUI(QWidget):
 
         # --- SOUNDWAVE OVERLAY CONTROLS ---
         self.soundwave_checkbox = QtWidgets.QCheckBox("Soundwave:")
-        self.soundwave_checkbox.setFixedWidth(checkbox_width)
+        self.soundwave_checkbox.setFixedWidth(label_checkbox_width)
         self.soundwave_checkbox.setChecked(False)
         def update_soundwave_checkbox_style(state):
             self.soundwave_checkbox.setStyleSheet("")
@@ -2991,7 +3053,7 @@ class SuperCutUI(QWidget):
         soundwave_method_label = QLabel("Method:")
         soundwave_method_label.setFixedWidth(50)
         self.soundwave_method_combo = NoWheelComboBox()
-        self.soundwave_method_combo.setFixedWidth(combo_width)
+        self.soundwave_method_combo.setFixedWidth(combo_long_width)
         soundwave_method_options = [
             ("Bars", "bars"),
             ("Spectrum", "spectrum"),
@@ -3011,7 +3073,7 @@ class SuperCutUI(QWidget):
         soundwave_color_label = QLabel("Color:")
         soundwave_color_label.setFixedWidth(40)
         self.soundwave_color_combo = NoWheelComboBox()
-        self.soundwave_color_combo.setFixedWidth(combo_width)
+        self.soundwave_color_combo.setFixedWidth(combo_long_width)
         soundwave_color_options = [
             ("Hue Rotate", "hue_rotate"),
             ("Red", "#ff0000"),
@@ -3046,9 +3108,11 @@ class SuperCutUI(QWidget):
         
         # Soundwave X position
         soundwave_x_label = QLabel("X:")
-        soundwave_x_label.setFixedWidth(18)
+        soundwave_x_label.setFixedWidth(label_small_width)
+        soundwave_x_label.setFixedHeight(unified_height)
         self.soundwave_x_combo = NoWheelComboBox()
-        self.soundwave_x_combo.setFixedWidth(60)
+        self.soundwave_x_combo.setFixedWidth(combo_short_width)
+        self.soundwave_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 5):
             self.soundwave_x_combo.addItem(f"{percent}%", percent)
         self.soundwave_x_combo.setCurrentIndex(10)  # Default 50%
@@ -3060,9 +3124,11 @@ class SuperCutUI(QWidget):
         
         # Soundwave Y position
         soundwave_y_label = QLabel("Y:")
-        soundwave_y_label.setFixedWidth(18)
+        soundwave_y_label.setFixedWidth(label_small_width)
+        soundwave_y_label.setFixedHeight(unified_height)
         self.soundwave_y_combo = NoWheelComboBox()
-        self.soundwave_y_combo.setFixedWidth(60)
+        self.soundwave_y_combo.setFixedWidth(combo_short_width)
+        self.soundwave_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 5):
             self.soundwave_y_combo.addItem(f"{percent}%", percent)
         self.soundwave_y_combo.setCurrentIndex(10)  # Default 50%
@@ -3132,7 +3198,7 @@ class SuperCutUI(QWidget):
 
         # Overlay 3 controls (similar to Overlay 2)
         self.overlay3_checkbox = QtWidgets.QCheckBox("Overlay 3:")
-        self.overlay3_checkbox.setFixedWidth(checkbox_width)
+        self.overlay3_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay3_checkbox.setChecked(False)
         def update_overlay3_checkbox_style(state):
             self.overlay3_checkbox.setStyleSheet("")  # Always default color
@@ -3144,7 +3210,7 @@ class SuperCutUI(QWidget):
         self.overlay3_edit = ImageDropLineEdit()
         self.overlay3_edit.setPlaceholderText("Overlay 3 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay3_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay3_edit.setFixedWidth(edit_width)
+        self.overlay3_edit.setFixedWidth(edit_long_width)
         self.overlay3_path = ""
         def on_overlay3_changed():
             current_text = self.overlay3_edit.text()
@@ -3161,9 +3227,11 @@ class SuperCutUI(QWidget):
                 self.overlay3_edit.setText(file_path)
         overlay3_btn.clicked.connect(select_overlay3_image)
         overlay3_size_label = QLabel("S:")
-        overlay3_size_label.setFixedWidth(18)
+        overlay3_size_label.setFixedWidth(label_small_width)
+        overlay3_size_label.setFixedHeight(unified_height)
         self.overlay3_size_combo = NoWheelComboBox()
-        self.overlay3_size_combo.setFixedWidth(60)
+        self.overlay3_size_combo.setFixedWidth(combo_short_width)
+        self.overlay3_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay3_size_combo.addItem(f"{percent}%", percent)
         self.overlay3_size_combo.setCurrentIndex(9)  # Default 50%
@@ -3175,9 +3243,11 @@ class SuperCutUI(QWidget):
         on_overlay3_size_changed(self.overlay3_size_combo.currentIndex())
         # Overlay3 X coordinate
         overlay3_x_label = QLabel("X:")
-        overlay3_x_label.setFixedWidth(18)
+        overlay3_x_label.setFixedWidth(label_small_width)
+        overlay3_x_label.setFixedHeight(unified_height)
         self.overlay3_x_combo = NoWheelComboBox()
-        self.overlay3_x_combo.setFixedWidth(60)
+        self.overlay3_x_combo.setFixedWidth(combo_short_width)
+        self.overlay3_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay3_x_combo.addItem(f"{percent}%", percent)
         self.overlay3_x_combo.setCurrentIndex(0)  # Default 0%
@@ -3189,9 +3259,11 @@ class SuperCutUI(QWidget):
 
         # Overlay3 Y coordinate
         overlay3_y_label = QLabel("Y:")
-        overlay3_y_label.setFixedWidth(18)
+        overlay3_y_label.setFixedWidth(label_small_width)
+        overlay3_y_label.setFixedHeight(unified_height)
         self.overlay3_y_combo = NoWheelComboBox()
-        self.overlay3_y_combo.setFixedWidth(60)
+        self.overlay3_y_combo.setFixedWidth(combo_short_width)
+        self.overlay3_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay3_y_combo.addItem(f"{percent}%", percent)
         self.overlay3_y_combo.setCurrentIndex(0)  # Default 0%
@@ -3260,7 +3332,7 @@ class SuperCutUI(QWidget):
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
         self.song_title_checkbox = QtWidgets.QCheckBox("  Titles:")
-        self.song_title_checkbox.setFixedWidth(checkbox_width)
+        self.song_title_checkbox.setFixedWidth(label_checkbox_width)
         self.song_title_checkbox.setChecked(False)
         def update_song_title_checkbox_style(state):
             self.song_title_checkbox.setStyleSheet("")
@@ -3275,7 +3347,7 @@ class SuperCutUI(QWidget):
         song_title_font_label = QLabel("Font:")
         song_title_font_label.setFixedWidth(40)
         self.song_title_font_combo = NoWheelComboBox()
-        self.song_title_font_combo.setFixedWidth(combo_width)
+        self.song_title_font_combo.setFixedWidth(combo_long_width)
         song_title_font_options = [
             ("Default", "default"),
             ("Kantumruy Pro", "KantumruyPro-VariableFont_wght.ttf"),
@@ -3298,9 +3370,11 @@ class SuperCutUI(QWidget):
 
         # Titles Scale control
         song_title_scale_label = QLabel("S:")
-        song_title_scale_label.setFixedWidth(18)
+        song_title_scale_label.setFixedWidth(label_small_width)
+        song_title_scale_label.setFixedHeight(unified_height)
         self.song_title_scale_combo = NoWheelComboBox()
-        self.song_title_scale_combo.setFixedWidth(60)
+        self.song_title_scale_combo.setFixedWidth(combo_short_width)
+        self.song_title_scale_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.song_title_scale_combo.addItem(f"{percent}%", percent)
         self.song_title_scale_combo.setCurrentIndex(9)  # Default 50%
@@ -3312,7 +3386,8 @@ class SuperCutUI(QWidget):
         
         # Color control
         song_title_color_label = QLabel("C:")
-        song_title_color_label.setFixedWidth(18)
+        song_title_color_label.setFixedWidth(label_small_width)
+        song_title_color_label.setFixedHeight(unified_height)
         self.song_title_color_btn = QPushButton()
         self.song_title_color_btn.setFixedSize(27, 27)
         self.song_title_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
@@ -3326,9 +3401,10 @@ class SuperCutUI(QWidget):
         
         # Background control
         song_title_bg_label = QLabel("BG:")
-        song_title_bg_label.setFixedWidth(26)
+        song_title_bg_label.setFixedWidth(label_small_width)
+        song_title_bg_label.setFixedHeight(unified_height)
         self.song_title_bg_combo = NoWheelComboBox()
-        self.song_title_bg_combo.setFixedWidth(combo_width)
+        self.song_title_bg_combo.setFixedWidth(combo_long_width)
         bg_options = [
             ("Transparent", "transparent"),
             ("Black", "black"),
@@ -3490,7 +3566,7 @@ class SuperCutUI(QWidget):
         song_title_effect_label = QLabel("Titles:")
         song_title_effect_label.setFixedWidth(40)
         self.song_title_effect_combo = NoWheelComboBox()
-        self.song_title_effect_combo.setFixedWidth(combo_width)
+        self.song_title_effect_combo.setFixedWidth(combo_long_width)
         song_title_effect_options = [
             ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
@@ -3509,9 +3585,11 @@ class SuperCutUI(QWidget):
         
         # --- Song Title Position Controls (X, Y as percent) ---
         song_title_x_label = QLabel("X:")
-        song_title_x_label.setFixedWidth(28)
+        song_title_x_label.setFixedWidth(label_small_width)
+        song_title_x_label.setFixedHeight(unified_height)
         self.song_title_x_combo = NoWheelComboBox()
-        self.song_title_x_combo.setFixedWidth(60)
+        self.song_title_x_combo.setFixedWidth(combo_short_width)
+        self.song_title_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.song_title_x_combo.addItem(f"{percent}%", percent)
         self.song_title_x_combo.setCurrentIndex(50)  # Default 50%
@@ -3522,9 +3600,11 @@ class SuperCutUI(QWidget):
         on_song_title_x_changed(self.song_title_x_combo.currentIndex())
 
         song_title_y_label = QLabel("Y:")
-        song_title_y_label.setFixedWidth(18)
+        song_title_y_label.setFixedWidth(label_small_width)
+        song_title_y_label.setFixedHeight(unified_height)
         self.song_title_y_combo = NoWheelComboBox()
-        self.song_title_y_combo.setFixedWidth(60)
+        self.song_title_y_combo.setFixedWidth(combo_short_width)
+        self.song_title_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.song_title_y_combo.addItem(f"{percent}%", percent)
         self.song_title_y_combo.setCurrentIndex(20)  # Default 20%
@@ -3719,7 +3799,7 @@ class SuperCutUI(QWidget):
 
         # Overlay 8 controls (similar to Overlay 7)
         self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
-        self.overlay8_checkbox.setFixedWidth(checkbox_width)
+        self.overlay8_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay8_checkbox.setChecked(False)
         def update_overlay8_checkbox_style(state):
             self.overlay8_checkbox.setStyleSheet("")  # Always default color
@@ -3731,7 +3811,7 @@ class SuperCutUI(QWidget):
         self.overlay8_edit = ImageDropLineEdit()
         self.overlay8_edit.setPlaceholderText("Overlay 8 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv)")
         self.overlay8_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay8_edit.setFixedWidth(edit_width)
+        self.overlay8_edit.setFixedWidth(edit_long_width)
         self.overlay8_path = ""
         def on_overlay8_changed():
             current_text = self.overlay8_edit.text()
@@ -3748,9 +3828,11 @@ class SuperCutUI(QWidget):
                 self.overlay8_edit.setText(file_path)
         overlay8_btn.clicked.connect(select_overlay8_image)
         overlay8_size_label = QLabel("S:")
-        overlay8_size_label.setFixedWidth(18)
+        overlay8_size_label.setFixedWidth(label_small_width)
+        overlay8_size_label.setFixedHeight(unified_height)
         self.overlay8_size_combo = NoWheelComboBox()
-        self.overlay8_size_combo.setFixedWidth(60)
+        self.overlay8_size_combo.setFixedWidth(combo_short_width)
+        self.overlay8_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay8_size_combo.addItem(f"{percent}%", percent)
         self.overlay8_size_combo.setCurrentIndex(9)  # Default 50%
@@ -3762,9 +3844,11 @@ class SuperCutUI(QWidget):
         on_overlay8_size_changed(self.overlay8_size_combo.currentIndex())
         # Overlay8 X coordinate
         overlay8_x_label = QLabel("X:")
-        overlay8_x_label.setFixedWidth(18)
+        overlay8_x_label.setFixedWidth(label_small_width)
+        overlay8_x_label.setFixedHeight(unified_height)
         self.overlay8_x_combo = NoWheelComboBox()
-        self.overlay8_x_combo.setFixedWidth(60)
+        self.overlay8_x_combo.setFixedWidth(combo_short_width)
+        self.overlay8_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay8_x_combo.addItem(f"{percent}%", percent)
         self.overlay8_x_combo.setCurrentIndex(0)  # Default 0%
@@ -3776,9 +3860,11 @@ class SuperCutUI(QWidget):
 
         # Overlay8 Y coordinate
         overlay8_y_label = QLabel("Y:")
-        overlay8_y_label.setFixedWidth(18)
+        overlay8_y_label.setFixedWidth(label_small_width)
+        overlay8_y_label.setFixedHeight(unified_height)
         self.overlay8_y_combo = NoWheelComboBox()
-        self.overlay8_y_combo.setFixedWidth(60)
+        self.overlay8_y_combo.setFixedWidth(combo_short_width)
+        self.overlay8_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay8_y_combo.addItem(f"{percent}%", percent)
         self.overlay8_y_combo.setCurrentIndex(0)  # Default 0%
@@ -3905,7 +3991,7 @@ class SuperCutUI(QWidget):
         overlay8_label = QLabel("Overlay 8:")
         overlay8_label.setFixedWidth(80)
         self.overlay8_effect_combo = NoWheelComboBox()
-        self.overlay8_effect_combo.setFixedWidth(combo_width)
+        self.overlay8_effect_combo.setFixedWidth(combo_long_width)
         for label, value in effect_options:
             self.overlay8_effect_combo.addItem(label, value)
         self.overlay8_effect_combo.setCurrentIndex(1)
@@ -4180,7 +4266,7 @@ class SuperCutUI(QWidget):
 
         # --- OVERLAY 9 (exact copy of overlay8) ---
         self.overlay9_checkbox = QtWidgets.QCheckBox("Overlay 9:")
-        self.overlay9_checkbox.setFixedWidth(checkbox_width)
+        self.overlay9_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay9_checkbox.setChecked(False)
         def update_overlay9_checkbox_style(state):
             self.overlay9_checkbox.setStyleSheet("")  # Always default color
@@ -4192,7 +4278,7 @@ class SuperCutUI(QWidget):
         self.overlay9_edit = ImageDropLineEdit()
         self.overlay9_edit.setPlaceholderText("Overlay 9 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv")
         self.overlay9_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
-        self.overlay9_edit.setFixedWidth(edit_width)
+        self.overlay9_edit.setFixedWidth(edit_long_width)
         self.overlay9_path = ""
         def on_overlay9_changed():
             current_text = self.overlay9_edit.text()
@@ -4209,9 +4295,11 @@ class SuperCutUI(QWidget):
                 self.overlay9_edit.setText(file_path)
         overlay9_btn.clicked.connect(select_overlay9_image)
         overlay9_size_label = QLabel("S:")
-        overlay9_size_label.setFixedWidth(18)
+        overlay9_size_label.setFixedWidth(label_small_width)
+        overlay9_size_label.setFixedHeight(unified_height)
         self.overlay9_size_combo = NoWheelComboBox()
-        self.overlay9_size_combo.setFixedWidth(60)
+        self.overlay9_size_combo.setFixedWidth(combo_short_width)
+        self.overlay9_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay9_size_combo.addItem(f"{percent}%", percent)
         self.overlay9_size_combo.setCurrentIndex(9)  # Default 50%
@@ -4223,9 +4311,11 @@ class SuperCutUI(QWidget):
         on_overlay9_size_changed(self.overlay9_size_combo.currentIndex())
         # Overlay9 X coordinate
         overlay9_x_label = QLabel("X:")
-        overlay9_x_label.setFixedWidth(18)
+        overlay9_x_label.setFixedWidth(label_small_width)
+        overlay9_x_label.setFixedHeight(unified_height)
         self.overlay9_x_combo = NoWheelComboBox()
-        self.overlay9_x_combo.setFixedWidth(60)
+        self.overlay9_x_combo.setFixedWidth(combo_short_width)
+        self.overlay9_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay9_x_combo.addItem(f"{percent}%", percent)
         self.overlay9_x_combo.setCurrentIndex(0)  # Default 0%
@@ -4237,9 +4327,11 @@ class SuperCutUI(QWidget):
 
         # Overlay9 Y coordinate
         overlay9_y_label = QLabel("Y:")
-        overlay9_y_label.setFixedWidth(18)
+        overlay9_y_label.setFixedWidth(label_small_width)
+        overlay9_y_label.setFixedHeight(unified_height)
         self.overlay9_y_combo = NoWheelComboBox()
-        self.overlay9_y_combo.setFixedWidth(60)
+        self.overlay9_y_combo.setFixedWidth(combo_short_width)
+        self.overlay9_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay9_y_combo.addItem(f"{percent}%", percent)
         self.overlay9_y_combo.setCurrentIndex(0)  # Default 0%
@@ -4366,7 +4458,7 @@ class SuperCutUI(QWidget):
         overlay9_label = QLabel("Overlay 9:")
         overlay9_label.setFixedWidth(80)
         self.overlay9_effect_combo = NoWheelComboBox()
-        self.overlay9_effect_combo.setFixedWidth(combo_width)
+        self.overlay9_effect_combo.setFixedWidth(combo_long_width)
         for label, value in effect_options:
             self.overlay9_effect_combo.addItem(label, value)
         self.overlay9_effect_combo.setCurrentIndex(1)
@@ -4642,7 +4734,7 @@ class SuperCutUI(QWidget):
 
         # --- OVERLAY 10 (simplified version of overlay9 without popup and full duration) ---
         self.overlay10_checkbox = QtWidgets.QCheckBox("Overlay 10:")
-        self.overlay10_checkbox.setFixedWidth(checkbox_width)
+        self.overlay10_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay10_checkbox.setChecked(False)
         def update_overlay10_checkbox_style(state):
             self.overlay10_checkbox.setStyleSheet("")  # Always default color
@@ -4654,7 +4746,7 @@ class SuperCutUI(QWidget):
         self.overlay10_edit = ImageDropLineEdit()
         self.overlay10_edit.setPlaceholderText("Overlay 10 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv")
         self.overlay10_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image")
-        self.overlay10_edit.setFixedWidth(edit_width)
+        self.overlay10_edit.setFixedWidth(edit_long_width)
         self.overlay10_path = ""
         def on_overlay10_changed():
             current_text = self.overlay10_edit.text()
@@ -4671,9 +4763,11 @@ class SuperCutUI(QWidget):
                 self.overlay10_edit.setText(file_path)
         overlay10_btn.clicked.connect(select_overlay10_image)
         overlay10_size_label = QLabel("S:")
-        overlay10_size_label.setFixedWidth(18)
+        overlay10_size_label.setFixedWidth(label_small_width)
+        overlay10_size_label.setFixedHeight(unified_height)
         self.overlay10_size_combo = NoWheelComboBox()
-        self.overlay10_size_combo.setFixedWidth(60)
+        self.overlay10_size_combo.setFixedWidth(combo_short_width)
+        self.overlay10_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay10_size_combo.addItem(f"{percent}%", percent)
         self.overlay10_size_combo.setCurrentIndex(9)  # Default 50%
@@ -4685,9 +4779,11 @@ class SuperCutUI(QWidget):
         on_overlay10_size_changed(self.overlay10_size_combo.currentIndex())
         # Overlay10 X coordinate
         overlay10_x_label = QLabel("X:")
-        overlay10_x_label.setFixedWidth(18)
+        overlay10_x_label.setFixedWidth(label_small_width)
+        overlay10_x_label.setFixedHeight(unified_height)
         self.overlay10_x_combo = NoWheelComboBox()
-        self.overlay10_x_combo.setFixedWidth(60)
+        self.overlay10_x_combo.setFixedWidth(combo_short_width)
+        self.overlay10_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay10_x_combo.addItem(f"{percent}%", percent)
         self.overlay10_x_combo.setCurrentIndex(0)  # Default 0%
@@ -4699,9 +4795,11 @@ class SuperCutUI(QWidget):
 
         # Overlay10 Y coordinate
         overlay10_y_label = QLabel("Y:")
-        overlay10_y_label.setFixedWidth(18)
+        overlay10_y_label.setFixedWidth(label_small_width)
+        overlay10_y_label.setFixedHeight(unified_height)
         self.overlay10_y_combo = NoWheelComboBox()
-        self.overlay10_y_combo.setFixedWidth(60)
+        self.overlay10_y_combo.setFixedWidth(combo_short_width)
+        self.overlay10_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay10_y_combo.addItem(f"{percent}%", percent)
         self.overlay10_y_combo.setCurrentIndex(0)  # Default 0%
@@ -4785,7 +4883,7 @@ class SuperCutUI(QWidget):
         overlay10_label = QLabel("Overlay 10:")
         overlay10_label.setFixedWidth(80)
         self.overlay10_effect_combo = NoWheelComboBox()
-        self.overlay10_effect_combo.setFixedWidth(combo_width)
+        self.overlay10_effect_combo.setFixedWidth(combo_long_width)
         for label, value in effect_options:
             self.overlay10_effect_combo.addItem(label, value)
         self.overlay10_effect_combo.setCurrentIndex(1)
@@ -4999,7 +5097,7 @@ class SuperCutUI(QWidget):
 
         # --- FRAME MP3COVER OVERLAY ---
         self.frame_mp3cover_checkbox = QtWidgets.QCheckBox("Frame_mp3cover:")
-        self.frame_mp3cover_checkbox.setFixedWidth(checkbox_width)
+        self.frame_mp3cover_checkbox.setFixedWidth(label_checkbox_width)
         self.frame_mp3cover_checkbox.setChecked(False)
         def update_frame_mp3cover_checkbox_style(state):
             self.frame_mp3cover_checkbox.setStyleSheet("")  # Always default color
@@ -5017,7 +5115,7 @@ class SuperCutUI(QWidget):
 
         # Custom image file selection for frame_mp3cover
         self.frame_mp3cover_custom_image_edit = ImageDropLineEdit()
-        self.frame_mp3cover_custom_image_edit.setFixedWidth(combo_width)
+        self.frame_mp3cover_custom_image_edit.setFixedWidth(combo_long_width)
         self.frame_mp3cover_custom_image_edit.setPlaceholderText("Select custom image...")
         self.frame_mp3cover_custom_image_path = None
         
@@ -5044,9 +5142,11 @@ class SuperCutUI(QWidget):
         
         # Frame mp3cover size option (5% to 100%)
         frame_mp3cover_size_label = QLabel("S:")
-        frame_mp3cover_size_label.setFixedWidth(18)
+        frame_mp3cover_size_label.setFixedWidth(label_small_width)
+        frame_mp3cover_size_label.setFixedHeight(unified_height)
         self.frame_mp3cover_size_combo = NoWheelComboBox()
-        self.frame_mp3cover_size_combo.setFixedWidth(60)
+        self.frame_mp3cover_size_combo.setFixedWidth(combo_short_width)
+        self.frame_mp3cover_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.frame_mp3cover_size_combo.addItem(f"{percent}%", percent)
         self.frame_mp3cover_size_combo.setCurrentIndex(9)  # Default 50%
@@ -5059,9 +5159,11 @@ class SuperCutUI(QWidget):
 
         # Frame mp3cover X coordinate
         frame_mp3cover_x_label = QLabel("X:")
-        frame_mp3cover_x_label.setFixedWidth(18)
+        frame_mp3cover_x_label.setFixedWidth(label_small_width)
+        frame_mp3cover_x_label.setFixedHeight(unified_height)
         self.frame_mp3cover_x_combo = NoWheelComboBox()
-        self.frame_mp3cover_x_combo.setFixedWidth(60)
+        self.frame_mp3cover_x_combo.setFixedWidth(combo_short_width)
+        self.frame_mp3cover_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.frame_mp3cover_x_combo.addItem(f"{percent}%", percent)
         self.frame_mp3cover_x_combo.setCurrentIndex(0)  # Default 0%
@@ -5073,9 +5175,11 @@ class SuperCutUI(QWidget):
 
         # Frame mp3cover Y coordinate
         frame_mp3cover_y_label = QLabel("Y:")
-        frame_mp3cover_y_label.setFixedWidth(18)
+        frame_mp3cover_y_label.setFixedWidth(label_small_width)
+        frame_mp3cover_y_label.setFixedHeight(unified_height)
         self.frame_mp3cover_y_combo = NoWheelComboBox()
-        self.frame_mp3cover_y_combo.setFixedWidth(60)
+        self.frame_mp3cover_y_combo.setFixedWidth(combo_short_width)
+        self.frame_mp3cover_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.frame_mp3cover_y_combo.addItem(f"{percent}%", percent)
         self.frame_mp3cover_y_combo.setCurrentIndex(0)  # Default 0%
@@ -5172,7 +5276,7 @@ class SuperCutUI(QWidget):
         frame_mp3cover_label = QLabel("Frame_mp3cover:")
         frame_mp3cover_label.setFixedWidth(80)
         self.frame_mp3cover_effect_combo = NoWheelComboBox()
-        self.frame_mp3cover_effect_combo.setFixedWidth(combo_width)
+        self.frame_mp3cover_effect_combo.setFixedWidth(combo_long_width)
         for label, value in effect_options:
             self.frame_mp3cover_effect_combo.addItem(label, value)
         self.frame_mp3cover_effect_combo.setCurrentIndex(1)
@@ -5321,7 +5425,7 @@ class SuperCutUI(QWidget):
 
         # --- DYNAMIC MP3 COVER OVERLAY ---
         self.mp3_cover_overlay_checkbox = QtWidgets.QCheckBox("MP3 Cover:")
-        self.mp3_cover_overlay_checkbox.setFixedWidth(checkbox_width)
+        self.mp3_cover_overlay_checkbox.setFixedWidth(label_checkbox_width)
         self.mp3_cover_overlay_checkbox.setChecked(False)
         def update_mp3_cover_overlay_checkbox_style(state):
             self.mp3_cover_overlay_checkbox.setStyleSheet("")  # Always default color
@@ -5333,9 +5437,11 @@ class SuperCutUI(QWidget):
         
         # MP3 cover size option (5% to 100%)
         mp3_cover_size_label = QLabel("S:")
-        mp3_cover_size_label.setFixedWidth(18)
+        mp3_cover_size_label.setFixedWidth(label_small_width)
+        mp3_cover_size_label.setFixedHeight(unified_height)
         self.mp3_cover_size_combo = NoWheelComboBox()
-        self.mp3_cover_size_combo.setFixedWidth(60)
+        self.mp3_cover_size_combo.setFixedWidth(combo_short_width)
+        self.mp3_cover_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.mp3_cover_size_combo.addItem(f"{percent}%", percent)
         self.mp3_cover_size_combo.setCurrentIndex(3)  # Default 20%
@@ -5348,9 +5454,11 @@ class SuperCutUI(QWidget):
 
         # MP3 cover X coordinate
         mp3_cover_x_label = QLabel("X:")
-        mp3_cover_x_label.setFixedWidth(18)
+        mp3_cover_x_label.setFixedWidth(label_small_width)
+        mp3_cover_x_label.setFixedHeight(unified_height)
         self.mp3_cover_x_combo = NoWheelComboBox()
-        self.mp3_cover_x_combo.setFixedWidth(60)
+        self.mp3_cover_x_combo.setFixedWidth(combo_short_width)
+        self.mp3_cover_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.mp3_cover_x_combo.addItem(f"{percent}%", percent)
         self.mp3_cover_x_combo.setCurrentIndex(75)  # Default 75%
@@ -5362,9 +5470,11 @@ class SuperCutUI(QWidget):
 
         # MP3 cover Y coordinate
         mp3_cover_y_label = QLabel("Y:")
-        mp3_cover_y_label.setFixedWidth(18)
+        mp3_cover_y_label.setFixedWidth(label_small_width)
+        mp3_cover_y_label.setFixedHeight(unified_height)
         self.mp3_cover_y_combo = NoWheelComboBox()
-        self.mp3_cover_y_combo.setFixedWidth(60)
+        self.mp3_cover_y_combo.setFixedWidth(combo_short_width)
+        self.mp3_cover_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.mp3_cover_y_combo.addItem(f"{percent}%", percent)
         self.mp3_cover_y_combo.setCurrentIndex(75)  # Default 75%
@@ -5378,7 +5488,7 @@ class SuperCutUI(QWidget):
         mp3_cover_effect_label = QLabel("Effect:")
         mp3_cover_effect_label.setFixedWidth(40)
         self.mp3_cover_effect_combo = NoWheelComboBox()
-        self.mp3_cover_effect_combo.setFixedWidth(combo_width)
+        self.mp3_cover_effect_combo.setFixedWidth(combo_long_width)
         for label, value in effect_options:
             self.mp3_cover_effect_combo.addItem(label, value)
         self.mp3_cover_effect_combo.setCurrentIndex(0)  # Default fadeinout
@@ -5672,7 +5782,7 @@ class SuperCutUI(QWidget):
 
         # --- FRAME BOX OVERLAY ---
         self.frame_box_checkbox = QtWidgets.QCheckBox("Frame Box:")
-        self.frame_box_checkbox.setFixedWidth(checkbox_width)
+        self.frame_box_checkbox.setFixedWidth(label_checkbox_width)
         self.frame_box_checkbox.setChecked(False)
         def update_frame_box_checkbox_style(state):
             self.frame_box_checkbox.setStyleSheet("")  # Always default color
@@ -5717,9 +5827,11 @@ class SuperCutUI(QWidget):
         
         # Frame box size option (5% to 100%)
         frame_box_size_label = QLabel("S:")
-        frame_box_size_label.setFixedWidth(18)
+        frame_box_size_label.setFixedWidth(label_small_width)
+        frame_box_size_label.setFixedHeight(unified_height)
         self.frame_box_size_combo = NoWheelComboBox()
-        self.frame_box_size_combo.setFixedWidth(60)
+        self.frame_box_size_combo.setFixedWidth(combo_short_width)
+        self.frame_box_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.frame_box_size_combo.addItem(f"{percent}%", percent)
         self.frame_box_size_combo.setCurrentIndex(9)  # Default 50%
@@ -5732,9 +5844,11 @@ class SuperCutUI(QWidget):
 
         # Frame box X coordinate
         frame_box_x_label = QLabel("X:")
-        frame_box_x_label.setFixedWidth(18)
+        frame_box_x_label.setFixedWidth(label_small_width)
+        frame_box_x_label.setFixedHeight(unified_height)
         self.frame_box_x_combo = NoWheelComboBox()
-        self.frame_box_x_combo.setFixedWidth(60)
+        self.frame_box_x_combo.setFixedWidth(combo_short_width)
+        self.frame_box_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.frame_box_x_combo.addItem(f"{percent}%", percent)
         self.frame_box_x_combo.setCurrentIndex(0)  # Default 0%
@@ -5746,9 +5860,11 @@ class SuperCutUI(QWidget):
 
         # Frame box Y coordinate
         frame_box_y_label = QLabel("Y:")
-        frame_box_y_label.setFixedWidth(18)
+        frame_box_y_label.setFixedWidth(label_small_width)
+        frame_box_y_label.setFixedHeight(unified_height)
         self.frame_box_y_combo = NoWheelComboBox()
-        self.frame_box_y_combo.setFixedWidth(60)
+        self.frame_box_y_combo.setFixedWidth(combo_short_width)
+        self.frame_box_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.frame_box_y_combo.addItem(f"{percent}%", percent)
         self.frame_box_y_combo.setCurrentIndex(0)  # Default 0%
@@ -5778,7 +5894,7 @@ class SuperCutUI(QWidget):
         frame_box_label = QLabel("Frame Box:")
         frame_box_label.setFixedWidth(80)
         self.frame_box_effect_combo = NoWheelComboBox()
-        self.frame_box_effect_combo.setFixedWidth(combo_width)
+        self.frame_box_effect_combo.setFixedWidth(combo_long_width)
         for label, value in effect_options:
             self.frame_box_effect_combo.addItem(label, value)
         self.frame_box_effect_combo.setCurrentIndex(1)
@@ -5980,7 +6096,7 @@ class SuperCutUI(QWidget):
         
         # Frame Box Caption Checkbox
         self.frame_box_caption_checkbox = QtWidgets.QCheckBox("Caption:")
-        self.frame_box_caption_checkbox.setFixedWidth(checkbox_width)
+        self.frame_box_caption_checkbox.setFixedWidth(label_checkbox_width)
         self.frame_box_caption_checkbox.setChecked(False)
         def update_frame_box_caption_checkbox_style(state):
             self.frame_box_caption_checkbox.setStyleSheet("")  # Always default color
@@ -6582,7 +6698,7 @@ class SuperCutUI(QWidget):
 
         # --- BACKGROUND LAYER SCALE CONTROL ---
         self.bg_layer_checkbox = QtWidgets.QCheckBox("BG Layer:")
-        self.bg_layer_checkbox.setFixedWidth(checkbox_width)
+        self.bg_layer_checkbox.setFixedWidth(label_checkbox_width)
         self.bg_layer_checkbox.setChecked(False)
         def update_bg_layer_checkbox_style(state):
             self.bg_layer_checkbox.setStyleSheet("")  # Always default color
