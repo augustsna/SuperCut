@@ -2211,8 +2211,6 @@ class SuperCutUI(QWidget):
         self.overlay4_checkbox.setChecked(False)
         self.overlay4_checkbox.stateChanged.connect(update_overlay4_checkbox_style)
         update_overlay4_checkbox_style(self.overlay4_checkbox.checkState())
-        overlay4_layout = QHBoxLayout()
-        overlay4_layout.setSpacing(4)
         self.overlay4_edit = ImageDropLineEdit()
         self.overlay4_edit.setPlaceholderText("Overlay 4 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay4_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
@@ -2306,10 +2304,12 @@ class SuperCutUI(QWidget):
         self.overlay4_checkbox.stateChanged.connect(lambda _: set_overlay4_enabled(self.overlay4_checkbox.checkState()))
        
        # Overlay 4 layout
+        overlay4_layout = QHBoxLayout()
+        overlay4_layout.setSpacing(0)
         overlay4_layout.addWidget(self.overlay4_checkbox)
         overlay4_layout.addSpacing(0)
         overlay4_layout.addWidget(self.overlay4_edit)
-        overlay4_layout.addSpacing(0)
+        overlay4_layout.addSpacing(10)
         overlay4_layout.addWidget(overlay4_btn)
         overlay4_layout.addSpacing(0)
         overlay4_layout.addWidget(overlay4_size_label)
@@ -2648,17 +2648,38 @@ class SuperCutUI(QWidget):
         # Initialize start at/from fields based on checkbox state
         set_overlay4_5_start_at_enabled(self.overlay4_5_start_at_checkbox.checkState())
 
+        # --- Overlay 6, 7, and 6_7 Effect Group Box ---
+        overlay_groupbox_6_7 = QtWidgets.QGroupBox("Overlay 6 && 7")
+        overlay_groupbox_6_7.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        overlay_groupbox_6_7_layout = QVBoxLayout(overlay_groupbox_6_7)
+        overlay_groupbox_6_7_layout.setSpacing(8)
+        overlay_groupbox_6_7_layout.setContentsMargins(10, 5, 10, 10)        
+        layout.addWidget(overlay_groupbox_6_7)
+
          # Overlay 6 controls (similar to Overlay 4)
         self.overlay6_checkbox = QtWidgets.QCheckBox("Overlay 6:")
         self.overlay6_checkbox.setFixedWidth(label_checkbox_width)
+        self.overlay6_checkbox.setFixedHeight(unified_height)
         self.overlay6_checkbox.setChecked(False)
         def update_overlay6_checkbox_style(state):
             self.overlay6_checkbox.setStyleSheet("")  # Always default color
         self.overlay6_checkbox.stateChanged.connect(update_overlay6_checkbox_style)
         update_overlay6_checkbox_style(self.overlay6_checkbox.checkState())
 
-        overlay6_layout = QHBoxLayout()
-        overlay6_layout.setSpacing(4)
         self.overlay6_edit = ImageDropLineEdit()
         self.overlay6_edit.setPlaceholderText("Overlay 6 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay6_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
@@ -2681,7 +2702,7 @@ class SuperCutUI(QWidget):
                 self.overlay6_edit.setText(file_path)
         overlay6_btn.clicked.connect(select_overlay6_image)
         overlay6_size_label = QLabel("S:")
-        overlay6_size_label.setFixedWidth(label_short_width)
+        overlay6_size_label.setFixedWidth(label_mini_width)
         overlay6_size_label.setFixedHeight(unified_height)
         self.overlay6_size_combo = NoWheelComboBox()
         self.overlay6_size_combo.setFixedWidth(combo_short_width)
@@ -2697,7 +2718,7 @@ class SuperCutUI(QWidget):
         on_overlay6_size_changed(self.overlay6_size_combo.currentIndex())
         # Overlay6 X coordinate
         overlay6_x_label = QLabel("X:")
-        overlay6_x_label.setFixedWidth(label_short_width)
+        overlay6_x_label.setFixedWidth(label_mini_width)
         overlay6_x_label.setFixedHeight(unified_height)
         self.overlay6_x_combo = NoWheelComboBox()
         self.overlay6_x_combo.setFixedWidth(combo_short_width)
@@ -2713,7 +2734,7 @@ class SuperCutUI(QWidget):
 
         # Overlay6 Y coordinate
         overlay6_y_label = QLabel("Y:")
-        overlay6_y_label.setFixedWidth(label_short_width)
+        overlay6_y_label.setFixedWidth(label_mini_width)
         overlay6_y_label.setFixedHeight(unified_height)
         self.overlay6_y_combo = NoWheelComboBox()
         self.overlay6_y_combo.setFixedWidth(combo_short_width)
@@ -2755,55 +2776,38 @@ class SuperCutUI(QWidget):
                 overlay6_y_label.setStyleSheet("color: grey;")
         self.overlay6_checkbox.stateChanged.connect(lambda _: set_overlay6_enabled(self.overlay6_checkbox.checkState()))
         
+        # Overlay 6 layout
+        overlay6_layout = QHBoxLayout()
+        overlay6_layout.setSpacing(0)
         overlay6_layout.addWidget(self.overlay6_checkbox)
-        overlay6_layout.addSpacing(3)
+        overlay6_layout.addSpacing(0)
         overlay6_layout.addWidget(self.overlay6_edit)
-        overlay6_layout.addSpacing(3)  # Space before select button
+        overlay6_layout.addSpacing(10)
         overlay6_layout.addWidget(overlay6_btn)
-        overlay6_layout.addSpacing(4)  # Space before position label
+        overlay6_layout.addSpacing(0)
         overlay6_layout.addWidget(overlay6_size_label)
         overlay6_layout.addWidget(self.overlay6_size_combo)
-        overlay6_layout.addSpacing(4)
+        overlay6_layout.addSpacing(0)
         overlay6_layout.addWidget(overlay6_x_label)
         overlay6_layout.addWidget(self.overlay6_x_combo)
-        overlay6_layout.addSpacing(4)
+        overlay6_layout.addSpacing(0)
         overlay6_layout.addWidget(overlay6_y_label)
         overlay6_layout.addWidget(self.overlay6_y_combo)
         overlay6_layout.addStretch()
-        set_overlay6_enabled(self.overlay6_checkbox.checkState())
-        # --- Overlay 6, 7, and 6_7 Effect Group Box ---
-        overlay_groupbox_6_7 = QtWidgets.QGroupBox("Overlay 6, 7, and 6_7 Effect")
-        overlay_groupbox_6_7.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 2px solid #cccccc;
-                border-radius: 5px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
-                color: #333333;
-            }
-        """)
-        overlay_groupbox_6_7_layout = QVBoxLayout(overlay_groupbox_6_7)
-        overlay_groupbox_6_7_layout.setSpacing(8)
-        overlay_groupbox_6_7_layout.setContentsMargins(10, 5, 10, 10)
         overlay_groupbox_6_7_layout.addLayout(overlay6_layout)
 
-        # Overlay 7 controls (similar to Overlay 6)
+        set_overlay6_enabled(self.overlay6_checkbox.checkState())
+
+        # Overlay 7 controls
         self.overlay7_checkbox = QtWidgets.QCheckBox("Overlay 7:")
         self.overlay7_checkbox.setFixedWidth(label_checkbox_width)
+        self.overlay7_checkbox.setFixedHeight(unified_height)
         self.overlay7_checkbox.setChecked(False)
         def update_overlay7_checkbox_style(state):
             self.overlay7_checkbox.setStyleSheet("")  # Always default color
         self.overlay7_checkbox.stateChanged.connect(update_overlay7_checkbox_style)
         update_overlay7_checkbox_style(self.overlay7_checkbox.checkState())
 
-        overlay7_layout = QHBoxLayout()
-        overlay7_layout.setSpacing(4)
         self.overlay7_edit = ImageDropLineEdit()
         self.overlay7_edit.setPlaceholderText("Overlay 7 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay7_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
@@ -2826,7 +2830,7 @@ class SuperCutUI(QWidget):
                 self.overlay7_edit.setText(file_path)
         overlay7_btn.clicked.connect(select_overlay7_image)
         overlay7_size_label = QLabel("S:")
-        overlay7_size_label.setFixedWidth(label_short_width)
+        overlay7_size_label.setFixedWidth(label_mini_width)
         overlay7_size_label.setFixedHeight(unified_height)
         self.overlay7_size_combo = NoWheelComboBox()
         self.overlay7_size_combo.setFixedWidth(combo_short_width)
@@ -2842,7 +2846,7 @@ class SuperCutUI(QWidget):
         on_overlay7_size_changed(self.overlay7_size_combo.currentIndex())
         # Overlay7 X coordinate
         overlay7_x_label = QLabel("X:")
-        overlay7_x_label.setFixedWidth(label_short_width)
+        overlay7_x_label.setFixedWidth(label_mini_width)
         overlay7_x_label.setFixedHeight(unified_height)
         self.overlay7_x_combo = NoWheelComboBox()
         self.overlay7_x_combo.setFixedWidth(combo_short_width)
@@ -2858,7 +2862,7 @@ class SuperCutUI(QWidget):
 
         # Overlay7 Y coordinate
         overlay7_y_label = QLabel("Y:")
-        overlay7_y_label.setFixedWidth(label_short_width)
+        overlay7_y_label.setFixedWidth(label_mini_width)
         overlay7_y_label.setFixedHeight(unified_height)
         self.overlay7_y_combo = NoWheelComboBox()
         self.overlay7_y_combo.setFixedWidth(combo_short_width)
@@ -2900,27 +2904,31 @@ class SuperCutUI(QWidget):
                 overlay7_y_label.setStyleSheet("color: grey;")
         self.overlay7_checkbox.stateChanged.connect(lambda _: set_overlay7_enabled(self.overlay7_checkbox.checkState()))
         
+        # Overlay 7 layout
+        overlay7_layout = QHBoxLayout()
+        overlay7_layout.setSpacing(0)
         overlay7_layout.addWidget(self.overlay7_checkbox)
-        overlay7_layout.addSpacing(3)
+        overlay7_layout.addSpacing(0)
         overlay7_layout.addWidget(self.overlay7_edit)
-        overlay7_layout.addSpacing(3)  # Space before select button
+        overlay7_layout.addSpacing(10)  
         overlay7_layout.addWidget(overlay7_btn)
-        overlay7_layout.addSpacing(4)  # Space before position label
+        overlay7_layout.addSpacing(0)  
         overlay7_layout.addWidget(overlay7_size_label)
         overlay7_layout.addWidget(self.overlay7_size_combo)
-        overlay7_layout.addSpacing(4)
+        overlay7_layout.addSpacing(0)
         overlay7_layout.addWidget(overlay7_x_label)
         overlay7_layout.addWidget(self.overlay7_x_combo)
-        overlay7_layout.addSpacing(4)
+        overlay7_layout.addSpacing(0)
         overlay7_layout.addWidget(overlay7_y_label)
         overlay7_layout.addWidget(self.overlay7_y_combo)
         overlay7_layout.addStretch()
         set_overlay7_enabled(self.overlay7_checkbox.checkState())
         overlay_groupbox_6_7_layout.addLayout(overlay7_layout)
 
-        # --- EFFECT CONTROL FOR OVERLAY 6_7 (identical for both overlays) ---
-        overlay6_7_label = QLabel("Overlay 6_7:")
-        overlay6_7_label.setFixedWidth(80)
+        # --- EFFECT CONTROL FOR OVERLAY 6_7 ---
+        overlay6_7_label = QLabel("Effect 6_7:")
+        overlay6_7_label.setFixedWidth(label_long_width)
+        overlay6_7_label.setFixedHeight(unified_height)
         self.overlay6_7_effect_combo = NoWheelComboBox()
         self.overlay6_7_effect_combo.setFixedWidth(combo_long_width)
         self.overlay6_7_effect_combo.setFixedHeight(unified_height)
@@ -2935,7 +2943,8 @@ class SuperCutUI(QWidget):
 
         # Overlay 6_7 start at controls
         self.overlay6_7_start_at_checkbox = QtWidgets.QCheckBox("")
-        self.overlay6_7_start_at_checkbox.setFixedWidth(20)
+        self.overlay6_7_start_at_checkbox.setFixedWidth(checkbox_solo_width)
+        self.overlay6_7_start_at_checkbox.setFixedHeight(unified_height)
         self.overlay6_7_start_at_checkbox.setChecked(True)
         def update_overlay6_7_start_at_checkbox_style(state):
             self.overlay6_7_start_at_checkbox.setStyleSheet("")  # Always default color
@@ -2945,6 +2954,9 @@ class SuperCutUI(QWidget):
         self.overlay6_7_start_edit = QLineEdit("5")
         self.overlay6_7_start_edit.setFixedWidth(edit_short_width)
         self.overlay6_7_start_edit.setFixedHeight(unified_height)
+        overlay6_7_start_at_label = QLabel("Start at:")
+        overlay6_7_start_at_label.setFixedWidth(label_medium_width)
+        overlay6_7_start_at_label.setFixedHeight(unified_height)
         self.overlay6_7_start_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay6_7_start_edit.setPlaceholderText("5")
         self.overlay6_7_start_at = 5
@@ -2958,7 +2970,8 @@ class SuperCutUI(QWidget):
 
         # Overlay 6_7 start from input
         overlay6_7_start_from_label = QLabel("Start from:")
-        overlay6_7_start_from_label.setFixedWidth(80)
+        overlay6_7_start_from_label.setFixedWidth(label_long_width)
+        overlay6_7_start_from_label.setFixedHeight(unified_height)
         self.overlay6_7_start_from_edit = QLineEdit("0")
         self.overlay6_7_start_from_edit.setFixedWidth(edit_short_width)
         self.overlay6_7_start_from_edit.setFixedHeight(unified_height)
@@ -2996,6 +3009,7 @@ class SuperCutUI(QWidget):
             if enabled:
                 # Start at checkbox is checked - use start at logic
                 self.overlay6_7_start_edit.setStyleSheet("")
+                overlay6_7_start_at_label.setStyleSheet("")  # Start at label is active
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.overlay6_7_start_from_edit.setStyleSheet(grey_btn_style)
                 overlay6_7_start_from_label.setStyleSheet("color: grey;")
@@ -3005,18 +3019,24 @@ class SuperCutUI(QWidget):
                 overlay6_7_start_from_label.setStyleSheet("")  # Start from label is active
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.overlay6_7_start_edit.setStyleSheet(grey_btn_style)
+                overlay6_7_start_at_label.setStyleSheet("color: grey;")  # Grey out start at label
 
         # Overlay 6_7 duration controls (similar to overlay8 duration)
-        self.overlay6_7_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
-        self.overlay6_7_duration_full_checkbox.setFixedWidth(100)
+        self.overlay6_7_duration_full_checkbox = QtWidgets.QCheckBox("")
+        self.overlay6_7_duration_full_checkbox.setFixedWidth(checkbox_solo_width)
+        self.overlay6_7_duration_full_checkbox.setFixedHeight(unified_height)
+        overlay6_7_duration_full_label = QLabel("Full:")
+        overlay6_7_duration_full_label.setFixedWidth(label_short_width)
+        overlay6_7_duration_full_label.setFixedHeight(unified_height)
         self.overlay6_7_duration_full_checkbox.setChecked(True)
         def update_overlay6_7_duration_full_checkbox_style(state):
             self.overlay6_7_duration_full_checkbox.setStyleSheet("")  # Always default color
         self.overlay6_7_duration_full_checkbox.stateChanged.connect(update_overlay6_7_duration_full_checkbox_style)
         update_overlay6_7_duration_full_checkbox_style(self.overlay6_7_duration_full_checkbox.checkState())
         
-        overlay6_7_duration_label = QLabel("Duration:")
-        overlay6_7_duration_label.setFixedWidth(80)
+        overlay6_7_duration_label = QLabel("For:")
+        overlay6_7_duration_label.setFixedWidth(label_short_width)
+        overlay6_7_duration_label.setFixedHeight(unified_height)
         self.overlay6_7_duration_edit = QLineEdit("6")
         self.overlay6_7_duration_edit.setFixedWidth(edit_short_width)
         self.overlay6_7_duration_edit.setFixedHeight(unified_height)
@@ -3042,34 +3062,36 @@ class SuperCutUI(QWidget):
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.overlay6_7_duration_edit.setStyleSheet(grey_btn_style)
                 overlay6_7_duration_label.setStyleSheet("color: grey;")
+                overlay6_7_duration_full_label.setStyleSheet("")  # Full label is active when checkbox is checked
             else:
                 self.overlay6_7_duration_edit.setStyleSheet("")
                 overlay6_7_duration_label.setStyleSheet("")
+                overlay6_7_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
 
-        overlay6_7_layout = QHBoxLayout()
-        overlay6_7_layout.setContentsMargins(0, 0, 0, 0)
-        overlay6_7_layout.addSpacing(-20)
-        overlay6_7_layout.addWidget(overlay6_7_label)
-        overlay6_7_layout.addSpacing(-3)
-        overlay6_7_layout.addWidget(self.overlay6_7_effect_combo)
-        overlay6_7_layout.addSpacing(-1)
-        overlay6_7_layout.addWidget(self.overlay6_7_start_at_checkbox)
+        # Effect 6_7 layout
+        overlay6_7_layout = QHBoxLayout()        
         overlay6_7_layout.addSpacing(0)
-        overlay6_7_start_at_label = QLabel("at:")
-        overlay6_7_start_at_label.setFixedWidth(25)
-        overlay6_7_layout.addWidget(overlay6_7_start_at_label)
-        overlay6_7_layout.addSpacing(-5)
-        overlay6_7_layout.addWidget(self.overlay6_7_start_edit)
-        overlay6_7_layout.addSpacing(-6)
-        overlay6_7_layout.addWidget(overlay6_7_start_from_label)
-        overlay6_7_layout.addSpacing(-10)
-        overlay6_7_layout.addWidget(self.overlay6_7_start_from_edit)
-        overlay6_7_layout.addSpacing(-6)
-        overlay6_7_layout.addWidget(overlay6_7_duration_label)
-        overlay6_7_layout.addSpacing(-27)
-        overlay6_7_layout.addWidget(self.overlay6_7_duration_edit)
-        overlay6_7_layout.addSpacing(-6)
+        overlay6_7_layout.addWidget(overlay6_7_label)
+        overlay6_7_layout.addSpacing(0)
+        overlay6_7_layout.addWidget(self.overlay6_7_effect_combo)
+        overlay6_7_layout.addSpacing(0)
+        overlay6_7_layout.addWidget(overlay6_7_duration_full_label)
+        overlay6_7_layout.addSpacing(0)
         overlay6_7_layout.addWidget(self.overlay6_7_duration_full_checkbox)
+        overlay6_7_layout.addSpacing(0)
+        overlay6_7_layout.addWidget(overlay6_7_duration_label)
+        overlay6_7_layout.addSpacing(0)
+        overlay6_7_layout.addWidget(self.overlay6_7_duration_edit)
+        overlay6_7_layout.addSpacing(0)
+        overlay6_7_layout.addWidget(self.overlay6_7_start_at_checkbox)
+        overlay6_7_layout.addSpacing(0)        
+        overlay6_7_layout.addWidget(overlay6_7_start_at_label)
+        overlay6_7_layout.addSpacing(0)
+        overlay6_7_layout.addWidget(self.overlay6_7_start_edit)
+        overlay6_7_layout.addSpacing(0)
+        overlay6_7_layout.addWidget(overlay6_7_start_from_label)
+        overlay6_7_layout.addSpacing(0)
+        overlay6_7_layout.addWidget(self.overlay6_7_start_from_edit)
         overlay6_7_layout.addStretch()
         overlay_groupbox_6_7_layout.addLayout(overlay6_7_layout)
         layout.addWidget(overlay_groupbox_6_7)
@@ -3092,6 +3114,7 @@ class SuperCutUI(QWidget):
                 overlay6_7_duration_label.setStyleSheet("color: grey;")
                 self.overlay6_7_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay6_7_duration_edit.setEnabled(False)
+                overlay6_7_duration_full_label.setStyleSheet("color: grey;")
                 self.overlay6_7_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.overlay6_7_duration_full_checkbox.setEnabled(False)
             else:
@@ -3113,7 +3136,6 @@ class SuperCutUI(QWidget):
         self.overlay6_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
         self.overlay7_checkbox.stateChanged.connect(lambda _: update_overlay6_7_effect_label_style())
         update_overlay6_7_effect_label_style()
-        set_overlay6_7_duration_enabled(self.overlay6_7_duration_full_checkbox.checkState())
         # Initialize start at/from fields based on checkbox state
         set_overlay6_7_start_at_enabled(self.overlay6_7_start_at_checkbox.checkState())
 
