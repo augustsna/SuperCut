@@ -2282,6 +2282,7 @@ class SuperCutUI(QWidget):
         self.overlay5_edit.setPlaceholderText("Overlay 5 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay5_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay5_edit.setFixedWidth(edit_long_width)
+        self.overlay5_edit.setFixedHeight(unified_height)
         self.overlay5_path = ""
         def on_overlay5_changed():
             current_text = self.overlay5_edit.text()
@@ -2588,6 +2589,7 @@ class SuperCutUI(QWidget):
         self.overlay6_edit.setPlaceholderText("Overlay 6 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay6_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay6_edit.setFixedWidth(edit_long_width)
+        self.overlay6_edit.setFixedHeight(unified_height)
         self.overlay6_path = ""
         def on_overlay6_changed():
             current_text = self.overlay6_edit.text()
@@ -2732,6 +2734,7 @@ class SuperCutUI(QWidget):
         self.overlay7_edit.setPlaceholderText("Overlay 7 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay7_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay7_edit.setFixedWidth(edit_long_width)
+        self.overlay7_edit.setFixedHeight(unified_height)
         self.overlay7_path = ""
         def on_overlay7_changed():
             current_text = self.overlay7_edit.text()
@@ -3236,6 +3239,7 @@ class SuperCutUI(QWidget):
         self.overlay3_edit.setPlaceholderText("Overlay 3 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay3_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay3_edit.setFixedWidth(edit_long_width)
+        self.overlay3_edit.setFixedHeight(unified_height)
         self.overlay3_path = ""
         def on_overlay3_changed():
             current_text = self.overlay3_edit.text()
@@ -3845,6 +3849,7 @@ class SuperCutUI(QWidget):
         self.overlay8_edit.setPlaceholderText("Overlay 8 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv)")
         self.overlay8_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay8_edit.setFixedWidth(edit_long_width)
+        self.overlay8_edit.setFixedHeight(unified_height)
         self.overlay8_path = ""
         def on_overlay8_changed():
             current_text = self.overlay8_edit.text()
@@ -4319,6 +4324,7 @@ class SuperCutUI(QWidget):
         self.overlay9_edit.setPlaceholderText("Overlay 9 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv")
         self.overlay9_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
         self.overlay9_edit.setFixedWidth(edit_long_width)
+        self.overlay9_edit.setFixedHeight(unified_height)
         self.overlay9_path = ""
         def on_overlay9_changed():
             current_text = self.overlay9_edit.text()
@@ -4794,6 +4800,7 @@ class SuperCutUI(QWidget):
         self.overlay10_edit.setPlaceholderText("Overlay 10 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv")
         self.overlay10_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image")
         self.overlay10_edit.setFixedWidth(edit_long_width)
+        self.overlay10_edit.setFixedHeight(unified_height)
         self.overlay10_path = ""
         def on_overlay10_changed():
             current_text = self.overlay10_edit.text()
@@ -5168,7 +5175,8 @@ class SuperCutUI(QWidget):
 
         # Custom image file selection for frame_mp3cover
         self.frame_mp3cover_custom_image_edit = ImageDropLineEdit()
-        self.frame_mp3cover_custom_image_edit.setFixedWidth(combo_long_width)
+        self.frame_mp3cover_custom_image_edit.setFixedWidth(edit_long_width)
+        self.frame_mp3cover_custom_image_edit.setFixedHeight(unified_height)
         self.frame_mp3cover_custom_image_edit.setPlaceholderText("Select custom image...")
         self.frame_mp3cover_custom_image_path = None
         
@@ -5181,8 +5189,9 @@ class SuperCutUI(QWidget):
                 self.frame_mp3cover_custom_image_edit.setText(file_path)
                 self.frame_mp3cover_custom_image_path = file_path
         
-        self.frame_mp3cover_custom_image_btn = QPushButton("Browse")
-        self.frame_mp3cover_custom_image_btn.setFixedWidth(50)
+        self.frame_mp3cover_custom_image_btn = QPushButton("Select")
+        self.frame_mp3cover_custom_image_btn.setFixedWidth(select_btn_width)
+        self.frame_mp3cover_custom_image_btn.setFixedHeight(unified_height)
         self.frame_mp3cover_custom_image_btn.clicked.connect(select_frame_mp3cover_custom_image)
         
         def on_frame_mp3cover_custom_image_changed():
@@ -5662,7 +5671,8 @@ class SuperCutUI(QWidget):
 
         # Custom image file selection for MP3 cover overlay
         self.mp3_cover_custom_image_edit = ImageDropLineEdit()
-        self.mp3_cover_custom_image_edit.setFixedWidth(115)
+        self.mp3_cover_custom_image_edit.setFixedWidth(edit_long_width)
+        self.mp3_cover_custom_image_edit.setFixedHeight(unified_height)
         self.mp3_cover_custom_image_edit.setPlaceholderText("Select custom image...")
         self.mp3_cover_custom_image_path = None
         
@@ -5675,8 +5685,9 @@ class SuperCutUI(QWidget):
                 self.mp3_cover_custom_image_edit.setText(file_path)
                 self.mp3_cover_custom_image_path = file_path
         
-        self.mp3_cover_custom_image_btn = QPushButton("Browse")
-        self.mp3_cover_custom_image_btn.setFixedWidth(50)
+        self.mp3_cover_custom_image_btn = QPushButton("Select")
+        self.mp3_cover_custom_image_btn.setFixedWidth(select_btn_width)
+        self.mp3_cover_custom_image_btn.setFixedHeight(unified_height)
         self.mp3_cover_custom_image_btn.clicked.connect(select_mp3_cover_custom_image)
         
         def on_mp3_cover_custom_image_changed():
@@ -5860,7 +5871,8 @@ class SuperCutUI(QWidget):
 
         # Custom image file selection
         self.frame_box_custom_image_edit = ImageDropLineEdit()
-        self.frame_box_custom_image_edit.setFixedWidth(115)
+        self.frame_box_custom_image_edit.setFixedWidth(edit_long_width)
+        self.frame_box_custom_image_edit.setFixedHeight(unified_height)
         self.frame_box_custom_image_edit.setPlaceholderText("Select custom image...")
         self.frame_box_custom_image_path = None
         
@@ -5873,8 +5885,9 @@ class SuperCutUI(QWidget):
                 self.frame_box_custom_image_edit.setText(file_path)
                 self.frame_box_custom_image_path = file_path
         
-        self.frame_box_custom_image_btn = QPushButton("Browse")
-        self.frame_box_custom_image_btn.setFixedWidth(50)
+        self.frame_box_custom_image_btn = QPushButton("Select")
+        self.frame_box_custom_image_btn.setFixedWidth(select_btn_width)
+        self.frame_box_custom_image_btn.setFixedHeight(unified_height)
         self.frame_box_custom_image_btn.clicked.connect(select_frame_box_custom_image)
         
         def on_frame_box_custom_image_changed():
@@ -6196,7 +6209,8 @@ class SuperCutUI(QWidget):
         
         # PNG type checkbox (single checkbox approach)
         self.frame_box_caption_png_checkbox = QtWidgets.QCheckBox("PNG")
-        self.frame_box_caption_png_checkbox.setFixedWidth(50)
+        self.frame_box_caption_png_checkbox.setFixedWidth(label_small_width)
+        self.frame_box_caption_png_checkbox.setFixedHeight(unified_height)
         self.frame_box_caption_png_checkbox.setChecked(False)  # Default to text mode
         
         self.frame_box_caption_type = "text"  # Default to text mode
@@ -6212,9 +6226,11 @@ class SuperCutUI(QWidget):
         
         # Text caption input
         caption_text_label = QLabel("Text:")
-        caption_text_label.setFixedWidth(30)
+        caption_text_label.setFixedWidth(label_small_width)
+        caption_text_label.setFixedHeight(unified_height)
         self.frame_box_caption_text_edit = KhmerSupportLineEdit()
-        self.frame_box_caption_text_edit.setFixedWidth(120)
+        self.frame_box_caption_text_edit.setFixedWidth(edit_long_width)
+        self.frame_box_caption_text_edit.setFixedHeight(unified_height)
         self.frame_box_caption_text_edit.setText("Frame Box Caption")
         self.frame_box_caption_text = "Frame Box Caption"
         
@@ -6225,9 +6241,11 @@ class SuperCutUI(QWidget):
         
         # PNG file input
         caption_png_label = QLabel("PNG:")
-        caption_png_label.setFixedWidth(30)
+        caption_png_label.setFixedWidth(label_small_width)
+        caption_png_label.setFixedHeight(unified_height)
         self.frame_box_caption_png_edit = ImageDropLineEdit()
-        self.frame_box_caption_png_edit.setFixedWidth(120)
+        self.frame_box_caption_png_edit.setFixedWidth(edit_long_width)
+        self.frame_box_caption_png_edit.setFixedHeight(unified_height)
         self.frame_box_caption_png_edit.setPlaceholderText("Select PNG file...")
         self.frame_box_caption_png_path = None
         
@@ -6239,8 +6257,9 @@ class SuperCutUI(QWidget):
                 self.frame_box_caption_png_edit.setText(file_path)
                 self.frame_box_caption_png_path = file_path
         
-        self.frame_box_caption_png_btn = QPushButton("Browse")
-        self.frame_box_caption_png_btn.setFixedWidth(50)
+        self.frame_box_caption_png_btn = QPushButton("Select")
+        self.frame_box_caption_png_btn.setFixedWidth(select_btn_width)
+        self.frame_box_caption_png_btn.setFixedHeight(unified_height)
         self.frame_box_caption_png_btn.clicked.connect(select_frame_box_caption_png)
         
         def on_frame_box_caption_png_changed():
@@ -6770,6 +6789,7 @@ class SuperCutUI(QWidget):
         # --- BACKGROUND LAYER SCALE CONTROL ---
         self.bg_layer_checkbox = QtWidgets.QCheckBox("BG Layer:")
         self.bg_layer_checkbox.setFixedWidth(label_checkbox_width)
+        self.bg_layer_checkbox.setFixedHeight(unified_height)
         self.bg_layer_checkbox.setChecked(False)
         def update_bg_layer_checkbox_style(state):
             self.bg_layer_checkbox.setStyleSheet("")  # Always default color
@@ -6778,9 +6798,11 @@ class SuperCutUI(QWidget):
 
         # Background scale dropdown (100% to 200%)
         bg_scale_label = QLabel("Scale:")
-        bg_scale_label.setFixedWidth(40)
+        bg_scale_label.setFixedWidth(label_long_width)
+        bg_scale_label.setFixedHeight(unified_height)
         self.bg_scale_combo = NoWheelComboBox()
-        self.bg_scale_combo.setFixedWidth(80)
+        self.bg_scale_combo.setFixedWidth(combo_long_width)
+        self.bg_scale_combo.setFixedHeight(unified_height)
         for percent in range(100, 201, 5):  # 100% to 200% in 5% increments
             self.bg_scale_combo.addItem(f"{percent}%", percent)
         # Set default to 103% (index 0 for 100%, index 1 for 105%, so we'll use 100% as default)
@@ -6793,9 +6815,11 @@ class SuperCutUI(QWidget):
 
         # Background crop position dropdown
         bg_crop_position_label = QLabel("Crop:")
-        bg_crop_position_label.setFixedWidth(40)
+        bg_crop_position_label.setFixedWidth(label_long_width)
+        bg_crop_position_label.setFixedHeight(unified_height)
         self.bg_crop_position_combo = NoWheelComboBox()
-        self.bg_crop_position_combo.setFixedWidth(80)
+        self.bg_crop_position_combo.setFixedWidth(combo_long_width)
+        self.bg_crop_position_combo.setFixedHeight(unified_height)
         crop_positions = [
             "Center",
             "Left",
@@ -6818,9 +6842,12 @@ class SuperCutUI(QWidget):
 
         # Background effect dropdown
         bg_effect_label = QLabel("Effect:")
-        bg_effect_label.setFixedWidth(40)
+        bg_effect_label.setFixedWidth(label_long_width)
+        bg_effect_label.setFixedHeight(unified_height)
         self.bg_effect_combo = NoWheelComboBox()
-        self.bg_effect_combo.setFixedWidth(100)
+        self.bg_effect_combo.setFixedWidth(combo_long_width)
+        self.bg_effect_combo.setFixedHeight(unified_height)
+
         bg_effects = [
             ("None", "none"),
             ("Gaussian Blur", "gaussian_blur"),
@@ -6838,9 +6865,11 @@ class SuperCutUI(QWidget):
 
         # Background effect intensity dropdown (1-100)
         bg_intensity_label = QLabel("Intensity:")
-        bg_intensity_label.setFixedWidth(50)
+        bg_intensity_label.setFixedWidth(label_long_width)
+        bg_intensity_label.setFixedHeight(unified_height)
         self.bg_intensity_combo = NoWheelComboBox()
-        self.bg_intensity_combo.setFixedWidth(60)
+        self.bg_intensity_combo.setFixedWidth(combo_long_width)
+        self.bg_intensity_combo.setFixedHeight(unified_height)
         for intensity in range(1, 101):
             self.bg_intensity_combo.addItem(str(intensity), intensity)
         self.bg_intensity_combo.setCurrentIndex(49)  # Default 50
