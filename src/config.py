@@ -166,9 +166,9 @@ DEFAULT_RESOLUTIONS = [
 ]
 
 DEFAULT_FPS_OPTIONS = [
-    ("   24", 24),
-    ("   30", 30),
-    ("   60", 60)
+    ("    24", 24),
+    ("    30", 30),
+    ("    60", 60)
 ]
 
 # File Extensions

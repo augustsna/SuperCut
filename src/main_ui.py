@@ -1399,6 +1399,7 @@ class SuperCutUI(QWidget):
         intro_effect_label.setFixedWidth(45)
         self.intro_effect_combo = NoWheelComboBox()
         self.intro_effect_combo.setFixedWidth(combo_long_width)
+        self.intro_effect_combo.setFixedHeight(unified_height)
         intro_effect_options = [
             ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
@@ -1680,7 +1681,8 @@ class SuperCutUI(QWidget):
             self.overlay1_path = self.overlay1_edit.text().strip()
         self.overlay1_edit.textChanged.connect(on_overlay1_changed)
         overlay1_btn = QPushButton("Select")
-        overlay1_btn.setFixedWidth(60)
+        overlay1_btn.setFixedWidth(select_btn_width)
+        overlay1_btn.setFixedHeight(unified_height)
         def select_overlay1_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 1 File", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
@@ -1827,7 +1829,8 @@ class SuperCutUI(QWidget):
             self.overlay2_path = self.overlay2_edit.text().strip()
         self.overlay2_edit.textChanged.connect(on_overlay2_changed)
         overlay2_btn = QPushButton("Select")
-        overlay2_btn.setFixedWidth(60)
+        overlay2_btn.setFixedWidth(select_btn_width)
+        overlay2_btn.setFixedHeight(unified_height)
         def select_overlay2_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 2 File", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
@@ -1931,6 +1934,7 @@ class SuperCutUI(QWidget):
         effect_label.setFixedWidth(80)
         self.effect_combo = NoWheelComboBox()
         self.effect_combo.setFixedWidth(combo_long_width)
+        self.effect_combo.setFixedHeight(unified_height)
         effect_options = [
             ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
@@ -2148,7 +2152,8 @@ class SuperCutUI(QWidget):
             self.overlay4_path = self.overlay4_edit.text().strip()
         self.overlay4_edit.textChanged.connect(on_overlay4_changed)
         overlay4_btn = QPushButton("Select")
-        overlay4_btn.setFixedWidth(60)
+        overlay4_btn.setFixedWidth(select_btn_width)
+        overlay4_btn.setFixedHeight(unified_height)
         def select_overlay4_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 4 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
@@ -2286,7 +2291,8 @@ class SuperCutUI(QWidget):
             self.overlay5_path = self.overlay5_edit.text().strip()
         self.overlay5_edit.textChanged.connect(on_overlay5_changed)
         overlay5_btn = QPushButton("Select")
-        overlay5_btn.setFixedWidth(60)
+        overlay5_btn.setFixedWidth(select_btn_width)
+        overlay5_btn.setFixedHeight(unified_height)
         def select_overlay5_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 5 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
@@ -2385,6 +2391,7 @@ class SuperCutUI(QWidget):
         overlay4_5_label.setFixedWidth(80)
         self.overlay4_5_effect_combo = NoWheelComboBox()
         self.overlay4_5_effect_combo.setFixedWidth(combo_long_width)
+        self.overlay4_5_effect_combo.setFixedHeight(unified_height)
         for label, value in effect_options:
             self.overlay4_5_effect_combo.addItem(label, value)
         self.overlay4_5_effect_combo.setCurrentIndex(1)  # Default to 'Fade in' for Overlay 4_5 effect
@@ -2590,7 +2597,8 @@ class SuperCutUI(QWidget):
             self.overlay6_path = self.overlay6_edit.text().strip()
         self.overlay6_edit.textChanged.connect(on_overlay6_changed)
         overlay6_btn = QPushButton("Select")
-        overlay6_btn.setFixedWidth(60)
+        overlay6_btn.setFixedWidth(select_btn_width)
+        overlay6_btn.setFixedHeight(unified_height)
         def select_overlay6_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 6 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
@@ -2733,7 +2741,8 @@ class SuperCutUI(QWidget):
             self.overlay7_path = self.overlay7_edit.text().strip()
         self.overlay7_edit.textChanged.connect(on_overlay7_changed)
         overlay7_btn = QPushButton("Select")
-        overlay7_btn.setFixedWidth(60)
+        overlay7_btn.setFixedWidth(select_btn_width)
+        overlay7_btn.setFixedHeight(unified_height)
         def select_overlay7_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 7 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
@@ -2837,6 +2846,7 @@ class SuperCutUI(QWidget):
         overlay6_7_label.setFixedWidth(80)
         self.overlay6_7_effect_combo = NoWheelComboBox()
         self.overlay6_7_effect_combo.setFixedWidth(combo_long_width)
+        self.overlay6_7_effect_combo.setFixedHeight(unified_height)
         for label, value in effect_options:
             self.overlay6_7_effect_combo.addItem(label, value)
         self.overlay6_7_effect_combo.setCurrentIndex(1)
@@ -3066,6 +3076,7 @@ class SuperCutUI(QWidget):
         soundwave_method_label.setFixedWidth(50)
         self.soundwave_method_combo = NoWheelComboBox()
         self.soundwave_method_combo.setFixedWidth(combo_long_width)
+        self.soundwave_method_combo.setFixedHeight(unified_height)
         soundwave_method_options = [
             ("Bars", "bars"),
             ("Spectrum", "spectrum"),
@@ -3086,6 +3097,7 @@ class SuperCutUI(QWidget):
         soundwave_color_label.setFixedWidth(40)
         self.soundwave_color_combo = NoWheelComboBox()
         self.soundwave_color_combo.setFixedWidth(combo_long_width)
+        self.soundwave_color_combo.setFixedHeight(unified_height)
         soundwave_color_options = [
             ("Hue Rotate", "hue_rotate"),
             ("Red", "#ff0000"),
@@ -3105,10 +3117,11 @@ class SuperCutUI(QWidget):
         on_soundwave_color_changed(self.soundwave_color_combo.currentIndex())
         
         # Soundwave size control
-        soundwave_size_label = QLabel("Size:")
+        soundwave_size_label = QLabel("S:")
         soundwave_size_label.setFixedWidth(35)
         self.soundwave_size_combo = NoWheelComboBox()
-        self.soundwave_size_combo.setFixedWidth(60)
+        self.soundwave_size_combo.setFixedWidth(combo_short_width)
+        self.soundwave_size_combo.setFixedHeight(unified_height)
         for percent in range(10, 101, 10):
             self.soundwave_size_combo.addItem(f"{percent}%", percent)
         self.soundwave_size_combo.setCurrentIndex(4)  # Default 50%
@@ -3232,7 +3245,8 @@ class SuperCutUI(QWidget):
             self.overlay3_path = self.overlay3_edit.text().strip()
         self.overlay3_edit.textChanged.connect(on_overlay3_changed)
         overlay3_btn = QPushButton("Select")
-        overlay3_btn.setFixedWidth(60)
+        overlay3_btn.setFixedWidth(select_btn_width)
+        overlay3_btn.setFixedHeight(unified_height)
         def select_overlay3_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 3 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
@@ -3360,6 +3374,7 @@ class SuperCutUI(QWidget):
         song_title_font_label.setFixedWidth(40)
         self.song_title_font_combo = NoWheelComboBox()
         self.song_title_font_combo.setFixedWidth(combo_long_width)
+        self.song_title_font_combo.setFixedHeight(unified_height)
         song_title_font_options = [
             ("Default", "default"),
             ("Kantumruy Pro", "KantumruyPro-VariableFont_wght.ttf"),
@@ -3417,6 +3432,7 @@ class SuperCutUI(QWidget):
         song_title_bg_label.setFixedHeight(unified_height)
         self.song_title_bg_combo = NoWheelComboBox()
         self.song_title_bg_combo.setFixedWidth(combo_long_width)
+        self.song_title_bg_combo.setFixedHeight(unified_height)
         bg_options = [
             ("Transparent", "transparent"),
             ("Black", "black"),
@@ -3488,7 +3504,8 @@ class SuperCutUI(QWidget):
         
         # Opacity control
         self.song_title_opacity_combo = NoWheelComboBox()
-        self.song_title_opacity_combo.setFixedWidth(60)
+        self.song_title_opacity_combo.setFixedWidth(combo_short_width)
+        self.song_title_opacity_combo.setFixedHeight(unified_height)
         opacity_options = [
             (f"{percent}%", percent / 100.0) for percent in range(5, 101, 5)
         ]
@@ -3509,7 +3526,8 @@ class SuperCutUI(QWidget):
         song_title_text_effect_label = QLabel("Text FX:")
         song_title_text_effect_label.setFixedWidth(50)
         self.song_title_text_effect_combo = NoWheelComboBox()
-        self.song_title_text_effect_combo.setFixedWidth(100)
+        self.song_title_text_effect_combo.setFixedWidth(combo_long_width)
+        self.song_title_text_effect_combo.setFixedHeight(unified_height)
         song_title_text_effect_options = [
             ("None", "none"),
             ("Text outlines", "outline"),
@@ -3559,7 +3577,8 @@ class SuperCutUI(QWidget):
         song_title_text_effect_intensity_label = QLabel("FX I:")
         song_title_text_effect_intensity_label.setFixedWidth(35)
         self.song_title_text_effect_intensity_combo = NoWheelComboBox()
-        self.song_title_text_effect_intensity_combo.setFixedWidth(60)
+        self.song_title_text_effect_intensity_combo.setFixedWidth(combo_short_width)
+        self.song_title_text_effect_intensity_combo.setFixedHeight(unified_height)
         for value in range(1, 101, 1):
             self.song_title_text_effect_intensity_combo.addItem(f"{value}", value)
         self.song_title_text_effect_intensity_combo.setCurrentIndex(19)  # Default 20
@@ -3579,6 +3598,7 @@ class SuperCutUI(QWidget):
         song_title_effect_label.setFixedWidth(40)
         self.song_title_effect_combo = NoWheelComboBox()
         self.song_title_effect_combo.setFixedWidth(combo_long_width)
+        self.song_title_effect_combo.setFixedHeight(unified_height)
         song_title_effect_options = [
             ("Fade in & out", "fadeinout"),
             ("Fade in", "fadein"),
@@ -3834,7 +3854,8 @@ class SuperCutUI(QWidget):
             self.overlay8_path = self.overlay8_edit.text().strip()
         self.overlay8_edit.textChanged.connect(on_overlay8_changed)
         overlay8_btn = QPushButton("Select")
-        overlay8_btn.setFixedWidth(60)
+        overlay8_btn.setFixedWidth(select_btn_width)
+        overlay8_btn.setFixedHeight(unified_height)
         def select_overlay8_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 8 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
@@ -4006,6 +4027,7 @@ class SuperCutUI(QWidget):
         overlay8_label.setFixedWidth(80)
         self.overlay8_effect_combo = NoWheelComboBox()
         self.overlay8_effect_combo.setFixedWidth(combo_long_width)
+        self.overlay8_effect_combo.setFixedHeight(unified_height)
         for label, value in effect_options:
             self.overlay8_effect_combo.addItem(label, value)
         self.overlay8_effect_combo.setCurrentIndex(1)
@@ -4097,7 +4119,8 @@ class SuperCutUI(QWidget):
         overlay8_start_label = QLabel("Start at:")
         overlay8_start_label.setFixedWidth(80)
         self.overlay8_start_combo = NoWheelComboBox()
-        self.overlay8_start_combo.setFixedWidth(60)
+        self.overlay8_start_combo.setFixedWidth(combo_short_width)
+        self.overlay8_start_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay8_start_combo.addItem(f"{percent}%", percent)
         self.overlay8_start_combo.setCurrentIndex(4)  # Default 5%
@@ -4111,7 +4134,8 @@ class SuperCutUI(QWidget):
         overlay8_start_from_label = QLabel("Start from:")
         overlay8_start_from_label.setFixedWidth(80)
         self.overlay8_start_from_combo = NoWheelComboBox()
-        self.overlay8_start_from_combo.setFixedWidth(60)
+        self.overlay8_start_from_combo.setFixedWidth(combo_short_width)
+        self.overlay8_start_from_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay8_start_from_combo.addItem(f"{percent}%", percent)
         self.overlay8_start_from_combo.setCurrentIndex(0)  # Default 1%
@@ -4125,7 +4149,8 @@ class SuperCutUI(QWidget):
         overlay8_popup_start_at_label = QLabel("Pop up Start at:")
         overlay8_popup_start_at_label.setFixedWidth(100)
         self.overlay8_popup_start_at_combo = NoWheelComboBox()
-        self.overlay8_popup_start_at_combo.setFixedWidth(60)
+        self.overlay8_popup_start_at_combo.setFixedWidth(combo_short_width)
+        self.overlay8_popup_start_at_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay8_popup_start_at_combo.addItem(f"{percent}%", percent)
         self.overlay8_popup_start_at_combo.setCurrentIndex(4)  # Default 5%
@@ -4175,7 +4200,8 @@ class SuperCutUI(QWidget):
         overlay8_popup_num_label = QLabel("Num:")
         overlay8_popup_num_label.setFixedWidth(32)
         self.overlay8_popup_num_combo = NoWheelComboBox()
-        self.overlay8_popup_num_combo.setFixedWidth(50)
+        self.overlay8_popup_num_combo.setFixedWidth(combo_short_width)
+        self.overlay8_popup_num_combo.setFixedHeight(unified_height)
         for n in range(1, 11):
             self.overlay8_popup_num_combo.addItem(str(n), n)
         self.overlay8_popup_num_combo.setCurrentIndex(0)  # Default 1
@@ -4302,7 +4328,8 @@ class SuperCutUI(QWidget):
             self.overlay9_path = self.overlay9_edit.text().strip()
         self.overlay9_edit.textChanged.connect(on_overlay9_changed)
         overlay9_btn = QPushButton("Select")
-        overlay9_btn.setFixedWidth(60)
+        overlay9_btn.setFixedWidth(select_btn_width)
+        overlay9_btn.setFixedHeight(unified_height)
         def select_overlay9_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 9 Image", "", "Image Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
@@ -4474,6 +4501,7 @@ class SuperCutUI(QWidget):
         overlay9_label.setFixedWidth(80)
         self.overlay9_effect_combo = NoWheelComboBox()
         self.overlay9_effect_combo.setFixedWidth(combo_long_width)
+        self.overlay9_effect_combo.setFixedHeight(unified_height)
         for label, value in effect_options:
             self.overlay9_effect_combo.addItem(label, value)
         self.overlay9_effect_combo.setCurrentIndex(1)
@@ -4566,7 +4594,8 @@ class SuperCutUI(QWidget):
         overlay9_start_label = QLabel("Start at:")
         overlay9_start_label.setFixedWidth(80)
         self.overlay9_start_combo = NoWheelComboBox()
-        self.overlay9_start_combo.setFixedWidth(60)
+        self.overlay9_start_combo.setFixedWidth(combo_short_width)
+        self.overlay9_start_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay9_start_combo.addItem(f"{percent}%", percent)
         self.overlay9_start_combo.setCurrentIndex(4)  # Default 5%
@@ -4580,7 +4609,8 @@ class SuperCutUI(QWidget):
         overlay9_start_from_label = QLabel("Start from:")
         overlay9_start_from_label.setFixedWidth(80)
         self.overlay9_start_from_combo = NoWheelComboBox()
-        self.overlay9_start_from_combo.setFixedWidth(60)
+        self.overlay9_start_from_combo.setFixedWidth(combo_short_width)
+        self.overlay9_start_from_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay9_start_from_combo.addItem(f"{percent}%", percent)
         self.overlay9_start_from_combo.setCurrentIndex(0)  # Default 1%
@@ -4594,7 +4624,8 @@ class SuperCutUI(QWidget):
         overlay9_popup_start_at_label = QLabel("Pop up Start at:")
         overlay9_popup_start_at_label.setFixedWidth(100)
         self.overlay9_popup_start_at_combo = NoWheelComboBox()
-        self.overlay9_popup_start_at_combo.setFixedWidth(60)
+        self.overlay9_popup_start_at_combo.setFixedWidth(combo_short_width)
+        self.overlay9_popup_start_at_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay9_popup_start_at_combo.addItem(f"{percent}%", percent)
         self.overlay9_popup_start_at_combo.setCurrentIndex(4)  # Default 5%
@@ -4644,7 +4675,8 @@ class SuperCutUI(QWidget):
         overlay9_popup_num_label = QLabel("Num:")
         overlay9_popup_num_label.setFixedWidth(32)
         self.overlay9_popup_num_combo = NoWheelComboBox()
-        self.overlay9_popup_num_combo.setFixedWidth(50)
+        self.overlay9_popup_num_combo.setFixedWidth(combo_short_width)
+        self.overlay9_popup_num_combo.setFixedHeight(unified_height)
         for n in range(1, 11):
             self.overlay9_popup_num_combo.addItem(str(n), n)
         self.overlay9_popup_num_combo.setCurrentIndex(0)  # Default 1
@@ -4771,7 +4803,8 @@ class SuperCutUI(QWidget):
             self.overlay10_path = self.overlay10_edit.text().strip()
         self.overlay10_edit.textChanged.connect(on_overlay10_changed)
         overlay10_btn = QPushButton("Select")
-        overlay10_btn.setFixedWidth(60)
+        overlay10_btn.setFixedWidth(select_btn_width)
+        overlay10_btn.setFixedHeight(unified_height)
         def select_overlay10_image():
             file_path, _ = QFileDialog.getOpenFileName(self, "Select Overlay 10 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
             if file_path:
@@ -4899,6 +4932,7 @@ class SuperCutUI(QWidget):
         overlay10_label.setFixedWidth(80)
         self.overlay10_effect_combo = NoWheelComboBox()
         self.overlay10_effect_combo.setFixedWidth(combo_long_width)
+        self.overlay10_effect_combo.setFixedHeight(unified_height)
         for label, value in effect_options:
             self.overlay10_effect_combo.addItem(label, value)
         self.overlay10_effect_combo.setCurrentIndex(1)
@@ -4945,7 +4979,8 @@ class SuperCutUI(QWidget):
         overlay10_start_percent_label = QLabel("or at %:")
         overlay10_start_percent_label.setFixedWidth(40)
         self.overlay10_start_percent_combo = NoWheelComboBox()
-        self.overlay10_start_percent_combo.setFixedWidth(70)
+        self.overlay10_start_percent_combo.setFixedWidth(combo_short_width)
+        self.overlay10_start_percent_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 5):  # 0 to 100 in steps of 5
             self.overlay10_start_percent_combo.addItem(f"{percent}%", percent)
         self.overlay10_start_percent_combo.setCurrentIndex(0)  # Default to 0%
@@ -4966,7 +5001,8 @@ class SuperCutUI(QWidget):
         overlay10_start_end_label = QLabel("when song:")
         overlay10_start_end_label.setFixedWidth(80)
         self.overlay10_start_end_combo = NoWheelComboBox()
-        self.overlay10_start_end_combo.setFixedWidth(60)
+        self.overlay10_start_end_combo.setFixedWidth(combo_short_width)
+        self.overlay10_start_end_combo.setFixedHeight(unified_height)
         self.overlay10_start_end_combo.addItem("start", "start")
         self.overlay10_start_end_combo.addItem("end", "end")
         self.overlay10_start_end_combo.setCurrentIndex(0)  # Default to "start"
@@ -5294,6 +5330,7 @@ class SuperCutUI(QWidget):
         frame_mp3cover_label.setFixedWidth(80)
         self.frame_mp3cover_effect_combo = NoWheelComboBox()
         self.frame_mp3cover_effect_combo.setFixedWidth(combo_long_width)
+        self.frame_mp3cover_effect_combo.setFixedHeight(unified_height)
         for label, value in effect_options:
             self.frame_mp3cover_effect_combo.addItem(label, value)
         self.frame_mp3cover_effect_combo.setCurrentIndex(1)
@@ -5508,6 +5545,7 @@ class SuperCutUI(QWidget):
         mp3_cover_effect_label.setFixedWidth(40)
         self.mp3_cover_effect_combo = NoWheelComboBox()
         self.mp3_cover_effect_combo.setFixedWidth(combo_long_width)
+        self.mp3_cover_effect_combo.setFixedHeight(unified_height)
         for label, value in effect_options:
             self.mp3_cover_effect_combo.addItem(label, value)
         self.mp3_cover_effect_combo.setCurrentIndex(0)  # Default fadeinout
@@ -5593,7 +5631,8 @@ class SuperCutUI(QWidget):
         mp3_cover_frame_size_label = QLabel("Frame Size:")
         mp3_cover_frame_size_label.setFixedWidth(75)
         self.mp3_cover_frame_size_combo = NoWheelComboBox()
-        self.mp3_cover_frame_size_combo.setFixedWidth(60)
+        self.mp3_cover_frame_size_combo.setFixedWidth(combo_short_width)
+        self.mp3_cover_frame_size_combo.setFixedHeight(unified_height)
         frame_size_options = [
             ("5px", 5),
             ("10px", 10),
@@ -5916,6 +5955,7 @@ class SuperCutUI(QWidget):
         frame_box_label.setFixedWidth(80)
         self.frame_box_effect_combo = NoWheelComboBox()
         self.frame_box_effect_combo.setFixedWidth(combo_long_width)
+        self.frame_box_effect_combo.setFixedHeight(unified_height)
         for label, value in effect_options:
             self.frame_box_effect_combo.addItem(label, value)
         self.frame_box_effect_combo.setCurrentIndex(1)
@@ -6006,7 +6046,8 @@ class SuperCutUI(QWidget):
         frame_box_opacity_label = QLabel("Frame Opacity:")
         frame_box_opacity_label.setFixedWidth(80)
         self.frame_box_opacity_combo = NoWheelComboBox()
-        self.frame_box_opacity_combo.setFixedWidth(80)
+        self.frame_box_opacity_combo.setFixedWidth(combo_long_width)
+        self.frame_box_opacity_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 5):
             self.frame_box_opacity_combo.addItem(f"{percent}%", percent / 100.0)
         self.frame_box_opacity_combo.setCurrentIndex(100 // 5)  # Default 100%
@@ -6047,25 +6088,29 @@ class SuperCutUI(QWidget):
         left_pad_label = QLabel("Left:")
         left_pad_label.setFixedWidth(35)
         self.frame_box_pad_left_combo = NoWheelComboBox()
-        self.frame_box_pad_left_combo.setFixedWidth(80)
+        self.frame_box_pad_left_combo.setFixedWidth(combo_short_width)
+        self.frame_box_pad_left_combo.setFixedHeight(unified_height)
         
         # Right padding
         right_pad_label = QLabel("Right:")
         right_pad_label.setFixedWidth(35)
         self.frame_box_pad_right_combo = NoWheelComboBox()
-        self.frame_box_pad_right_combo.setFixedWidth(80)
+        self.frame_box_pad_right_combo.setFixedWidth(combo_short_width)
+        self.frame_box_pad_right_combo.setFixedHeight(unified_height)
         
         # Top padding
         top_pad_label = QLabel("Top:")
         top_pad_label.setFixedWidth(35)
         self.frame_box_pad_top_combo = NoWheelComboBox()
-        self.frame_box_pad_top_combo.setFixedWidth(80)
+        self.frame_box_pad_top_combo.setFixedWidth(combo_short_width)
+        self.frame_box_pad_top_combo.setFixedHeight(unified_height)
         
         # Bottom padding
         bottom_pad_label = QLabel("Bottom:")
         bottom_pad_label.setFixedWidth(35)
         self.frame_box_pad_bottom_combo = NoWheelComboBox()
-        self.frame_box_pad_bottom_combo.setFixedWidth(80)
+        self.frame_box_pad_bottom_combo.setFixedWidth(combo_short_width)
+        self.frame_box_pad_bottom_combo.setFixedHeight(unified_height)
         
         # Populate padding dropdowns with values 0-250 (step 1)
         for px in range(0, 251, 1):
@@ -6130,7 +6175,8 @@ class SuperCutUI(QWidget):
         caption_position_label = QLabel("Position:")
         caption_position_label.setFixedWidth(50)
         self.frame_box_caption_position_combo = NoWheelComboBox()
-        self.frame_box_caption_position_combo.setFixedWidth(100)
+        self.frame_box_caption_position_combo.setFixedWidth(combo_long_width)
+        self.frame_box_caption_position_combo.setFixedHeight(unified_height)
         self.frame_box_caption_position_combo.addItem("Bottom Center", "bottom_center")
         self.frame_box_caption_position_combo.addItem("Bottom Left", "bottom_left")
         self.frame_box_caption_position_combo.addItem("Bottom Right", "bottom_right")
@@ -6225,7 +6271,8 @@ class SuperCutUI(QWidget):
         caption_font_label = QLabel("Font:")
         caption_font_label.setFixedWidth(35)
         self.frame_box_caption_font_combo = NoWheelComboBox()
-        self.frame_box_caption_font_combo.setFixedWidth(120)
+        self.frame_box_caption_font_combo.setFixedWidth(combo_long_width)
+        self.frame_box_caption_font_combo.setFixedHeight(unified_height)
         self.frame_box_caption_font_combo.addItem("Default", "")
         self.frame_box_caption_font_combo.addItem("KantumruyPro", "KantumruyPro-VariableFont_wght.ttf")
         self.frame_box_caption_font_combo.addItem("KantumruyPro Italic", "KantumruyPro-Italic-VariableFont_wght.ttf")
@@ -6242,7 +6289,8 @@ class SuperCutUI(QWidget):
         caption_font_size_label = QLabel("Size:")
         caption_font_size_label.setFixedWidth(35)
         self.frame_box_caption_font_size_combo = NoWheelComboBox()
-        self.frame_box_caption_font_size_combo.setFixedWidth(60)
+        self.frame_box_caption_font_size_combo.setFixedWidth(combo_short_width)
+        self.frame_box_caption_font_size_combo.setFixedHeight(unified_height)
         for size in range(48, 221, 4):
             self.frame_box_caption_font_size_combo.addItem(f"{size}", size)
         self.frame_box_caption_font_size_combo.setCurrentIndex(6)  # Default 72
