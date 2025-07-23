@@ -3683,7 +3683,7 @@ class SuperCutUI(QWidget):
         song_title_text_effect_intensity_label.setFixedWidth(label_short_width)
         song_title_text_effect_intensity_label.setFixedHeight(unified_height)
         self.song_title_text_effect_intensity_combo = NoWheelComboBox()
-        self.song_title_text_effect_intensity_combo.setFixedWidth(combo_short_width)
+        self.song_title_text_effect_intensity_combo.setFixedWidth(combo_medium_width)
         self.song_title_text_effect_intensity_combo.setFixedHeight(unified_height)
         for value in range(1, 101, 1):
             self.song_title_text_effect_intensity_combo.addItem(f"{value}", value)
@@ -4434,17 +4434,16 @@ class SuperCutUI(QWidget):
         overlay_groupbox_9_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(overlay_groupbox_9)
 
-        # --- OVERLAY 9 (exact copy of overlay8) ---
+        # --- OVERLAY 9  ---
         self.overlay9_checkbox = QtWidgets.QCheckBox("Overlay 9:")
         self.overlay9_checkbox.setFixedWidth(label_checkbox_width)
+        self.overlay9_checkbox.setFixedHeight(unified_height)
         self.overlay9_checkbox.setChecked(False)
         def update_overlay9_checkbox_style(state):
             self.overlay9_checkbox.setStyleSheet("")  # Always default color
         self.overlay9_checkbox.stateChanged.connect(update_overlay9_checkbox_style)
         update_overlay9_checkbox_style(self.overlay9_checkbox.checkState())
 
-        overlay9_layout = QHBoxLayout()
-        overlay9_layout.setSpacing(4)
         self.overlay9_edit = ImageDropLineEdit()
         self.overlay9_edit.setPlaceholderText("Overlay 9 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv")
         self.overlay9_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
@@ -4467,7 +4466,7 @@ class SuperCutUI(QWidget):
                 self.overlay9_edit.setText(file_path)
         overlay9_btn.clicked.connect(select_overlay9_image)
         overlay9_size_label = QLabel("S:")
-        overlay9_size_label.setFixedWidth(label_short_width)
+        overlay9_size_label.setFixedWidth(label_mini_width)
         overlay9_size_label.setFixedHeight(unified_height)
         self.overlay9_size_combo = NoWheelComboBox()
         self.overlay9_size_combo.setFixedWidth(combo_medium_width)
@@ -4483,7 +4482,7 @@ class SuperCutUI(QWidget):
         on_overlay9_size_changed(self.overlay9_size_combo.currentIndex())
         # Overlay9 X coordinate
         overlay9_x_label = QLabel("X:")
-        overlay9_x_label.setFixedWidth(label_short_width)
+        overlay9_x_label.setFixedWidth(label_mini_width)
         overlay9_x_label.setFixedHeight(unified_height)
         self.overlay9_x_combo = NoWheelComboBox()
         self.overlay9_x_combo.setFixedWidth(combo_medium_width)
@@ -4499,7 +4498,7 @@ class SuperCutUI(QWidget):
 
         # Overlay9 Y coordinate
         overlay9_y_label = QLabel("Y:")
-        overlay9_y_label.setFixedWidth(label_short_width)
+        overlay9_y_label.setFixedWidth(label_mini_width)
         overlay9_y_label.setFixedHeight(unified_height)
         self.overlay9_y_combo = NoWheelComboBox()
         self.overlay9_y_combo.setFixedWidth(combo_medium_width)
@@ -4514,16 +4513,20 @@ class SuperCutUI(QWidget):
         on_overlay9_y_changed(self.overlay9_y_combo.currentIndex())
 
         # Overlay9 duration controls (similar to intro duration)
-        self.overlay9_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
-        self.overlay9_duration_full_checkbox.setFixedWidth(100)
+        overlay9_duration_full_label = QLabel("Full:")
+        overlay9_duration_full_label.setFixedWidth(label_short_width)
+        overlay9_duration_full_label.setFixedHeight(unified_height)
+        self.overlay9_duration_full_checkbox = QtWidgets.QCheckBox("")
+        self.overlay9_duration_full_checkbox.setFixedWidth(checkbox_solo_width)
+        self.overlay9_duration_full_checkbox.setFixedHeight(unified_height)
         self.overlay9_duration_full_checkbox.setChecked(True)
         def update_overlay9_duration_full_checkbox_style(state):
             self.overlay9_duration_full_checkbox.setStyleSheet("")  # Always default color
         self.overlay9_duration_full_checkbox.stateChanged.connect(update_overlay9_duration_full_checkbox_style)
         update_overlay9_duration_full_checkbox_style(self.overlay9_duration_full_checkbox.checkState())
         
-        overlay9_duration_label = QLabel("Duration:")
-        overlay9_duration_label.setFixedWidth(80)
+        overlay9_duration_label = QLabel("For:")
+        overlay9_duration_label.setFixedWidth(label_short_width)
         self.overlay9_duration_edit = QLineEdit("6")
         self.overlay9_duration_edit.setFixedWidth(edit_short_width)
         self.overlay9_duration_edit.setFixedHeight(unified_height)
@@ -4549,9 +4552,11 @@ class SuperCutUI(QWidget):
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.overlay9_duration_edit.setStyleSheet(grey_btn_style)
                 overlay9_duration_label.setStyleSheet("color: grey;")
+                overlay9_duration_full_label.setStyleSheet("")  # Full label is active when checkbox is checked
             else:
                 self.overlay9_duration_edit.setStyleSheet("")
                 overlay9_duration_label.setStyleSheet("")
+                overlay9_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
 
         def set_overlay9_enabled(state):
             enabled = state == Qt.CheckState.Checked
@@ -4606,18 +4611,21 @@ class SuperCutUI(QWidget):
                 self.overlay9_duration_full_checkbox.setStyleSheet("color: grey;")
         self.overlay9_checkbox.stateChanged.connect(lambda _: set_overlay9_enabled(self.overlay9_checkbox.checkState()))
         
+        # Overlay 9 layout
+        overlay9_layout = QHBoxLayout()
+        overlay9_layout.setSpacing(0)
         overlay9_layout.addWidget(self.overlay9_checkbox)
-        overlay9_layout.addSpacing(3)
+        overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(self.overlay9_edit)
-        overlay9_layout.addSpacing(3)  # Space before select button
+        overlay9_layout.addSpacing(10)  # Space before select button
         overlay9_layout.addWidget(overlay9_btn)
-        overlay9_layout.addSpacing(4)  # Space before position label
+        overlay9_layout.addSpacing(0)  # Space before position label
         overlay9_layout.addWidget(overlay9_size_label)
         overlay9_layout.addWidget(self.overlay9_size_combo)
-        overlay9_layout.addSpacing(4)
+        overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(overlay9_x_label)
         overlay9_layout.addWidget(self.overlay9_x_combo)
-        overlay9_layout.addSpacing(4)
+        overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(overlay9_y_label)
         overlay9_layout.addWidget(self.overlay9_y_combo)
         overlay9_layout.addStretch()
@@ -4628,8 +4636,8 @@ class SuperCutUI(QWidget):
         overlay_groupbox_9_layout.addLayout(overlay9_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 9 (individual effect control) ---
-        overlay9_label = QLabel("Overlay 9:")
-        overlay9_label.setFixedWidth(80)
+        overlay9_effect_label = QLabel("Effect 9:")
+        overlay9_effect_label.setFixedWidth(label_long_width)
         self.overlay9_effect_combo = NoWheelComboBox()
         self.overlay9_effect_combo.setFixedWidth(combo_long_width)
         self.overlay9_effect_combo.setFixedHeight(unified_height)
@@ -4643,7 +4651,12 @@ class SuperCutUI(QWidget):
         on_overlay9_effect_changed(self.overlay9_effect_combo.currentIndex())
 
         # Overlay9 Pop up checkbox
-        self.overlay9_popup_checkbox = QtWidgets.QCheckBox("Pop up")
+        overlay9_popup_label = QLabel("Pop up:")
+        overlay9_popup_label.setFixedWidth(label_medium_width)
+        overlay9_popup_label.setFixedHeight(unified_height)
+        self.overlay9_popup_checkbox = QtWidgets.QCheckBox("")
+        self.overlay9_popup_checkbox.setFixedWidth(checkbox_solo_width)
+        self.overlay9_popup_checkbox.setFixedHeight(unified_height)
         self.overlay9_popup_checkbox.setChecked(False)
         
         def set_overlay9_timing_controls_enabled(state):
@@ -4661,7 +4674,7 @@ class SuperCutUI(QWidget):
                 self.overlay9_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.overlay9_duration_edit.setEnabled(True)
                 self.overlay9_duration_edit.setStyleSheet("")  # normal style
-                overlay9_label.setStyleSheet("color: grey;")
+                overlay9_effect_label.setStyleSheet("color: grey;")
                 self.overlay9_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay9_effect_combo.setEnabled(False)
             else:
@@ -4669,7 +4682,7 @@ class SuperCutUI(QWidget):
                 self.overlay9_duration_full_checkbox.setStyleSheet("")
                 # Let the duration full checkbox control the duration field
                 set_overlay9_duration_enabled(self.overlay9_duration_full_checkbox.checkState())
-                overlay9_label.setStyleSheet("")
+                overlay9_effect_label.setStyleSheet("")
                 self.overlay9_effect_combo.setStyleSheet("")
                 self.overlay9_effect_combo.setEnabled(True)                
 
@@ -4723,7 +4736,8 @@ class SuperCutUI(QWidget):
         update_overlay9_start_at_checkbox_style(self.overlay9_start_at_checkbox.checkState())
 
         overlay9_start_label = QLabel("Start at:")
-        overlay9_start_label.setFixedWidth(80)
+        overlay9_start_label.setFixedWidth(label_medium_width)
+        overlay9_start_label.setFixedHeight(unified_height)
         self.overlay9_start_combo = NoWheelComboBox()
         self.overlay9_start_combo.setFixedWidth(combo_medium_width)
         self.overlay9_start_combo.setFixedHeight(unified_height)
@@ -4738,7 +4752,8 @@ class SuperCutUI(QWidget):
 
         # Overlay9 Start from field
         overlay9_start_from_label = QLabel("Start from:")
-        overlay9_start_from_label.setFixedWidth(80)
+        overlay9_start_from_label.setFixedWidth(label_long_width)
+        overlay9_start_from_label.setFixedHeight(unified_height)
         self.overlay9_start_from_combo = NoWheelComboBox()
         self.overlay9_start_from_combo.setFixedWidth(combo_medium_width)
         self.overlay9_start_from_combo.setFixedHeight(unified_height)
@@ -4752,8 +4767,9 @@ class SuperCutUI(QWidget):
         on_overlay9_start_from_changed(self.overlay9_start_from_combo.currentIndex())
 
         # Overlay9 Pop up Start at field
-        overlay9_popup_start_at_label = QLabel("Pop up Start at:")
-        overlay9_popup_start_at_label.setFixedWidth(100)
+        overlay9_popup_start_at_label = QLabel("Start at:")
+        overlay9_popup_start_at_label.setFixedWidth(label_medium_width)
+        overlay9_popup_start_at_label.setFixedHeight(unified_height)
         self.overlay9_popup_start_at_combo = NoWheelComboBox()
         self.overlay9_popup_start_at_combo.setFixedWidth(combo_medium_width)
         self.overlay9_popup_start_at_combo.setFixedHeight(unified_height)
@@ -4767,44 +4783,34 @@ class SuperCutUI(QWidget):
         on_overlay9_popup_start_at_changed(self.overlay9_popup_start_at_combo.currentIndex())
 
         # Overlay9 pop-up interval field removed
-
-        overlay9_layout = QHBoxLayout()
-        overlay9_layout.setContentsMargins(0, 0, 0, 0)
-        overlay9_layout.addSpacing(-80)
-        overlay9_layout.addWidget(overlay9_label)
-        overlay9_layout.addSpacing(-3)
+        overlay9_layout = QHBoxLayout()        
+        overlay9_layout.setSpacing(0)
+        overlay9_layout.addWidget(overlay9_effect_label)
+        overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(self.overlay9_effect_combo)
-        overlay9_layout.addSpacing(-6)
-        overlay9_layout.addWidget(overlay9_duration_label)
-        overlay9_layout.addSpacing(-27)
-        overlay9_layout.addWidget(self.overlay9_duration_edit)
-        overlay9_layout.addSpacing(-6)
+        overlay9_layout.addSpacing(0)
+        overlay9_layout.addWidget(overlay9_duration_full_label)
+        overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(self.overlay9_duration_full_checkbox)
-        overlay9_layout.addSpacing(-6)
+        overlay9_layout.addSpacing(0)
+        overlay9_layout.addWidget(overlay9_duration_label)
+        overlay9_layout.addSpacing(0)
+        overlay9_layout.addWidget(self.overlay9_duration_edit)
+        overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(self.overlay9_start_at_checkbox)
-        overlay9_layout.addSpacing(-6)
+        overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(overlay9_start_label)
-        overlay9_layout.addSpacing(-32)
+        overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(self.overlay9_start_combo)
-        overlay9_layout.addSpacing(-6)
+        overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(overlay9_start_from_label)
-        overlay9_layout.addSpacing(-32)
+        overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(self.overlay9_start_from_combo)
         overlay9_layout.addStretch()
         overlay_groupbox_9_layout.addLayout(overlay9_layout)
         
-        # Overlay9 additional settings in separate row
-        overlay9_popup_layout = QHBoxLayout()
-        overlay9_popup_layout.setContentsMargins(0, 0, 0, 0)
-        overlay9_popup_layout.addSpacing(20)  # Indent to align with overlay9 controls
-        overlay9_popup_layout.addWidget(self.overlay9_popup_checkbox)
-        overlay9_popup_layout.addSpacing(10)
-        overlay9_popup_layout.addWidget(overlay9_popup_start_at_label)
-        overlay9_popup_layout.addSpacing(-32)
-        overlay9_popup_layout.addWidget(self.overlay9_popup_start_at_combo)
-        # --- Add popup number dropdown (1-10) for overlay9 pop up ---
         overlay9_popup_num_label = QLabel("Num:")
-        overlay9_popup_num_label.setFixedWidth(32)
+        overlay9_popup_num_label.setFixedWidth(label_medium_width)
         self.overlay9_popup_num_combo = NoWheelComboBox()
         self.overlay9_popup_num_combo.setFixedWidth(combo_medium_width)
         self.overlay9_popup_num_combo.setFixedHeight(unified_height)
@@ -4816,7 +4822,18 @@ class SuperCutUI(QWidget):
             self.overlay9_popup_num = self.overlay9_popup_num_combo.itemData(idx)
         self.overlay9_popup_num_combo.currentIndexChanged.connect(on_overlay9_popup_num_changed)
         on_overlay9_popup_num_changed(self.overlay9_popup_num_combo.currentIndex())
-        overlay9_popup_layout.addSpacing(10)
+        
+        # Overlay9 additional settings in separate row
+        overlay9_popup_layout = QHBoxLayout()        
+        overlay9_popup_layout.setSpacing(0)
+        overlay9_popup_layout.addSpacing(0)
+        overlay9_popup_layout.addWidget(self.overlay9_popup_checkbox)
+        overlay9_popup_layout.addWidget(overlay9_popup_label)
+        overlay9_popup_layout.addSpacing(0)
+        overlay9_popup_layout.addWidget(overlay9_popup_start_at_label)
+        overlay9_popup_layout.addSpacing(0)
+        overlay9_popup_layout.addWidget(self.overlay9_popup_start_at_combo)
+        overlay9_popup_layout.addSpacing(0)
         overlay9_popup_layout.addWidget(overlay9_popup_num_label)
         overlay9_popup_layout.addWidget(self.overlay9_popup_num_combo)
         overlay9_popup_layout.addStretch()
@@ -4851,9 +4868,10 @@ class SuperCutUI(QWidget):
 
         def update_overlay9_effect_label_style():
             if not self.overlay9_checkbox.isChecked():
-                overlay9_label.setStyleSheet("color: grey;")
+                overlay9_effect_label.setStyleSheet("color: grey;")
                 self.overlay9_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay9_effect_combo.setEnabled(False)
+                overlay9_popup_label.setStyleSheet("color: grey;")
                 self.overlay9_popup_checkbox.setStyleSheet("color: grey;")
                 self.overlay9_popup_checkbox.setEnabled(False)
                 self.overlay9_start_at_checkbox.setStyleSheet("color: grey;")
@@ -4866,6 +4884,7 @@ class SuperCutUI(QWidget):
                 self.overlay9_start_from_combo.setEnabled(False)
                 # Also grey out duration controls when overlay9 is disabled
                 overlay9_duration_label.setStyleSheet("color: grey;")
+                overlay9_duration_full_label.setStyleSheet("color: grey;")
                 self.overlay9_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay9_duration_edit.setEnabled(False)
                 self.overlay9_duration_full_checkbox.setStyleSheet("color: grey;")
@@ -4876,9 +4895,10 @@ class SuperCutUI(QWidget):
                 self.overlay9_popup_start_at_combo.setEnabled(False)
                 # Popup interval controls removed
             else:
-                overlay9_label.setStyleSheet("")
+                overlay9_effect_label.setStyleSheet("")
                 self.overlay9_effect_combo.setStyleSheet("")
                 self.overlay9_effect_combo.setEnabled(True)
+                overlay9_popup_label.setStyleSheet("")
                 self.overlay9_popup_checkbox.setStyleSheet("")
                 self.overlay9_popup_checkbox.setEnabled(True)
                 # Let the popup checkbox control the timing controls
