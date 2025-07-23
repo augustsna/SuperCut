@@ -1216,9 +1216,9 @@ class SuperCutUI(QWidget):
 
         combo_long_width = 115
 
-        combo_medium_width = 90
+        combo_medium_width = 70
 
-        combo_short_width = 70        
+        combo_short_width = 50          
 
         edit_long_width = 115        
 
@@ -1250,7 +1250,7 @@ class SuperCutUI(QWidget):
         resolution_label = QLabel("Size:")
         resolution_label.setFixedWidth(label_short_width)
         self.resolution_combo = NoWheelComboBox()
-        self.resolution_combo.setFixedWidth(combo_short_width) 
+        self.resolution_combo.setFixedWidth(combo_medium_width) 
         self.resolution_combo.setFixedHeight(unified_height)
         for label, value in DEFAULT_RESOLUTIONS:
             self.resolution_combo.addItem(label, value)
@@ -1260,7 +1260,7 @@ class SuperCutUI(QWidget):
         fps_label = QLabel("FPS:")
         fps_label.setFixedWidth(label_short_width)
         self.fps_combo = NoWheelComboBox()
-        self.fps_combo.setFixedWidth(combo_short_width)
+        self.fps_combo.setFixedWidth(combo_medium_width)
         self.fps_combo.setFixedHeight(unified_height)
         for label, value in DEFAULT_FPS_OPTIONS:
             self.fps_combo.addItem(label, value)
@@ -1276,7 +1276,7 @@ class SuperCutUI(QWidget):
         preset_label = QLabel("Preset:")
         preset_label.setFixedWidth(label_medium_width)
         self.preset_combo = NoWheelComboBox()
-        self.preset_combo.setFixedWidth(combo_short_width)
+        self.preset_combo.setFixedWidth(combo_medium_width)
         self.preset_combo.setFixedHeight(unified_height)
         for label, value in DEFAULT_FFMPEG_PRESETS:
             self.preset_combo.addItem(label, value)
@@ -1363,7 +1363,7 @@ class SuperCutUI(QWidget):
         intro_size_label.setFixedWidth(label_mini_width)
         intro_size_label.setFixedHeight(unified_height)
         self.intro_size_combo = NoWheelComboBox()
-        self.intro_size_combo.setFixedWidth(combo_short_width)
+        self.intro_size_combo.setFixedWidth(combo_medium_width)
         self.intro_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.intro_size_combo.addItem(f"{percent}%", percent)
@@ -1379,7 +1379,7 @@ class SuperCutUI(QWidget):
         intro_x_label.setFixedWidth(label_mini_width)
         intro_x_label.setFixedHeight(unified_height)
         self.intro_x_combo = NoWheelComboBox()
-        self.intro_x_combo.setFixedWidth(combo_short_width)
+        self.intro_x_combo.setFixedWidth(combo_medium_width)
         self.intro_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.intro_x_combo.addItem(f"{percent}%", percent)
@@ -1395,7 +1395,7 @@ class SuperCutUI(QWidget):
         intro_y_label.setFixedWidth(label_mini_width)
         intro_y_label.setFixedHeight(unified_height)
         self.intro_y_combo = NoWheelComboBox()
-        self.intro_y_combo.setFixedWidth(combo_short_width)
+        self.intro_y_combo.setFixedWidth(combo_medium_width)
         self.intro_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.intro_y_combo.addItem(f"{percent}%", percent)
@@ -1407,7 +1407,7 @@ class SuperCutUI(QWidget):
         on_intro_y_changed(self.intro_y_combo.currentIndex())
 
         # (1) Create all intro widgets first
-        intro_effect_label = QLabel("Effect :")
+        intro_effect_label = QLabel("Effect:")
         intro_effect_label.setFixedWidth(label_long_width)
         intro_effect_label.setFixedHeight(unified_height)
         self.intro_effect_combo = NoWheelComboBox()
@@ -1662,7 +1662,7 @@ class SuperCutUI(QWidget):
 
         # Intro effect layout
         intro_effect_layout = QHBoxLayout()        
-        intro_effect_layout.addSpacing(0) 
+        intro_effect_layout.setSpacing(0) 
         intro_effect_layout.addWidget(intro_effect_label)
         intro_effect_layout.addSpacing(0)
         intro_effect_layout.addWidget(self.intro_effect_combo)
@@ -1726,7 +1726,7 @@ class SuperCutUI(QWidget):
         overlay1_size_label.setFixedWidth(label_mini_width)
         overlay1_size_label.setFixedHeight(unified_height)
         self.overlay1_size_combo = NoWheelComboBox()
-        self.overlay1_size_combo.setFixedWidth(combo_short_width)
+        self.overlay1_size_combo.setFixedWidth(combo_medium_width)
         self.overlay1_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay1_size_combo.addItem(f"{percent}%", percent)
@@ -1772,7 +1772,7 @@ class SuperCutUI(QWidget):
         overlay1_x_label.setFixedWidth(label_mini_width)
         overlay1_x_label.setFixedHeight(unified_height)
         self.overlay1_x_combo = NoWheelComboBox()
-        self.overlay1_x_combo.setFixedWidth(combo_short_width)
+        self.overlay1_x_combo.setFixedWidth(combo_medium_width)
         self.overlay1_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay1_x_combo.addItem(f"{percent}%", percent)
@@ -1788,7 +1788,7 @@ class SuperCutUI(QWidget):
         overlay1_y_label.setFixedWidth(label_mini_width)
         overlay1_y_label.setFixedHeight(unified_height)
         self.overlay1_y_combo = NoWheelComboBox()
-        self.overlay1_y_combo.setFixedWidth(combo_short_width)
+        self.overlay1_y_combo.setFixedWidth(combo_medium_width)
         self.overlay1_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay1_y_combo.addItem(f"{percent}%", percent)
@@ -1875,7 +1875,7 @@ class SuperCutUI(QWidget):
         overlay2_size_label.setFixedWidth(label_mini_width)
         overlay2_size_label.setFixedHeight(unified_height)
         self.overlay2_size_combo = NoWheelComboBox()
-        self.overlay2_size_combo.setFixedWidth(combo_short_width)
+        self.overlay2_size_combo.setFixedWidth(combo_medium_width)
         self.overlay2_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay2_size_combo.addItem(f"{percent}%", percent)
@@ -1920,7 +1920,7 @@ class SuperCutUI(QWidget):
         overlay2_x_label.setFixedWidth(label_mini_width)
         overlay2_x_label.setFixedHeight(unified_height)
         self.overlay2_x_combo = NoWheelComboBox()
-        self.overlay2_x_combo.setFixedWidth(combo_short_width)
+        self.overlay2_x_combo.setFixedWidth(combo_medium_width)
         self.overlay2_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay2_x_combo.addItem(f"{percent}%", percent)
@@ -1936,7 +1936,7 @@ class SuperCutUI(QWidget):
         overlay2_y_label.setFixedWidth(label_mini_width)
         overlay2_y_label.setFixedHeight(unified_height)
         self.overlay2_y_combo = NoWheelComboBox()
-        self.overlay2_y_combo.setFixedWidth(combo_short_width)
+        self.overlay2_y_combo.setFixedWidth(combo_medium_width)
         self.overlay2_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay2_y_combo.addItem(f"{percent}%", percent)
@@ -2107,7 +2107,7 @@ class SuperCutUI(QWidget):
 
         # Overlay 1_2 effect layout
         effect_layout = QHBoxLayout()
-        effect_layout.addSpacing(0)
+        effect_layout.setSpacing(0)
         effect_layout.addWidget(effect_label)
         effect_layout.addSpacing(0)
         effect_layout.addWidget(self.effect_combo)
@@ -2238,7 +2238,7 @@ class SuperCutUI(QWidget):
         overlay4_size_label.setFixedWidth(label_mini_width)
         overlay4_size_label.setFixedHeight(unified_height)
         self.overlay4_size_combo = NoWheelComboBox()
-        self.overlay4_size_combo.setFixedWidth(combo_short_width)
+        self.overlay4_size_combo.setFixedWidth(combo_medium_width)
         self.overlay4_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay4_size_combo.addItem(f"{percent}%", percent)
@@ -2253,7 +2253,7 @@ class SuperCutUI(QWidget):
         overlay4_x_label.setFixedWidth(label_mini_width)
         overlay4_x_label.setFixedHeight(unified_height)
         self.overlay4_x_combo = NoWheelComboBox()
-        self.overlay4_x_combo.setFixedWidth(combo_short_width)
+        self.overlay4_x_combo.setFixedWidth(combo_medium_width)
         self.overlay4_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay4_x_combo.addItem(f"{percent}%", percent)
@@ -2267,7 +2267,7 @@ class SuperCutUI(QWidget):
         overlay4_y_label.setFixedWidth(label_mini_width)
         overlay4_y_label.setFixedHeight(unified_height)
         self.overlay4_y_combo = NoWheelComboBox()
-        self.overlay4_y_combo.setFixedWidth(combo_short_width)
+        self.overlay4_y_combo.setFixedWidth(combo_medium_width)
         self.overlay4_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay4_y_combo.addItem(f"{percent}%", percent)
@@ -2361,7 +2361,7 @@ class SuperCutUI(QWidget):
         overlay5_size_label.setFixedWidth(label_mini_width)
         overlay5_size_label.setFixedHeight(unified_height)
         self.overlay5_size_combo = NoWheelComboBox()
-        self.overlay5_size_combo.setFixedWidth(combo_short_width)
+        self.overlay5_size_combo.setFixedWidth(combo_medium_width)
         self.overlay5_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay5_size_combo.addItem(f"{percent}%", percent)
@@ -2376,7 +2376,7 @@ class SuperCutUI(QWidget):
         overlay5_x_label.setFixedWidth(label_mini_width)
         overlay5_x_label.setFixedHeight(unified_height)
         self.overlay5_x_combo = NoWheelComboBox()
-        self.overlay5_x_combo.setFixedWidth(combo_short_width)
+        self.overlay5_x_combo.setFixedWidth(combo_medium_width)
         self.overlay5_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay5_x_combo.addItem(f"{percent}%", percent)
@@ -2390,7 +2390,7 @@ class SuperCutUI(QWidget):
         overlay5_y_label.setFixedWidth(label_mini_width)
         overlay5_y_label.setFixedHeight(unified_height)
         self.overlay5_y_combo = NoWheelComboBox()
-        self.overlay5_y_combo.setFixedWidth(combo_short_width)
+        self.overlay5_y_combo.setFixedWidth(combo_medium_width)
         self.overlay5_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay5_y_combo.addItem(f"{percent}%", percent)
@@ -2583,7 +2583,7 @@ class SuperCutUI(QWidget):
                 overlay4_5_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
 
         overlay4_5_layout = QHBoxLayout()        
-        overlay4_5_layout.addSpacing(0)
+        overlay4_5_layout.setSpacing(0)
         overlay4_5_layout.addWidget(overlay4_5_label)
         overlay4_5_layout.addSpacing(0)
         overlay4_5_layout.addWidget(self.overlay4_5_effect_combo)
@@ -2707,7 +2707,7 @@ class SuperCutUI(QWidget):
         overlay6_size_label.setFixedWidth(label_mini_width)
         overlay6_size_label.setFixedHeight(unified_height)
         self.overlay6_size_combo = NoWheelComboBox()
-        self.overlay6_size_combo.setFixedWidth(combo_short_width)
+        self.overlay6_size_combo.setFixedWidth(combo_medium_width)
         self.overlay6_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay6_size_combo.addItem(f"{percent}%", percent)
@@ -2723,7 +2723,7 @@ class SuperCutUI(QWidget):
         overlay6_x_label.setFixedWidth(label_mini_width)
         overlay6_x_label.setFixedHeight(unified_height)
         self.overlay6_x_combo = NoWheelComboBox()
-        self.overlay6_x_combo.setFixedWidth(combo_short_width)
+        self.overlay6_x_combo.setFixedWidth(combo_medium_width)
         self.overlay6_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay6_x_combo.addItem(f"{percent}%", percent)
@@ -2739,7 +2739,7 @@ class SuperCutUI(QWidget):
         overlay6_y_label.setFixedWidth(label_mini_width)
         overlay6_y_label.setFixedHeight(unified_height)
         self.overlay6_y_combo = NoWheelComboBox()
-        self.overlay6_y_combo.setFixedWidth(combo_short_width)
+        self.overlay6_y_combo.setFixedWidth(combo_medium_width)
         self.overlay6_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay6_y_combo.addItem(f"{percent}%", percent)
@@ -2835,7 +2835,7 @@ class SuperCutUI(QWidget):
         overlay7_size_label.setFixedWidth(label_mini_width)
         overlay7_size_label.setFixedHeight(unified_height)
         self.overlay7_size_combo = NoWheelComboBox()
-        self.overlay7_size_combo.setFixedWidth(combo_short_width)
+        self.overlay7_size_combo.setFixedWidth(combo_medium_width)
         self.overlay7_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay7_size_combo.addItem(f"{percent}%", percent)
@@ -2851,7 +2851,7 @@ class SuperCutUI(QWidget):
         overlay7_x_label.setFixedWidth(label_mini_width)
         overlay7_x_label.setFixedHeight(unified_height)
         self.overlay7_x_combo = NoWheelComboBox()
-        self.overlay7_x_combo.setFixedWidth(combo_short_width)
+        self.overlay7_x_combo.setFixedWidth(combo_medium_width)
         self.overlay7_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay7_x_combo.addItem(f"{percent}%", percent)
@@ -2867,7 +2867,7 @@ class SuperCutUI(QWidget):
         overlay7_y_label.setFixedWidth(label_mini_width)
         overlay7_y_label.setFixedHeight(unified_height)
         self.overlay7_y_combo = NoWheelComboBox()
-        self.overlay7_y_combo.setFixedWidth(combo_short_width)
+        self.overlay7_y_combo.setFixedWidth(combo_medium_width)
         self.overlay7_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay7_y_combo.addItem(f"{percent}%", percent)
@@ -3072,7 +3072,7 @@ class SuperCutUI(QWidget):
 
         # Effect 6_7 layout
         overlay6_7_layout = QHBoxLayout()        
-        overlay6_7_layout.addSpacing(0)
+        overlay6_7_layout.setSpacing(0)
         overlay6_7_layout.addWidget(overlay6_7_label)
         overlay6_7_layout.addSpacing(0)
         overlay6_7_layout.addWidget(self.overlay6_7_effect_combo)
@@ -3225,7 +3225,7 @@ class SuperCutUI(QWidget):
         soundwave_size_label.setFixedWidth(label_mini_width)
         soundwave_size_label.setFixedHeight(unified_height)
         self.soundwave_size_combo = NoWheelComboBox()
-        self.soundwave_size_combo.setFixedWidth(combo_short_width)
+        self.soundwave_size_combo.setFixedWidth(combo_medium_width)
         self.soundwave_size_combo.setFixedHeight(unified_height)
         for percent in range(10, 101, 10):
             self.soundwave_size_combo.addItem(f"{percent}%", percent)
@@ -3241,7 +3241,7 @@ class SuperCutUI(QWidget):
         soundwave_x_label.setFixedWidth(label_mini_width)
         soundwave_x_label.setFixedHeight(unified_height)
         self.soundwave_x_combo = NoWheelComboBox()
-        self.soundwave_x_combo.setFixedWidth(combo_short_width)
+        self.soundwave_x_combo.setFixedWidth(combo_medium_width)
         self.soundwave_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 5):
             self.soundwave_x_combo.addItem(f"{percent}%", percent)
@@ -3257,7 +3257,7 @@ class SuperCutUI(QWidget):
         soundwave_y_label.setFixedWidth(label_mini_width)
         soundwave_y_label.setFixedHeight(unified_height)
         self.soundwave_y_combo = NoWheelComboBox()
-        self.soundwave_y_combo.setFixedWidth(combo_short_width)
+        self.soundwave_y_combo.setFixedWidth(combo_medium_width)
         self.soundwave_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 5):
             self.soundwave_y_combo.addItem(f"{percent}%", percent)
@@ -3360,7 +3360,7 @@ class SuperCutUI(QWidget):
         overlay3_size_label.setFixedWidth(label_mini_width)
         overlay3_size_label.setFixedHeight(unified_height)
         self.overlay3_size_combo = NoWheelComboBox()
-        self.overlay3_size_combo.setFixedWidth(combo_short_width)
+        self.overlay3_size_combo.setFixedWidth(combo_medium_width)
         self.overlay3_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay3_size_combo.addItem(f"{percent}%", percent)
@@ -3376,7 +3376,7 @@ class SuperCutUI(QWidget):
         overlay3_x_label.setFixedWidth(label_mini_width)
         overlay3_x_label.setFixedHeight(unified_height)
         self.overlay3_x_combo = NoWheelComboBox()
-        self.overlay3_x_combo.setFixedWidth(combo_short_width)
+        self.overlay3_x_combo.setFixedWidth(combo_medium_width)
         self.overlay3_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay3_x_combo.addItem(f"{percent}%", percent)
@@ -3392,7 +3392,7 @@ class SuperCutUI(QWidget):
         overlay3_y_label.setFixedWidth(label_mini_width)
         overlay3_y_label.setFixedHeight(unified_height)
         self.overlay3_y_combo = NoWheelComboBox()
-        self.overlay3_y_combo.setFixedWidth(combo_short_width)
+        self.overlay3_y_combo.setFixedWidth(combo_medium_width)
         self.overlay3_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay3_y_combo.addItem(f"{percent}%", percent)
@@ -3474,14 +3474,7 @@ class SuperCutUI(QWidget):
         self.song_title_checkbox.stateChanged.connect(update_song_title_checkbox_style)
         update_song_title_checkbox_style(self.song_title_checkbox.checkState())
         
-        # Song titles checkbox and controls
-        song_title_checkbox_layout = QHBoxLayout()
-        song_title_checkbox_layout.setSpacing(4)
-        
-        # Font control
-        song_title_font_label = QLabel("Font:")
-        song_title_font_label.setFixedWidth(label_short_width)
-        
+        # Font control        
         self.song_title_font_combo = NoWheelComboBox()
         self.song_title_font_combo.setFixedWidth(combo_long_width)
         self.song_title_font_combo.setFixedHeight(unified_height)
@@ -3507,10 +3500,10 @@ class SuperCutUI(QWidget):
 
         # Titles Scale control
         song_title_scale_label = QLabel("S:")
-        song_title_scale_label.setFixedWidth(label_short_width)
+        song_title_scale_label.setFixedWidth(label_mini_width)
         song_title_scale_label.setFixedHeight(unified_height)
         self.song_title_scale_combo = NoWheelComboBox()
-        self.song_title_scale_combo.setFixedWidth(combo_short_width)
+        self.song_title_scale_combo.setFixedWidth(combo_medium_width)
         self.song_title_scale_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.song_title_scale_combo.addItem(f"{percent}%", percent)
@@ -3523,7 +3516,7 @@ class SuperCutUI(QWidget):
         
         # Color control
         song_title_color_label = QLabel("C:")
-        song_title_color_label.setFixedWidth(label_short_width)
+        song_title_color_label.setFixedWidth(label_mini_width)
         song_title_color_label.setFixedHeight(unified_height)
         self.song_title_color_btn = QPushButton()
         self.song_title_color_btn.setFixedSize(27, 27)
@@ -3571,7 +3564,7 @@ class SuperCutUI(QWidget):
         
         # Background color control
         self.song_title_bg_color_btn = QPushButton()
-        self.song_title_bg_color_btn.setFixedSize(28, 28)
+        self.song_title_bg_color_btn.setFixedSize(27, 27)
         self.song_title_bg_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
         self.song_title_bg_color = (0, 0, 0)  # Default black
         
@@ -3614,7 +3607,7 @@ class SuperCutUI(QWidget):
         
         # Opacity control
         self.song_title_opacity_combo = NoWheelComboBox()
-        self.song_title_opacity_combo.setFixedWidth(combo_short_width)
+        self.song_title_opacity_combo.setFixedWidth(combo_medium_width)
         self.song_title_opacity_combo.setFixedHeight(unified_height)
         opacity_options = [
             (f"{percent}%", percent / 100.0) for percent in range(5, 101, 5)
@@ -3634,12 +3627,13 @@ class SuperCutUI(QWidget):
         # --- Text Effects Controls ---
         # Text effect dropdown
         song_title_text_effect_label = QLabel("Text FX:")
-        song_title_text_effect_label.setFixedWidth(50)
+        song_title_text_effect_label.setFixedWidth(label_medium_width)
+        song_title_text_effect_label.setFixedHeight(unified_height)
         self.song_title_text_effect_combo = NoWheelComboBox()
         self.song_title_text_effect_combo.setFixedWidth(combo_long_width)
         self.song_title_text_effect_combo.setFixedHeight(unified_height)
         song_title_text_effect_options = [
-            ("None", "none"),
+            ("     None", "none"),
             ("Text outlines", "outline"),
             ("Outward stroke", "outward_stroke"),
             ("Inward stroke", "inward_stroke"),
@@ -3670,8 +3664,9 @@ class SuperCutUI(QWidget):
         self.song_title_text_effect_combo.currentIndexChanged.connect(on_song_title_text_effect_changed)
         
         # Text effect color picker
-        song_title_text_effect_color_label = QLabel("FX C:")
-        song_title_text_effect_color_label.setFixedWidth(35)
+        song_title_text_effect_color_label = QLabel("C:")
+        song_title_text_effect_color_label.setFixedWidth(label_mini_width)
+        song_title_text_effect_color_label.setFixedHeight(unified_height)
         self.song_title_text_effect_color_btn = QPushButton()
         self.song_title_text_effect_color_btn.setFixedSize(27, 27)
         self.song_title_text_effect_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
@@ -3684,8 +3679,9 @@ class SuperCutUI(QWidget):
         self.song_title_text_effect_color_btn.clicked.connect(on_song_title_text_effect_color_clicked)
         
         # Text effect intensity (1-100)
-        song_title_text_effect_intensity_label = QLabel("FX I:")
-        song_title_text_effect_intensity_label.setFixedWidth(35)
+        song_title_text_effect_intensity_label = QLabel("FX:")
+        song_title_text_effect_intensity_label.setFixedWidth(label_short_width)
+        song_title_text_effect_intensity_label.setFixedHeight(unified_height)
         self.song_title_text_effect_intensity_combo = NoWheelComboBox()
         self.song_title_text_effect_intensity_combo.setFixedWidth(combo_short_width)
         self.song_title_text_effect_intensity_combo.setFixedHeight(unified_height)
@@ -3701,11 +3697,10 @@ class SuperCutUI(QWidget):
         # Now call the text effect changed function after all controls are created
         on_song_title_text_effect_changed(self.song_title_text_effect_combo.currentIndex())
         
-        # Effect control (moved to next line)
-        song_title_effect_layout = QHBoxLayout()
-        song_title_effect_layout.setSpacing(0)
-        song_title_effect_label = QLabel("Titles:")
-        song_title_effect_label.setFixedWidth(40)
+        # Effect control (moved to next line)               
+        song_title_effect_label = QLabel("Effect:")
+        song_title_effect_label.setFixedWidth(label_long_width)
+        song_title_effect_label.setFixedHeight(unified_height)
         self.song_title_effect_combo = NoWheelComboBox()
         self.song_title_effect_combo.setFixedWidth(combo_long_width)
         self.song_title_effect_combo.setFixedHeight(unified_height)
@@ -3727,10 +3722,10 @@ class SuperCutUI(QWidget):
         
         # --- Song Title Position Controls (X, Y as percent) ---
         song_title_x_label = QLabel("X:")
-        song_title_x_label.setFixedWidth(label_short_width)
+        song_title_x_label.setFixedWidth(label_mini_width)
         song_title_x_label.setFixedHeight(unified_height)
         self.song_title_x_combo = NoWheelComboBox()
-        self.song_title_x_combo.setFixedWidth(combo_short_width)
+        self.song_title_x_combo.setFixedWidth(combo_medium_width)
         self.song_title_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.song_title_x_combo.addItem(f"{percent}%", percent)
@@ -3742,10 +3737,10 @@ class SuperCutUI(QWidget):
         on_song_title_x_changed(self.song_title_x_combo.currentIndex())
 
         song_title_y_label = QLabel("Y:")
-        song_title_y_label.setFixedWidth(label_short_width)
+        song_title_y_label.setFixedWidth(label_mini_width)
         song_title_y_label.setFixedHeight(unified_height)
         self.song_title_y_combo = NoWheelComboBox()
-        self.song_title_y_combo.setFixedWidth(combo_short_width)
+        self.song_title_y_combo.setFixedWidth(combo_medium_width)
         self.song_title_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.song_title_y_combo.addItem(f"{percent}%", percent)
@@ -3758,7 +3753,8 @@ class SuperCutUI(QWidget):
 
         # --- Song Title Start At (s) ---
         song_title_start_label = QLabel("Start at:")
-        song_title_start_label.setFixedWidth(80)
+        song_title_start_label.setFixedWidth(label_medium_width)
+        song_title_start_label.setFixedHeight(unified_height)
         self.song_title_start_edit = QLineEdit("5")
         self.song_title_start_edit.setFixedWidth(edit_short_width)
         self.song_title_start_edit.setFixedHeight(unified_height)
@@ -3798,7 +3794,6 @@ class SuperCutUI(QWidget):
             song_title_x_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_y_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_start_label.setStyleSheet("" if song_title_start_enabled else "color: grey;")
-            song_title_font_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_color_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_bg_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_scale_label.setStyleSheet("" if enabled else "color: grey;")
@@ -3854,25 +3849,25 @@ class SuperCutUI(QWidget):
         self.song_title_checkbox.stateChanged.connect(lambda _: set_song_title_controls_enabled(self.song_title_checkbox.checkState()))
         set_song_title_controls_enabled(self.song_title_checkbox.checkState())
         
-        # First line: checkbox, font, size, color, X, Y
-        song_title_checkbox_layout.addSpacing(0)
+        # Song titles layout
+        song_title_checkbox_layout = QHBoxLayout()
+        song_title_checkbox_layout.setSpacing(0)
         song_title_checkbox_layout.addWidget(self.song_title_checkbox)
-        song_title_checkbox_layout.addSpacing(5)
-        #song_title_checkbox_layout.addWidget(song_title_font_label)        
+        song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(self.song_title_font_combo)
-        song_title_checkbox_layout.addSpacing(8)        
+        song_title_checkbox_layout.addSpacing(0)        
         song_title_checkbox_layout.addWidget(song_title_color_label)
-        song_title_checkbox_layout.addSpacing(4)
+        song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(self.song_title_color_btn)
-        song_title_checkbox_layout.addSpacing(6)
+        song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(song_title_scale_label)
         song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(self.song_title_scale_combo)
-        song_title_checkbox_layout.addSpacing(4)
+        song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(song_title_x_label)
-        song_title_checkbox_layout.addSpacing(-10)
+        song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(self.song_title_x_combo)
-        song_title_checkbox_layout.addSpacing(4)
+        song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(song_title_y_label)
         song_title_checkbox_layout.addSpacing(0)
         song_title_checkbox_layout.addWidget(self.song_title_y_combo)
@@ -3881,38 +3876,38 @@ class SuperCutUI(QWidget):
         
         # Second line: bg, opacity, text effects
         song_title_controls_layout = QHBoxLayout()        
-        song_title_controls_layout.addSpacing(10)  # Align with song title checkbox
+        song_title_controls_layout.setSpacing(0)  # Align with song title checkbox
         song_title_controls_layout.addWidget(song_title_bg_label)
-        song_title_controls_layout.addSpacing(-7)
+        song_title_controls_layout.addSpacing(0)
         song_title_controls_layout.addWidget(self.song_title_bg_combo)
-        song_title_controls_layout.addSpacing(-5)
+        song_title_controls_layout.addSpacing(0)
         song_title_controls_layout.addWidget(self.song_title_opacity_combo)
-        song_title_controls_layout.addSpacing(-5)
+        song_title_controls_layout.addSpacing(0)
         song_title_controls_layout.addWidget(self.song_title_bg_color_btn)
-        song_title_controls_layout.addSpacing(6)
+        song_title_controls_layout.addSpacing(0)
         song_title_controls_layout.addWidget(song_title_text_effect_label)
-        song_title_controls_layout.addSpacing(2)
+        song_title_controls_layout.addSpacing(0)
         song_title_controls_layout.addWidget(self.song_title_text_effect_combo)
-        song_title_controls_layout.addSpacing(4)
+        song_title_controls_layout.addSpacing(0)
         song_title_controls_layout.addWidget(song_title_text_effect_color_label)
-        song_title_controls_layout.addSpacing(2)
+        song_title_controls_layout.addSpacing(0)
         song_title_controls_layout.addWidget(self.song_title_text_effect_color_btn)
-        song_title_controls_layout.addSpacing(4)
+        song_title_controls_layout.addSpacing(0)
         song_title_controls_layout.addWidget(song_title_text_effect_intensity_label)
-        song_title_controls_layout.addSpacing(2)
+        song_title_controls_layout.addSpacing(0)
         song_title_controls_layout.addWidget(self.song_title_text_effect_intensity_combo)
         song_title_controls_layout.addStretch()
         overlay_groupbox_3_titles_wave_layout.addLayout(song_title_controls_layout)
         
         # Third line: titles effect and start at
         song_title_effects_layout = QHBoxLayout()
-        song_title_effects_layout.addSpacing(10)  # Align with song title checkbox
+        song_title_effects_layout.setSpacing(0)  # Align with song title checkbox
         song_title_effects_layout.addWidget(song_title_effect_label)
-        song_title_effects_layout.addSpacing(2)
+        song_title_effects_layout.addSpacing(0)
         song_title_effects_layout.addWidget(self.song_title_effect_combo)
-        song_title_effects_layout.addSpacing(20)
+        song_title_effects_layout.addSpacing(0)
         song_title_effects_layout.addWidget(song_title_start_label)
-        song_title_effects_layout.addSpacing(2)
+        song_title_effects_layout.addSpacing(0)
         song_title_effects_layout.addWidget(self.song_title_start_edit)
         song_title_effects_layout.addStretch()
         overlay_groupbox_3_titles_wave_layout.addLayout(song_title_effects_layout)
@@ -3938,19 +3933,17 @@ class SuperCutUI(QWidget):
         overlay_groupbox_8_layout.setSpacing(8)
         overlay_groupbox_8_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(overlay_groupbox_8)
-        
 
-        # Overlay 8 controls (similar to Overlay 7)
+        # Overlay 8 controls 
         self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
         self.overlay8_checkbox.setFixedWidth(label_checkbox_width)
+        self.overlay8_checkbox.setFixedHeight(unified_height)
         self.overlay8_checkbox.setChecked(False)
         def update_overlay8_checkbox_style(state):
             self.overlay8_checkbox.setStyleSheet("")  # Always default color
         self.overlay8_checkbox.stateChanged.connect(update_overlay8_checkbox_style)
         update_overlay8_checkbox_style(self.overlay8_checkbox.checkState())
 
-        overlay8_layout = QHBoxLayout()
-        overlay8_layout.setSpacing(4)
         self.overlay8_edit = ImageDropLineEdit()
         self.overlay8_edit.setPlaceholderText("Overlay 8 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv)")
         self.overlay8_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
@@ -3973,10 +3966,10 @@ class SuperCutUI(QWidget):
                 self.overlay8_edit.setText(file_path)
         overlay8_btn.clicked.connect(select_overlay8_image)
         overlay8_size_label = QLabel("S:")
-        overlay8_size_label.setFixedWidth(label_short_width)
+        overlay8_size_label.setFixedWidth(label_mini_width)
         overlay8_size_label.setFixedHeight(unified_height)
         self.overlay8_size_combo = NoWheelComboBox()
-        self.overlay8_size_combo.setFixedWidth(combo_short_width)
+        self.overlay8_size_combo.setFixedWidth(combo_medium_width)
         self.overlay8_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay8_size_combo.addItem(f"{percent}%", percent)
@@ -3989,10 +3982,10 @@ class SuperCutUI(QWidget):
         on_overlay8_size_changed(self.overlay8_size_combo.currentIndex())
         # Overlay8 X coordinate
         overlay8_x_label = QLabel("X:")
-        overlay8_x_label.setFixedWidth(label_short_width)
+        overlay8_x_label.setFixedWidth(label_mini_width)
         overlay8_x_label.setFixedHeight(unified_height)
         self.overlay8_x_combo = NoWheelComboBox()
-        self.overlay8_x_combo.setFixedWidth(combo_short_width)
+        self.overlay8_x_combo.setFixedWidth(combo_medium_width)
         self.overlay8_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay8_x_combo.addItem(f"{percent}%", percent)
@@ -4005,10 +3998,10 @@ class SuperCutUI(QWidget):
 
         # Overlay8 Y coordinate
         overlay8_y_label = QLabel("Y:")
-        overlay8_y_label.setFixedWidth(label_short_width)
+        overlay8_y_label.setFixedWidth(label_mini_width)
         overlay8_y_label.setFixedHeight(unified_height)
         self.overlay8_y_combo = NoWheelComboBox()
-        self.overlay8_y_combo.setFixedWidth(combo_short_width)
+        self.overlay8_y_combo.setFixedWidth(combo_medium_width)
         self.overlay8_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay8_y_combo.addItem(f"{percent}%", percent)
@@ -4020,16 +4013,20 @@ class SuperCutUI(QWidget):
         on_overlay8_y_changed(self.overlay8_y_combo.currentIndex())
 
         # Overlay8 duration controls (similar to intro duration)
-        self.overlay8_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
-        self.overlay8_duration_full_checkbox.setFixedWidth(100)
+        overlay8_duration_full_label = QLabel("Full:")
+        overlay8_duration_full_label.setFixedWidth(label_short_width)
+        overlay8_duration_full_label.setFixedHeight(unified_height)
+        self.overlay8_duration_full_checkbox = QtWidgets.QCheckBox("")
+        self.overlay8_duration_full_checkbox.setFixedWidth(checkbox_solo_width)
+        self.overlay8_duration_full_checkbox.setFixedHeight(unified_height)
         self.overlay8_duration_full_checkbox.setChecked(True)
         def update_overlay8_duration_full_checkbox_style(state):
             self.overlay8_duration_full_checkbox.setStyleSheet("")  # Always default color
         self.overlay8_duration_full_checkbox.stateChanged.connect(update_overlay8_duration_full_checkbox_style)
         update_overlay8_duration_full_checkbox_style(self.overlay8_duration_full_checkbox.checkState())
         
-        overlay8_duration_label = QLabel("Duration:")
-        overlay8_duration_label.setFixedWidth(80)
+        overlay8_duration_label = QLabel("For:")
+        overlay8_duration_label.setFixedWidth(label_short_width)
         self.overlay8_duration_edit = QLineEdit("6")
         self.overlay8_duration_edit.setFixedWidth(edit_short_width)
         self.overlay8_duration_edit.setFixedHeight(unified_height)
@@ -4055,9 +4052,11 @@ class SuperCutUI(QWidget):
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.overlay8_duration_edit.setStyleSheet(grey_btn_style)
                 overlay8_duration_label.setStyleSheet("color: grey;")
+                overlay8_duration_full_label.setStyleSheet("")  # Full label is active when checkbox is checked
             else:
                 self.overlay8_duration_edit.setStyleSheet("")
                 overlay8_duration_label.setStyleSheet("")
+                overlay8_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
 
         def set_overlay8_enabled(state):
             enabled = state == Qt.CheckState.Checked
@@ -4112,18 +4111,21 @@ class SuperCutUI(QWidget):
                 self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
         self.overlay8_checkbox.stateChanged.connect(lambda _: set_overlay8_enabled(self.overlay8_checkbox.checkState()))
         
+        # Overlay 8 layout
+        overlay8_layout = QHBoxLayout()    
+        overlay8_layout.setSpacing(0)    
         overlay8_layout.addWidget(self.overlay8_checkbox)
-        overlay8_layout.addSpacing(3)
+        overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(self.overlay8_edit)
-        overlay8_layout.addSpacing(3)  # Space before select button
+        overlay8_layout.addSpacing(10)
         overlay8_layout.addWidget(overlay8_btn)
-        overlay8_layout.addSpacing(4)  # Space before position label
+        overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(overlay8_size_label)
         overlay8_layout.addWidget(self.overlay8_size_combo)
-        overlay8_layout.addSpacing(4)
+        overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(overlay8_x_label)
         overlay8_layout.addWidget(self.overlay8_x_combo)
-        overlay8_layout.addSpacing(4)
+        overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(overlay8_y_label)
         overlay8_layout.addWidget(self.overlay8_y_combo)
         overlay8_layout.addStretch()
@@ -4134,8 +4136,9 @@ class SuperCutUI(QWidget):
         overlay_groupbox_8_layout.addLayout(overlay8_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 8 (individual effect control) ---
-        overlay8_label = QLabel("Overlay 8:")
-        overlay8_label.setFixedWidth(80)
+        overlay8_effect_label = QLabel("Effect 8:")
+        overlay8_effect_label.setFixedWidth(label_long_width)
+        overlay8_effect_label.setFixedHeight(unified_height)
         self.overlay8_effect_combo = NoWheelComboBox()
         self.overlay8_effect_combo.setFixedWidth(combo_long_width)
         self.overlay8_effect_combo.setFixedHeight(unified_height)
@@ -4149,7 +4152,12 @@ class SuperCutUI(QWidget):
         on_overlay8_effect_changed(self.overlay8_effect_combo.currentIndex())
 
         # Overlay8 Pop up checkbox
-        self.overlay8_popup_checkbox = QtWidgets.QCheckBox("Pop up")
+        overlay8_popup_label = QLabel("Pop up:")
+        overlay8_popup_label.setFixedWidth(label_medium_width)
+        overlay8_popup_label.setFixedHeight(unified_height)
+        self.overlay8_popup_checkbox = QtWidgets.QCheckBox("")
+        self.overlay8_popup_checkbox.setFixedWidth(checkbox_solo_width)
+        self.overlay8_popup_checkbox.setFixedHeight(unified_height)
         self.overlay8_popup_checkbox.setChecked(False)
         
         def set_overlay8_timing_controls_enabled(state):
@@ -4167,7 +4175,7 @@ class SuperCutUI(QWidget):
                 self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.overlay8_duration_edit.setEnabled(True)
                 self.overlay8_duration_edit.setStyleSheet("")  # normal style
-                overlay8_label.setStyleSheet("color: grey;")
+                overlay8_effect_label.setStyleSheet("color: grey;")
                 self.overlay8_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay8_effect_combo.setEnabled(False)
             else:
@@ -4175,7 +4183,7 @@ class SuperCutUI(QWidget):
                 self.overlay8_duration_full_checkbox.setStyleSheet("")
                 # Let the duration full checkbox control the duration field
                 set_overlay8_duration_enabled(self.overlay8_duration_full_checkbox.checkState())
-                overlay8_label.setStyleSheet("")
+                overlay8_effect_label.setStyleSheet("")
                 self.overlay8_effect_combo.setStyleSheet("")
                 self.overlay8_effect_combo.setEnabled(True)                
 
@@ -4228,9 +4236,10 @@ class SuperCutUI(QWidget):
         update_overlay8_start_at_checkbox_style(self.overlay8_start_at_checkbox.checkState())
 
         overlay8_start_label = QLabel("Start at:")
-        overlay8_start_label.setFixedWidth(80)
+        overlay8_start_label.setFixedWidth(label_medium_width)
+        overlay8_start_label.setFixedHeight(unified_height)
         self.overlay8_start_combo = NoWheelComboBox()
-        self.overlay8_start_combo.setFixedWidth(combo_short_width)
+        self.overlay8_start_combo.setFixedWidth(combo_medium_width)
         self.overlay8_start_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay8_start_combo.addItem(f"{percent}%", percent)
@@ -4243,9 +4252,10 @@ class SuperCutUI(QWidget):
 
         # Overlay8 Start from field
         overlay8_start_from_label = QLabel("Start from:")
-        overlay8_start_from_label.setFixedWidth(80)
+        overlay8_start_from_label.setFixedWidth(label_long_width)
+        overlay8_start_from_label.setFixedHeight(unified_height)
         self.overlay8_start_from_combo = NoWheelComboBox()
-        self.overlay8_start_from_combo.setFixedWidth(combo_short_width)
+        self.overlay8_start_from_combo.setFixedWidth(combo_medium_width)
         self.overlay8_start_from_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay8_start_from_combo.addItem(f"{percent}%", percent)
@@ -4257,10 +4267,11 @@ class SuperCutUI(QWidget):
         on_overlay8_start_from_changed(self.overlay8_start_from_combo.currentIndex())
 
         # Overlay8 Pop up Start at field
-        overlay8_popup_start_at_label = QLabel("Pop up Start at:")
-        overlay8_popup_start_at_label.setFixedWidth(100)
+        overlay8_popup_start_at_label = QLabel("Start at:")
+        overlay8_popup_start_at_label.setFixedWidth(label_medium_width)
+        overlay8_popup_start_at_label.setFixedHeight(unified_height)
         self.overlay8_popup_start_at_combo = NoWheelComboBox()
-        self.overlay8_popup_start_at_combo.setFixedWidth(combo_short_width)
+        self.overlay8_popup_start_at_combo.setFixedWidth(combo_medium_width)
         self.overlay8_popup_start_at_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay8_popup_start_at_combo.addItem(f"{percent}%", percent)
@@ -4271,47 +4282,40 @@ class SuperCutUI(QWidget):
         self.overlay8_popup_start_at_combo.currentIndexChanged.connect(on_overlay8_popup_start_at_changed)
         on_overlay8_popup_start_at_changed(self.overlay8_popup_start_at_combo.currentIndex())
 
-        # Overlay8 Pop up Interval field removed
-
-        overlay8_layout = QHBoxLayout()
-        overlay8_layout.setContentsMargins(0, 0, 0, 0)
-        overlay8_layout.addSpacing(-80)
-        overlay8_layout.addWidget(overlay8_label)
-        overlay8_layout.addSpacing(-3)
+        # Overlay8 Effect layout
+        overlay8_layout = QHBoxLayout()        
+        overlay8_layout.setSpacing(0)
+        overlay8_layout.addWidget(overlay8_effect_label)
+        overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(self.overlay8_effect_combo)
-        overlay8_layout.addSpacing(-6)
-        overlay8_layout.addWidget(overlay8_duration_label)
-        overlay8_layout.addSpacing(-27)
-        overlay8_layout.addWidget(self.overlay8_duration_edit)
-        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addSpacing(0)
+        overlay8_layout.addWidget(overlay8_duration_full_label)
+        overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(self.overlay8_duration_full_checkbox)
-        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addSpacing(0)
+        overlay8_layout.addWidget(overlay8_duration_label)
+        overlay8_layout.addSpacing(0)
+        overlay8_layout.addWidget(self.overlay8_duration_edit)
+        overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(self.overlay8_start_at_checkbox)
-        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(overlay8_start_label)
-        overlay8_layout.addSpacing(-32)
+        overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(self.overlay8_start_combo)
-        overlay8_layout.addSpacing(-6)
+        overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(overlay8_start_from_label)
-        overlay8_layout.addSpacing(-32)
+        overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(self.overlay8_start_from_combo)
         overlay8_layout.addStretch()
         overlay_groupbox_8_layout.addLayout(overlay8_layout)
         
-        # Overlay8 additional settings in separate row
-        overlay8_popup_layout = QHBoxLayout()
-        overlay8_popup_layout.setContentsMargins(0, 0, 0, 0)
-        overlay8_popup_layout.addSpacing(20)  # Indent to align with overlay8 controls
-        overlay8_popup_layout.addWidget(self.overlay8_popup_checkbox)
-        overlay8_popup_layout.addSpacing(10)
-        overlay8_popup_layout.addWidget(overlay8_popup_start_at_label)
-        overlay8_popup_layout.addSpacing(-32)
-        overlay8_popup_layout.addWidget(self.overlay8_popup_start_at_combo)
+
         # --- Add popup number dropdown (1-10) ---
         overlay8_popup_num_label = QLabel("Num:")
-        overlay8_popup_num_label.setFixedWidth(32)
+        overlay8_popup_num_label.setFixedWidth(label_medium_width)
+        overlay8_popup_num_label.setFixedHeight(unified_height)
         self.overlay8_popup_num_combo = NoWheelComboBox()
-        self.overlay8_popup_num_combo.setFixedWidth(combo_short_width)
+        self.overlay8_popup_num_combo.setFixedWidth(combo_medium_width)
         self.overlay8_popup_num_combo.setFixedHeight(unified_height)
         for n in range(1, 11):
             self.overlay8_popup_num_combo.addItem(str(n), n)
@@ -4321,7 +4325,19 @@ class SuperCutUI(QWidget):
             self.overlay8_popup_num = self.overlay8_popup_num_combo.itemData(idx)
         self.overlay8_popup_num_combo.currentIndexChanged.connect(on_overlay8_popup_num_changed)
         on_overlay8_popup_num_changed(self.overlay8_popup_num_combo.currentIndex())
-        overlay8_popup_layout.addSpacing(10)
+        
+        # Overlay 8 popup layout
+        overlay8_popup_layout = QHBoxLayout()
+        overlay8_popup_layout.setSpacing(0)
+        overlay8_popup_layout.addSpacing(0)  
+        overlay8_popup_layout.addWidget(self.overlay8_popup_checkbox)
+        overlay8_popup_layout.addSpacing(0)
+        overlay8_popup_layout.addWidget(overlay8_popup_label)
+        overlay8_popup_layout.addSpacing(0)
+        overlay8_popup_layout.addWidget(overlay8_popup_start_at_label)
+        overlay8_popup_layout.addSpacing(0)
+        overlay8_popup_layout.addWidget(self.overlay8_popup_start_at_combo)
+        overlay8_popup_layout.addSpacing(0)
         overlay8_popup_layout.addWidget(overlay8_popup_num_label)
         overlay8_popup_layout.addWidget(self.overlay8_popup_num_combo)
         overlay8_popup_layout.addStretch()
@@ -4356,9 +4372,10 @@ class SuperCutUI(QWidget):
 
         def update_overlay8_effect_label_style():
             if not self.overlay8_checkbox.isChecked():
-                overlay8_label.setStyleSheet("color: grey;")
+                overlay8_effect_label.setStyleSheet("color: grey;")
                 self.overlay8_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay8_effect_combo.setEnabled(False)
+                overlay8_popup_label.setStyleSheet("color: grey;")
                 self.overlay8_popup_checkbox.setStyleSheet("color: grey;")
                 self.overlay8_popup_checkbox.setEnabled(False)
                 self.overlay8_start_at_checkbox.setStyleSheet("color: grey;")
@@ -4371,6 +4388,7 @@ class SuperCutUI(QWidget):
                 self.overlay8_start_from_combo.setEnabled(False)
                 # Also grey out duration controls when overlay8 is disabled
                 overlay8_duration_label.setStyleSheet("color: grey;")
+                overlay8_duration_full_label.setStyleSheet("color: grey;")
                 self.overlay8_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay8_duration_edit.setEnabled(False)
                 self.overlay8_duration_full_checkbox.setStyleSheet("color: grey;")
@@ -4381,9 +4399,10 @@ class SuperCutUI(QWidget):
                 self.overlay8_popup_start_at_combo.setEnabled(False)
                 # Popup interval controls removed
             else:
-                overlay8_label.setStyleSheet("")
+                overlay8_effect_label.setStyleSheet("")
                 self.overlay8_effect_combo.setStyleSheet("")
                 self.overlay8_effect_combo.setEnabled(True)
+                overlay8_popup_label.setStyleSheet("")
                 self.overlay8_popup_checkbox.setStyleSheet("")
                 self.overlay8_popup_checkbox.setEnabled(True)
                 # Let the popup checkbox control the timing controls
@@ -4451,7 +4470,7 @@ class SuperCutUI(QWidget):
         overlay9_size_label.setFixedWidth(label_short_width)
         overlay9_size_label.setFixedHeight(unified_height)
         self.overlay9_size_combo = NoWheelComboBox()
-        self.overlay9_size_combo.setFixedWidth(combo_short_width)
+        self.overlay9_size_combo.setFixedWidth(combo_medium_width)
         self.overlay9_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay9_size_combo.addItem(f"{percent}%", percent)
@@ -4467,7 +4486,7 @@ class SuperCutUI(QWidget):
         overlay9_x_label.setFixedWidth(label_short_width)
         overlay9_x_label.setFixedHeight(unified_height)
         self.overlay9_x_combo = NoWheelComboBox()
-        self.overlay9_x_combo.setFixedWidth(combo_short_width)
+        self.overlay9_x_combo.setFixedWidth(combo_medium_width)
         self.overlay9_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay9_x_combo.addItem(f"{percent}%", percent)
@@ -4483,7 +4502,7 @@ class SuperCutUI(QWidget):
         overlay9_y_label.setFixedWidth(label_short_width)
         overlay9_y_label.setFixedHeight(unified_height)
         self.overlay9_y_combo = NoWheelComboBox()
-        self.overlay9_y_combo.setFixedWidth(combo_short_width)
+        self.overlay9_y_combo.setFixedWidth(combo_medium_width)
         self.overlay9_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay9_y_combo.addItem(f"{percent}%", percent)
@@ -4706,7 +4725,7 @@ class SuperCutUI(QWidget):
         overlay9_start_label = QLabel("Start at:")
         overlay9_start_label.setFixedWidth(80)
         self.overlay9_start_combo = NoWheelComboBox()
-        self.overlay9_start_combo.setFixedWidth(combo_short_width)
+        self.overlay9_start_combo.setFixedWidth(combo_medium_width)
         self.overlay9_start_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay9_start_combo.addItem(f"{percent}%", percent)
@@ -4721,7 +4740,7 @@ class SuperCutUI(QWidget):
         overlay9_start_from_label = QLabel("Start from:")
         overlay9_start_from_label.setFixedWidth(80)
         self.overlay9_start_from_combo = NoWheelComboBox()
-        self.overlay9_start_from_combo.setFixedWidth(combo_short_width)
+        self.overlay9_start_from_combo.setFixedWidth(combo_medium_width)
         self.overlay9_start_from_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay9_start_from_combo.addItem(f"{percent}%", percent)
@@ -4736,7 +4755,7 @@ class SuperCutUI(QWidget):
         overlay9_popup_start_at_label = QLabel("Pop up Start at:")
         overlay9_popup_start_at_label.setFixedWidth(100)
         self.overlay9_popup_start_at_combo = NoWheelComboBox()
-        self.overlay9_popup_start_at_combo.setFixedWidth(combo_short_width)
+        self.overlay9_popup_start_at_combo.setFixedWidth(combo_medium_width)
         self.overlay9_popup_start_at_combo.setFixedHeight(unified_height)
         for percent in range(1, 101, 1):
             self.overlay9_popup_start_at_combo.addItem(f"{percent}%", percent)
@@ -4787,7 +4806,7 @@ class SuperCutUI(QWidget):
         overlay9_popup_num_label = QLabel("Num:")
         overlay9_popup_num_label.setFixedWidth(32)
         self.overlay9_popup_num_combo = NoWheelComboBox()
-        self.overlay9_popup_num_combo.setFixedWidth(combo_short_width)
+        self.overlay9_popup_num_combo.setFixedWidth(combo_medium_width)
         self.overlay9_popup_num_combo.setFixedHeight(unified_height)
         for n in range(1, 11):
             self.overlay9_popup_num_combo.addItem(str(n), n)
@@ -4927,7 +4946,7 @@ class SuperCutUI(QWidget):
         overlay10_size_label.setFixedWidth(label_short_width)
         overlay10_size_label.setFixedHeight(unified_height)
         self.overlay10_size_combo = NoWheelComboBox()
-        self.overlay10_size_combo.setFixedWidth(combo_short_width)
+        self.overlay10_size_combo.setFixedWidth(combo_medium_width)
         self.overlay10_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.overlay10_size_combo.addItem(f"{percent}%", percent)
@@ -4943,7 +4962,7 @@ class SuperCutUI(QWidget):
         overlay10_x_label.setFixedWidth(label_short_width)
         overlay10_x_label.setFixedHeight(unified_height)
         self.overlay10_x_combo = NoWheelComboBox()
-        self.overlay10_x_combo.setFixedWidth(combo_short_width)
+        self.overlay10_x_combo.setFixedWidth(combo_medium_width)
         self.overlay10_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay10_x_combo.addItem(f"{percent}%", percent)
@@ -4959,7 +4978,7 @@ class SuperCutUI(QWidget):
         overlay10_y_label.setFixedWidth(label_short_width)
         overlay10_y_label.setFixedHeight(unified_height)
         self.overlay10_y_combo = NoWheelComboBox()
-        self.overlay10_y_combo.setFixedWidth(combo_short_width)
+        self.overlay10_y_combo.setFixedWidth(combo_medium_width)
         self.overlay10_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.overlay10_y_combo.addItem(f"{percent}%", percent)
@@ -5092,7 +5111,7 @@ class SuperCutUI(QWidget):
         overlay10_start_percent_label = QLabel("or at %:")
         overlay10_start_percent_label.setFixedWidth(40)
         self.overlay10_start_percent_combo = NoWheelComboBox()
-        self.overlay10_start_percent_combo.setFixedWidth(combo_short_width)
+        self.overlay10_start_percent_combo.setFixedWidth(combo_medium_width)
         self.overlay10_start_percent_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 5):  # 0 to 100 in steps of 5
             self.overlay10_start_percent_combo.addItem(f"{percent}%", percent)
@@ -5114,7 +5133,7 @@ class SuperCutUI(QWidget):
         overlay10_start_end_label = QLabel("when song:")
         overlay10_start_end_label.setFixedWidth(80)
         self.overlay10_start_end_combo = NoWheelComboBox()
-        self.overlay10_start_end_combo.setFixedWidth(combo_short_width)
+        self.overlay10_start_end_combo.setFixedWidth(combo_medium_width)
         self.overlay10_start_end_combo.setFixedHeight(unified_height)
         self.overlay10_start_end_combo.addItem("start", "start")
         self.overlay10_start_end_combo.addItem("end", "end")
@@ -5314,7 +5333,7 @@ class SuperCutUI(QWidget):
         frame_mp3cover_size_label.setFixedWidth(label_short_width)
         frame_mp3cover_size_label.setFixedHeight(unified_height)
         self.frame_mp3cover_size_combo = NoWheelComboBox()
-        self.frame_mp3cover_size_combo.setFixedWidth(combo_short_width)
+        self.frame_mp3cover_size_combo.setFixedWidth(combo_medium_width)
         self.frame_mp3cover_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.frame_mp3cover_size_combo.addItem(f"{percent}%", percent)
@@ -5331,7 +5350,7 @@ class SuperCutUI(QWidget):
         frame_mp3cover_x_label.setFixedWidth(label_short_width)
         frame_mp3cover_x_label.setFixedHeight(unified_height)
         self.frame_mp3cover_x_combo = NoWheelComboBox()
-        self.frame_mp3cover_x_combo.setFixedWidth(combo_short_width)
+        self.frame_mp3cover_x_combo.setFixedWidth(combo_medium_width)
         self.frame_mp3cover_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.frame_mp3cover_x_combo.addItem(f"{percent}%", percent)
@@ -5347,7 +5366,7 @@ class SuperCutUI(QWidget):
         frame_mp3cover_y_label.setFixedWidth(label_short_width)
         frame_mp3cover_y_label.setFixedHeight(unified_height)
         self.frame_mp3cover_y_combo = NoWheelComboBox()
-        self.frame_mp3cover_y_combo.setFixedWidth(combo_short_width)
+        self.frame_mp3cover_y_combo.setFixedWidth(combo_medium_width)
         self.frame_mp3cover_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.frame_mp3cover_y_combo.addItem(f"{percent}%", percent)
@@ -5612,7 +5631,7 @@ class SuperCutUI(QWidget):
         mp3_cover_size_label.setFixedWidth(label_short_width)
         mp3_cover_size_label.setFixedHeight(unified_height)
         self.mp3_cover_size_combo = NoWheelComboBox()
-        self.mp3_cover_size_combo.setFixedWidth(combo_short_width)
+        self.mp3_cover_size_combo.setFixedWidth(combo_medium_width)
         self.mp3_cover_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.mp3_cover_size_combo.addItem(f"{percent}%", percent)
@@ -5629,7 +5648,7 @@ class SuperCutUI(QWidget):
         mp3_cover_x_label.setFixedWidth(label_short_width)
         mp3_cover_x_label.setFixedHeight(unified_height)
         self.mp3_cover_x_combo = NoWheelComboBox()
-        self.mp3_cover_x_combo.setFixedWidth(combo_short_width)
+        self.mp3_cover_x_combo.setFixedWidth(combo_medium_width)
         self.mp3_cover_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.mp3_cover_x_combo.addItem(f"{percent}%", percent)
@@ -5645,7 +5664,7 @@ class SuperCutUI(QWidget):
         mp3_cover_y_label.setFixedWidth(label_short_width)
         mp3_cover_y_label.setFixedHeight(unified_height)
         self.mp3_cover_y_combo = NoWheelComboBox()
-        self.mp3_cover_y_combo.setFixedWidth(combo_short_width)
+        self.mp3_cover_y_combo.setFixedWidth(combo_medium_width)
         self.mp3_cover_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.mp3_cover_y_combo.addItem(f"{percent}%", percent)
@@ -5748,7 +5767,7 @@ class SuperCutUI(QWidget):
         mp3_cover_frame_size_label.setFixedWidth(label_short_width)
         mp3_cover_frame_size_label.setFixedHeight(unified_height)
         self.mp3_cover_frame_size_combo = NoWheelComboBox()
-        self.mp3_cover_frame_size_combo.setFixedWidth(combo_short_width)
+        self.mp3_cover_frame_size_combo.setFixedWidth(combo_medium_width)
         self.mp3_cover_frame_size_combo.setFixedHeight(unified_height)
         frame_size_options = [
             ("5px", 5),
@@ -6012,7 +6031,7 @@ class SuperCutUI(QWidget):
         frame_box_size_label.setFixedWidth(label_short_width)
         frame_box_size_label.setFixedHeight(unified_height)
         self.frame_box_size_combo = NoWheelComboBox()
-        self.frame_box_size_combo.setFixedWidth(combo_short_width)
+        self.frame_box_size_combo.setFixedWidth(combo_medium_width)
         self.frame_box_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.frame_box_size_combo.addItem(f"{percent}%", percent)
@@ -6029,7 +6048,7 @@ class SuperCutUI(QWidget):
         frame_box_x_label.setFixedWidth(label_short_width)
         frame_box_x_label.setFixedHeight(unified_height)
         self.frame_box_x_combo = NoWheelComboBox()
-        self.frame_box_x_combo.setFixedWidth(combo_short_width)
+        self.frame_box_x_combo.setFixedWidth(combo_medium_width)
         self.frame_box_x_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.frame_box_x_combo.addItem(f"{percent}%", percent)
@@ -6045,7 +6064,7 @@ class SuperCutUI(QWidget):
         frame_box_y_label.setFixedWidth(label_short_width)
         frame_box_y_label.setFixedHeight(unified_height)
         self.frame_box_y_combo = NoWheelComboBox()
-        self.frame_box_y_combo.setFixedWidth(combo_short_width)
+        self.frame_box_y_combo.setFixedWidth(combo_medium_width)
         self.frame_box_y_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 1):
             self.frame_box_y_combo.addItem(f"{percent}%", percent)
@@ -6210,28 +6229,28 @@ class SuperCutUI(QWidget):
         left_pad_label = QLabel("Left:")
         left_pad_label.setFixedWidth(35)
         self.frame_box_pad_left_combo = NoWheelComboBox()
-        self.frame_box_pad_left_combo.setFixedWidth(combo_short_width)
+        self.frame_box_pad_left_combo.setFixedWidth(combo_medium_width)
         self.frame_box_pad_left_combo.setFixedHeight(unified_height)
         
         # Right padding
         right_pad_label = QLabel("Right:")
         right_pad_label.setFixedWidth(35)
         self.frame_box_pad_right_combo = NoWheelComboBox()
-        self.frame_box_pad_right_combo.setFixedWidth(combo_short_width)
+        self.frame_box_pad_right_combo.setFixedWidth(combo_medium_width)
         self.frame_box_pad_right_combo.setFixedHeight(unified_height)
         
         # Top padding
         top_pad_label = QLabel("Top:")
         top_pad_label.setFixedWidth(35)
         self.frame_box_pad_top_combo = NoWheelComboBox()
-        self.frame_box_pad_top_combo.setFixedWidth(combo_short_width)
+        self.frame_box_pad_top_combo.setFixedWidth(combo_medium_width)
         self.frame_box_pad_top_combo.setFixedHeight(unified_height)
         
         # Bottom padding
         bottom_pad_label = QLabel("Bottom:")
         bottom_pad_label.setFixedWidth(35)
         self.frame_box_pad_bottom_combo = NoWheelComboBox()
-        self.frame_box_pad_bottom_combo.setFixedWidth(combo_short_width)
+        self.frame_box_pad_bottom_combo.setFixedWidth(combo_medium_width)
         self.frame_box_pad_bottom_combo.setFixedHeight(unified_height)
         
         # Populate padding dropdowns with values 0-250 (step 1)
@@ -6417,7 +6436,7 @@ class SuperCutUI(QWidget):
         caption_font_size_label = QLabel("Size:")
         caption_font_size_label.setFixedWidth(35)
         self.frame_box_caption_font_size_combo = NoWheelComboBox()
-        self.frame_box_caption_font_size_combo.setFixedWidth(combo_short_width)
+        self.frame_box_caption_font_size_combo.setFixedWidth(combo_medium_width)
         self.frame_box_caption_font_size_combo.setFixedHeight(unified_height)
         for size in range(48, 221, 4):
             self.frame_box_caption_font_size_combo.addItem(f"{size}", size)
@@ -6910,7 +6929,7 @@ class SuperCutUI(QWidget):
         bg_scale_label.setFixedWidth(label_long_width)
         bg_scale_label.setFixedHeight(unified_height)
         self.bg_scale_combo = NoWheelComboBox()
-        self.bg_scale_combo.setFixedWidth(combo_short_width)
+        self.bg_scale_combo.setFixedWidth(combo_medium_width)
         self.bg_scale_combo.setFixedHeight(unified_height)
         for percent in range(100, 201, 5):  # 100% to 200% in 5% increments
             self.bg_scale_combo.addItem(f"{percent}%", percent)
@@ -6927,7 +6946,7 @@ class SuperCutUI(QWidget):
         bg_crop_position_label.setFixedWidth(label_long_width)
         bg_crop_position_label.setFixedHeight(unified_height)
         self.bg_crop_position_combo = NoWheelComboBox()
-        self.bg_crop_position_combo.setFixedWidth(combo_short_width)
+        self.bg_crop_position_combo.setFixedWidth(combo_medium_width)
         self.bg_crop_position_combo.setFixedHeight(unified_height)
         crop_positions = [
             "Center",
@@ -6954,7 +6973,7 @@ class SuperCutUI(QWidget):
         bg_effect_label.setFixedWidth(label_long_width)
         bg_effect_label.setFixedHeight(unified_height)
         self.bg_effect_combo = NoWheelComboBox()
-        self.bg_effect_combo.setFixedWidth(combo_short_width)
+        self.bg_effect_combo.setFixedWidth(combo_medium_width)
         self.bg_effect_combo.setFixedHeight(unified_height)
 
         bg_effects = [
@@ -6977,7 +6996,7 @@ class SuperCutUI(QWidget):
         bg_intensity_label.setFixedWidth(label_long_width)
         bg_intensity_label.setFixedHeight(unified_height)
         self.bg_intensity_combo = NoWheelComboBox()
-        self.bg_intensity_combo.setFixedWidth(combo_short_width)
+        self.bg_intensity_combo.setFixedWidth(combo_medium_width)
         self.bg_intensity_combo.setFixedHeight(unified_height)
         for intensity in range(1, 101):
             self.bg_intensity_combo.addItem(str(intensity), intensity)
