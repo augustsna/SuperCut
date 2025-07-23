@@ -4930,17 +4930,16 @@ class SuperCutUI(QWidget):
         overlay_groupbox_10_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(overlay_groupbox_10)
 
-        # --- OVERLAY 10 (simplified version of overlay9 without popup and full duration) ---
+        # --- OVERLAY 10 ---
         self.overlay10_checkbox = QtWidgets.QCheckBox("Overlay 10:")
         self.overlay10_checkbox.setFixedWidth(label_checkbox_width)
+        self.overlay10_checkbox.setFixedHeight(unified_height)
         self.overlay10_checkbox.setChecked(False)
         def update_overlay10_checkbox_style(state):
             self.overlay10_checkbox.setStyleSheet("")  # Always default color
         self.overlay10_checkbox.stateChanged.connect(update_overlay10_checkbox_style)
         update_overlay10_checkbox_style(self.overlay10_checkbox.checkState())
 
-        overlay10_layout = QHBoxLayout()
-        overlay10_layout.setSpacing(4)
         self.overlay10_edit = ImageDropLineEdit()
         self.overlay10_edit.setPlaceholderText("Overlay 10 image/video path (.gif, .png, .jpg, .mp4, .mov, .mkv")
         self.overlay10_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image")
@@ -4963,7 +4962,7 @@ class SuperCutUI(QWidget):
                 self.overlay10_edit.setText(file_path)
         overlay10_btn.clicked.connect(select_overlay10_image)
         overlay10_size_label = QLabel("S:")
-        overlay10_size_label.setFixedWidth(label_short_width)
+        overlay10_size_label.setFixedWidth(label_mini_width)
         overlay10_size_label.setFixedHeight(unified_height)
         self.overlay10_size_combo = NoWheelComboBox()
         self.overlay10_size_combo.setFixedWidth(combo_medium_width)
@@ -4979,7 +4978,7 @@ class SuperCutUI(QWidget):
         on_overlay10_size_changed(self.overlay10_size_combo.currentIndex())
         # Overlay10 X coordinate
         overlay10_x_label = QLabel("X:")
-        overlay10_x_label.setFixedWidth(label_short_width)
+        overlay10_x_label.setFixedWidth(label_mini_width)
         overlay10_x_label.setFixedHeight(unified_height)
         self.overlay10_x_combo = NoWheelComboBox()
         self.overlay10_x_combo.setFixedWidth(combo_medium_width)
@@ -4995,7 +4994,7 @@ class SuperCutUI(QWidget):
 
         # Overlay10 Y coordinate
         overlay10_y_label = QLabel("Y:")
-        overlay10_y_label.setFixedWidth(label_short_width)
+        overlay10_y_label.setFixedWidth(label_mini_width)
         overlay10_y_label.setFixedHeight(unified_height)
         self.overlay10_y_combo = NoWheelComboBox()
         self.overlay10_y_combo.setFixedWidth(combo_medium_width)
@@ -5062,26 +5061,30 @@ class SuperCutUI(QWidget):
                 overlay10_start_end_label.setStyleSheet("color: grey;")
         self.overlay10_checkbox.stateChanged.connect(lambda _: set_overlay10_enabled(self.overlay10_checkbox.checkState()))
         
+        # 
+        overlay10_layout = QHBoxLayout()
+        overlay10_layout.setSpacing(0)
         overlay10_layout.addWidget(self.overlay10_checkbox)
-        overlay10_layout.addSpacing(3)
+        overlay10_layout.addSpacing(0)
         overlay10_layout.addWidget(self.overlay10_edit)
-        overlay10_layout.addSpacing(3)  # Space before select button
+        overlay10_layout.addSpacing(10)  # Space before select button
         overlay10_layout.addWidget(overlay10_btn)
-        overlay10_layout.addSpacing(4)  # Space before position label
+        overlay10_layout.addSpacing(0)  # Space before position label
         overlay10_layout.addWidget(overlay10_size_label)
         overlay10_layout.addWidget(self.overlay10_size_combo)
-        overlay10_layout.addSpacing(4)
+        overlay10_layout.addSpacing(0)
         overlay10_layout.addWidget(overlay10_x_label)
         overlay10_layout.addWidget(self.overlay10_x_combo)
-        overlay10_layout.addSpacing(4)
+        overlay10_layout.addSpacing(0)
         overlay10_layout.addWidget(overlay10_y_label)
         overlay10_layout.addWidget(self.overlay10_y_combo)
         overlay10_layout.addStretch()
         overlay_groupbox_10_layout.addLayout(overlay10_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 10 (individual effect control) ---
-        overlay10_label = QLabel("Overlay 10:")
-        overlay10_label.setFixedWidth(80)
+        overlay10_effect_label = QLabel("Effect 10:")
+        overlay10_effect_label.setFixedWidth(label_long_width)
+        overlay10_effect_label.setFixedHeight(unified_height)
         self.overlay10_effect_combo = NoWheelComboBox()
         self.overlay10_effect_combo.setFixedWidth(combo_long_width)
         self.overlay10_effect_combo.setFixedHeight(unified_height)
@@ -5095,8 +5098,9 @@ class SuperCutUI(QWidget):
         on_overlay10_effect_changed(self.overlay10_effect_combo.currentIndex())
 
         # Overlay10 duration controls
-        overlay10_duration_label = QLabel("Duration:")
-        overlay10_duration_label.setFixedWidth(40)
+        overlay10_duration_label = QLabel("For:")
+        overlay10_duration_label.setFixedWidth(label_short_width)
+        overlay10_duration_label.setFixedHeight(unified_height)
         self.overlay10_duration_edit = QLineEdit("6")
         self.overlay10_duration_edit.setFixedWidth(edit_short_width)
         self.overlay10_duration_edit.setFixedHeight(unified_height)
@@ -5112,7 +5116,8 @@ class SuperCutUI(QWidget):
         on_overlay10_duration_changed()
 
         overlay10_start_label = QLabel("Start at:")
-        overlay10_start_label.setFixedWidth(40)
+        overlay10_start_label.setFixedWidth(label_medium_width)
+        overlay10_start_label.setFixedHeight(unified_height)
         self.overlay10_start_edit = QLineEdit("5")
         self.overlay10_start_edit.setFixedWidth(edit_short_width)
         self.overlay10_start_edit.setFixedHeight(unified_height)
@@ -5128,8 +5133,8 @@ class SuperCutUI(QWidget):
         on_overlay10_start_changed()
 
         # Overlay10 start time percentage dropdown
-        overlay10_start_percent_label = QLabel("or at %:")
-        overlay10_start_percent_label.setFixedWidth(40)
+        overlay10_start_percent_label = QLabel("Start at:")
+        overlay10_start_percent_label.setFixedWidth(label_medium_width)
         self.overlay10_start_percent_combo = NoWheelComboBox()
         self.overlay10_start_percent_combo.setFixedWidth(combo_medium_width)
         self.overlay10_start_percent_combo.setFixedHeight(unified_height)
@@ -5144,14 +5149,17 @@ class SuperCutUI(QWidget):
 
         # Overlay10 song start/end checkbox and dropdown
         self.overlay10_song_start_end = QtWidgets.QCheckBox("")
+        self.overlay10_song_start_end.setFixedWidth(checkbox_solo_width)
+        self.overlay10_song_start_end.setFixedHeight(unified_height)
         self.overlay10_song_start_end.setChecked(False)
         def update_overlay10_song_start_end_checkbox_style(state):
             self.overlay10_song_start_end.setStyleSheet("")
         self.overlay10_song_start_end.stateChanged.connect(update_overlay10_song_start_end_checkbox_style)
         update_overlay10_song_start_end_checkbox_style(self.overlay10_song_start_end.checkState())
 
-        overlay10_start_end_label = QLabel("when song:")
-        overlay10_start_end_label.setFixedWidth(80)
+        overlay10_start_end_label = QLabel("When song:")
+        overlay10_start_end_label.setFixedWidth(label_long_width)
+        overlay10_start_end_label.setFixedHeight(unified_height)
         self.overlay10_start_end_combo = NoWheelComboBox()
         self.overlay10_start_end_combo.setFixedWidth(combo_medium_width)
         self.overlay10_start_end_combo.setFixedHeight(unified_height)
@@ -5177,9 +5185,8 @@ class SuperCutUI(QWidget):
         set_overlay10_start_end_enabled(self.overlay10_song_start_end.checkState())
 
         overlay10_layout = QHBoxLayout()
-        overlay10_layout.setContentsMargins(0, 0, 0, 0)
-        overlay10_layout.addSpacing(-40)
-        overlay10_layout.addWidget(overlay10_label)
+        overlay10_layout.setSpacing(0)
+        overlay10_layout.addWidget(overlay10_effect_label)
         overlay10_layout.addSpacing(0)
         overlay10_layout.addWidget(self.overlay10_effect_combo)
         overlay10_layout.addSpacing(0)
@@ -5205,7 +5212,7 @@ class SuperCutUI(QWidget):
         # --- Overlay 10 effect greying logic ---
         def update_overlay10_effect_label_style():
             if not self.overlay10_checkbox.isChecked():
-                overlay10_label.setStyleSheet("color: grey;")
+                overlay10_effect_label.setStyleSheet("color: grey;")
                 self.overlay10_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay10_effect_combo.setEnabled(False)
                 overlay10_start_label.setStyleSheet("color: grey;")
@@ -5220,7 +5227,7 @@ class SuperCutUI(QWidget):
                 self.overlay10_start_end_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay10_start_end_combo.setEnabled(False)
             else:
-                overlay10_label.setStyleSheet("")
+                overlay10_effect_label.setStyleSheet("")
                 self.overlay10_effect_combo.setStyleSheet("")
                 self.overlay10_effect_combo.setEnabled(True)
                 overlay10_start_percent_label.setStyleSheet("")
@@ -5256,7 +5263,7 @@ class SuperCutUI(QWidget):
                     self.overlay10_start_percent_combo.setEnabled(False)
                     
                     # Grey out effect dropdown when song start/end is checked (uses "none" effect)
-                    overlay10_label.setStyleSheet("color: grey;")
+                    overlay10_effect_label.setStyleSheet("color: grey;")
                     self.overlay10_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                     self.overlay10_effect_combo.setEnabled(False)
                 else:
@@ -5269,7 +5276,7 @@ class SuperCutUI(QWidget):
                     self.overlay10_start_percent_combo.setEnabled(True)
                     
                     # Enable effect dropdown when song start/end is unchecked (normal effect selection)
-                    overlay10_label.setStyleSheet("")
+                    overlay10_effect_label.setStyleSheet("")
                     self.overlay10_effect_combo.setStyleSheet("")
                     self.overlay10_effect_combo.setEnabled(True)
         self.overlay10_checkbox.stateChanged.connect(lambda _: update_overlay10_effect_label_style())
