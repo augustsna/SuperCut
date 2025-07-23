@@ -2179,12 +2179,35 @@ class SuperCutUI(QWidget):
         set_overlay1_2_duration_enabled(self.overlay1_2_duration_full_checkbox.checkState())
         # Initialize start at/from fields based on checkbox state
         set_overlay1_2_start_at_enabled(self.overlay1_2_start_at_checkbox.checkState())
+        
+        # --- Overlay 4, 5, and 4_5 Effect Group Box ---
+        overlay_groupbox_4_5 = QtWidgets.QGroupBox("Overlay 4, 5, and 4_5 Effect")
+        overlay_groupbox_4_5.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        overlay_groupbox_4_5_layout = QVBoxLayout(overlay_groupbox_4_5)
+        overlay_groupbox_4_5_layout.setSpacing(8)
+        overlay_groupbox_4_5_layout.setContentsMargins(10, 5, 10, 10)
+        layout.addWidget(overlay_groupbox_4_5)
 
-        # Overlay 4 controls (similar to Overlay 3)
+        # Overlay 4 controls 
         def update_overlay4_checkbox_style(state):
-            self.overlay4_checkbox.setStyleSheet("")  # Always default color
+            self.overlay4_checkbox.setStyleSheet("")
         self.overlay4_checkbox = QtWidgets.QCheckBox("Overlay 4:")
         self.overlay4_checkbox.setFixedWidth(label_checkbox_width)
+        self.overlay4_checkbox.setFixedHeight(unified_height)
         self.overlay4_checkbox.setChecked(False)
         self.overlay4_checkbox.stateChanged.connect(update_overlay4_checkbox_style)
         update_overlay4_checkbox_style(self.overlay4_checkbox.checkState())
@@ -2212,7 +2235,7 @@ class SuperCutUI(QWidget):
                 self.overlay4_edit.setText(file_path)
         overlay4_btn.clicked.connect(select_overlay4_image)
         overlay4_size_label = QLabel("S:")
-        overlay4_size_label.setFixedWidth(label_short_width)
+        overlay4_size_label.setFixedWidth(label_mini_width)
         overlay4_size_label.setFixedHeight(unified_height)
         self.overlay4_size_combo = NoWheelComboBox()
         self.overlay4_size_combo.setFixedWidth(combo_short_width)
@@ -2227,7 +2250,7 @@ class SuperCutUI(QWidget):
         self.overlay4_size_combo.currentIndexChanged.connect(on_overlay4_size_changed)
         on_overlay4_size_changed(self.overlay4_size_combo.currentIndex())
         overlay4_x_label = QLabel("X:")
-        overlay4_x_label.setFixedWidth(label_short_width)
+        overlay4_x_label.setFixedWidth(label_mini_width)
         overlay4_x_label.setFixedHeight(unified_height)
         self.overlay4_x_combo = NoWheelComboBox()
         self.overlay4_x_combo.setFixedWidth(combo_short_width)
@@ -2241,7 +2264,7 @@ class SuperCutUI(QWidget):
         self.overlay4_x_combo.currentIndexChanged.connect(on_overlay4_x_changed)
         on_overlay4_x_changed(self.overlay4_x_combo.currentIndex())
         overlay4_y_label = QLabel("Y:")
-        overlay4_y_label.setFixedWidth(label_short_width)
+        overlay4_y_label.setFixedWidth(label_mini_width)
         overlay4_y_label.setFixedHeight(unified_height)
         self.overlay4_y_combo = NoWheelComboBox()
         self.overlay4_y_combo.setFixedWidth(combo_short_width)
@@ -2282,54 +2305,35 @@ class SuperCutUI(QWidget):
                 overlay4_y_label.setStyleSheet("color: grey;")
         self.overlay4_checkbox.stateChanged.connect(lambda _: set_overlay4_enabled(self.overlay4_checkbox.checkState()))
        
+       # Overlay 4 layout
         overlay4_layout.addWidget(self.overlay4_checkbox)
-        overlay4_layout.addSpacing(3)
+        overlay4_layout.addSpacing(0)
         overlay4_layout.addWidget(self.overlay4_edit)
-        overlay4_layout.addSpacing(3)
+        overlay4_layout.addSpacing(0)
         overlay4_layout.addWidget(overlay4_btn)
-        overlay4_layout.addSpacing(4)
+        overlay4_layout.addSpacing(0)
         overlay4_layout.addWidget(overlay4_size_label)
         overlay4_layout.addWidget(self.overlay4_size_combo)
-        overlay4_layout.addSpacing(4)
+        overlay4_layout.addSpacing(0)
         overlay4_layout.addWidget(overlay4_x_label)
         overlay4_layout.addWidget(self.overlay4_x_combo)
-        overlay4_layout.addSpacing(4)
+        overlay4_layout.addSpacing(0)
         overlay4_layout.addWidget(overlay4_y_label)
         overlay4_layout.addWidget(self.overlay4_y_combo)
         overlay4_layout.addStretch()
-        set_overlay4_enabled(self.overlay4_checkbox.checkState())
-        # --- Overlay 4, 5, and 4_5 Effect Group Box ---
-        overlay_groupbox_4_5 = QtWidgets.QGroupBox("Overlay 4, 5, and 4_5 Effect")
-        overlay_groupbox_4_5.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 2px solid #cccccc;
-                border-radius: 5px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
-                color: #333333;
-            }
-        """)
-        overlay_groupbox_4_5_layout = QVBoxLayout(overlay_groupbox_4_5)
-        overlay_groupbox_4_5_layout.setSpacing(8)
-        overlay_groupbox_4_5_layout.setContentsMargins(10, 5, 10, 10)
         overlay_groupbox_4_5_layout.addLayout(overlay4_layout)
 
-        # Overlay 5 controls (similar to Overlay 4)
+        set_overlay4_enabled(self.overlay4_checkbox.checkState())
+        
+        # Overlay 5 controls
         def update_overlay5_checkbox_style(state):
             self.overlay5_checkbox.setStyleSheet("")  # Always default color
         self.overlay5_checkbox = QtWidgets.QCheckBox("Overlay 5:")
         self.overlay5_checkbox.setFixedWidth(label_checkbox_width)
+        self.overlay5_checkbox.setFixedHeight(unified_height)
         self.overlay5_checkbox.setChecked(False)
         self.overlay5_checkbox.stateChanged.connect(update_overlay5_checkbox_style)
-        update_overlay5_checkbox_style(self.overlay5_checkbox.checkState())
-        overlay5_layout = QHBoxLayout()
-        overlay5_layout.setSpacing(4)
+        update_overlay5_checkbox_style(self.overlay5_checkbox.checkState())        
         self.overlay5_edit = ImageDropLineEdit()
         self.overlay5_edit.setPlaceholderText("Overlay 5 image/video path (*.gif, *.png, *.jpg, *.mp4, *.mov, *.mkv)")
         self.overlay5_edit.setToolTip("Drag and drop a GIF, PNG, JPG, MP4, MOV, or MKV file here or click 'Select Image'")
@@ -2352,7 +2356,7 @@ class SuperCutUI(QWidget):
                 self.overlay5_edit.setText(file_path)
         overlay5_btn.clicked.connect(select_overlay5_image)
         overlay5_size_label = QLabel("S:")
-        overlay5_size_label.setFixedWidth(label_short_width)
+        overlay5_size_label.setFixedWidth(label_mini_width)
         overlay5_size_label.setFixedHeight(unified_height)
         self.overlay5_size_combo = NoWheelComboBox()
         self.overlay5_size_combo.setFixedWidth(combo_short_width)
@@ -2367,7 +2371,7 @@ class SuperCutUI(QWidget):
         self.overlay5_size_combo.currentIndexChanged.connect(on_overlay5_size_changed)
         on_overlay5_size_changed(self.overlay5_size_combo.currentIndex())
         overlay5_x_label = QLabel("X:")
-        overlay5_x_label.setFixedWidth(label_short_width)
+        overlay5_x_label.setFixedWidth(label_mini_width)
         overlay5_x_label.setFixedHeight(unified_height)
         self.overlay5_x_combo = NoWheelComboBox()
         self.overlay5_x_combo.setFixedWidth(combo_short_width)
@@ -2381,7 +2385,7 @@ class SuperCutUI(QWidget):
         self.overlay5_x_combo.currentIndexChanged.connect(on_overlay5_x_changed)
         on_overlay5_x_changed(self.overlay5_x_combo.currentIndex())
         overlay5_y_label = QLabel("Y:")
-        overlay5_y_label.setFixedWidth(label_short_width)
+        overlay5_y_label.setFixedWidth(label_mini_width)
         overlay5_y_label.setFixedHeight(unified_height)
         self.overlay5_y_combo = NoWheelComboBox()
         self.overlay5_y_combo.setFixedWidth(combo_short_width)
@@ -2421,27 +2425,32 @@ class SuperCutUI(QWidget):
                 overlay5_x_label.setStyleSheet("color: grey;")
                 overlay5_y_label.setStyleSheet("color: grey;")
         self.overlay5_checkbox.stateChanged.connect(lambda _: set_overlay5_enabled(self.overlay5_checkbox.checkState()))
+        
+        # Overlay 5 layout
+        overlay5_layout = QHBoxLayout()
+        overlay5_layout.setSpacing(0)        
         overlay5_layout.addWidget(self.overlay5_checkbox)
-        overlay5_layout.addSpacing(3)
+        overlay5_layout.addSpacing(0)
         overlay5_layout.addWidget(self.overlay5_edit)
-        overlay5_layout.addSpacing(3)
+        overlay5_layout.addSpacing(10)
         overlay5_layout.addWidget(overlay5_btn)
-        overlay5_layout.addSpacing(4)
+        overlay5_layout.addSpacing(0)
         overlay5_layout.addWidget(overlay5_size_label)
         overlay5_layout.addWidget(self.overlay5_size_combo)
-        overlay5_layout.addSpacing(4)
+        overlay5_layout.addSpacing(0)
         overlay5_layout.addWidget(overlay5_x_label)
         overlay5_layout.addWidget(self.overlay5_x_combo)
-        overlay5_layout.addSpacing(4)
+        overlay5_layout.addSpacing(0)
         overlay5_layout.addWidget(overlay5_y_label)
         overlay5_layout.addWidget(self.overlay5_y_combo)
         overlay5_layout.addStretch()
-        set_overlay5_enabled(self.overlay5_checkbox.checkState())
         overlay_groupbox_4_5_layout.addLayout(overlay5_layout)
 
-        # --- EFFECT CONTROL FOR OVERLAY 4_5 (identical for both overlays) ---
-        overlay4_5_label = QLabel("Overlay 4_5:")
-        overlay4_5_label.setFixedWidth(80)
+        set_overlay5_enabled(self.overlay5_checkbox.checkState())
+
+        # Overlay 4_5 effect controls
+        overlay4_5_label = QLabel("Effect 4_5:")
+        overlay4_5_label.setFixedWidth(label_long_width)
         self.overlay4_5_effect_combo = NoWheelComboBox()
         self.overlay4_5_effect_combo.setFixedWidth(combo_long_width)
         self.overlay4_5_effect_combo.setFixedHeight(unified_height)
@@ -2455,7 +2464,11 @@ class SuperCutUI(QWidget):
         on_overlay4_5_effect_changed(self.overlay4_5_effect_combo.currentIndex())
         # Overlay 4_5 start at controls
         self.overlay4_5_start_at_checkbox = QtWidgets.QCheckBox("")
-        self.overlay4_5_start_at_checkbox.setFixedWidth(20)
+        self.overlay4_5_start_at_checkbox.setFixedWidth(checkbox_solo_width)
+        self.overlay4_5_start_at_checkbox.setFixedHeight(unified_height)
+        overlay4_5_start_at_label = QLabel("Start at:")
+        overlay4_5_start_at_label.setFixedWidth(label_medium_width)
+        overlay4_5_start_at_label.setFixedHeight(unified_height)
         self.overlay4_5_start_at_checkbox.setChecked(True)
         def update_overlay4_5_start_at_checkbox_style(state):
             self.overlay4_5_start_at_checkbox.setStyleSheet("")  # Always default color
@@ -2478,7 +2491,8 @@ class SuperCutUI(QWidget):
 
         # Overlay 4_5 start from input
         overlay4_5_start_from_label = QLabel("Start from:")
-        overlay4_5_start_from_label.setFixedWidth(80)
+        overlay4_5_start_from_label.setFixedWidth(label_long_width)
+        overlay4_5_start_from_label.setFixedHeight(unified_height)
         self.overlay4_5_start_from_edit = QLineEdit("0")
         self.overlay4_5_start_from_edit.setFixedWidth(edit_short_width)
         self.overlay4_5_start_from_edit.setFixedHeight(unified_height)
@@ -2507,6 +2521,7 @@ class SuperCutUI(QWidget):
                 if enabled:
                     # Start at checkbox is checked - use start at logic
                     self.overlay4_5_start_edit.setStyleSheet("")
+                    overlay4_5_start_at_label.setStyleSheet("")  # Start at label is active
                     grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                     self.overlay4_5_start_from_edit.setStyleSheet(grey_btn_style)
                     overlay4_5_start_from_label.setStyleSheet("color: grey;")
@@ -2516,18 +2531,24 @@ class SuperCutUI(QWidget):
                     overlay4_5_start_from_label.setStyleSheet("")  # Start from label is active
                     grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                     self.overlay4_5_start_edit.setStyleSheet(grey_btn_style)
+                    overlay4_5_start_at_label.setStyleSheet("color: grey;")  # Grey out start at label
 
         # Overlay 4_5 duration controls (similar to overlay8 duration)
-        self.overlay4_5_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
-        self.overlay4_5_duration_full_checkbox.setFixedWidth(100)
+        self.overlay4_5_duration_full_checkbox = QtWidgets.QCheckBox("")
+        self.overlay4_5_duration_full_checkbox.setFixedWidth(checkbox_solo_width)
+        self.overlay4_5_duration_full_checkbox.setFixedHeight(unified_height)
+        overlay4_5_duration_full_label = QLabel("Full:")
+        overlay4_5_duration_full_label.setFixedWidth(label_short_width)
+        overlay4_5_duration_full_label.setFixedHeight(unified_height)
         self.overlay4_5_duration_full_checkbox.setChecked(True)
         def update_overlay4_5_duration_full_checkbox_style(state):
             self.overlay4_5_duration_full_checkbox.setStyleSheet("")  # Always default color
         self.overlay4_5_duration_full_checkbox.stateChanged.connect(update_overlay4_5_duration_full_checkbox_style)
         update_overlay4_5_duration_full_checkbox_style(self.overlay4_5_duration_full_checkbox.checkState())
         
-        overlay4_5_duration_label = QLabel("Duration:")
-        overlay4_5_duration_label.setFixedWidth(80)
+        overlay4_5_duration_label = QLabel("For:")
+        overlay4_5_duration_label.setFixedWidth(label_short_width)
+        overlay4_5_duration_label.setFixedHeight(unified_height)
         self.overlay4_5_duration_edit = QLineEdit("6")
         self.overlay4_5_duration_edit.setFixedWidth(edit_short_width)
         self.overlay4_5_duration_edit.setFixedHeight(unified_height)
@@ -2553,37 +2574,38 @@ class SuperCutUI(QWidget):
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.overlay4_5_duration_edit.setStyleSheet(grey_btn_style)
                 overlay4_5_duration_label.setStyleSheet("color: grey;")
+                overlay4_5_duration_full_label.setStyleSheet("")  # Full label is active when checkbox is checked
             else:
                 self.overlay4_5_duration_edit.setStyleSheet("")
                 overlay4_5_duration_label.setStyleSheet("")
+                overlay4_5_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
 
-        overlay4_5_layout = QHBoxLayout()
-        overlay4_5_layout.setContentsMargins(0, 0, 0, 0)
-        overlay4_5_layout.addSpacing(-20)
+        overlay4_5_layout = QHBoxLayout()        
+        overlay4_5_layout.addSpacing(0)
         overlay4_5_layout.addWidget(overlay4_5_label)
-        overlay4_5_layout.addSpacing(-3)
+        overlay4_5_layout.addSpacing(0)
         overlay4_5_layout.addWidget(self.overlay4_5_effect_combo)
-        overlay4_5_layout.addSpacing(-1)
+        overlay4_5_layout.addSpacing(0)
+        overlay4_5_layout.addWidget(overlay4_5_duration_full_label)
+        overlay4_5_layout.addSpacing(0)
+        overlay4_5_layout.addWidget(self.overlay4_5_duration_full_checkbox)
+        overlay4_5_layout.addSpacing(0)
+        overlay4_5_layout.addWidget(overlay4_5_duration_label)
+        overlay4_5_layout.addSpacing(0)
+        overlay4_5_layout.addWidget(self.overlay4_5_duration_edit)
+        overlay4_5_layout.addSpacing(0)
         overlay4_5_layout.addWidget(self.overlay4_5_start_at_checkbox)
         overlay4_5_layout.addSpacing(0)
-        overlay4_5_start_at_label = QLabel("at:")
-        overlay4_5_start_at_label.setFixedWidth(25)
         overlay4_5_layout.addWidget(overlay4_5_start_at_label)
-        overlay4_5_layout.addSpacing(-5)
+        overlay4_5_layout.addSpacing(0)
         overlay4_5_layout.addWidget(self.overlay4_5_start_edit)
-        overlay4_5_layout.addSpacing(-6)
+        overlay4_5_layout.addSpacing(0)
         overlay4_5_layout.addWidget(overlay4_5_start_from_label)
-        overlay4_5_layout.addSpacing(-10)
-        overlay4_5_layout.addWidget(self.overlay4_5_start_from_edit)
-        overlay4_5_layout.addSpacing(-6)
-        overlay4_5_layout.addWidget(overlay4_5_duration_label)
-        overlay4_5_layout.addSpacing(-27)
-        overlay4_5_layout.addWidget(self.overlay4_5_duration_edit)
-        overlay4_5_layout.addSpacing(-6)
-        overlay4_5_layout.addWidget(self.overlay4_5_duration_full_checkbox)
+        overlay4_5_layout.addSpacing(0)
+        overlay4_5_layout.addWidget(self.overlay4_5_start_from_edit)       
         overlay4_5_layout.addStretch()
-        overlay_groupbox_4_5_layout.addLayout(overlay4_5_layout)
-        layout.addWidget(overlay_groupbox_4_5)
+        overlay_groupbox_4_5_layout.addLayout(overlay4_5_layout)        
+        
         def update_overlay4_5_effect_label_style():
             if not (self.overlay4_checkbox.isChecked() or self.overlay5_checkbox.isChecked()):
                 overlay4_5_label.setStyleSheet("color: grey;")
@@ -2601,6 +2623,7 @@ class SuperCutUI(QWidget):
                 overlay4_5_duration_label.setStyleSheet("color: grey;")
                 self.overlay4_5_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.overlay4_5_duration_edit.setEnabled(False)
+                overlay4_5_duration_full_label.setStyleSheet("color: grey;")
                 self.overlay4_5_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.overlay4_5_duration_full_checkbox.setEnabled(False)
             else:
@@ -2622,7 +2645,6 @@ class SuperCutUI(QWidget):
         self.overlay4_checkbox.stateChanged.connect(lambda _: update_overlay4_5_effect_label_style())
         self.overlay5_checkbox.stateChanged.connect(lambda _: update_overlay4_5_effect_label_style())
         update_overlay4_5_effect_label_style()
-        set_overlay4_5_duration_enabled(self.overlay4_5_duration_full_checkbox.checkState())
         # Initialize start at/from fields based on checkbox state
         set_overlay4_5_start_at_enabled(self.overlay4_5_start_at_checkbox.checkState())
 
