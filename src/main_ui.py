@@ -1428,6 +1428,7 @@ class SuperCutUI(QWidget):
         intro_duration_label.setFixedWidth(30)
         self.intro_duration_edit = QLineEdit("6")
         self.intro_duration_edit.setFixedWidth(40)
+        self.intro_duration_edit.setFixedHeight(unified_height)
         self.intro_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.intro_duration_edit.setPlaceholderText("6")
         self.intro_duration = 6
@@ -1447,6 +1448,7 @@ class SuperCutUI(QWidget):
         # Intro start at input
         self.intro_start_edit = QLineEdit("0")
         self.intro_start_edit.setFixedWidth(40)
+        self.intro_start_edit.setFixedHeight(unified_height)
         self.intro_start_edit.setValidator(QIntValidator(0, 999, self))
         self.intro_start_edit.setPlaceholderText("0")
         self.intro_start_at = 0
@@ -1463,6 +1465,7 @@ class SuperCutUI(QWidget):
         intro_start_from_label.setFixedWidth(80)
         self.intro_start_from_edit = QLineEdit("0")
         self.intro_start_from_edit.setFixedWidth(40)
+        self.intro_start_from_edit.setFixedHeight(unified_height)
         self.intro_start_from_edit.setValidator(QIntValidator(0, 999, self))
         self.intro_start_from_edit.setPlaceholderText("0")
         self.intro_start_from = 0
@@ -1955,6 +1958,7 @@ class SuperCutUI(QWidget):
         
         self.overlay_start_at_edit = QLineEdit("5")
         self.overlay_start_at_edit.setFixedWidth(40)
+        self.overlay_start_at_edit.setFixedHeight(unified_height)
         self.overlay_start_at_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay_start_at_edit.setPlaceholderText("5")
         self.overlay_start_at = 5
@@ -1971,6 +1975,7 @@ class SuperCutUI(QWidget):
         overlay1_2_start_from_label.setFixedWidth(80)
         self.overlay1_2_start_from_edit = QLineEdit("0")
         self.overlay1_2_start_from_edit.setFixedWidth(40)
+        self.overlay1_2_start_from_edit.setFixedHeight(unified_height)
         self.overlay1_2_start_from_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay1_2_start_from_edit.setPlaceholderText("0")
         self.overlay1_2_start_from = 0
@@ -2016,6 +2021,7 @@ class SuperCutUI(QWidget):
         overlay1_2_duration_label.setFixedWidth(40)
         self.overlay1_2_duration_edit = QLineEdit("6")
         self.overlay1_2_duration_edit.setFixedWidth(40)
+        self.overlay1_2_duration_edit.setFixedHeight(unified_height)
         self.overlay1_2_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.overlay1_2_duration_edit.setPlaceholderText("6")
         self.overlay1_2_duration = 6
@@ -2398,6 +2404,7 @@ class SuperCutUI(QWidget):
         
         self.overlay4_5_start_edit = QLineEdit("5")
         self.overlay4_5_start_edit.setFixedWidth(40)
+        self.overlay4_5_start_edit.setFixedHeight(unified_height)
         self.overlay4_5_start_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay4_5_start_edit.setPlaceholderText("5")
         self.overlay4_5_start_at = 5
@@ -2414,6 +2421,7 @@ class SuperCutUI(QWidget):
         overlay4_5_start_from_label.setFixedWidth(80)
         self.overlay4_5_start_from_edit = QLineEdit("0")
         self.overlay4_5_start_from_edit.setFixedWidth(40)
+        self.overlay4_5_start_from_edit.setFixedHeight(unified_height)
         self.overlay4_5_start_from_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay4_5_start_from_edit.setPlaceholderText("0")
         self.overlay4_5_start_from = 0
@@ -2462,6 +2470,7 @@ class SuperCutUI(QWidget):
         overlay4_5_duration_label.setFixedWidth(80)
         self.overlay4_5_duration_edit = QLineEdit("6")
         self.overlay4_5_duration_edit.setFixedWidth(40)
+        self.overlay4_5_duration_edit.setFixedHeight(unified_height)
         self.overlay4_5_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.overlay4_5_duration_edit.setPlaceholderText("6")
         self.overlay4_5_duration = 6
@@ -2848,6 +2857,7 @@ class SuperCutUI(QWidget):
         
         self.overlay6_7_start_edit = QLineEdit("5")
         self.overlay6_7_start_edit.setFixedWidth(40)
+        self.overlay6_7_start_edit.setFixedHeight(unified_height)
         self.overlay6_7_start_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay6_7_start_edit.setPlaceholderText("5")
         self.overlay6_7_start_at = 5
@@ -2864,6 +2874,7 @@ class SuperCutUI(QWidget):
         overlay6_7_start_from_label.setFixedWidth(80)
         self.overlay6_7_start_from_edit = QLineEdit("0")
         self.overlay6_7_start_from_edit.setFixedWidth(40)
+        self.overlay6_7_start_from_edit.setFixedHeight(unified_height)
         self.overlay6_7_start_from_edit.setValidator(QIntValidator(0, 999, self))
         self.overlay6_7_start_from_edit.setPlaceholderText("0")
         self.overlay6_7_start_from = 0
@@ -2921,6 +2932,7 @@ class SuperCutUI(QWidget):
         overlay6_7_duration_label.setFixedWidth(80)
         self.overlay6_7_duration_edit = QLineEdit("6")
         self.overlay6_7_duration_edit.setFixedWidth(40)
+        self.overlay6_7_duration_edit.setFixedHeight(unified_height)
         self.overlay6_7_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.overlay6_7_duration_edit.setPlaceholderText("6")
         self.overlay6_7_duration = 6
@@ -3619,6 +3631,7 @@ class SuperCutUI(QWidget):
         song_title_start_label.setFixedWidth(80)
         self.song_title_start_edit = QLineEdit("5")
         self.song_title_start_edit.setFixedWidth(80)
+        self.song_title_start_edit.setFixedHeight(unified_height)
         self.song_title_start_edit.setValidator(QIntValidator(0, 999, self))
         self.song_title_start_edit.setPlaceholderText("5")
         self.song_title_start_at = 5
@@ -3887,6 +3900,7 @@ class SuperCutUI(QWidget):
         overlay8_duration_label.setFixedWidth(80)
         self.overlay8_duration_edit = QLineEdit("6")
         self.overlay8_duration_edit.setFixedWidth(40)
+        self.overlay8_duration_edit.setFixedHeight(unified_height)
         self.overlay8_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.overlay8_duration_edit.setPlaceholderText("6")
         self.overlay8_duration = 6
@@ -4354,6 +4368,7 @@ class SuperCutUI(QWidget):
         overlay9_duration_label.setFixedWidth(80)
         self.overlay9_duration_edit = QLineEdit("6")
         self.overlay9_duration_edit.setFixedWidth(40)
+        self.overlay9_duration_edit.setFixedHeight(unified_height)
         self.overlay9_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.overlay9_duration_edit.setPlaceholderText("6")
         self.overlay9_duration = 6
@@ -4898,6 +4913,7 @@ class SuperCutUI(QWidget):
         overlay10_duration_label.setFixedWidth(40)
         self.overlay10_duration_edit = QLineEdit("6")
         self.overlay10_duration_edit.setFixedWidth(40)
+        self.overlay10_duration_edit.setFixedHeight(unified_height)
         self.overlay10_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.overlay10_duration_edit.setPlaceholderText("6")
         self.overlay10_duration = 6
@@ -4913,6 +4929,7 @@ class SuperCutUI(QWidget):
         overlay10_start_label.setFixedWidth(40)
         self.overlay10_start_edit = QLineEdit("5")
         self.overlay10_start_edit.setFixedWidth(60)
+        self.overlay10_start_edit.setFixedHeight(unified_height)
         self.overlay10_start_edit.setValidator(QIntValidator(1, 999, self))
         self.overlay10_start_edit.setPlaceholderText("5")
         self.overlay10_start_time = 5
@@ -5291,6 +5308,7 @@ class SuperCutUI(QWidget):
         frame_mp3cover_duration_label.setFixedWidth(80)
         self.frame_mp3cover_duration_edit = QLineEdit("6")
         self.frame_mp3cover_duration_edit.setFixedWidth(40)
+        self.frame_mp3cover_duration_edit.setFixedHeight(unified_height)
         self.frame_mp3cover_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.frame_mp3cover_duration_edit.setPlaceholderText("6")
         self.frame_mp3cover_duration = 6
@@ -5331,6 +5349,7 @@ class SuperCutUI(QWidget):
         frame_mp3cover_start_label.setFixedWidth(80)
         self.frame_mp3cover_start_edit = QLineEdit("5")
         self.frame_mp3cover_start_edit.setFixedWidth(60)
+        self.frame_mp3cover_start_edit.setFixedHeight(unified_height)
         self.frame_mp3cover_start_edit.setValidator(QIntValidator(1, 999, self))
         self.frame_mp3cover_start_edit.setPlaceholderText("5")
         self.frame_mp3cover_start_time = 5
@@ -5503,6 +5522,7 @@ class SuperCutUI(QWidget):
         mp3_cover_duration_label.setFixedWidth(80)
         self.mp3_cover_duration_edit = QLineEdit("6")
         self.mp3_cover_duration_edit.setFixedWidth(40)
+        self.mp3_cover_duration_edit.setFixedHeight(unified_height)
         self.mp3_cover_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.mp3_cover_duration_edit.setPlaceholderText("6")
         self.mp3_cover_duration = 6
@@ -5543,6 +5563,7 @@ class SuperCutUI(QWidget):
         mp3_cover_start_label.setFixedWidth(40)
         self.mp3_cover_start_edit = QLineEdit("0")
         self.mp3_cover_start_edit.setFixedWidth(60)
+        self.mp3_cover_start_edit.setFixedHeight(unified_height)
         self.mp3_cover_start_edit.setValidator(QIntValidator(0, 999, self))
         self.mp3_cover_start_edit.setPlaceholderText("0")
         self.mp3_cover_start_at = 0
@@ -5909,6 +5930,7 @@ class SuperCutUI(QWidget):
         frame_box_duration_label.setFixedWidth(80)
         self.frame_box_duration_edit = QLineEdit("6")
         self.frame_box_duration_edit.setFixedWidth(40)
+        self.frame_box_duration_edit.setFixedHeight(unified_height)
         self.frame_box_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.frame_box_duration_edit.setPlaceholderText("6")
         self.frame_box_duration = 6
@@ -5949,6 +5971,7 @@ class SuperCutUI(QWidget):
         frame_box_start_label.setFixedWidth(80)
         self.frame_box_start_edit = QLineEdit("5")
         self.frame_box_start_edit.setFixedWidth(60)
+        self.frame_box_start_edit.setFixedHeight(unified_height)
         self.frame_box_start_edit.setValidator(QIntValidator(1, 999, self))
         self.frame_box_start_edit.setPlaceholderText("5")
         self.frame_box_start_time = 5
