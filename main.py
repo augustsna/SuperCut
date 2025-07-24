@@ -115,12 +115,12 @@ if os.path.exists(ACTIVATION_FILENAME):
             try:
                 print("\n📹 Current FFmpeg Settings for Video Creation:")
                 print(f"FPS: {window.fps_combo.currentData() if hasattr(window, 'fps_combo') else 'N/A'}")
-                print(f"Resolution: {window.resolution_combo.currentData() if hasattr(window, 'resolution_combo') else 'N/A'}")
                 print(f"Preset: {window.preset_combo.currentData() if hasattr(window, 'preset_combo') else 'N/A'}")
-                print(f"Audio bitrate: {window.settings.value('default_ffmpeg_audio_bitrate', '384k', type=str)}")
-                print(f"Video bitrate: {window.settings.value('default_ffmpeg_video_bitrate', '12M', type=str)}")
                 print(f"Maxrate: {window.settings.value('default_ffmpeg_maxrate', '16M', type=str)}")
                 print(f"Bufsize: {window.settings.value('default_ffmpeg_bufsize', '24M', type=str)}")
+                print(f"Video bitrate: {window.settings.value('default_ffmpeg_video_bitrate', '12M', type=str)}")
+                print(f"Audio bitrate: {window.settings.value('default_ffmpeg_audio_bitrate', '384k', type=str)}")
+                print(f"Resolution: {window.resolution_combo.currentData() if hasattr(window, 'resolution_combo') else 'N/A'}")
                 print()
             except Exception as e:
                 print(f"\n⚠️ Could not display FFmpeg settings: {e}")

@@ -570,13 +570,14 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_list_name_enabled', self.default_list_name_enabled_checkbox.isChecked())
             self.settings.setValue('default_mp3_count_enabled', self.default_mp3_count_enabled_checkbox.isChecked())
             # Debug prints for video settings when saving
-            print(f"FPS: {self.selected_fps}")
-            print(f"Resolution: {self.resolution_combo.currentData()}")
+            print(f"📹 Saved FFmpeg Settings for Video Creation:")
+            print(f"FPS: {self.selected_fps}")            
             print(f"Preset: {self.preset_combo.currentData()}")
-            print(f"Audio bitrate: {self.audio_bitrate_combo.currentData()}")
-            print(f"Video bitrate: {self.video_bitrate_combo.currentData()}")
             print(f"Maxrate: {self.maxrate_combo.currentData()}")
             print(f"Bufsize: {self.bufsize_combo.currentData()}")
+            print(f"Video bitrate: {self.video_bitrate_combo.currentData()}")
+            print(f"Audio bitrate: {self.audio_bitrate_combo.currentData()}")
+            print(f"Resolution: {self.resolution_combo.currentData()}")
             
             self.settings.setValue('default_resolution', self.resolution_combo.currentData())
             self.settings.setValue('default_ffmpeg_preset', self.preset_combo.currentData())
