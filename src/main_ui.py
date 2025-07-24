@@ -130,22 +130,26 @@ class SettingsDialog(QDialog):
         self.default_window_width_edit = QLineEdit()
         self.default_window_width_edit.setFixedWidth(45)
         self.default_window_width_edit.setPlaceholderText("W")
-        self.default_window_width_edit.setValidator(QIntValidator(600, 1200, self))
+        self.default_window_width_edit.setValidator(QIntValidator(400, 800, self))
         if self.settings is not None:
-            default_width = self.settings.value('default_window_width', 666, type=int)
-            self.default_window_width_edit.setText(str(default_width))
+            default_width = self.settings.value('default_window_width', WINDOW_SIZE[0], type=int)
+            # Clamp width to valid range (400-800)
+            clamped_width = max(400, min(800, default_width))
+            self.default_window_width_edit.setText(str(clamped_width))
         else:
-            self.default_window_width_edit.setText("666")
+            self.default_window_width_edit.setText(str(WINDOW_SIZE[0]))
         
         self.default_window_height_edit = QLineEdit()
         self.default_window_height_edit.setFixedWidth(45)
         self.default_window_height_edit.setPlaceholderText("H")
-        self.default_window_height_edit.setValidator(QIntValidator(500, 1000, self))
+        self.default_window_height_edit.setValidator(QIntValidator(400, 800, self))
         if self.settings is not None:
-            default_height = self.settings.value('default_window_height', 660, type=int)
-            self.default_window_height_edit.setText(str(default_height))
+            default_height = self.settings.value('default_window_height', WINDOW_SIZE[1], type=int)
+            # Clamp height to valid range (400-800)
+            clamped_height = max(400, min(800, default_height))
+            self.default_window_height_edit.setText(str(clamped_height))
         else:
-            self.default_window_height_edit.setText("660")
+            self.default_window_height_edit.setText(str(WINDOW_SIZE[1]))
         
         window_size_layout.addWidget(self.default_window_width_edit)
         window_size_layout.addWidget(QLabel("×"))
@@ -530,13 +534,23 @@ class SettingsDialog(QDialog):
             try:
                 window_width = int(self.default_window_width_edit.text())
                 window_height = int(self.default_window_height_edit.text())
-                self.settings.setValue('default_window_width', window_width)
-                self.settings.setValue('default_window_height', window_height)
+                
+                # Clamp values to valid ranges
+                clamped_width = max(400, min(800, window_width))
+                clamped_height = max(400, min(800, window_height))
+                
+                # Check if values were changed
+                if clamped_width != window_width or clamped_height != window_height:
+                    print(f"Window size clamped:\n{window_width}x{window_height} -> {clamped_width}x{clamped_height}\n")
+                else:
+                    print(f"Window size saved:\n{clamped_width}x{clamped_height}\n")
+                
+                self.settings.setValue('default_window_width', clamped_width)
+                self.settings.setValue('default_window_height', clamped_height)
             except ValueError:
                 # If invalid values, use defaults
-                print(f"Invalid values, using defaults: width=666, height=660")
-                self.settings.setValue('default_window_width', 666)
-                self.settings.setValue('default_window_height', 660)
+                self.settings.setValue('default_window_width', WINDOW_SIZE[0])
+                self.settings.setValue('default_window_height', WINDOW_SIZE[1])
             
             self.settings.setValue('default_fps', self.selected_fps)
             self.settings.setValue('default_intro_enabled', self.default_intro_enabled_checkbox.isChecked())
@@ -618,9 +632,9 @@ class SettingsDialog(QDialog):
         self.default_mp3_count_enabled_checkbox.setChecked(False)
         # Filter Complex Alt Mode
         self.filter_complex_alt_checkbox.setChecked(False)
-        # Window Size (reset uses 690 as default, matching main default)
-        self.default_window_width_edit.setText("690")
-        self.default_window_height_edit.setText("660")
+        # Window Size (reset uses config defaults)
+        self.default_window_width_edit.setText(str(WINDOW_SIZE[0]))
+        self.default_window_height_edit.setText(str(WINDOW_SIZE[1]))
 
 class NameListDialog(QDialog):
     def __init__(self, parent=None, initial_names=None):
@@ -886,6 +900,8 @@ class SuperCutUI(QWidget):
         self.setup_shortcuts()
         self.update_output_name()
         self.apply_settings()
+        
+
 
     def init_ui(self):
         """Initialize the user interface"""
@@ -894,16 +910,20 @@ class SuperCutUI(QWidget):
         self.setWindowTitle(WINDOW_TITLE)
         
         # Load saved window size or use defaults
-        saved_width = self.settings.value('default_window_width', 800, type=int)
+        saved_width = self.settings.value('default_window_width', WINDOW_SIZE[0], type=int)
         saved_height = self.settings.value('default_window_height', WINDOW_SIZE[1], type=int)
         
         # Use saved values directly, but ensure they're reasonable
         width = max(saved_width, 400)  # Minimum reasonable width
         width = min(width, 800)  # Maximum width constraint
         height = max(saved_height, 400)  # Minimum reasonable height
+        height = min(height, 800)  # Maximum height constraint
+        
+        print(f"Window size: {width}x{height}\n(saved: {saved_width}x{saved_height}, default: {WINDOW_SIZE[0]}x{WINDOW_SIZE[1]})")
         
         self.setMinimumSize(400, 400)  # Set a reasonable minimum size
-        self.setMaximumWidth(2000)  # Set maximum width to 800px
+        self.setMaximumWidth(800)  # Set maximum width to 800px (consistent with constraint)
+        self.setMaximumHeight(800)  # Set maximum height to 800px (consistent with constraint)
         self.resize(width, height)  # Set initial size from settings
         self.setStyleSheet(STYLE_SHEET)
         
@@ -9021,7 +9041,7 @@ class SuperCutUI(QWidget):
         # Control horizontal scrollbar based on window width
         if hasattr(self, 'scroll_area') and self.scroll_area is not None:
             window_width = self.width()
-            if window_width < 640:
+            if window_width < 700:
                 # Show horizontal scrollbar when window is narrow
                 self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
             else:
@@ -9109,8 +9129,9 @@ class SuperCutUI(QWidget):
             
             # Use saved values directly, but ensure they're reasonable
             width = max(saved_width, 400)  # Minimum reasonable width
-            width = min(width, 720)  # Maximum width constraint
+            width = min(width, 800)  # Maximum width constraint (consistent with init_ui)
             height = max(saved_height, 400)  # Minimum reasonable height
+            height = min(height, 800)  # Maximum height constraint (consistent with init_ui)
             
             # Resize the window to the new size
             self.resize(width, height)
