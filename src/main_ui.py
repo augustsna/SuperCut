@@ -5310,6 +5310,7 @@ class SuperCutUI(QWidget):
         # --- FRAME MP3COVER OVERLAY ---
         self.frame_mp3cover_checkbox = QtWidgets.QCheckBox("Frame_mp3cover:")
         self.frame_mp3cover_checkbox.setFixedWidth(label_checkbox_width)
+        self.frame_mp3cover_checkbox.setFixedHeight(unified_height)
         self.frame_mp3cover_checkbox.setChecked(False)
         def update_frame_mp3cover_checkbox_style(state):
             self.frame_mp3cover_checkbox.setStyleSheet("")  # Always default color
@@ -5318,7 +5319,7 @@ class SuperCutUI(QWidget):
 
         # Custom image checkbox for frame_mp3cover
         self.frame_mp3cover_custom_image_checkbox = QtWidgets.QCheckBox("Custom:")
-        self.frame_mp3cover_custom_image_checkbox.setFixedWidth(label_short_width)
+        self.frame_mp3cover_custom_image_checkbox.setFixedWidth(label_medium_width)
         self.frame_mp3cover_custom_image_checkbox.setFixedHeight(unified_height)
         self.frame_mp3cover_custom_image_checkbox.setChecked(False)
         def update_frame_mp3cover_custom_image_checkbox_style(state):
@@ -5351,13 +5352,10 @@ class SuperCutUI(QWidget):
             self.frame_mp3cover_custom_image_path = self.frame_mp3cover_custom_image_edit.text()
         
         self.frame_mp3cover_custom_image_edit.textChanged.connect(on_frame_mp3cover_custom_image_changed)
-
-        frame_mp3cover_layout = QHBoxLayout()
-        frame_mp3cover_layout.setSpacing(4)
         
         # Frame mp3cover size option (5% to 100%)
         frame_mp3cover_size_label = QLabel("S:")
-        frame_mp3cover_size_label.setFixedWidth(label_short_width)
+        frame_mp3cover_size_label.setFixedWidth(label_mini_width)
         frame_mp3cover_size_label.setFixedHeight(unified_height)
         self.frame_mp3cover_size_combo = NoWheelComboBox()
         self.frame_mp3cover_size_combo.setFixedWidth(combo_medium_width)
@@ -5374,7 +5372,7 @@ class SuperCutUI(QWidget):
 
         # Frame mp3cover X coordinate
         frame_mp3cover_x_label = QLabel("X:")
-        frame_mp3cover_x_label.setFixedWidth(label_short_width)
+        frame_mp3cover_x_label.setFixedWidth(label_mini_width)
         frame_mp3cover_x_label.setFixedHeight(unified_height)
         self.frame_mp3cover_x_combo = NoWheelComboBox()
         self.frame_mp3cover_x_combo.setFixedWidth(combo_medium_width)
@@ -5390,7 +5388,7 @@ class SuperCutUI(QWidget):
 
         # Frame mp3cover Y coordinate
         frame_mp3cover_y_label = QLabel("Y:")
-        frame_mp3cover_y_label.setFixedWidth(label_short_width)
+        frame_mp3cover_y_label.setFixedWidth(label_mini_width)
         frame_mp3cover_y_label.setFixedHeight(unified_height)
         self.frame_mp3cover_y_combo = NoWheelComboBox()
         self.frame_mp3cover_y_combo.setFixedWidth(combo_medium_width)
@@ -5471,25 +5469,30 @@ class SuperCutUI(QWidget):
             update_frame_mp3cover_custom_image_controls_state()
         self.frame_mp3cover_checkbox.stateChanged.connect(lambda _: set_frame_mp3cover_enabled(self.frame_mp3cover_checkbox.checkState()))
         
+        # Frame MP3Cover layout
+        frame_mp3cover_layout = QHBoxLayout()
+        frame_mp3cover_layout.setSpacing(0)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_checkbox)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_custom_image_checkbox)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_custom_image_edit)
+        frame_mp3cover_layout.addSpacing(10)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_custom_image_btn)
-        frame_mp3cover_layout.addSpacing(20)
+        frame_mp3cover_layout.addSpacing(0)
         frame_mp3cover_layout.addWidget(frame_mp3cover_size_label)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_size_combo)
-        frame_mp3cover_layout.addSpacing(4)
+        frame_mp3cover_layout.addSpacing(0)
         frame_mp3cover_layout.addWidget(frame_mp3cover_x_label)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_x_combo)
-        frame_mp3cover_layout.addSpacing(4)
+        frame_mp3cover_layout.addSpacing(0)
         frame_mp3cover_layout.addWidget(frame_mp3cover_y_label)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_y_combo)        
         frame_mp3cover_layout.addStretch()
         frame_mp3cover_groupbox_layout.addLayout(frame_mp3cover_layout)
 
         # --- EFFECT CONTROL FOR FRAME MP3COVER ---
-        frame_mp3cover_label = QLabel("Frame_mp3cover:")
-        frame_mp3cover_label.setFixedWidth(80)
+        frame_mp3cover_label = QLabel("Effect:")
+        frame_mp3cover_label.setFixedWidth(label_long_width)
+        frame_mp3cover_label.setFixedHeight(unified_height)
         self.frame_mp3cover_effect_combo = NoWheelComboBox()
         self.frame_mp3cover_effect_combo.setFixedWidth(combo_long_width)
         self.frame_mp3cover_effect_combo.setFixedHeight(unified_height)
@@ -5503,8 +5506,8 @@ class SuperCutUI(QWidget):
         on_frame_mp3cover_effect_changed(self.frame_mp3cover_effect_combo.currentIndex())
 
         # Frame mp3cover duration controls
-        frame_mp3cover_duration_label = QLabel("Duration:")
-        frame_mp3cover_duration_label.setFixedWidth(80)
+        frame_mp3cover_duration_label = QLabel("For:")
+        frame_mp3cover_duration_label.setFixedWidth(label_short_width)
         self.frame_mp3cover_duration_edit = QLineEdit("6")
         self.frame_mp3cover_duration_edit.setFixedWidth(edit_short_width)
         self.frame_mp3cover_duration_edit.setFixedHeight(unified_height)
@@ -5520,8 +5523,12 @@ class SuperCutUI(QWidget):
         on_frame_mp3cover_duration_changed()
 
         # Frame mp3cover full duration checkbox
-        self.frame_mp3cover_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
-        self.frame_mp3cover_duration_full_checkbox.setFixedWidth(100)
+        frame_mp3cover_duration_full_label = QLabel("Full:")
+        frame_mp3cover_duration_full_label.setFixedWidth(label_short_width)
+        frame_mp3cover_duration_full_label.setFixedHeight(unified_height)
+        self.frame_mp3cover_duration_full_checkbox = QtWidgets.QCheckBox("")
+        self.frame_mp3cover_duration_full_checkbox.setFixedWidth(checkbox_solo_width)
+        self.frame_mp3cover_duration_full_checkbox.setFixedHeight(unified_height)
         self.frame_mp3cover_duration_full_checkbox.setChecked(True)
         def update_frame_mp3cover_duration_full_checkbox_style(state):
             self.frame_mp3cover_duration_full_checkbox.setStyleSheet("")  # Always default color
@@ -5539,13 +5546,16 @@ class SuperCutUI(QWidget):
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.frame_mp3cover_duration_edit.setStyleSheet(grey_btn_style)
                 frame_mp3cover_duration_label.setStyleSheet("color: grey;")
+                frame_mp3cover_duration_full_label.setStyleSheet("")  # Full label is active when checkbox is checked
             else:
                 self.frame_mp3cover_duration_edit.setStyleSheet("")
                 frame_mp3cover_duration_label.setStyleSheet("")
+                frame_mp3cover_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
 
         # Frame mp3cover start at control
         frame_mp3cover_start_label = QLabel("Start at:")
-        frame_mp3cover_start_label.setFixedWidth(80)
+        frame_mp3cover_start_label.setFixedWidth(label_short_width)
+        frame_mp3cover_start_label.setFixedHeight(unified_height)
         self.frame_mp3cover_start_edit = QLineEdit("5")
         self.frame_mp3cover_start_edit.setFixedWidth(edit_short_width)
         self.frame_mp3cover_start_edit.setFixedHeight(unified_height)
@@ -5560,18 +5570,19 @@ class SuperCutUI(QWidget):
         self.frame_mp3cover_start_edit.textChanged.connect(on_frame_mp3cover_start_changed)
         on_frame_mp3cover_start_changed()
 
-        frame_mp3cover_effect_layout = QHBoxLayout()
-        frame_mp3cover_effect_layout.setContentsMargins(0, 0, 0, 0)
-        frame_mp3cover_effect_layout.addSpacing(-80)
+        # frame mp3cover layout
+        frame_mp3cover_effect_layout = QHBoxLayout()        
+        frame_mp3cover_effect_layout.setSpacing(0)
         frame_mp3cover_effect_layout.addWidget(frame_mp3cover_label)
-        frame_mp3cover_effect_layout.addSpacing(-3)
+        frame_mp3cover_effect_layout.addSpacing(0)
         frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_effect_combo)
-        frame_mp3cover_effect_layout.addSpacing(-6)
+        frame_mp3cover_effect_layout.addSpacing(0)
         frame_mp3cover_effect_layout.addWidget(frame_mp3cover_duration_label)
         frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_duration_edit)
-        frame_mp3cover_effect_layout.addSpacing(-6)
+        frame_mp3cover_effect_layout.addSpacing(0)
+        frame_mp3cover_effect_layout.addWidget(frame_mp3cover_duration_full_label)
         frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_duration_full_checkbox)
-        frame_mp3cover_effect_layout.addSpacing(-6)
+        frame_mp3cover_effect_layout.addSpacing(0)
         frame_mp3cover_effect_layout.addWidget(frame_mp3cover_start_label)
         frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_start_edit)
         frame_mp3cover_effect_layout.addStretch()
@@ -5599,6 +5610,7 @@ class SuperCutUI(QWidget):
                 frame_mp3cover_duration_label.setStyleSheet("color: grey;")
                 self.frame_mp3cover_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
                 self.frame_mp3cover_duration_edit.setEnabled(False)
+                frame_mp3cover_duration_full_label.setStyleSheet("color: grey;")
                 self.frame_mp3cover_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.frame_mp3cover_duration_full_checkbox.setEnabled(False)
             else:
@@ -5616,7 +5628,6 @@ class SuperCutUI(QWidget):
         self.frame_mp3cover_checkbox.stateChanged.connect(lambda _: update_frame_mp3cover_custom_image_controls_state())
         self.frame_mp3cover_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState()))
         update_frame_mp3cover_effect_label_style()
-        set_frame_mp3cover_duration_enabled(self.frame_mp3cover_duration_full_checkbox.checkState())
         update_frame_mp3cover_custom_image_controls_state()
 
         # --- MP3 COVER OVERLAY GROUP BOX ---
@@ -5655,7 +5666,7 @@ class SuperCutUI(QWidget):
         
         # MP3 cover size option (5% to 100%)
         mp3_cover_size_label = QLabel("S:")
-        mp3_cover_size_label.setFixedWidth(label_short_width)
+        mp3_cover_size_label.setFixedWidth(label_mini_width)
         mp3_cover_size_label.setFixedHeight(unified_height)
         self.mp3_cover_size_combo = NoWheelComboBox()
         self.mp3_cover_size_combo.setFixedWidth(combo_medium_width)
@@ -5672,7 +5683,7 @@ class SuperCutUI(QWidget):
 
         # MP3 cover X coordinate
         mp3_cover_x_label = QLabel("X:")
-        mp3_cover_x_label.setFixedWidth(label_short_width)
+        mp3_cover_x_label.setFixedWidth(label_mini_width)
         mp3_cover_x_label.setFixedHeight(unified_height)
         self.mp3_cover_x_combo = NoWheelComboBox()
         self.mp3_cover_x_combo.setFixedWidth(combo_medium_width)
@@ -5688,7 +5699,7 @@ class SuperCutUI(QWidget):
 
         # MP3 cover Y coordinate
         mp3_cover_y_label = QLabel("Y:")
-        mp3_cover_y_label.setFixedWidth(label_short_width)
+        mp3_cover_y_label.setFixedWidth(label_mini_width)
         mp3_cover_y_label.setFixedHeight(unified_height)
         self.mp3_cover_y_combo = NoWheelComboBox()
         self.mp3_cover_y_combo.setFixedWidth(combo_medium_width)
@@ -5704,7 +5715,8 @@ class SuperCutUI(QWidget):
 
         # MP3 cover effect
         mp3_cover_effect_label = QLabel("Effect:")
-        mp3_cover_effect_label.setFixedWidth(40)
+        mp3_cover_effect_label.setFixedWidth(label_long_width)
+        mp3_cover_effect_label.setFixedHeight(unified_height)
         self.mp3_cover_effect_combo = NoWheelComboBox()
         self.mp3_cover_effect_combo.setFixedWidth(combo_long_width)
         self.mp3_cover_effect_combo.setFixedHeight(unified_height)
@@ -5718,8 +5730,9 @@ class SuperCutUI(QWidget):
         on_mp3_cover_effect_changed(self.mp3_cover_effect_combo.currentIndex())
 
         # MP3 cover overlay duration controls
-        mp3_cover_duration_label = QLabel("Duration:")
-        mp3_cover_duration_label.setFixedWidth(80)
+        mp3_cover_duration_label = QLabel("For:")
+        mp3_cover_duration_label.setFixedWidth(label_short_width)
+        mp3_cover_duration_label.setFixedHeight(unified_height)
         self.mp3_cover_duration_edit = QLineEdit("6")
         self.mp3_cover_duration_edit.setFixedWidth(edit_short_width)
         self.mp3_cover_duration_edit.setFixedHeight(unified_height)
@@ -5735,8 +5748,12 @@ class SuperCutUI(QWidget):
         on_mp3_cover_duration_changed()
 
         # MP3 cover overlay full duration checkbox
-        self.mp3_cover_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
-        self.mp3_cover_duration_full_checkbox.setFixedWidth(100)
+        mp3_cover_duration_full_label = QLabel("Full:")
+        mp3_cover_duration_full_label.setFixedWidth(label_short_width)
+        mp3_cover_duration_full_label.setFixedHeight(unified_height)
+        self.mp3_cover_duration_full_checkbox = QtWidgets.QCheckBox("")
+        self.mp3_cover_duration_full_checkbox.setFixedWidth(checkbox_solo_width)
+        self.mp3_cover_duration_full_checkbox.setFixedHeight(unified_height)
         self.mp3_cover_duration_full_checkbox.setChecked(True)
         def update_mp3_cover_duration_full_checkbox_style(state):
             self.mp3_cover_duration_full_checkbox.setStyleSheet("")  # Always default color
@@ -5754,13 +5771,16 @@ class SuperCutUI(QWidget):
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.mp3_cover_duration_edit.setStyleSheet(grey_btn_style)
                 mp3_cover_duration_label.setStyleSheet("color: grey;")
+                mp3_cover_duration_full_label.setStyleSheet("")  # Full label is active when checkbox is checked
             else:
                 self.mp3_cover_duration_edit.setStyleSheet("")
                 mp3_cover_duration_label.setStyleSheet("")
+                mp3_cover_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
 
         # MP3 cover overlay start at control
-        mp3_cover_start_label = QLabel("first song:")
-        mp3_cover_start_label.setFixedWidth(40)
+        mp3_cover_start_label = QLabel("Start at:")
+        mp3_cover_start_label.setFixedWidth(label_medium_width)
+        mp3_cover_start_label.setFixedHeight(unified_height)
         self.mp3_cover_start_edit = QLineEdit("0")
         self.mp3_cover_start_edit.setFixedWidth(edit_short_width)
         self.mp3_cover_start_edit.setFixedHeight(unified_height)
@@ -5777,7 +5797,8 @@ class SuperCutUI(QWidget):
 
         # MP3 cover frame color picker
         mp3_cover_frame_color_label = QLabel("Frame Color:")
-        mp3_cover_frame_color_label.setFixedWidth(80)
+        mp3_cover_frame_color_label.setFixedWidth(label_long_width)
+        mp3_cover_frame_color_label.setFixedHeight(unified_height)
         self.mp3_cover_frame_color_btn = QPushButton()
         self.mp3_cover_frame_color_btn.setFixedSize(27, 27)
         self.mp3_cover_frame_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc; padding: 0px; margin: 0px;")
@@ -5791,7 +5812,7 @@ class SuperCutUI(QWidget):
 
         # MP3 cover frame size dropdown
         mp3_cover_frame_size_label = QLabel("Frame S:")
-        mp3_cover_frame_size_label.setFixedWidth(label_short_width)
+        mp3_cover_frame_size_label.setFixedWidth(label_medium_width)
         mp3_cover_frame_size_label.setFixedHeight(unified_height)
         self.mp3_cover_frame_size_combo = NoWheelComboBox()
         self.mp3_cover_frame_size_combo.setFixedWidth(combo_medium_width)
@@ -5816,7 +5837,7 @@ class SuperCutUI(QWidget):
 
         # Custom image checkbox for MP3 cover overlay
         self.mp3_cover_custom_image_checkbox = QtWidgets.QCheckBox("Custom:")
-        self.mp3_cover_custom_image_checkbox.setFixedWidth(40)
+        self.mp3_cover_custom_image_checkbox.setFixedWidth(label_long_width)
         self.mp3_cover_custom_image_checkbox.setChecked(False)
         def update_mp3_cover_custom_image_checkbox_style(state):
             self.mp3_cover_custom_image_checkbox.setStyleSheet("")  # Always default color
@@ -5897,6 +5918,7 @@ class SuperCutUI(QWidget):
                 mp3_cover_x_label.setStyleSheet("")
                 mp3_cover_y_label.setStyleSheet("")
                 mp3_cover_effect_label.setStyleSheet("")
+                mp3_cover_duration_full_label.setStyleSheet("")
                 mp3_cover_start_label.setStyleSheet("")
                 mp3_cover_frame_color_label.setStyleSheet("")
                 mp3_cover_frame_size_label.setStyleSheet("")
@@ -5906,6 +5928,8 @@ class SuperCutUI(QWidget):
                 if not self.mp3_cover_duration_full_checkbox.isChecked():
                     self.mp3_cover_duration_edit.setStyleSheet("")
                     mp3_cover_duration_label.setStyleSheet("")
+                # Let the duration full checkbox control the duration field styling
+                set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState())
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.mp3_cover_size_combo.setStyleSheet(grey_btn_style)
@@ -5922,6 +5946,7 @@ class SuperCutUI(QWidget):
                 mp3_cover_y_label.setStyleSheet("color: grey;")
                 mp3_cover_effect_label.setStyleSheet("color: grey;")
                 mp3_cover_duration_label.setStyleSheet("color: grey;")
+                mp3_cover_duration_full_label.setStyleSheet("color: grey;")
                 mp3_cover_start_label.setStyleSheet("color: grey;")
                 mp3_cover_frame_color_label.setStyleSheet("color: grey;")
                 mp3_cover_frame_size_label.setStyleSheet("color: grey;")
@@ -5938,19 +5963,20 @@ class SuperCutUI(QWidget):
         self.mp3_cover_duration_full_checkbox.stateChanged.connect(lambda _: set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState()))
         
         # First line: checkbox, frame controls, size, x, y controls
+        mp3_cover_overlay_layout.setSpacing(0)
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_overlay_checkbox)
         mp3_cover_overlay_layout.addWidget(mp3_cover_frame_color_label)
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_frame_color_btn)
-        mp3_cover_overlay_layout.addSpacing(4)
+        mp3_cover_overlay_layout.addSpacing(0)
         mp3_cover_overlay_layout.addWidget(mp3_cover_frame_size_label)
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_frame_size_combo)
-        mp3_cover_overlay_layout.addSpacing(4)
+        mp3_cover_overlay_layout.addSpacing(0)
         mp3_cover_overlay_layout.addWidget(mp3_cover_size_label)
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_size_combo)
-        mp3_cover_overlay_layout.addSpacing(4)
+        mp3_cover_overlay_layout.addSpacing(0)
         mp3_cover_overlay_layout.addWidget(mp3_cover_x_label)
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_x_combo)
-        mp3_cover_overlay_layout.addSpacing(4)
+        mp3_cover_overlay_layout.addSpacing(0)
         mp3_cover_overlay_layout.addWidget(mp3_cover_y_label)
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_y_combo)
         mp3_cover_overlay_layout.addStretch()        
@@ -5958,20 +5984,20 @@ class SuperCutUI(QWidget):
 
         # Second line: custom image controls, effect, duration, and start controls
         mp3_cover_effect_layout = QHBoxLayout()
-        mp3_cover_effect_layout.setSpacing(4)
-        mp3_cover_effect_layout.addSpacing(0)  # Align with other controls
+        mp3_cover_effect_layout.setSpacing(4)        
         mp3_cover_effect_layout.addWidget(self.mp3_cover_custom_image_checkbox)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_custom_image_edit)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_custom_image_btn)
-        mp3_cover_effect_layout.addSpacing(4)
+        mp3_cover_effect_layout.addSpacing(0)
         mp3_cover_effect_layout.addWidget(mp3_cover_effect_label)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_effect_combo)
-        mp3_cover_effect_layout.addSpacing(4)
+        mp3_cover_effect_layout.addSpacing(0)
         mp3_cover_effect_layout.addWidget(mp3_cover_duration_label)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_duration_edit)
-        mp3_cover_effect_layout.addSpacing(4)
+        mp3_cover_effect_layout.addSpacing(0)
+        mp3_cover_effect_layout.addWidget(mp3_cover_duration_full_label)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_duration_full_checkbox)
-        mp3_cover_effect_layout.addSpacing(4)
+        mp3_cover_effect_layout.addSpacing(0)
         mp3_cover_effect_layout.addWidget(mp3_cover_start_label)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_start_edit)
         mp3_cover_effect_layout.addStretch()        
@@ -5979,7 +6005,6 @@ class SuperCutUI(QWidget):
 
         # Initialize MP3 cover overlay enabled state
         set_mp3_cover_overlay_enabled(self.mp3_cover_overlay_checkbox.checkState())
-        set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState())
         # --- END DYNAMIC MP3 COVER OVERLAY ---
 
         ###
@@ -6008,6 +6033,7 @@ class SuperCutUI(QWidget):
         # --- FRAME BOX OVERLAY ---
         self.frame_box_checkbox = QtWidgets.QCheckBox("Frame Box:")
         self.frame_box_checkbox.setFixedWidth(label_checkbox_width)
+        self.frame_box_checkbox.setFixedHeight(unified_height)
         self.frame_box_checkbox.setChecked(False)
         def update_frame_box_checkbox_style(state):
             self.frame_box_checkbox.setStyleSheet("")  # Always default color
@@ -6015,8 +6041,11 @@ class SuperCutUI(QWidget):
         update_frame_box_checkbox_style(self.frame_box_checkbox.checkState())
 
         # Custom image checkbox for framebox
-        self.frame_box_custom_image_checkbox = QtWidgets.QCheckBox("Custom:")
-        self.frame_box_custom_image_checkbox.setFixedWidth(label_short_width)
+        frame_box_custom_image_label = QLabel("Custom:")
+        frame_box_custom_image_label.setFixedWidth(label_medium_width)
+        frame_box_custom_image_label.setFixedHeight(unified_height)
+        self.frame_box_custom_image_checkbox = QtWidgets.QCheckBox("")
+        self.frame_box_custom_image_checkbox.setFixedWidth(checkbox_solo_width)
         self.frame_box_custom_image_checkbox.setFixedHeight(unified_height)
         self.frame_box_custom_image_checkbox.setChecked(False)
         def update_frame_box_custom_image_checkbox_style(state):
@@ -6055,7 +6084,7 @@ class SuperCutUI(QWidget):
         
         # Frame box size option (5% to 100%)
         frame_box_size_label = QLabel("S:")
-        frame_box_size_label.setFixedWidth(label_short_width)
+        frame_box_size_label.setFixedWidth(label_mini_width)
         frame_box_size_label.setFixedHeight(unified_height)
         self.frame_box_size_combo = NoWheelComboBox()
         self.frame_box_size_combo.setFixedWidth(combo_medium_width)
@@ -6072,7 +6101,7 @@ class SuperCutUI(QWidget):
 
         # Frame box X coordinate
         frame_box_x_label = QLabel("X:")
-        frame_box_x_label.setFixedWidth(label_short_width)
+        frame_box_x_label.setFixedWidth(label_mini_width)
         frame_box_x_label.setFixedHeight(unified_height)
         self.frame_box_x_combo = NoWheelComboBox()
         self.frame_box_x_combo.setFixedWidth(combo_medium_width)
@@ -6088,7 +6117,7 @@ class SuperCutUI(QWidget):
 
         # Frame box Y coordinate
         frame_box_y_label = QLabel("Y:")
-        frame_box_y_label.setFixedWidth(label_short_width)
+        frame_box_y_label.setFixedWidth(label_mini_width)
         frame_box_y_label.setFixedHeight(unified_height)
         self.frame_box_y_combo = NoWheelComboBox()
         self.frame_box_y_combo.setFixedWidth(combo_medium_width)
@@ -6102,17 +6131,21 @@ class SuperCutUI(QWidget):
         self.frame_box_y_combo.currentIndexChanged.connect(on_frame_box_y_changed)
         on_frame_box_y_changed(self.frame_box_y_combo.currentIndex())
 
+        # Framebox layout
+        frame_box_layout.setSpacing(0)
         frame_box_layout.addWidget(self.frame_box_checkbox)
+        frame_box_layout.addWidget(frame_box_custom_image_label)
         frame_box_layout.addWidget(self.frame_box_custom_image_checkbox)
         frame_box_layout.addWidget(self.frame_box_custom_image_edit)
+        frame_box_layout.addSpacing(10)
         frame_box_layout.addWidget(self.frame_box_custom_image_btn)
-        frame_box_layout.addSpacing(20)
+        frame_box_layout.addSpacing(0)
         frame_box_layout.addWidget(frame_box_size_label)
         frame_box_layout.addWidget(self.frame_box_size_combo)
-        frame_box_layout.addSpacing(4)
+        frame_box_layout.addSpacing(0)
         frame_box_layout.addWidget(frame_box_x_label)
         frame_box_layout.addWidget(self.frame_box_x_combo)
-        frame_box_layout.addSpacing(4)
+        frame_box_layout.addSpacing(0)
         frame_box_layout.addWidget(frame_box_y_label)
         frame_box_layout.addWidget(self.frame_box_y_combo)
         frame_box_layout.addStretch()
@@ -6120,7 +6153,8 @@ class SuperCutUI(QWidget):
 
         # --- EFFECT CONTROL FOR FRAME BOX ---
         frame_box_label = QLabel("Frame Box:")
-        frame_box_label.setFixedWidth(80)
+        frame_box_label.setFixedWidth(label_long_width)
+        frame_box_label.setFixedHeight(unified_height)
         self.frame_box_effect_combo = NoWheelComboBox()
         self.frame_box_effect_combo.setFixedWidth(combo_long_width)
         self.frame_box_effect_combo.setFixedHeight(unified_height)
@@ -6134,8 +6168,9 @@ class SuperCutUI(QWidget):
         on_frame_box_effect_changed(self.frame_box_effect_combo.currentIndex())
 
         # Frame box duration controls
-        frame_box_duration_label = QLabel("Duration:")
-        frame_box_duration_label.setFixedWidth(80)
+        frame_box_duration_label = QLabel("For:")
+        frame_box_duration_label.setFixedWidth(label_short_width)
+        frame_box_duration_label.setFixedHeight(unified_height)
         self.frame_box_duration_edit = QLineEdit("6")
         self.frame_box_duration_edit.setFixedWidth(edit_short_width)
         self.frame_box_duration_edit.setFixedHeight(unified_height)
@@ -6151,8 +6186,12 @@ class SuperCutUI(QWidget):
         on_frame_box_duration_changed()
 
         # Frame box full duration checkbox
-        self.frame_box_duration_full_checkbox = QtWidgets.QCheckBox("Full duration")
-        self.frame_box_duration_full_checkbox.setFixedWidth(100)
+        frame_box_duration_full_label = QLabel("Full:")
+        frame_box_duration_full_label.setFixedWidth(label_short_width)
+        frame_box_duration_full_label.setFixedHeight(unified_height)
+        self.frame_box_duration_full_checkbox = QtWidgets.QCheckBox("")
+        self.frame_box_duration_full_checkbox.setFixedWidth(checkbox_solo_width)
+        self.frame_box_duration_full_checkbox.setFixedHeight(unified_height)
         self.frame_box_duration_full_checkbox.setChecked(True)
         def update_frame_box_duration_full_checkbox_style(state):
             self.frame_box_duration_full_checkbox.setStyleSheet("")  # Always default color
@@ -6170,13 +6209,15 @@ class SuperCutUI(QWidget):
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.frame_box_duration_edit.setStyleSheet(grey_btn_style)
                 frame_box_duration_label.setStyleSheet("color: grey;")
+                frame_box_duration_full_label.setStyleSheet("")  # Full label is active when checkbox is checked
             else:
                 self.frame_box_duration_edit.setStyleSheet("")
                 frame_box_duration_label.setStyleSheet("")
+                frame_box_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
 
         # Frame box start at control
         frame_box_start_label = QLabel("Start at:")
-        frame_box_start_label.setFixedWidth(80)
+        frame_box_start_label.setFixedWidth(label_medium_width)
         self.frame_box_start_edit = QLineEdit("5")
         self.frame_box_start_edit.setFixedWidth(edit_short_width)
         self.frame_box_start_edit.setFixedHeight(unified_height)
@@ -6192,10 +6233,9 @@ class SuperCutUI(QWidget):
         on_frame_box_start_changed()
 
         # --- Frame Box Color Picker and Opacity Control (same line) ---
-        frame_box_color_layout = QHBoxLayout()
-        frame_box_color_layout.setContentsMargins(0, 0, 0, 0)
         frame_box_color_label = QLabel("Frame Color:")
-        frame_box_color_label.setFixedWidth(80)
+        frame_box_color_label.setFixedWidth(label_long_width)
+        frame_box_color_label.setFixedHeight(unified_height)
         self.frame_box_color_btn = QPushButton()        
         self.frame_box_color_btn.setFixedWidth(27)
         self.frame_box_color_btn.setFixedHeight(27)
@@ -6212,9 +6252,10 @@ class SuperCutUI(QWidget):
         self.frame_box_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")        
 
         frame_box_opacity_label = QLabel("Frame Opacity:")
-        frame_box_opacity_label.setFixedWidth(80)
+        frame_box_opacity_label.setFixedWidth(label_long_width)
+        frame_box_opacity_label.setFixedHeight(unified_height)
         self.frame_box_opacity_combo = NoWheelComboBox()
-        self.frame_box_opacity_combo.setFixedWidth(combo_long_width)
+        self.frame_box_opacity_combo.setFixedWidth(combo_medium_width)
         self.frame_box_opacity_combo.setFixedHeight(unified_height)
         for percent in range(0, 101, 5):
             self.frame_box_opacity_combo.addItem(f"{percent}%", percent / 100.0)
@@ -6225,57 +6266,59 @@ class SuperCutUI(QWidget):
         self.frame_box_opacity_combo.currentIndexChanged.connect(on_frame_box_opacity_changed)
         on_frame_box_opacity_changed(self.frame_box_opacity_combo.currentIndex())    
 
+        # Framebox Effect Layout
         frame_box_effect_layout = QHBoxLayout()
-        frame_box_effect_layout.setContentsMargins(0, 0, 0, 0)
         frame_box_effect_layout.addSpacing(0)        
         frame_box_effect_layout.addWidget(frame_box_color_label)
         frame_box_effect_layout.addWidget(self.frame_box_color_btn)        
         frame_box_effect_layout.addWidget(frame_box_label)
-        frame_box_effect_layout.addSpacing(-3)
+        frame_box_effect_layout.addSpacing(0)
         frame_box_effect_layout.addWidget(self.frame_box_effect_combo)
-        frame_box_effect_layout.addSpacing(-6)
+        frame_box_effect_layout.addSpacing(0)
         frame_box_effect_layout.addWidget(frame_box_duration_label)
         frame_box_effect_layout.addWidget(self.frame_box_duration_edit)
-        frame_box_effect_layout.addSpacing(-6)
+        frame_box_effect_layout.addSpacing(0)
+        frame_box_effect_layout.addWidget(frame_box_duration_full_label)
         frame_box_effect_layout.addWidget(self.frame_box_duration_full_checkbox)
-        frame_box_effect_layout.addSpacing(-6)
+        frame_box_effect_layout.addSpacing(0)
         frame_box_effect_layout.addWidget(frame_box_start_label)
         frame_box_effect_layout.addWidget(self.frame_box_start_edit)
         frame_box_effect_layout.addStretch()
         frame_box_groupbox_layout.addLayout(frame_box_effect_layout)
-
-        # --- Frame Box Padding Controls (separate line below frame color) ---
-        frame_box_padding_layout = QHBoxLayout()
-        frame_box_padding_layout.setContentsMargins(0, 0, 0, 0)
-        
+               
         # Padding label
         pad_label = QLabel("Frame Padding:")
-        pad_label.setFixedWidth(80)        
+        pad_label.setFixedWidth(label_long_width)   
+        pad_label.setFixedHeight(unified_height)     
         
         # Left padding
         left_pad_label = QLabel("Left:")
-        left_pad_label.setFixedWidth(35)
+        left_pad_label.setFixedWidth(label_short_width)
+        left_pad_label.setFixedHeight(unified_height)
         self.frame_box_pad_left_combo = NoWheelComboBox()
         self.frame_box_pad_left_combo.setFixedWidth(combo_medium_width)
         self.frame_box_pad_left_combo.setFixedHeight(unified_height)
         
         # Right padding
         right_pad_label = QLabel("Right:")
-        right_pad_label.setFixedWidth(35)
+        right_pad_label.setFixedWidth(label_short_width)
+        right_pad_label.setFixedHeight(unified_height)
         self.frame_box_pad_right_combo = NoWheelComboBox()
         self.frame_box_pad_right_combo.setFixedWidth(combo_medium_width)
         self.frame_box_pad_right_combo.setFixedHeight(unified_height)
         
         # Top padding
         top_pad_label = QLabel("Top:")
-        top_pad_label.setFixedWidth(35)
+        top_pad_label.setFixedWidth(label_short_width)
+        top_pad_label.setFixedHeight(unified_height)
         self.frame_box_pad_top_combo = NoWheelComboBox()
         self.frame_box_pad_top_combo.setFixedWidth(combo_medium_width)
         self.frame_box_pad_top_combo.setFixedHeight(unified_height)
         
         # Bottom padding
         bottom_pad_label = QLabel("Bottom:")
-        bottom_pad_label.setFixedWidth(35)
+        bottom_pad_label.setFixedWidth(label_short_width)
+        bottom_pad_label.setFixedHeight(unified_height)
         self.frame_box_pad_bottom_combo = NoWheelComboBox()
         self.frame_box_pad_bottom_combo.setFixedWidth(combo_medium_width)
         self.frame_box_pad_bottom_combo.setFixedHeight(unified_height)
@@ -6311,7 +6354,9 @@ class SuperCutUI(QWidget):
         on_frame_box_pad_top_changed(self.frame_box_pad_top_combo.currentIndex())
         on_frame_box_pad_bottom_changed(self.frame_box_pad_bottom_combo.currentIndex())
         
-        # Add padding controls with labels   
+        # Add padding controls with labels  
+        frame_box_padding_layout = QHBoxLayout() 
+        frame_box_padding_layout.setSpacing(0)
         frame_box_padding_layout.addWidget(frame_box_opacity_label)
         frame_box_padding_layout.addWidget(self.frame_box_opacity_combo)     
         frame_box_padding_layout.addWidget(left_pad_label)
@@ -6324,15 +6369,14 @@ class SuperCutUI(QWidget):
         frame_box_padding_layout.addWidget(self.frame_box_pad_bottom_combo)        
         frame_box_padding_layout.addStretch()        
         frame_box_groupbox_layout.addLayout(frame_box_padding_layout)
-
-        # --- Frame Box Caption Checkbox and Position Selection ---
-        frame_box_caption_header_layout = QHBoxLayout()
-        frame_box_caption_header_layout.setContentsMargins(0, 0, 0, 0)
-        frame_box_caption_header_layout.setSpacing(4)
         
         # Frame Box Caption Checkbox
-        self.frame_box_caption_checkbox = QtWidgets.QCheckBox("Caption:")
-        self.frame_box_caption_checkbox.setFixedWidth(label_checkbox_width)
+        frame_box_caption_label = QLabel("Caption:")
+        frame_box_caption_label.setFixedWidth(label_medium_width)
+        frame_box_caption_label.setFixedHeight(unified_height)
+        self.frame_box_caption_checkbox = QtWidgets.QCheckBox("")
+        self.frame_box_caption_checkbox.setFixedWidth(checkbox_solo_width)
+        self.frame_box_caption_checkbox.setFixedHeight(unified_height)
         self.frame_box_caption_checkbox.setChecked(False)
         def update_frame_box_caption_checkbox_style(state):
             self.frame_box_caption_checkbox.setStyleSheet("")  # Always default color
@@ -6341,7 +6385,8 @@ class SuperCutUI(QWidget):
         
         # Caption position selection
         caption_position_label = QLabel("Position:")
-        caption_position_label.setFixedWidth(50)
+        caption_position_label.setFixedWidth(label_medium_width)
+        caption_position_label.setFixedHeight(unified_height)
         self.frame_box_caption_position_combo = NoWheelComboBox()
         self.frame_box_caption_position_combo.setFixedWidth(combo_long_width)
         self.frame_box_caption_position_combo.setFixedHeight(unified_height)
@@ -6360,11 +6405,14 @@ class SuperCutUI(QWidget):
         
         # Caption type selection using single PNG checkbox
         caption_type_label = QLabel("Type:")
-        caption_type_label.setFixedWidth(30)
+        caption_type_label.setFixedWidth(label_short_width)
         
         # PNG type checkbox (single checkbox approach)
-        self.frame_box_caption_png_checkbox = QtWidgets.QCheckBox("PNG")
-        self.frame_box_caption_png_checkbox.setFixedWidth(label_short_width)
+        frame_box_caption_png_label = QLabel("PNG:")
+        frame_box_caption_png_label.setFixedWidth(label_short_width)
+        frame_box_caption_png_label.setFixedHeight(unified_height)
+        self.frame_box_caption_png_checkbox = QtWidgets.QCheckBox("")
+        self.frame_box_caption_png_checkbox.setFixedWidth(checkbox_solo_width)
         self.frame_box_caption_png_checkbox.setFixedHeight(unified_height)
         self.frame_box_caption_png_checkbox.setChecked(False)  # Default to text mode
         
@@ -6422,28 +6470,31 @@ class SuperCutUI(QWidget):
         
         self.frame_box_caption_png_edit.textChanged.connect(on_frame_box_caption_png_changed)
         
-        # Add all controls to the same horizontal layout
+        
+        # --- Frame Box Caption Checkbox and Position Selection ---
+        frame_box_caption_header_layout = QHBoxLayout()
+        frame_box_caption_header_layout.setSpacing(0)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_checkbox)
-        #frame_box_caption_header_layout.addWidget(caption_position_label)
+        frame_box_caption_header_layout.addWidget(frame_box_caption_label)
+        frame_box_caption_header_layout.addWidget(caption_position_label)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_position_combo)
-        frame_box_caption_header_layout.addWidget(caption_type_label)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_checkbox)
-        frame_box_caption_header_layout.addWidget(caption_text_label)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_text_edit)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_checkbox)   
         frame_box_caption_header_layout.addWidget(caption_png_label)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_edit)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_btn)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_btn)    
+        frame_box_caption_header_layout.addWidget(caption_text_label)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_text_edit)
         frame_box_caption_header_layout.addStretch()
         frame_box_groupbox_layout.addLayout(frame_box_caption_header_layout)
         
-        # Text styling controls (second line)
-        frame_box_caption_styling_layout = QHBoxLayout()
-        frame_box_caption_styling_layout.setContentsMargins(0, 0, 0, 0)
-        frame_box_caption_styling_layout.setSpacing(4)
+       
+        
         
         # Font selection
         caption_font_label = QLabel("Font:")
-        caption_font_label.setFixedWidth(35)
+        caption_font_label.setFixedWidth(label_short_width)
+        caption_font_label.setFixedHeight(unified_height)
+        
         self.frame_box_caption_font_combo = NoWheelComboBox()
         self.frame_box_caption_font_combo.setFixedWidth(combo_long_width)
         self.frame_box_caption_font_combo.setFixedHeight(unified_height)
@@ -6461,7 +6512,8 @@ class SuperCutUI(QWidget):
         
         # Font size
         caption_font_size_label = QLabel("Size:")
-        caption_font_size_label.setFixedWidth(35)
+        caption_font_size_label.setFixedWidth(label_short_width)
+        caption_font_size_label.setFixedHeight(unified_height)
         self.frame_box_caption_font_size_combo = NoWheelComboBox()
         self.frame_box_caption_font_size_combo.setFixedWidth(combo_medium_width)
         self.frame_box_caption_font_size_combo.setFixedHeight(unified_height)
@@ -6477,7 +6529,8 @@ class SuperCutUI(QWidget):
         
         # Text color picker
         caption_color_label = QLabel("Color:")
-        caption_color_label.setFixedWidth(35)
+        caption_color_label.setFixedWidth(label_short_width)
+        caption_color_label.setFixedHeight(unified_height)
         self.frame_box_caption_color_btn = QPushButton()
         self.frame_box_caption_color_btn.setFixedWidth(27)
         self.frame_box_caption_color_btn.setFixedHeight(27)
@@ -6495,7 +6548,8 @@ class SuperCutUI(QWidget):
         
         # Text effect
         caption_effect_label = QLabel("FX:")
-        caption_effect_label.setFixedWidth(25)
+        caption_effect_label.setFixedWidth(label_short_width)
+        caption_effect_label.setFixedHeight(unified_height)
         self.frame_box_caption_effect_combo = NoWheelComboBox()
         self.frame_box_caption_effect_combo.setFixedWidth(80)
         self.frame_box_caption_effect_combo.addItem("None", "none")
@@ -6532,7 +6586,8 @@ class SuperCutUI(QWidget):
         
         # Effect color picker
         caption_effect_color_label = QLabel("FX Color:")
-        caption_effect_color_label.setFixedWidth(50)
+        caption_effect_color_label.setFixedWidth(label_short_width)
+        caption_effect_color_label.setFixedHeight(unified_height)
         self.frame_box_caption_effect_color_btn = QPushButton()
         self.frame_box_caption_effect_color_btn.setFixedWidth(27)
         self.frame_box_caption_effect_color_btn.setFixedHeight(27)
@@ -6549,7 +6604,8 @@ class SuperCutUI(QWidget):
         
         # Effect intensity
         caption_effect_intensity_label = QLabel("FX Int:")
-        caption_effect_intensity_label.setFixedWidth(40)
+        caption_effect_intensity_label.setFixedWidth(label_short_width)
+        caption_effect_intensity_label.setFixedHeight(unified_height)
         self.frame_box_caption_effect_intensity_combo = NoWheelComboBox()
         self.frame_box_caption_effect_intensity_combo.setFixedWidth(60)
         for intensity in range(1, 11, 1):
@@ -6563,6 +6619,9 @@ class SuperCutUI(QWidget):
         self.frame_box_caption_effect_intensity_combo.currentIndexChanged.connect(on_frame_box_caption_effect_intensity_changed)
         
         # Add styling controls to layout
+        # Text styling controls
+        frame_box_caption_styling_layout = QHBoxLayout()        
+        frame_box_caption_styling_layout.setSpacing(0)
         frame_box_caption_styling_layout.addWidget(caption_font_label)
         frame_box_caption_styling_layout.addWidget(self.frame_box_caption_font_combo)
         frame_box_caption_styling_layout.addWidget(caption_font_size_label)
@@ -6596,8 +6655,13 @@ class SuperCutUI(QWidget):
             # Update custom image checkbox styling
             if frame_box_enabled:
                 self.frame_box_custom_image_checkbox.setStyleSheet("")
+                if custom_image_enabled:
+                    frame_box_custom_image_label.setStyleSheet("")  # Label is active when checkbox is checked
+                else:
+                    frame_box_custom_image_label.setStyleSheet("color: grey;")  # Grey out label when checkbox is unchecked
             else:
                 self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
+                frame_box_custom_image_label.setStyleSheet("color: grey;")
             
             # Enable/disable custom image controls
             self.frame_box_custom_image_edit.setEnabled(both_enabled)
@@ -6702,6 +6766,7 @@ class SuperCutUI(QWidget):
             if both_enabled:
                 # Caption controls are enabled
                 self.frame_box_caption_png_checkbox.setStyleSheet("")
+                frame_box_caption_png_label.setStyleSheet("")
                 self.frame_box_caption_position_combo.setStyleSheet("")
                 caption_type_label.setStyleSheet("")
                 caption_position_label.setStyleSheet("")
@@ -6725,6 +6790,8 @@ class SuperCutUI(QWidget):
                     caption_font_size_label.setStyleSheet("")
                     caption_color_label.setStyleSheet("")
                     caption_effect_label.setStyleSheet("")
+                    caption_text_label.setStyleSheet("")  # Keep text label active in text mode
+                    caption_png_label.setStyleSheet("color: grey;")  # Grey out PNG label in text mode
                     
                     # Effect controls styling
                     effect_enabled = self.frame_box_caption_effect != "none"
@@ -6761,10 +6828,13 @@ class SuperCutUI(QWidget):
                     caption_effect_label.setStyleSheet("color: grey;")
                     caption_effect_color_label.setStyleSheet("color: grey;")
                     caption_effect_intensity_label.setStyleSheet("color: grey;")
+                    caption_text_label.setStyleSheet("color: grey;")  # Grey out text label in PNG mode
+                    caption_png_label.setStyleSheet("")  # Keep PNG label active in PNG mode
             else:
                 # Caption controls are disabled
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.frame_box_caption_png_checkbox.setStyleSheet("color: grey;")
+                frame_box_caption_png_label.setStyleSheet("color: grey;")
                 self.frame_box_caption_position_combo.setStyleSheet(grey_btn_style)
                 caption_type_label.setStyleSheet("color: grey;")
                 caption_position_label.setStyleSheet("color: grey;")
@@ -6817,6 +6887,8 @@ class SuperCutUI(QWidget):
             self.frame_box_start_edit.setEnabled(enabled)
             frame_box_start_label.setEnabled(enabled)
             self.frame_box_caption_checkbox.setEnabled(enabled)
+            self.frame_box_custom_image_checkbox.setEnabled(enabled)
+            self.frame_box_effect_combo.setEnabled(enabled)
             self.frame_box_color_btn.setEnabled(enabled)
             self.frame_box_opacity_combo.setEnabled(enabled)
             self.frame_box_pad_left_combo.setEnabled(enabled)
@@ -6842,7 +6914,13 @@ class SuperCutUI(QWidget):
                 frame_box_duration_label.setStyleSheet("")
                 frame_box_start_label.setStyleSheet("")
                 self.frame_box_caption_checkbox.setStyleSheet("")
+                frame_box_caption_label.setStyleSheet("")
+                self.frame_box_custom_image_checkbox.setStyleSheet("")
+                frame_box_custom_image_label.setStyleSheet("")
+                frame_box_label.setStyleSheet("")
+                frame_box_color_label.setStyleSheet("")
                 self.frame_box_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
+                frame_box_opacity_label.setStyleSheet("")
                 self.frame_box_opacity_combo.setStyleSheet("")
                 self.frame_box_pad_left_combo.setStyleSheet("")
                 self.frame_box_pad_right_combo.setStyleSheet("")
@@ -6866,7 +6944,13 @@ class SuperCutUI(QWidget):
                 frame_box_duration_label.setStyleSheet("color: grey;")
                 frame_box_start_label.setStyleSheet("color: grey;")
                 self.frame_box_caption_checkbox.setStyleSheet("color: grey;")
+                frame_box_caption_label.setStyleSheet("color: grey;")
+                self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
+                frame_box_custom_image_label.setStyleSheet("color: grey;")
+                frame_box_label.setStyleSheet("color: grey;")
+                frame_box_color_label.setStyleSheet("color: grey;")
                 self.frame_box_color_btn.setStyleSheet(grey_btn_style)
+                frame_box_opacity_label.setStyleSheet("color: grey;")
                 self.frame_box_opacity_combo.setStyleSheet(grey_btn_style)
                 self.frame_box_pad_left_combo.setStyleSheet(grey_btn_style)
                 self.frame_box_pad_right_combo.setStyleSheet(grey_btn_style)
@@ -6899,6 +6983,13 @@ class SuperCutUI(QWidget):
                 self.frame_box_duration_edit.setEnabled(False)
                 self.frame_box_duration_full_checkbox.setStyleSheet("color: grey;")
                 self.frame_box_duration_full_checkbox.setEnabled(False)
+                frame_box_duration_full_label.setStyleSheet("color: grey;")
+                frame_box_custom_image_label.setStyleSheet("color: grey;")
+                self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
+                self.frame_box_custom_image_checkbox.setEnabled(False)
+                frame_box_color_label.setStyleSheet("color: grey;")
+                frame_box_opacity_label.setStyleSheet("color: grey;")
+                frame_box_caption_label.setStyleSheet("color: grey;")
                 # Don't manage caption checkbox here - let the caption system handle it
             else:
                 frame_box_label.setStyleSheet("")
@@ -6910,13 +7001,19 @@ class SuperCutUI(QWidget):
                 # Re-enable the full duration checkbox and let it control the duration field styling
                 self.frame_box_duration_full_checkbox.setStyleSheet("")
                 self.frame_box_duration_full_checkbox.setEnabled(True)
+                frame_box_duration_full_label.setStyleSheet("")
+                frame_box_custom_image_label.setStyleSheet("")
+                self.frame_box_custom_image_checkbox.setStyleSheet("")
+                self.frame_box_custom_image_checkbox.setEnabled(True)
+                frame_box_color_label.setStyleSheet("")
+                frame_box_opacity_label.setStyleSheet("")
+                frame_box_caption_label.setStyleSheet("")
                 # Don't manage caption checkbox here - let the caption system handle it
                 set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
         self.frame_box_checkbox.stateChanged.connect(lambda _: update_frame_box_effect_label_style())
         self.frame_box_checkbox.stateChanged.connect(lambda _: update_custom_image_controls_state())
         self.frame_box_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState()))
         update_frame_box_effect_label_style()
-        set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
         update_custom_image_controls_state()
 
         # --- FINAL SETTINGS GROUP BOX ---
@@ -6953,7 +7050,7 @@ class SuperCutUI(QWidget):
 
         # Background scale dropdown (100% to 200%)
         bg_scale_label = QLabel("Scale:")
-        bg_scale_label.setFixedWidth(label_long_width)
+        bg_scale_label.setFixedWidth(label_short_width)
         bg_scale_label.setFixedHeight(unified_height)
         self.bg_scale_combo = NoWheelComboBox()
         self.bg_scale_combo.setFixedWidth(combo_medium_width)
@@ -6970,7 +7067,7 @@ class SuperCutUI(QWidget):
 
         # Background crop position dropdown
         bg_crop_position_label = QLabel("Crop:")
-        bg_crop_position_label.setFixedWidth(label_long_width)
+        bg_crop_position_label.setFixedWidth(label_short_width)
         bg_crop_position_label.setFixedHeight(unified_height)
         self.bg_crop_position_combo = NoWheelComboBox()
         self.bg_crop_position_combo.setFixedWidth(combo_medium_width)
@@ -6997,7 +7094,7 @@ class SuperCutUI(QWidget):
 
         # Background effect dropdown
         bg_effect_label = QLabel("Effect:")
-        bg_effect_label.setFixedWidth(label_long_width)
+        bg_effect_label.setFixedWidth(label_short_width)
         bg_effect_label.setFixedHeight(unified_height)
         self.bg_effect_combo = NoWheelComboBox()
         self.bg_effect_combo.setFixedWidth(combo_medium_width)
@@ -7020,7 +7117,7 @@ class SuperCutUI(QWidget):
 
         # Background effect intensity dropdown (1-100)
         bg_intensity_label = QLabel("Intensity:")
-        bg_intensity_label.setFixedWidth(label_long_width)
+        bg_intensity_label.setFixedWidth(label_short_width)
         bg_intensity_label.setFixedHeight(unified_height)
         self.bg_intensity_combo = NoWheelComboBox()
         self.bg_intensity_combo.setFixedWidth(combo_medium_width)
@@ -7063,18 +7160,18 @@ class SuperCutUI(QWidget):
         self.bg_layer_checkbox.stateChanged.connect(lambda _: set_bg_layer_enabled(self.bg_layer_checkbox.checkState()))
 
         bg_layer_layout = QHBoxLayout()
-        bg_layer_layout.setSpacing(4)
+        bg_layer_layout.setSpacing(0)
         bg_layer_layout.addWidget(self.bg_layer_checkbox)
-        bg_layer_layout.addSpacing(4)
+        bg_layer_layout.addSpacing(0)
         bg_layer_layout.addWidget(bg_scale_label)
         bg_layer_layout.addWidget(self.bg_scale_combo)
-        bg_layer_layout.addSpacing(4)
+        bg_layer_layout.addSpacing(0)
         bg_layer_layout.addWidget(bg_crop_position_label)
         bg_layer_layout.addWidget(self.bg_crop_position_combo)
-        bg_layer_layout.addSpacing(4)
+        bg_layer_layout.addSpacing(0)
         bg_layer_layout.addWidget(bg_effect_label)
         bg_layer_layout.addWidget(self.bg_effect_combo)
-        bg_layer_layout.addSpacing(4)
+        bg_layer_layout.addSpacing(0)
         bg_layer_layout.addWidget(bg_intensity_label)
         bg_layer_layout.addWidget(self.bg_intensity_combo)
         bg_layer_layout.addStretch()
