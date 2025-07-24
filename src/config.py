@@ -84,19 +84,26 @@ STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.pa
         height: 16px;
         border-radius: 6px;
         border: 1px solid #ccc;
-        background: transparent;
+        background: #ffffff;
     }
     QCheckBox::indicator:hover {
         border: 1px solid #357ABD;
     }
     QCheckBox::indicator:checked {
-        background: transparent;
+        background: #ffffff;
         border: 1px solid #ccc;
         image: url(src/sources/black_tick.svg);
     }
     QCheckBox::indicator:unchecked {
-        background: transparent;
+        background: #ffffff;
         border: 1px solid #ccc;
+    }
+    QCheckBox:disabled {
+        color: #888;
+    }
+    QCheckBox::indicator:disabled {
+        background: #f2f2f2;
+        border: 1px solid #cfcfcf;
     }
     QScrollBar:vertical {
         background: rgba(240, 240, 240, 0.20);
