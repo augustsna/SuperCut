@@ -951,8 +951,7 @@ class SuperCutUI(QWidget):
         self.static_icon = static_icon  # Store as instance variable for later control
         spinner_label = QLabel()
         spinner_movie = QMovie(os.path.join(PROJECT_ROOT, "src", "sources", "spinner.gif"))
-        spinner_label.setMovie(spinner_movie)       
-        spinner_movie.start()
+        spinner_label.setMovie(spinner_movie)               
         spinner_label.setVisible(False)  # Hide by default
         self.spinner_label = spinner_label  # Store as instance variable for later control
         # Add loading.gif after spinner gif
@@ -1232,15 +1231,15 @@ class SuperCutUI(QWidget):
 
         unified_height = 30
     
-        select_btn_width = 60        
+        select_btn_width = 45        
 
-        combo_long_width = 115
+        combo_long_width = 105
 
         combo_medium_width = 70
 
-        combo_short_width = 50          
+        combo_short_width = 50
 
-        edit_long_width = 115        
+        edit_long_width = 100        
 
         edit_short_width = 35  
 
@@ -1371,7 +1370,7 @@ class SuperCutUI(QWidget):
                 self.intro_edit.setText(cleaned_text)
             self.intro_path = self.intro_edit.text().strip()
         self.intro_edit.textChanged.connect(on_intro_changed)
-        intro_btn = QPushButton("Select")
+        intro_btn = QPushButton("File")
         intro_btn.setFixedWidth(select_btn_width)
         intro_btn.setFixedHeight(unified_height)
         def select_intro_image():
@@ -1733,7 +1732,7 @@ class SuperCutUI(QWidget):
                 self.overlay1_edit.setText(cleaned_text)
             self.overlay1_path = self.overlay1_edit.text().strip()
         self.overlay1_edit.textChanged.connect(on_overlay1_changed)
-        overlay1_btn = QPushButton("Select")
+        overlay1_btn = QPushButton("File")
         overlay1_btn.setFixedWidth(select_btn_width)
         overlay1_btn.setFixedHeight(unified_height)
         def select_overlay1_image():
@@ -1883,7 +1882,7 @@ class SuperCutUI(QWidget):
                 self.overlay2_edit.setText(cleaned_text)
             self.overlay2_path = self.overlay2_edit.text().strip()
         self.overlay2_edit.textChanged.connect(on_overlay2_changed)
-        overlay2_btn = QPushButton("Select")
+        overlay2_btn = QPushButton("File")
         overlay2_btn.setFixedWidth(select_btn_width)
         overlay2_btn.setFixedHeight(unified_height)
         def select_overlay2_image():
@@ -2246,7 +2245,7 @@ class SuperCutUI(QWidget):
                 self.overlay4_edit.setText(cleaned_text)
             self.overlay4_path = self.overlay4_edit.text().strip()
         self.overlay4_edit.textChanged.connect(on_overlay4_changed)
-        overlay4_btn = QPushButton("Select")
+        overlay4_btn = QPushButton("File")
         overlay4_btn.setFixedWidth(select_btn_width)
         overlay4_btn.setFixedHeight(unified_height)
         def select_overlay4_image():
@@ -2369,7 +2368,7 @@ class SuperCutUI(QWidget):
                 self.overlay5_edit.setText(cleaned_text)
             self.overlay5_path = self.overlay5_edit.text().strip()
         self.overlay5_edit.textChanged.connect(on_overlay5_changed)
-        overlay5_btn = QPushButton("Select")
+        overlay5_btn = QPushButton("File")
         overlay5_btn.setFixedWidth(select_btn_width)
         overlay5_btn.setFixedHeight(unified_height)
         def select_overlay5_image():
@@ -2715,7 +2714,7 @@ class SuperCutUI(QWidget):
                 self.overlay6_edit.setText(cleaned_text)
             self.overlay6_path = self.overlay6_edit.text().strip()
         self.overlay6_edit.textChanged.connect(on_overlay6_changed)
-        overlay6_btn = QPushButton("Select")
+        overlay6_btn = QPushButton("File")
         overlay6_btn.setFixedWidth(select_btn_width)
         overlay6_btn.setFixedHeight(unified_height)
         def select_overlay6_image():
@@ -2843,7 +2842,7 @@ class SuperCutUI(QWidget):
                 self.overlay7_edit.setText(cleaned_text)
             self.overlay7_path = self.overlay7_edit.text().strip()
         self.overlay7_edit.textChanged.connect(on_overlay7_changed)
-        overlay7_btn = QPushButton("Select")
+        overlay7_btn = QPushButton("File")
         overlay7_btn.setFixedWidth(select_btn_width)
         overlay7_btn.setFixedHeight(unified_height)
         def select_overlay7_image():
@@ -3368,7 +3367,7 @@ class SuperCutUI(QWidget):
                 self.overlay3_edit.setText(cleaned_text)
             self.overlay3_path = self.overlay3_edit.text().strip()
         self.overlay3_edit.textChanged.connect(on_overlay3_changed)
-        overlay3_btn = QPushButton("Select")
+        overlay3_btn = QPushButton("File")
         overlay3_btn.setFixedWidth(select_btn_width)
         overlay3_btn.setFixedHeight(unified_height)
         def select_overlay3_image():
@@ -3977,7 +3976,7 @@ class SuperCutUI(QWidget):
                 self.overlay8_edit.setText(cleaned_text)
             self.overlay8_path = self.overlay8_edit.text().strip()
         self.overlay8_edit.textChanged.connect(on_overlay8_changed)
-        overlay8_btn = QPushButton("Select")
+        overlay8_btn = QPushButton("File")
         overlay8_btn.setFixedWidth(select_btn_width)
         overlay8_btn.setFixedHeight(unified_height)
         def select_overlay8_image():
@@ -4477,7 +4476,7 @@ class SuperCutUI(QWidget):
                 self.overlay9_edit.setText(cleaned_text)
             self.overlay9_path = self.overlay9_edit.text().strip()
         self.overlay9_edit.textChanged.connect(on_overlay9_changed)
-        overlay9_btn = QPushButton("Select")
+        overlay9_btn = QPushButton("File")
         overlay9_btn.setFixedWidth(select_btn_width)
         overlay9_btn.setFixedHeight(unified_height)
         def select_overlay9_image():
@@ -4973,7 +4972,7 @@ class SuperCutUI(QWidget):
                 self.overlay10_edit.setText(cleaned_text)
             self.overlay10_path = self.overlay10_edit.text().strip()
         self.overlay10_edit.textChanged.connect(on_overlay10_changed)
-        overlay10_btn = QPushButton("Select")
+        overlay10_btn = QPushButton("File")
         overlay10_btn.setFixedWidth(select_btn_width)
         overlay10_btn.setFixedHeight(unified_height)
         def select_overlay10_image():
@@ -5177,8 +5176,8 @@ class SuperCutUI(QWidget):
         self.overlay10_song_start_end.stateChanged.connect(update_overlay10_song_start_end_checkbox_style)
         update_overlay10_song_start_end_checkbox_style(self.overlay10_song_start_end.checkState())
 
-        overlay10_start_end_label = QLabel("When song:")
-        overlay10_start_end_label.setFixedWidth(label_long_width)
+        overlay10_start_end_label = QLabel("Song:")
+        overlay10_start_end_label.setFixedWidth(label_short_width)
         overlay10_start_end_label.setFixedHeight(unified_height)
         self.overlay10_start_end_combo = NoWheelComboBox()
         self.overlay10_start_end_combo.setFixedWidth(combo_medium_width)
@@ -5363,7 +5362,7 @@ class SuperCutUI(QWidget):
                 self.frame_mp3cover_custom_image_edit.setText(file_path)
                 self.frame_mp3cover_custom_image_path = file_path
         
-        self.frame_mp3cover_custom_image_btn = QPushButton("Select")
+        self.frame_mp3cover_custom_image_btn = QPushButton("File")
         self.frame_mp3cover_custom_image_btn.setFixedWidth(select_btn_width)
         self.frame_mp3cover_custom_image_btn.setFixedHeight(unified_height)
         self.frame_mp3cover_custom_image_btn.clicked.connect(select_frame_mp3cover_custom_image)
@@ -5681,8 +5680,6 @@ class SuperCutUI(QWidget):
         self.mp3_cover_overlay_checkbox.stateChanged.connect(update_mp3_cover_overlay_checkbox_style)
         update_mp3_cover_overlay_checkbox_style(self.mp3_cover_overlay_checkbox.checkState())
 
-        mp3_cover_overlay_layout = QHBoxLayout()
-        mp3_cover_overlay_layout.setSpacing(4)
         
         # MP3 cover size option (5% to 100%)
         mp3_cover_size_label = QLabel("S:")
@@ -5735,7 +5732,7 @@ class SuperCutUI(QWidget):
 
         # MP3 cover effect
         mp3_cover_effect_label = QLabel("Effect:")
-        mp3_cover_effect_label.setFixedWidth(label_long_width)
+        mp3_cover_effect_label.setFixedWidth(label_medium_width)
         mp3_cover_effect_label.setFixedHeight(unified_height)
         self.mp3_cover_effect_combo = NoWheelComboBox()
         self.mp3_cover_effect_combo.setFixedWidth(combo_long_width)
@@ -5816,8 +5813,8 @@ class SuperCutUI(QWidget):
         on_mp3_cover_start_changed()
 
         # MP3 cover frame color picker
-        mp3_cover_frame_color_label = QLabel("Frame Color:")
-        mp3_cover_frame_color_label.setFixedWidth(label_long_width)
+        mp3_cover_frame_color_label = QLabel("C:")
+        mp3_cover_frame_color_label.setFixedWidth(label_mini_width)
         mp3_cover_frame_color_label.setFixedHeight(unified_height)
         self.mp3_cover_frame_color_btn = QPushButton()
         self.mp3_cover_frame_color_btn.setFixedSize(27, 27)
@@ -5856,8 +5853,12 @@ class SuperCutUI(QWidget):
         on_mp3_cover_frame_size_changed(self.mp3_cover_frame_size_combo.currentIndex())
 
         # Custom image checkbox for MP3 cover overlay
-        self.mp3_cover_custom_image_checkbox = QtWidgets.QCheckBox("Custom:")
-        self.mp3_cover_custom_image_checkbox.setFixedWidth(label_long_width)
+        mp3_cover_custom_image_label = QLabel("Custom:")
+        mp3_cover_custom_image_label.setFixedWidth(label_long_width)
+        mp3_cover_custom_image_label.setFixedHeight(unified_height)
+        self.mp3_cover_custom_image_checkbox = QtWidgets.QCheckBox("")
+        self.mp3_cover_custom_image_checkbox.setFixedWidth(checkbox_solo_width)
+        self.mp3_cover_custom_image_checkbox.setFixedHeight(unified_height)
         self.mp3_cover_custom_image_checkbox.setChecked(False)
         def update_mp3_cover_custom_image_checkbox_style(state):
             self.mp3_cover_custom_image_checkbox.setStyleSheet("")  # Always default color
@@ -5880,7 +5881,7 @@ class SuperCutUI(QWidget):
                 self.mp3_cover_custom_image_edit.setText(file_path)
                 self.mp3_cover_custom_image_path = file_path
         
-        self.mp3_cover_custom_image_btn = QPushButton("Select")
+        self.mp3_cover_custom_image_btn = QPushButton("File")
         self.mp3_cover_custom_image_btn.setFixedWidth(select_btn_width)
         self.mp3_cover_custom_image_btn.setFixedHeight(unified_height)
         self.mp3_cover_custom_image_btn.clicked.connect(select_mp3_cover_custom_image)
@@ -5942,6 +5943,7 @@ class SuperCutUI(QWidget):
                 mp3_cover_start_label.setStyleSheet("")
                 mp3_cover_frame_color_label.setStyleSheet("")
                 mp3_cover_frame_size_label.setStyleSheet("")
+                mp3_cover_custom_image_label.setStyleSheet("")
                 # Reset custom image checkbox styling when MP3 cover overlay is enabled
                 self.mp3_cover_custom_image_checkbox.setStyleSheet("")
                 # Duration controls depend on full duration checkbox
@@ -5970,6 +5972,7 @@ class SuperCutUI(QWidget):
                 mp3_cover_start_label.setStyleSheet("color: grey;")
                 mp3_cover_frame_color_label.setStyleSheet("color: grey;")
                 mp3_cover_frame_size_label.setStyleSheet("color: grey;")
+                mp3_cover_custom_image_label.setStyleSheet("color: grey;")
                 # Also grey out custom image controls when MP3 cover overlay is disabled
                 self.mp3_cover_custom_image_checkbox.setStyleSheet("color: grey;")
                 self.mp3_cover_custom_image_edit.setStyleSheet(grey_btn_style)
@@ -5983,6 +5986,7 @@ class SuperCutUI(QWidget):
         self.mp3_cover_duration_full_checkbox.stateChanged.connect(lambda _: set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState()))
         
         # First line: checkbox, frame controls, size, x, y controls
+        mp3_cover_overlay_layout = QHBoxLayout()        
         mp3_cover_overlay_layout.setSpacing(0)
         mp3_cover_overlay_layout.addWidget(self.mp3_cover_overlay_checkbox)
         mp3_cover_overlay_layout.addWidget(mp3_cover_frame_color_label)
@@ -6004,19 +6008,21 @@ class SuperCutUI(QWidget):
 
         # Second line: custom image controls, effect, duration, and start controls
         mp3_cover_effect_layout = QHBoxLayout()
-        mp3_cover_effect_layout.setSpacing(4)        
+        mp3_cover_effect_layout.setSpacing(0)        
         mp3_cover_effect_layout.addWidget(self.mp3_cover_custom_image_checkbox)
+        mp3_cover_effect_layout.addWidget(mp3_cover_custom_image_label)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_custom_image_edit)
+        mp3_cover_effect_layout.addSpacing(10)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_custom_image_btn)
         mp3_cover_effect_layout.addSpacing(0)
         mp3_cover_effect_layout.addWidget(mp3_cover_effect_label)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_effect_combo)
+        mp3_cover_effect_layout.addWidget(mp3_cover_duration_full_label)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_duration_full_checkbox)
         mp3_cover_effect_layout.addSpacing(0)
         mp3_cover_effect_layout.addWidget(mp3_cover_duration_label)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_duration_edit)
         mp3_cover_effect_layout.addSpacing(0)
-        mp3_cover_effect_layout.addWidget(mp3_cover_duration_full_label)
-        mp3_cover_effect_layout.addWidget(self.mp3_cover_duration_full_checkbox)
         mp3_cover_effect_layout.addSpacing(0)
         mp3_cover_effect_layout.addWidget(mp3_cover_start_label)
         mp3_cover_effect_layout.addWidget(self.mp3_cover_start_edit)
@@ -6089,7 +6095,7 @@ class SuperCutUI(QWidget):
                 self.frame_box_custom_image_edit.setText(file_path)
                 self.frame_box_custom_image_path = file_path
         
-        self.frame_box_custom_image_btn = QPushButton("Select")
+        self.frame_box_custom_image_btn = QPushButton("File")
         self.frame_box_custom_image_btn.setFixedWidth(select_btn_width)
         self.frame_box_custom_image_btn.setFixedHeight(unified_height)
         self.frame_box_custom_image_btn.clicked.connect(select_frame_box_custom_image)
@@ -6480,7 +6486,7 @@ class SuperCutUI(QWidget):
                 self.frame_box_caption_png_edit.setText(file_path)
                 self.frame_box_caption_png_path = file_path
         
-        self.frame_box_caption_png_btn = QPushButton("Select")
+        self.frame_box_caption_png_btn = QPushButton("File")
         self.frame_box_caption_png_btn.setFixedWidth(select_btn_width)
         self.frame_box_caption_png_btn.setFixedHeight(unified_height)
         self.frame_box_caption_png_btn.clicked.connect(select_frame_box_caption_png)
@@ -6678,7 +6684,7 @@ class SuperCutUI(QWidget):
                 if custom_image_enabled:
                     frame_box_custom_image_label.setStyleSheet("")  # Label is active when checkbox is checked
                 else:
-                    frame_box_custom_image_label.setStyleSheet("color: grey;")  # Grey out label when checkbox is unchecked
+                    frame_box_custom_image_label.setStyleSheet("")  # Grey out label when checkbox is unchecked
             else:
                 self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
                 frame_box_custom_image_label.setStyleSheet("color: grey;")
@@ -7817,6 +7823,13 @@ class SuperCutUI(QWidget):
             self.stop_btn.setEnabled(False)
         if hasattr(self, 'spinner_label'):
             self.spinner_label.setVisible(processing)
+            # Control spinner movie animation
+            movie = self.spinner_label.movie()
+            if movie is not None:
+                if processing:
+                    movie.start()
+                else:
+                    movie.stop()
         if hasattr(self, 'loading_label'):
             # Always show loading animation during processing
             self.loading_label.setVisible(processing)
