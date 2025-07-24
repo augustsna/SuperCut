@@ -219,7 +219,7 @@ class SettingsDialog(QDialog):
             default_preset = self.settings.value('default_ffmpeg_preset', DEFAULT_FFMPEG_PRESET, type=str)
         else:
             default_preset = DEFAULT_FFMPEG_PRESET
-        idx = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 6)
+        idx = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 1)
         self.preset_combo.setCurrentIndex(idx)
         # --- FFmpeg Audio Bitrate Combo ---
         self.audio_bitrate_combo = NoWheelComboBox(self)
@@ -271,7 +271,6 @@ class SettingsDialog(QDialog):
             default_bufsize = DEFAULT_BUFSIZE
         idx = next((i for i, (label, value) in enumerate(DEFAULT_BUFSIZE_OPTIONS) if value == default_bufsize), 4)
         self.bufsize_combo.setCurrentIndex(idx)
-        
 
         # Add to left_form in new order with reduced spacing
         left_form.addRow("Window Size:", window_size_layout)
@@ -541,9 +540,9 @@ class SettingsDialog(QDialog):
                 
                 # Check if values were changed
                 if clamped_width != window_width or clamped_height != window_height:
-                    print(f"Window size clamped:\n{window_width}x{window_height} -> {clamped_width}x{clamped_height}\n")
+                    print(f"Window size clamped:{window_width}x{window_height} -> {clamped_width}x{clamped_height}")
                 else:
-                    print(f"Window size saved:\n{clamped_width}x{clamped_height}\n")
+                    print(f"Window size saved:{clamped_width}x{clamped_height}")
                 
                 self.settings.setValue('default_window_width', clamped_width)
                 self.settings.setValue('default_window_height', clamped_height)
@@ -595,7 +594,7 @@ class SettingsDialog(QDialog):
         # Resolution
         self.resolution_combo.setCurrentIndex(0)
         # FFmpeg Preset
-        self.preset_combo.setCurrentIndex(6)  # 'slow' is default
+        self.preset_combo.setCurrentIndex(1)  # 'slow' is default
         # FFmpeg Audio Bitrate
         self.audio_bitrate_combo.setCurrentIndex(5)  # '384k' is default
         # FFmpeg Video Bitrate
@@ -1302,7 +1301,7 @@ class SuperCutUI(QWidget):
             self.preset_combo.addItem(label, value)
         # Load default preset from settings
         default_preset = self.settings.value('default_ffmpeg_preset', DEFAULT_FFMPEG_PRESET, type=str)
-        preset_index = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 6)  # Default to "slow"
+        preset_index = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 1)  # Default to "slow"
         self.preset_combo.setCurrentIndex(preset_index)
         
         # core setting setting layout
@@ -9294,7 +9293,7 @@ class SuperCutUI(QWidget):
         # Set preset combo state from settings
         default_preset = self.settings.value('default_ffmpeg_preset', DEFAULT_FFMPEG_PRESET, type=str)
         if default_preset is not None and hasattr(self, 'preset_combo'):
-            idx = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 6)
+            idx = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 1)
             self.preset_combo.setCurrentIndex(idx)
 
     def cleanup_worker_and_thread(self):
