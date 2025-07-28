@@ -6523,14 +6523,14 @@ class SuperCutUI(QWidget):
         self.frame_box_caption_png_checkbox.stateChanged.connect(on_frame_box_caption_png_checked)
         
         # Text caption input
-        caption_text_label = QLabel("Text:")
+        caption_text_label = QLabel("txt:")
         caption_text_label.setFixedWidth(label_mini_width)
         caption_text_label.setFixedHeight(unified_height)
         self.frame_box_caption_text_edit = KhmerSupportLineEdit()
         self.frame_box_caption_text_edit.setFixedWidth(edit_medium_width)
         self.frame_box_caption_text_edit.setFixedHeight(unified_height)
-        self.frame_box_caption_text_edit.setText("Frame Box Caption")
-        self.frame_box_caption_text = "Frame Box Caption"
+        self.frame_box_caption_text_edit.setText("Caption")
+        self.frame_box_caption_text = "Caption"
         
         def on_frame_box_caption_text_changed():
             self.frame_box_caption_text = self.frame_box_caption_text_edit.text()
@@ -6542,7 +6542,7 @@ class SuperCutUI(QWidget):
         caption_png_label.setFixedWidth(label_mini_width)
         caption_png_label.setFixedHeight(unified_height)
         self.frame_box_caption_png_edit = ImageDropLineEdit()
-        self.frame_box_caption_png_edit.setFixedWidth(edit_medium_width)
+        self.frame_box_caption_png_edit.setFixedWidth(104)
         self.frame_box_caption_png_edit.setFixedHeight(unified_height)
         self.frame_box_caption_png_edit.setPlaceholderText("Select PNG file...")
         self.frame_box_caption_png_path = None
@@ -6556,7 +6556,7 @@ class SuperCutUI(QWidget):
                 self.frame_box_caption_png_path = file_path
         
         self.frame_box_caption_png_btn = QPushButton("File")
-        self.frame_box_caption_png_btn.setFixedWidth(file_btn_width)
+        self.frame_box_caption_png_btn.setFixedWidth(combo_short_width)
         self.frame_box_caption_png_btn.setFixedHeight(unified_height)
         self.frame_box_caption_png_btn.clicked.connect(select_frame_box_caption_png)
         
@@ -6569,16 +6569,21 @@ class SuperCutUI(QWidget):
         # --- Frame Box Caption Checkbox and Position Selection ---
         frame_box_caption_header_layout = QHBoxLayout()
         frame_box_caption_header_layout.setSpacing(0)
+        frame_box_caption_header_layout.addSpacing(48)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_checkbox)
         frame_box_caption_header_layout.addWidget(frame_box_caption_label)
-        frame_box_caption_header_layout.addWidget(caption_position_label)
+        frame_box_caption_header_layout.addSpacing(12)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_position_combo)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_checkbox)   
-        frame_box_caption_header_layout.addWidget(caption_png_label)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_edit)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_btn)    
+        frame_box_caption_header_layout.addSpacing(3)
         frame_box_caption_header_layout.addWidget(caption_text_label)
+        frame_box_caption_header_layout.addSpacing(-5)
         frame_box_caption_header_layout.addWidget(self.frame_box_caption_text_edit)
+        frame_box_caption_header_layout.addSpacing(25)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_checkbox)  
+        frame_box_caption_header_layout.addSpacing(5)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_edit)
+        frame_box_caption_header_layout.addSpacing(13)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_btn)    
         frame_box_caption_header_layout.addStretch()
         frame_box_groupbox_layout.addLayout(frame_box_caption_header_layout)
         
@@ -6587,7 +6592,7 @@ class SuperCutUI(QWidget):
         
         # Font selection
         caption_font_label = QLabel("Font:")
-        caption_font_label.setFixedWidth(label_mini_width)
+        caption_font_label.setFixedWidth(label_short_width)
         caption_font_label.setFixedHeight(unified_height)
         
         self.frame_box_caption_font_combo = NoWheelComboBox()
@@ -6606,8 +6611,8 @@ class SuperCutUI(QWidget):
         self.frame_box_caption_font_combo.currentIndexChanged.connect(on_frame_box_caption_font_changed)
         
         # Font size
-        caption_font_size_label = QLabel("Size:")
-        caption_font_size_label.setFixedWidth(label_mini_width)
+        caption_font_size_label = QLabel("S:")
+        caption_font_size_label.setFixedWidth(label_micro_width)
         caption_font_size_label.setFixedHeight(unified_height)
         self.frame_box_caption_font_size_combo = NoWheelComboBox()
         self.frame_box_caption_font_size_combo.setFixedWidth(combo_mini_width)
@@ -6623,8 +6628,8 @@ class SuperCutUI(QWidget):
         self.frame_box_caption_font_size_combo.currentIndexChanged.connect(on_frame_box_caption_font_size_changed)
         
         # Text color picker
-        caption_color_label = QLabel("Color:")
-        caption_color_label.setFixedWidth(label_mini_width)
+        caption_color_label = QLabel("C:")
+        caption_color_label.setFixedWidth(label_micro_width)
         caption_color_label.setFixedHeight(unified_height)
         self.frame_box_caption_color_btn = QPushButton()
         self.frame_box_caption_color_btn.setFixedWidth(27)
@@ -6646,7 +6651,7 @@ class SuperCutUI(QWidget):
         caption_effect_label.setFixedWidth(label_mini_width)
         caption_effect_label.setFixedHeight(unified_height)
         self.frame_box_caption_effect_combo = NoWheelComboBox()
-        self.frame_box_caption_effect_combo.setFixedWidth(80)
+        self.frame_box_caption_effect_combo.setFixedWidth(combo_short_width)
         self.frame_box_caption_effect_combo.addItem("None", "none")
         self.frame_box_caption_effect_combo.addItem("Outline", "outline")
         self.frame_box_caption_effect_combo.addItem("Outward Stroke", "outward_stroke")
@@ -6680,8 +6685,8 @@ class SuperCutUI(QWidget):
         self.frame_box_caption_effect_combo.currentIndexChanged.connect(on_frame_box_caption_effect_changed)
         
         # Effect color picker
-        caption_effect_color_label = QLabel("FX Color:")
-        caption_effect_color_label.setFixedWidth(label_mini_width)
+        caption_effect_color_label = QLabel("C:")
+        caption_effect_color_label.setFixedWidth(label_micro_width)
         caption_effect_color_label.setFixedHeight(unified_height)
         self.frame_box_caption_effect_color_btn = QPushButton()
         self.frame_box_caption_effect_color_btn.setFixedWidth(27)
@@ -6698,11 +6703,12 @@ class SuperCutUI(QWidget):
         self.frame_box_caption_effect_color_btn.clicked.connect(on_frame_box_caption_effect_color_clicked)
         
         # Effect intensity
-        caption_effect_intensity_label = QLabel("FX Int:")
-        caption_effect_intensity_label.setFixedWidth(label_mini_width)
+        caption_effect_intensity_label = QLabel("i")
+        caption_effect_intensity_label.setFixedWidth(label_micro_width)
         caption_effect_intensity_label.setFixedHeight(unified_height)
         self.frame_box_caption_effect_intensity_combo = NoWheelComboBox()
-        self.frame_box_caption_effect_intensity_combo.setFixedWidth(60)
+        self.frame_box_caption_effect_intensity_combo.setFixedWidth(combo_short_width)
+        self.frame_box_caption_effect_intensity_combo.setFixedHeight(unified_height)
         for intensity in range(1, 11, 1):
             self.frame_box_caption_effect_intensity_combo.addItem(f"{intensity}", intensity)
         self.frame_box_caption_effect_intensity_combo.setCurrentIndex(4)  # Default 5
@@ -6717,17 +6723,26 @@ class SuperCutUI(QWidget):
         # Text styling controls
         frame_box_caption_styling_layout = QHBoxLayout()        
         frame_box_caption_styling_layout.setSpacing(0)
+        frame_box_caption_styling_layout.addSpacing(85)
         frame_box_caption_styling_layout.addWidget(caption_font_label)
+        frame_box_caption_styling_layout.addSpacing(4)
         frame_box_caption_styling_layout.addWidget(self.frame_box_caption_font_combo)
-        frame_box_caption_styling_layout.addWidget(caption_font_size_label)
+        frame_box_caption_styling_layout.addSpacing(8)
+        frame_box_caption_styling_layout.addWidget(caption_font_size_label)        
         frame_box_caption_styling_layout.addWidget(self.frame_box_caption_font_size_combo)
+        frame_box_caption_styling_layout.addSpacing(1)
         frame_box_caption_styling_layout.addWidget(caption_color_label)
+        frame_box_caption_styling_layout.addSpacing(-3)
         frame_box_caption_styling_layout.addWidget(self.frame_box_caption_color_btn)
+        frame_box_caption_styling_layout.addSpacing(20)
         frame_box_caption_styling_layout.addWidget(caption_effect_label)        
         frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_combo)
+        frame_box_caption_styling_layout.addSpacing(2)
         frame_box_caption_styling_layout.addWidget(caption_effect_color_label)
         frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_color_btn)
+        frame_box_caption_styling_layout.addSpacing(2)
         frame_box_caption_styling_layout.addWidget(caption_effect_intensity_label)
+        frame_box_caption_styling_layout.addSpacing(-9)
         frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_intensity_combo)
         frame_box_caption_styling_layout.addStretch()
         
@@ -6994,6 +7009,7 @@ class SuperCutUI(QWidget):
             right_pad_label.setEnabled(enabled)
             top_pad_label.setEnabled(enabled)
             bottom_pad_label.setEnabled(enabled)
+            pad_label.setEnabled(enabled)
             
             # Update caption controls state
             update_caption_controls_state()
@@ -7025,6 +7041,7 @@ class SuperCutUI(QWidget):
                 right_pad_label.setStyleSheet("")
                 top_pad_label.setStyleSheet("")
                 bottom_pad_label.setStyleSheet("")
+                pad_label.setStyleSheet("")
 
             else:
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
@@ -7055,6 +7072,7 @@ class SuperCutUI(QWidget):
                 right_pad_label.setStyleSheet("color: grey;")
                 top_pad_label.setStyleSheet("color: grey;")
                 bottom_pad_label.setStyleSheet("color: grey;")
+                pad_label.setStyleSheet("color: grey;")
                 
 
         self.frame_box_checkbox.stateChanged.connect(lambda _: set_frame_box_enabled(self.frame_box_checkbox.checkState()))
@@ -7145,7 +7163,7 @@ class SuperCutUI(QWidget):
 
         # Background scale dropdown (100% to 200%)
         bg_scale_label = QLabel("Scale:")
-        bg_scale_label.setFixedWidth(label_mini_width)
+        bg_scale_label.setFixedWidth(label_short_width)
         bg_scale_label.setFixedHeight(unified_height)
         self.bg_scale_combo = NoWheelComboBox()
         self.bg_scale_combo.setFixedWidth(combo_mini_width)
@@ -7162,7 +7180,7 @@ class SuperCutUI(QWidget):
 
         # Background crop position dropdown
         bg_crop_position_label = QLabel("Crop:")
-        bg_crop_position_label.setFixedWidth(label_mini_width)
+        bg_crop_position_label.setFixedWidth(label_short_width)
         bg_crop_position_label.setFixedHeight(unified_height)
         self.bg_crop_position_combo = NoWheelComboBox()
         self.bg_crop_position_combo.setFixedWidth(combo_mini_width)
@@ -7189,7 +7207,7 @@ class SuperCutUI(QWidget):
 
         # Background effect dropdown
         bg_effect_label = QLabel("Effect:")
-        bg_effect_label.setFixedWidth(label_mini_width)
+        bg_effect_label.setFixedWidth(label_short_width)
         bg_effect_label.setFixedHeight(unified_height)
         self.bg_effect_combo = NoWheelComboBox()
         self.bg_effect_combo.setFixedWidth(combo_mini_width)
@@ -7212,7 +7230,7 @@ class SuperCutUI(QWidget):
 
         # Background effect intensity dropdown (1-100)
         bg_intensity_label = QLabel("Intensity:")
-        bg_intensity_label.setFixedWidth(label_mini_width)
+        bg_intensity_label.setFixedWidth(label_short_width)
         bg_intensity_label.setFixedHeight(unified_height)
         self.bg_intensity_combo = NoWheelComboBox()
         self.bg_intensity_combo.setFixedWidth(combo_mini_width)
