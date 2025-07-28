@@ -1237,7 +1237,7 @@ class SuperCutUI(QWidget):
 
         combo_long_width = 125
 
-        combo_medium_width = 95
+        combo_medium_width = 100
 
         combo_short_width = 55
 
@@ -3958,8 +3958,6 @@ class SuperCutUI(QWidget):
         song_title_controls_layout.addStretch()
         overlay_groupbox_3_titles_wave_layout.addLayout(song_title_controls_layout)
         
-        
-        
         # --- OVERLAY 8 GROUP BOX ---
         overlay_groupbox_8 = QtWidgets.QGroupBox("Overlay 8 Settings")
         overlay_groupbox_8.setStyleSheet("""
@@ -4061,7 +4059,7 @@ class SuperCutUI(QWidget):
         on_overlay8_y_changed(self.overlay8_y_combo.currentIndex())
 
         # Overlay8 duration controls (similar to intro duration)
-        overlay8_duration_full_label = QLabel("Full:")
+        overlay8_duration_full_label = QLabel("Full")
         overlay8_duration_full_label.setFixedWidth(label_mini_width)
         overlay8_duration_full_label.setFixedHeight(unified_height)
         self.overlay8_duration_full_checkbox = QtWidgets.QCheckBox("")
@@ -4073,7 +4071,7 @@ class SuperCutUI(QWidget):
         self.overlay8_duration_full_checkbox.stateChanged.connect(update_overlay8_duration_full_checkbox_style)
         update_overlay8_duration_full_checkbox_style(self.overlay8_duration_full_checkbox.checkState())
         
-        overlay8_duration_label = QLabel("For:")
+        overlay8_duration_label = QLabel("For")
         overlay8_duration_label.setFixedWidth(label_mini_width)
         self.overlay8_duration_edit = QLineEdit("6")
         self.overlay8_duration_edit.setFixedWidth(edit_short_width)
@@ -4167,14 +4165,13 @@ class SuperCutUI(QWidget):
         overlay8_layout.addWidget(self.overlay8_edit)
         overlay8_layout.addSpacing(5)
         overlay8_layout.addWidget(overlay8_btn)
-        overlay8_layout.addSpacing(50)
-        overlay8_layout.addSpacing(10)
+        overlay8_layout.addSpacing(3)
         overlay8_layout.addWidget(overlay8_size_label)
         overlay8_layout.addWidget(self.overlay8_size_combo)
-        overlay8_layout.addSpacing(10)
+        overlay8_layout.addSpacing(56)
         overlay8_layout.addWidget(overlay8_x_label)
         overlay8_layout.addWidget(self.overlay8_x_combo)
-        overlay8_layout.addSpacing(10)
+        overlay8_layout.addSpacing(16)
         overlay8_layout.addWidget(overlay8_y_label)
         overlay8_layout.addWidget(self.overlay8_y_combo)
         overlay8_layout.addStretch()
@@ -4185,11 +4182,11 @@ class SuperCutUI(QWidget):
         overlay_groupbox_8_layout.addLayout(overlay8_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 8 (individual effect control) ---
-        overlay8_effect_label = QLabel("Effect 8:")
-        overlay8_effect_label.setFixedWidth(label_long_width)
+        overlay8_effect_label = QLabel("Effect :")
+        overlay8_effect_label.setFixedWidth(label_short_width)
         overlay8_effect_label.setFixedHeight(unified_height)
         self.overlay8_effect_combo = NoWheelComboBox()
-        self.overlay8_effect_combo.setFixedWidth(combo_medium_width)
+        self.overlay8_effect_combo.setFixedWidth(combo_long_width)
         self.overlay8_effect_combo.setFixedHeight(unified_height)
         for label, value in effect_options:
             self.overlay8_effect_combo.addItem(label, value)
@@ -4201,7 +4198,7 @@ class SuperCutUI(QWidget):
         on_overlay8_effect_changed(self.overlay8_effect_combo.currentIndex())
 
         # Overlay8 Pop up checkbox
-        overlay8_popup_label = QLabel("Pop up:")
+        overlay8_popup_label = QLabel("Pop Up:")
         overlay8_popup_label.setFixedWidth(label_medium_width)
         overlay8_popup_label.setFixedHeight(unified_height)
         self.overlay8_popup_checkbox = QtWidgets.QCheckBox("")
@@ -4278,6 +4275,8 @@ class SuperCutUI(QWidget):
 
         # Overlay8 Start at checkbox
         self.overlay8_start_at_checkbox = QtWidgets.QCheckBox("")
+        self.overlay8_start_at_checkbox.setFixedWidth(checkbox_solo_width)
+        self.overlay8_start_at_checkbox.setFixedHeight(unified_height)
         self.overlay8_start_at_checkbox.setChecked(True)
         def update_overlay8_start_at_checkbox_style(state):
             self.overlay8_start_at_checkbox.setStyleSheet("")
@@ -4285,7 +4284,7 @@ class SuperCutUI(QWidget):
         update_overlay8_start_at_checkbox_style(self.overlay8_start_at_checkbox.checkState())
 
         overlay8_start_label = QLabel("Start:")
-        overlay8_start_label.setFixedWidth(label_medium_width)
+        overlay8_start_label.setFixedWidth(label_short_width)
         overlay8_start_label.setFixedHeight(unified_height)
         self.overlay8_start_combo = NoWheelComboBox()
         self.overlay8_start_combo.setFixedWidth(combo_mini_width)
@@ -4300,8 +4299,8 @@ class SuperCutUI(QWidget):
         on_overlay8_start_changed(self.overlay8_start_combo.currentIndex())
 
         # Overlay8 Start from field
-        overlay8_start_from_label = QLabel("Start from:")
-        overlay8_start_from_label.setFixedWidth(label_long_width)
+        overlay8_start_from_label = QLabel("F:")
+        overlay8_start_from_label.setFixedWidth(label_micro_width)
         overlay8_start_from_label.setFixedHeight(unified_height)
         self.overlay8_start_from_combo = NoWheelComboBox()
         self.overlay8_start_from_combo.setFixedWidth(combo_mini_width)
@@ -4317,7 +4316,7 @@ class SuperCutUI(QWidget):
 
         # Overlay8 Pop up Start at field
         overlay8_popup_start_at_label = QLabel("Start:")
-        overlay8_popup_start_at_label.setFixedWidth(label_medium_width)
+        overlay8_popup_start_at_label.setFixedWidth(label_short_width)
         overlay8_popup_start_at_label.setFixedHeight(unified_height)
         self.overlay8_popup_start_at_combo = NoWheelComboBox()
         self.overlay8_popup_start_at_combo.setFixedWidth(combo_mini_width)
@@ -4334,24 +4333,25 @@ class SuperCutUI(QWidget):
         # Overlay8 Effect layout
         overlay8_layout = QHBoxLayout()        
         overlay8_layout.setSpacing(0)
+        overlay8_layout.addSpacing(27)
         overlay8_layout.addWidget(overlay8_effect_label)
-        overlay8_layout.addSpacing(0)
+        overlay8_layout.addSpacing(37)
         overlay8_layout.addWidget(self.overlay8_effect_combo)
-        overlay8_layout.addSpacing(0)
+        overlay8_layout.addSpacing(5)
         overlay8_layout.addWidget(overlay8_duration_full_label)
         overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(self.overlay8_duration_full_checkbox)
-        overlay8_layout.addSpacing(0)
+        overlay8_layout.addSpacing(5)
         overlay8_layout.addWidget(overlay8_duration_label)
-        overlay8_layout.addSpacing(0)
+        overlay8_layout.addSpacing(3)
         overlay8_layout.addWidget(self.overlay8_duration_edit)
-        overlay8_layout.addSpacing(0)
+        overlay8_layout.addSpacing(16)
         overlay8_layout.addWidget(self.overlay8_start_at_checkbox)
         overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(overlay8_start_label)
-        overlay8_layout.addSpacing(0)
+        overlay8_layout.addSpacing(-6)
         overlay8_layout.addWidget(self.overlay8_start_combo)
-        overlay8_layout.addSpacing(0)
+        overlay8_layout.addSpacing(16)
         overlay8_layout.addWidget(overlay8_start_from_label)
         overlay8_layout.addSpacing(0)
         overlay8_layout.addWidget(self.overlay8_start_from_combo)
@@ -4361,10 +4361,10 @@ class SuperCutUI(QWidget):
 
         # --- Add popup number dropdown (1-10) ---
         overlay8_popup_num_label = QLabel("Num:")
-        overlay8_popup_num_label.setFixedWidth(label_medium_width)
+        overlay8_popup_num_label.setFixedWidth(label_short_width)
         overlay8_popup_num_label.setFixedHeight(unified_height)
         self.overlay8_popup_num_combo = NoWheelComboBox()
-        self.overlay8_popup_num_combo.setFixedWidth(combo_mini_width)
+        self.overlay8_popup_num_combo.setFixedWidth(edit_short_width)
         self.overlay8_popup_num_combo.setFixedHeight(unified_height)
         for n in range(1, 11):
             self.overlay8_popup_num_combo.addItem(str(n), n)
@@ -4378,16 +4378,15 @@ class SuperCutUI(QWidget):
         # Overlay 8 popup layout
         overlay8_popup_layout = QHBoxLayout()
         overlay8_popup_layout.setSpacing(0)
-        overlay8_popup_layout.addSpacing(0)  
+        overlay8_popup_layout.addSpacing(89)          
         overlay8_popup_layout.addWidget(self.overlay8_popup_checkbox)
-        overlay8_popup_layout.addSpacing(0)
+        overlay8_popup_layout.addSpacing(1)
         overlay8_popup_layout.addWidget(overlay8_popup_label)
-        overlay8_popup_layout.addSpacing(0)
-        overlay8_popup_layout.addWidget(overlay8_popup_start_at_label)
-        overlay8_popup_layout.addSpacing(0)
+        overlay8_popup_layout.addSpacing(15)
         overlay8_popup_layout.addWidget(self.overlay8_popup_start_at_combo)
-        overlay8_popup_layout.addSpacing(0)
+        overlay8_popup_layout.addSpacing(47)
         overlay8_popup_layout.addWidget(overlay8_popup_num_label)
+        overlay8_popup_layout.addSpacing(0)
         overlay8_popup_layout.addWidget(self.overlay8_popup_num_combo)
         overlay8_popup_layout.addStretch()
         overlay_groupbox_8_layout.addLayout(overlay8_popup_layout)
@@ -4668,14 +4667,13 @@ class SuperCutUI(QWidget):
         overlay9_layout.addWidget(self.overlay9_edit)
         overlay9_layout.addSpacing(5)  
         overlay9_layout.addWidget(overlay9_btn)
-        overlay9_layout.addSpacing(50)
-        overlay9_layout.addSpacing(10)  
+        overlay9_layout.addSpacing(3)  
         overlay9_layout.addWidget(overlay9_size_label)
         overlay9_layout.addWidget(self.overlay9_size_combo)
-        overlay9_layout.addSpacing(10)
+        overlay9_layout.addSpacing(56)
         overlay9_layout.addWidget(overlay9_x_label)
         overlay9_layout.addWidget(self.overlay9_x_combo)
-        overlay9_layout.addSpacing(10)
+        overlay9_layout.addSpacing(16)
         overlay9_layout.addWidget(overlay9_y_label)
         overlay9_layout.addWidget(self.overlay9_y_combo)
         overlay9_layout.addStretch()
@@ -4686,10 +4684,10 @@ class SuperCutUI(QWidget):
         overlay_groupbox_9_layout.addLayout(overlay9_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 9 (individual effect control) ---
-        overlay9_effect_label = QLabel("Effect 9:")
-        overlay9_effect_label.setFixedWidth(label_long_width)
+        overlay9_effect_label = QLabel("Effect :")
+        overlay9_effect_label.setFixedWidth(label_short_width)
         self.overlay9_effect_combo = NoWheelComboBox()
-        self.overlay9_effect_combo.setFixedWidth(combo_medium_width)
+        self.overlay9_effect_combo.setFixedWidth(combo_long_width)
         self.overlay9_effect_combo.setFixedHeight(unified_height)
         for label, value in effect_options:
             self.overlay9_effect_combo.addItem(label, value)
@@ -4701,7 +4699,7 @@ class SuperCutUI(QWidget):
         on_overlay9_effect_changed(self.overlay9_effect_combo.currentIndex())
 
         # Overlay9 Pop up checkbox
-        overlay9_popup_label = QLabel("Pop up:")
+        overlay9_popup_label = QLabel("Pop Up:")
         overlay9_popup_label.setFixedWidth(label_medium_width)
         overlay9_popup_label.setFixedHeight(unified_height)
         self.overlay9_popup_checkbox = QtWidgets.QCheckBox("")
@@ -4779,6 +4777,8 @@ class SuperCutUI(QWidget):
 
         # Overlay9 Start at checkbox
         self.overlay9_start_at_checkbox = QtWidgets.QCheckBox("")
+        self.overlay9_start_at_checkbox.setFixedWidth(checkbox_solo_width)
+        self.overlay9_start_at_checkbox.setFixedHeight(unified_height)
         self.overlay9_start_at_checkbox.setChecked(True)
         def update_overlay9_start_at_checkbox_style(state):
             self.overlay9_start_at_checkbox.setStyleSheet("")
@@ -4786,7 +4786,7 @@ class SuperCutUI(QWidget):
         update_overlay9_start_at_checkbox_style(self.overlay9_start_at_checkbox.checkState())
 
         overlay9_start_label = QLabel("Start:")
-        overlay9_start_label.setFixedWidth(label_medium_width)
+        overlay9_start_label.setFixedWidth(label_short_width)
         overlay9_start_label.setFixedHeight(unified_height)
         self.overlay9_start_combo = NoWheelComboBox()
         self.overlay9_start_combo.setFixedWidth(combo_mini_width)
@@ -4801,8 +4801,8 @@ class SuperCutUI(QWidget):
         on_overlay9_start_changed(self.overlay9_start_combo.currentIndex())
 
         # Overlay9 Start from field
-        overlay9_start_from_label = QLabel("Start from:")
-        overlay9_start_from_label.setFixedWidth(label_long_width)
+        overlay9_start_from_label = QLabel("F:")
+        overlay9_start_from_label.setFixedWidth(label_micro_width)
         overlay9_start_from_label.setFixedHeight(unified_height)
         self.overlay9_start_from_combo = NoWheelComboBox()
         self.overlay9_start_from_combo.setFixedWidth(combo_mini_width)
@@ -4818,7 +4818,7 @@ class SuperCutUI(QWidget):
 
         # Overlay9 Pop up Start at field
         overlay9_popup_start_at_label = QLabel("Start:")
-        overlay9_popup_start_at_label.setFixedWidth(label_medium_width)
+        overlay9_popup_start_at_label.setFixedWidth(label_short_width)
         overlay9_popup_start_at_label.setFixedHeight(unified_height)
         self.overlay9_popup_start_at_combo = NoWheelComboBox()
         self.overlay9_popup_start_at_combo.setFixedWidth(combo_mini_width)
@@ -4835,24 +4835,25 @@ class SuperCutUI(QWidget):
         # Overlay9 pop-up interval field removed
         overlay9_layout = QHBoxLayout()        
         overlay9_layout.setSpacing(0)
+        overlay9_layout.addSpacing(27)
         overlay9_layout.addWidget(overlay9_effect_label)
-        overlay9_layout.addSpacing(0)
+        overlay9_layout.addSpacing(37)
         overlay9_layout.addWidget(self.overlay9_effect_combo)
-        overlay9_layout.addSpacing(0)
+        overlay9_layout.addSpacing(5)
         overlay9_layout.addWidget(overlay9_duration_full_label)
         overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(self.overlay9_duration_full_checkbox)
-        overlay9_layout.addSpacing(0)
+        overlay9_layout.addSpacing(5)
         overlay9_layout.addWidget(overlay9_duration_label)
-        overlay9_layout.addSpacing(0)
+        overlay9_layout.addSpacing(3)
         overlay9_layout.addWidget(self.overlay9_duration_edit)
-        overlay9_layout.addSpacing(0)
+        overlay9_layout.addSpacing(16)
         overlay9_layout.addWidget(self.overlay9_start_at_checkbox)
         overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(overlay9_start_label)
-        overlay9_layout.addSpacing(0)
+        overlay9_layout.addSpacing(-6)
         overlay9_layout.addWidget(self.overlay9_start_combo)
-        overlay9_layout.addSpacing(0)
+        overlay9_layout.addSpacing(16)
         overlay9_layout.addWidget(overlay9_start_from_label)
         overlay9_layout.addSpacing(0)
         overlay9_layout.addWidget(self.overlay9_start_from_combo)
@@ -4860,9 +4861,9 @@ class SuperCutUI(QWidget):
         overlay_groupbox_9_layout.addLayout(overlay9_layout)
         
         overlay9_popup_num_label = QLabel("Num:")
-        overlay9_popup_num_label.setFixedWidth(label_medium_width)
+        overlay9_popup_num_label.setFixedWidth(label_short_width)
         self.overlay9_popup_num_combo = NoWheelComboBox()
-        self.overlay9_popup_num_combo.setFixedWidth(combo_mini_width)
+        self.overlay9_popup_num_combo.setFixedWidth(edit_short_width)
         self.overlay9_popup_num_combo.setFixedHeight(unified_height)
         for n in range(1, 11):
             self.overlay9_popup_num_combo.addItem(str(n), n)
@@ -4876,15 +4877,15 @@ class SuperCutUI(QWidget):
         # Overlay9 additional settings in separate row
         overlay9_popup_layout = QHBoxLayout()        
         overlay9_popup_layout.setSpacing(0)
-        overlay9_popup_layout.addSpacing(0)
+        overlay9_popup_layout.addSpacing(89)
         overlay9_popup_layout.addWidget(self.overlay9_popup_checkbox)
+        overlay9_popup_layout.addSpacing(1)
         overlay9_popup_layout.addWidget(overlay9_popup_label)
-        overlay9_popup_layout.addSpacing(0)
-        overlay9_popup_layout.addWidget(overlay9_popup_start_at_label)
-        overlay9_popup_layout.addSpacing(0)
+        overlay9_popup_layout.addSpacing(15)
         overlay9_popup_layout.addWidget(self.overlay9_popup_start_at_combo)
-        overlay9_popup_layout.addSpacing(0)
+        overlay9_popup_layout.addSpacing(47)
         overlay9_popup_layout.addWidget(overlay9_popup_num_label)
+        overlay9_popup_layout.addSpacing(0)
         overlay9_popup_layout.addWidget(self.overlay9_popup_num_combo)
         overlay9_popup_layout.addStretch()
         overlay_groupbox_9_layout.addLayout(overlay9_popup_layout)
@@ -5119,25 +5120,24 @@ class SuperCutUI(QWidget):
         overlay10_layout.addWidget(self.overlay10_edit)
         overlay10_layout.addSpacing(5)
         overlay10_layout.addWidget(overlay10_btn)
-        overlay10_layout.addSpacing(50)
-        overlay10_layout.addSpacing(10)  
+        overlay10_layout.addSpacing(3)  
         overlay10_layout.addWidget(overlay10_size_label)
         overlay10_layout.addWidget(self.overlay10_size_combo)
-        overlay10_layout.addSpacing(10)
+        overlay10_layout.addSpacing(56)
         overlay10_layout.addWidget(overlay10_x_label)
         overlay10_layout.addWidget(self.overlay10_x_combo)
-        overlay10_layout.addSpacing(10)
+        overlay10_layout.addSpacing(16)
         overlay10_layout.addWidget(overlay10_y_label)
         overlay10_layout.addWidget(self.overlay10_y_combo)
         overlay10_layout.addStretch()
         overlay_groupbox_10_layout.addLayout(overlay10_layout)
 
         # --- EFFECT CONTROL FOR OVERLAY 10 (individual effect control) ---
-        overlay10_effect_label = QLabel("Effect 10:")
-        overlay10_effect_label.setFixedWidth(label_long_width)
+        overlay10_effect_label = QLabel("Effect :")
+        overlay10_effect_label.setFixedWidth(label_short_width)
         overlay10_effect_label.setFixedHeight(unified_height)
         self.overlay10_effect_combo = NoWheelComboBox()
-        self.overlay10_effect_combo.setFixedWidth(combo_medium_width)
+        self.overlay10_effect_combo.setFixedWidth(combo_long_width)
         self.overlay10_effect_combo.setFixedHeight(unified_height)
         for label, value in effect_options:
             self.overlay10_effect_combo.addItem(label, value)
@@ -5149,11 +5149,11 @@ class SuperCutUI(QWidget):
         on_overlay10_effect_changed(self.overlay10_effect_combo.currentIndex())
 
         # Overlay10 duration controls
-        overlay10_duration_label = QLabel("For:")
+        overlay10_duration_label = QLabel("For")
         overlay10_duration_label.setFixedWidth(label_mini_width)
         overlay10_duration_label.setFixedHeight(unified_height)
         self.overlay10_duration_edit = QLineEdit("6")
-        self.overlay10_duration_edit.setFixedWidth(edit_short_width)
+        self.overlay10_duration_edit.setFixedWidth(combo_short_width)
         self.overlay10_duration_edit.setFixedHeight(unified_height)
         self.overlay10_duration_edit.setValidator(QIntValidator(1, 999, self))
         self.overlay10_duration_edit.setPlaceholderText("6")
@@ -5167,10 +5167,10 @@ class SuperCutUI(QWidget):
         on_overlay10_duration_changed()
 
         overlay10_start_label = QLabel("Start:")
-        overlay10_start_label.setFixedWidth(label_medium_width)
+        overlay10_start_label.setFixedWidth(label_short_width)
         overlay10_start_label.setFixedHeight(unified_height)
         self.overlay10_start_edit = QLineEdit("5")
-        self.overlay10_start_edit.setFixedWidth(edit_short_width)
+        self.overlay10_start_edit.setFixedWidth(combo_short_width)
         self.overlay10_start_edit.setFixedHeight(unified_height)
         self.overlay10_start_edit.setValidator(QIntValidator(1, 999, self))
         self.overlay10_start_edit.setPlaceholderText("5")
@@ -5185,7 +5185,7 @@ class SuperCutUI(QWidget):
 
         # Overlay10 start time percentage dropdown
         overlay10_start_percent_label = QLabel("Start:")
-        overlay10_start_percent_label.setFixedWidth(label_medium_width)
+        overlay10_start_percent_label.setFixedWidth(label_short_width)
         self.overlay10_start_percent_combo = NoWheelComboBox()
         self.overlay10_start_percent_combo.setFixedWidth(combo_mini_width)
         self.overlay10_start_percent_combo.setFixedHeight(unified_height)
@@ -5209,7 +5209,7 @@ class SuperCutUI(QWidget):
         update_overlay10_song_start_end_checkbox_style(self.overlay10_song_start_end.checkState())
 
         overlay10_start_end_label = QLabel("Song:")
-        overlay10_start_end_label.setFixedWidth(label_mini_width)
+        overlay10_start_end_label.setFixedWidth(label_short_width)
         overlay10_start_end_label.setFixedHeight(unified_height)
         self.overlay10_start_end_combo = NoWheelComboBox()
         self.overlay10_start_end_combo.setFixedWidth(combo_mini_width)
@@ -5237,22 +5237,31 @@ class SuperCutUI(QWidget):
 
         overlay10_layout = QHBoxLayout()
         overlay10_layout.setSpacing(0)
+        overlay10_layout.addSpacing(27)
         overlay10_layout.addWidget(overlay10_effect_label)
-        overlay10_layout.addSpacing(0)
+        overlay10_layout.addSpacing(37)
         overlay10_layout.addWidget(self.overlay10_effect_combo)
-        overlay10_layout.addSpacing(0)
+        overlay10_layout.addSpacing(40)
         overlay10_layout.addWidget(overlay10_duration_label)
+        overlay10_layout.addSpacing(3)
         overlay10_layout.addWidget(self.overlay10_duration_edit)
-        overlay10_layout.addSpacing(0)
+        overlay10_layout.addSpacing(36)
         overlay10_layout.addWidget(overlay10_start_percent_label)
+        overlay10_layout.addSpacing(-6)
         overlay10_layout.addWidget(self.overlay10_start_percent_combo)
-        overlay10_layout.addSpacing(0)
+        overlay10_layout.addStretch()
+        overlay_groupbox_10_layout.addLayout(overlay10_layout)
+
+        overlay10_layout = QHBoxLayout()
+        overlay10_layout.setSpacing(0)
+        overlay10_layout.addSpacing(110)
         overlay10_layout.addWidget(self.overlay10_song_start_end)
-        overlay10_layout.addSpacing(0)
+        overlay10_layout.addSpacing(4)
         overlay10_layout.addWidget(overlay10_start_end_label)
         overlay10_layout.addWidget(self.overlay10_start_end_combo)
-        overlay10_layout.addSpacing(0)
+        overlay10_layout.addSpacing(33)
         overlay10_layout.addWidget(overlay10_start_label)
+        overlay10_layout.addSpacing(-6)
         overlay10_layout.addWidget(self.overlay10_start_edit)
         overlay10_layout.addStretch()
         overlay_groupbox_10_layout.addLayout(overlay10_layout)
@@ -5372,7 +5381,6 @@ class SuperCutUI(QWidget):
         frame_mp3cover_custom_label = QLabel("Custom:")
         frame_mp3cover_custom_label.setFixedWidth(label_medium_width)
         frame_mp3cover_custom_label.setFixedHeight(unified_height)
-        
         self.frame_mp3cover_custom_image_checkbox = QtWidgets.QCheckBox("")
         self.frame_mp3cover_custom_image_checkbox.setFixedWidth(checkbox_solo_width)
         self.frame_mp3cover_custom_image_checkbox.setFixedHeight(unified_height)
@@ -5533,17 +5541,17 @@ class SuperCutUI(QWidget):
         frame_mp3cover_layout.setSpacing(0)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_checkbox)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_custom_image_checkbox)
-        frame_mp3cover_layout.addWidget(frame_mp3cover_custom_label)
+        frame_mp3cover_layout.addSpacing(5)      
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_custom_image_edit)
         frame_mp3cover_layout.addSpacing(5)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_custom_image_btn)
-        frame_mp3cover_layout.addSpacing(10)
+        frame_mp3cover_layout.addSpacing(3)
         frame_mp3cover_layout.addWidget(frame_mp3cover_size_label)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_size_combo)
-        frame_mp3cover_layout.addSpacing(10)
+        frame_mp3cover_layout.addSpacing(56)
         frame_mp3cover_layout.addWidget(frame_mp3cover_x_label)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_x_combo)
-        frame_mp3cover_layout.addSpacing(10)
+        frame_mp3cover_layout.addSpacing(16)
         frame_mp3cover_layout.addWidget(frame_mp3cover_y_label)
         frame_mp3cover_layout.addWidget(self.frame_mp3cover_y_combo)        
         frame_mp3cover_layout.addStretch()
@@ -5551,7 +5559,7 @@ class SuperCutUI(QWidget):
 
         # --- EFFECT CONTROL FOR FRAME MP3COVER ---
         frame_mp3cover_label = QLabel("Effect:")
-        frame_mp3cover_label.setFixedWidth(label_long_width)
+        frame_mp3cover_label.setFixedWidth(label_short_width)
         frame_mp3cover_label.setFixedHeight(unified_height)
         self.frame_mp3cover_effect_combo = NoWheelComboBox()
         self.frame_mp3cover_effect_combo.setFixedWidth(combo_medium_width)
@@ -5566,7 +5574,7 @@ class SuperCutUI(QWidget):
         on_frame_mp3cover_effect_changed(self.frame_mp3cover_effect_combo.currentIndex())
 
         # Frame mp3cover duration controls
-        frame_mp3cover_duration_label = QLabel("For:")
+        frame_mp3cover_duration_label = QLabel("For")
         frame_mp3cover_duration_label.setFixedWidth(label_mini_width)
         self.frame_mp3cover_duration_edit = QLineEdit("6")
         self.frame_mp3cover_duration_edit.setFixedWidth(edit_short_width)
@@ -5583,7 +5591,7 @@ class SuperCutUI(QWidget):
         on_frame_mp3cover_duration_changed()
 
         # Frame mp3cover full duration checkbox
-        frame_mp3cover_duration_full_label = QLabel("Full:")
+        frame_mp3cover_duration_full_label = QLabel("Full")
         frame_mp3cover_duration_full_label.setFixedWidth(label_mini_width)
         frame_mp3cover_duration_full_label.setFixedHeight(unified_height)
         self.frame_mp3cover_duration_full_checkbox = QtWidgets.QCheckBox("")
@@ -5614,10 +5622,10 @@ class SuperCutUI(QWidget):
 
         # Frame mp3cover start at control
         frame_mp3cover_start_label = QLabel("Start:")
-        frame_mp3cover_start_label.setFixedWidth(label_mini_width)
+        frame_mp3cover_start_label.setFixedWidth(label_short_width)
         frame_mp3cover_start_label.setFixedHeight(unified_height)
         self.frame_mp3cover_start_edit = QLineEdit("5")
-        self.frame_mp3cover_start_edit.setFixedWidth(edit_short_width)
+        self.frame_mp3cover_start_edit.setFixedWidth(combo_short_width)
         self.frame_mp3cover_start_edit.setFixedHeight(unified_height)
         self.frame_mp3cover_start_edit.setValidator(QIntValidator(1, 999, self))
         self.frame_mp3cover_start_edit.setPlaceholderText("5")
@@ -5633,16 +5641,18 @@ class SuperCutUI(QWidget):
         # frame mp3cover layout
         frame_mp3cover_effect_layout = QHBoxLayout()        
         frame_mp3cover_effect_layout.setSpacing(0)
+        frame_mp3cover_effect_layout.addSpacing(70)
         frame_mp3cover_effect_layout.addWidget(frame_mp3cover_label)
-        frame_mp3cover_effect_layout.addSpacing(0)
+        frame_mp3cover_effect_layout.addSpacing(19)
         frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_effect_combo)
-        frame_mp3cover_effect_layout.addSpacing(0)
-        frame_mp3cover_effect_layout.addWidget(frame_mp3cover_duration_label)
-        frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_duration_edit)
-        frame_mp3cover_effect_layout.addSpacing(0)
+        frame_mp3cover_effect_layout.addSpacing(5)
         frame_mp3cover_effect_layout.addWidget(frame_mp3cover_duration_full_label)
         frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_duration_full_checkbox)
-        frame_mp3cover_effect_layout.addSpacing(0)
+        frame_mp3cover_effect_layout.addSpacing(5)
+        frame_mp3cover_effect_layout.addWidget(frame_mp3cover_duration_label)
+        frame_mp3cover_effect_layout.addSpacing(3)
+        frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_duration_edit)
+        frame_mp3cover_effect_layout.addSpacing(30)
         frame_mp3cover_effect_layout.addWidget(frame_mp3cover_start_label)
         frame_mp3cover_effect_layout.addWidget(self.frame_mp3cover_start_edit)
         frame_mp3cover_effect_layout.addStretch()
