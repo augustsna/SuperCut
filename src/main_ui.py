@@ -3399,7 +3399,7 @@ class SuperCutUI(QWidget):
         self.song_title_color_btn.clicked.connect(on_song_title_color_clicked)
         
         # Background control
-        song_title_bg_label = QLabel("BG:")
+        song_title_bg_label = QLabel("BG :")
         song_title_bg_label.setFixedWidth(label_mini_width)
         song_title_bg_label.setFixedHeight(unified_height)
         self.song_title_bg_combo = NoWheelComboBox()
@@ -3671,6 +3671,8 @@ class SuperCutUI(QWidget):
             song_title_start_label.setStyleSheet("" if song_title_start_enabled else "color: grey;")
             song_title_color_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_bg_label.setStyleSheet("" if enabled else "color: grey;")
+            song_title_bg_color_btn_label.setStyleSheet("" if enabled else "color: grey;")
+            song_title_opacity_combo_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_scale_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_text_effect_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_text_effect_color_label.setStyleSheet("" if enabled else "color: grey;")
@@ -3691,6 +3693,7 @@ class SuperCutUI(QWidget):
                 self.song_title_text_effect_combo.setStyleSheet(grey_btn_style)
                 self.song_title_text_effect_intensity_combo.setStyleSheet(grey_btn_style)
                 self.song_title_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+                self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
                 self.song_title_text_effect_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
                 # Only grey out song title start edit if both song title and overlay 3 are disabled
                 if not song_title_start_enabled:
@@ -3714,6 +3717,11 @@ class SuperCutUI(QWidget):
                 self.song_title_text_effect_intensity_combo.setStyleSheet("")
                 # Restore main title color button style
                 self.song_title_color_btn.setStyleSheet(f"background-color: rgb({self.song_title_color[0]}, {self.song_title_color[1]}, {self.song_title_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                # Restore background color button style
+                if self.song_title_bg == "custom":
+                    self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb({self.song_title_bg_color[0]}, {self.song_title_bg_color[1]}, {self.song_title_bg_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                else:
+                    self.song_title_bg_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 # Restore text effect color button style based on current text effect
                 if self.song_title_text_effect == "none":
                     self.song_title_text_effect_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
