@@ -1239,6 +1239,8 @@ class SuperCutUI(QWidget):
 
         combo_medium_width = 100
 
+        combo_bg_width = 70
+
         combo_short_width = 55
 
         combo_mini_width = 55
@@ -7164,7 +7166,7 @@ class SuperCutUI(QWidget):
         bg_scale_label.setFixedWidth(label_short_width)
         bg_scale_label.setFixedHeight(unified_height)
         self.bg_scale_combo = NoWheelComboBox()
-        self.bg_scale_combo.setFixedWidth(combo_mini_width)
+        self.bg_scale_combo.setFixedWidth(combo_bg_width)
         self.bg_scale_combo.setFixedHeight(unified_height)
         for percent in range(100, 201, 5):  # 100% to 200% in 5% increments
             self.bg_scale_combo.addItem(f"{percent}%", percent)
@@ -7181,7 +7183,7 @@ class SuperCutUI(QWidget):
         bg_crop_position_label.setFixedWidth(label_short_width)
         bg_crop_position_label.setFixedHeight(unified_height)
         self.bg_crop_position_combo = NoWheelComboBox()
-        self.bg_crop_position_combo.setFixedWidth(combo_mini_width)
+        self.bg_crop_position_combo.setFixedWidth(combo_bg_width)
         self.bg_crop_position_combo.setFixedHeight(unified_height)
         crop_positions = [
             "Center",
@@ -7208,7 +7210,7 @@ class SuperCutUI(QWidget):
         bg_effect_label.setFixedWidth(label_short_width)
         bg_effect_label.setFixedHeight(unified_height)
         self.bg_effect_combo = NoWheelComboBox()
-        self.bg_effect_combo.setFixedWidth(combo_mini_width)
+        self.bg_effect_combo.setFixedWidth(combo_bg_width)
         self.bg_effect_combo.setFixedHeight(unified_height)
 
         bg_effects = [
@@ -7231,7 +7233,7 @@ class SuperCutUI(QWidget):
         bg_intensity_label.setFixedWidth(label_short_width)
         bg_intensity_label.setFixedHeight(unified_height)
         self.bg_intensity_combo = NoWheelComboBox()
-        self.bg_intensity_combo.setFixedWidth(combo_mini_width)
+        self.bg_intensity_combo.setFixedWidth(combo_bg_width)
         self.bg_intensity_combo.setFixedHeight(unified_height)
         for intensity in range(1, 101):
             self.bg_intensity_combo.addItem(str(intensity), intensity)
@@ -7273,10 +7275,10 @@ class SuperCutUI(QWidget):
         bg_layer_layout = QHBoxLayout()
         bg_layer_layout.setSpacing(0)
         bg_layer_layout.addWidget(self.bg_layer_checkbox)
-        bg_layer_layout.addSpacing(0)
+        bg_layer_layout.addSpacing(-21)
         bg_layer_layout.addWidget(bg_scale_label)
         bg_layer_layout.addWidget(self.bg_scale_combo)
-        bg_layer_layout.addSpacing(0)
+        bg_layer_layout.addSpacing(12)
         bg_layer_layout.addWidget(bg_crop_position_label)
         bg_layer_layout.addWidget(self.bg_crop_position_combo)
         bg_layer_layout.addSpacing(0)
