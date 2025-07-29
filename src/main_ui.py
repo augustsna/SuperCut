@@ -1152,7 +1152,8 @@ class SuperCutUI(QWidget):
             if dlg.exec() == QDialog.DialogCode.Accepted:
                 self.name_list = dlg.get_names()
         self.name_list_enter_btn.clicked.connect(open_name_list_dialog)
-        self.mp3_count_checkbox = QtWidgets.QCheckBox("MP3 #")
+        self.mp3_count_checkbox = QtWidgets.QCheckBox("")
+        self.mp3_count_checkbox.setFixedWidth(20)
         self.mp3_count_checkbox.setChecked(False)
         self.mp3_count_edit = QLineEdit(str(DEFAULT_MIN_MP3_COUNT))
         self.mp3_count_edit.setPlaceholderText("MP3")
@@ -1178,6 +1179,9 @@ class SuperCutUI(QWidget):
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.update_output_name)
+
+
+        self.part_layout.addStretch()
         self.part_layout.addSpacing(0)
         self.part_layout.addWidget(self.name_list_checkbox)
         self.part_layout.addSpacing(10)
@@ -1192,12 +1196,17 @@ class SuperCutUI(QWidget):
         self.part_layout.addWidget(self.part2_edit)
         self.part_layout.addSpacing(0)
         self.part_layout.addStretch()
-        self.part_layout.addWidget(self.mp3_count_checkbox)
-        self.part_layout.addSpacing(7)
-        self.part_layout.addWidget(self.mp3_count_edit)
         
+        self.part_layout.addSpacing(0)
+        self.part_layout.addWidget(self.mp3_count_checkbox)
+        self.part_layout.addWidget(QLabel("MP3 #"))
+        self.part_layout.addSpacing(0)
+        self.part_layout.addWidget(self.mp3_count_edit)
+        self.part_layout.addStretch()
+
         # Don't add to main layout here - will be added to core settings group box
         layout.addSpacing(0)  # Add spacing after export inputs
+        
     def create_video_settings(self, layout):
         """Create video settings controls"""
         # Combined layout for codec, resolution, and fps
@@ -1298,7 +1307,7 @@ class SuperCutUI(QWidget):
         settings_layout.addSpacing(0)  
         settings_layout.addWidget(self.codec_combo)
          
-        settings_layout.addSpacing(17)
+        settings_layout.addSpacing(19)
         settings_layout.addWidget(resolution_label)
         settings_layout.addSpacing(3)
         settings_layout.addWidget(self.resolution_combo)
