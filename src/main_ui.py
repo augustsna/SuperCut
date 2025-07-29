@@ -7332,9 +7332,9 @@ class SuperCutUI(QWidget):
         set_lyric_dropdown_enabled(self.lyric_checkbox.checkState())
 
         lyric_layout = QHBoxLayout()
-        lyric_layout.setSpacing(4)
+        lyric_layout.setSpacing(0)
         lyric_layout.addWidget(self.lyric_checkbox)
-        lyric_layout.addSpacing(5)
+        lyric_layout.addSpacing(0)
         lyric_layout.addWidget(self.lyric_dropdown_label)
         lyric_layout.addWidget(self.lyric_dropdown)
         lyric_layout.addStretch()
@@ -7342,12 +7342,14 @@ class SuperCutUI(QWidget):
 
         # last_item label
         self.last_item_label = QtWidgets.QLabel("Let's fucking go!")
+        self.last_item_label.setFixedWidth(120)
         self.last_item_label.setStyleSheet("font-size: 14px; font-weight: thin; color: #888;")
         self.last_item_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Add last_item label to layout
         last_item_label_layout = QHBoxLayout()
         last_item_label_layout.addStretch()
+        last_item_label_layout.addSpacing(30)
         last_item_label_layout.addWidget(self.last_item_label)
         last_item_label_layout.addStretch()
         layout.addLayout(last_item_label_layout)
@@ -10460,6 +10462,3 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
     def open_iconsna_website(self):
         import webbrowser
         webbrowser.open("https://iconsna.xyz/")
-
-
-
