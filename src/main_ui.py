@@ -130,11 +130,11 @@ class SettingsDialog(QDialog):
         self.default_window_width_edit = QLineEdit()
         self.default_window_width_edit.setFixedWidth(45)
         self.default_window_width_edit.setPlaceholderText("W")
-        self.default_window_width_edit.setValidator(QIntValidator(400, 800, self))
+        self.default_window_width_edit.setValidator(QIntValidator(400, 680, self))
         if self.settings is not None:
             default_width = self.settings.value('default_window_width', WINDOW_SIZE[0], type=int)
-            # Clamp width to valid range (400-800)
-            clamped_width = max(400, min(800, default_width))
+            # Clamp width to valid range (400-680)
+            clamped_width = max(400, min(680, default_width))
             self.default_window_width_edit.setText(str(clamped_width))
         else:
             self.default_window_width_edit.setText(str(WINDOW_SIZE[0]))
@@ -142,11 +142,11 @@ class SettingsDialog(QDialog):
         self.default_window_height_edit = QLineEdit()
         self.default_window_height_edit.setFixedWidth(45)
         self.default_window_height_edit.setPlaceholderText("H")
-        self.default_window_height_edit.setValidator(QIntValidator(400, 800, self))
+        self.default_window_height_edit.setValidator(QIntValidator(400, 680, self))
         if self.settings is not None:
             default_height = self.settings.value('default_window_height', WINDOW_SIZE[1], type=int)
-            # Clamp height to valid range (400-800)
-            clamped_height = max(400, min(800, default_height))
+            # Clamp height to valid range (400-680)
+            clamped_height = max(400, min(680, default_height))
             self.default_window_height_edit.setText(str(clamped_height))
         else:
             self.default_window_height_edit.setText(str(WINDOW_SIZE[1]))
@@ -535,8 +535,8 @@ class SettingsDialog(QDialog):
                 window_height = int(self.default_window_height_edit.text())
                 
                 # Clamp values to valid ranges
-                clamped_width = max(400, min(800, window_width))
-                clamped_height = max(400, min(800, window_height))
+                clamped_width = max(400, min(680, window_width))
+                clamped_height = max(400, min(680, window_height))
                 
                 # Check if values were changed
                 if clamped_width != window_width or clamped_height != window_height:
@@ -914,15 +914,15 @@ class SuperCutUI(QWidget):
         
         # Use saved values directly, but ensure they're reasonable
         width = max(saved_width, 400)  # Minimum reasonable width
-        width = min(width, 800)  # Maximum width constraint
+        width = min(width, 680)  # Maximum width constraint
         height = max(saved_height, 400)  # Minimum reasonable height
-        height = min(height, 800)  # Maximum height constraint
+        height = min(height, 680)  # Maximum height constraint
         
         print(f"Window size: {width}x{height}\n(saved: {saved_width}x{saved_height}, default: {WINDOW_SIZE[0]}x{WINDOW_SIZE[1]})")
         
         self.setMinimumSize(400, 400)  # Set a reasonable minimum size
-        self.setMaximumWidth(800)  # Set maximum width to 800px (consistent with constraint)
-        self.setMaximumHeight(800)  # Set maximum height to 800px (consistent with constraint)
+        self.setMaximumWidth(680)  # Set maximum width to 680px (consistent with constraint)
+        self.setMaximumHeight(680)  # Set maximum height to 680px (consistent with constraint)
         self.resize(width, height)  # Set initial size from settings
         self.setStyleSheet(STYLE_SHEET)
         
@@ -3631,7 +3631,6 @@ class SuperCutUI(QWidget):
                 self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
         # Connect background dropdown to update color button state
         self.song_title_bg_combo.currentIndexChanged.connect(lambda _: update_bg_color_state())
-        
         # Initialize background color button state
         update_bg_color_state()
         
@@ -5180,6 +5179,7 @@ class SuperCutUI(QWidget):
         # Overlay10 start time percentage dropdown
         overlay10_start_percent_label = QLabel("Start:")
         overlay10_start_percent_label.setFixedWidth(label_short_width)
+        overlay10_start_percent_label.setFixedHeight(unified_height)
         self.overlay10_start_percent_combo = NoWheelComboBox()
         self.overlay10_start_percent_combo.setFixedWidth(combo_mini_width)
         self.overlay10_start_percent_combo.setFixedHeight(unified_height)
@@ -6759,7 +6759,7 @@ class SuperCutUI(QWidget):
                 if custom_image_enabled:
                     frame_box_custom_image_label.setStyleSheet("")  # Label is active when checkbox is checked
                 else:
-                    frame_box_custom_image_label.setStyleSheet("")  # Grey out label when checkbox is unchecked
+                    frame_box_custom_image_label.setStyleSheet("color: grey;")  # Grey out label when checkbox is unchecked
             else:
                 self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
                 frame_box_custom_image_label.setStyleSheet("color: grey;")
@@ -9159,7 +9159,7 @@ class SuperCutUI(QWidget):
         # Dynamic create_btn width based on window width
         if hasattr(self, 'create_btn') and self.create_btn is not None:
             window_width = self.width()
-            if window_width >= 660 and window_width <= 800:
+            if window_width >= 660 and window_width <= 680:
                 
                 self.create_btn.setFixedWidth(360)
             elif window_width >= 400 and window_width < 660:
@@ -9172,7 +9172,7 @@ class SuperCutUI(QWidget):
         # Dynamic progress_bar width based on window width
         if hasattr(self, 'progress_bar') and self.progress_bar is not None:
             window_width = self.width()
-            if window_width >= 660 and window_width <= 800:
+            if window_width >= 660 and window_width <= 680:
                 self.progress_bar.setFixedWidth(340)
             elif window_width >= 500 and window_width < 660:
                 progress_width = 180 + (window_width - 500)
@@ -9248,9 +9248,9 @@ class SuperCutUI(QWidget):
             
             # Use saved values directly, but ensure they're reasonable
             width = max(saved_width, 400)  # Minimum reasonable width
-            width = min(width, 800)  # Maximum width constraint (consistent with init_ui)
+            width = min(width, 680)  # Maximum width constraint (consistent with init_ui)
             height = max(saved_height, 400)  # Minimum reasonable height
-            height = min(height, 800)  # Maximum height constraint (consistent with init_ui)
+            height = min(height, 680)  # Maximum height constraint (consistent with init_ui)
             
             # Resize the window to the new size
             self.resize(width, height)
@@ -9545,7 +9545,6 @@ Size: {self.overlay7_size_percent}% | X: {self.overlay7_x_percent}% | Y: {self.o
 Overlay 8: {self.overlay8_checkbox.isChecked()} | Path: {self.overlay8_path}
 Size: {self.overlay8_size_percent}% | X: {self.overlay8_x_percent}% | Y: {self.overlay8_y_percent}%
                 Overlay8 Effect: {self.selected_overlay8_effect} | Start at: {self.overlay8_start_percent}% | Pop up Start at: {self.overlay8_popup_start_at_percent}%
-
 --- Song Title Overlay ---
 Soundwave Overlay: {self.overlay3_checkbox.isChecked()} | Path: {self.overlay3_path}
 Size: {self.overlay3_size_percent}% | X: {self.overlay3_x_percent}% | Y: {self.overlay3_y_percent}%
@@ -9919,7 +9918,6 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         # Add header and content to main layout
         layout.addWidget(header_widget)
         layout.addLayout(content_layout)
-        
         # Create button layout
         btn_layout = QHBoxLayout()
         # Add Dry Run button (placeholder for now)
