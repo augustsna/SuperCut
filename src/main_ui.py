@@ -1179,16 +1179,15 @@ class SuperCutUI(QWidget):
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.update_output_name)
-
-
-        self.part_layout.addStretch()
-        self.part_layout.addSpacing(0)
+        
+        
+        self.part_layout.addSpacing(1)
         self.part_layout.addWidget(self.name_list_checkbox)
-        self.part_layout.addSpacing(10)
+        self.part_layout.addSpacing(5)
         self.part_layout.addWidget(self.name_list_enter_btn)
-        self.part_layout.addSpacing(16)
+        self.part_layout.addSpacing(23)
         self.part_layout.addWidget(QLabel("Name:"))
-        self.part_layout.addSpacing(0) 
+        self.part_layout.addSpacing(-3) 
         self.part_layout.addWidget(self.part1_edit)
         self.part_layout.addSpacing(2)
         self.part_layout.addWidget(QLabel("#"))
@@ -1196,17 +1195,15 @@ class SuperCutUI(QWidget):
         self.part_layout.addWidget(self.part2_edit)
         self.part_layout.addSpacing(0)
         self.part_layout.addStretch()
-        
-        self.part_layout.addSpacing(0)
+        self.part_layout.addSpacing(30)
         self.part_layout.addWidget(self.mp3_count_checkbox)
+        self.part_layout.addSpacing(-4)
         self.part_layout.addWidget(QLabel("MP3 #"))
-        self.part_layout.addSpacing(0)
+        self.part_layout.addSpacing(-4)
         self.part_layout.addWidget(self.mp3_count_edit)
         self.part_layout.addStretch()
-
         # Don't add to main layout here - will be added to core settings group box
         layout.addSpacing(0)  # Add spacing after export inputs
-        
     def create_video_settings(self, layout):
         """Create video settings controls"""
         # Combined layout for codec, resolution, and fps
