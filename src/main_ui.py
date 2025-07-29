@@ -935,10 +935,7 @@ class SuperCutUI(QWidget):
         layout.addSpacing(0)
         title_widget = QtWidgets.QWidget()
         title_widget.setFixedHeight(70)
-        title_layout = QtWidgets.QHBoxLayout()
-        title_layout.setContentsMargins(0, 0, 0, 0)
-        title_layout.setSpacing(0)
-        # Add PNG logo in front of SuperCut title
+        
         title_icon = QLabel()
         title_icon.setPixmap(QPixmap(os.path.join(PROJECT_ROOT, "src", "sources", "icon.png")).scaled(45, 45, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
         title_label = QLabel("SuperCut")
@@ -960,21 +957,23 @@ class SuperCutUI(QWidget):
         loading_label.setStyleSheet("margin-top: 18px;")
         loading_label.setVisible(False)
         self.loading_label = loading_label  # Store as instance variable for later control
-        title_layout.addSpacing(0)
-        title_layout.addStretch()
-        title_layout.addSpacing(-10)
-        title_layout.addWidget(title_icon)
-        # Add spacing after title label
-        title_layout.addSpacing(0)
-        title_layout.addWidget(title_label)
-        title_layout.addSpacing(10)
-        title_layout.addWidget(static_icon)
-        # Add empty button holder (placeholder) size 16x4 after static icon
+        
         self.title_placeholder_btn = QPushButton()
         self.title_placeholder_btn.setFixedSize(24, 4)
         self.title_placeholder_btn.setStyleSheet("QPushButton { background: transparent; border: none; }")
         self.title_placeholder_btn.setEnabled(False)
         self.title_placeholder_btn.setVisible(self.static_icon.isVisible())
+
+        title_layout = QtWidgets.QHBoxLayout()
+        title_layout.setContentsMargins(0, 0, 0, 0)
+        title_layout.setSpacing(0)
+        title_layout.addSpacing(35)
+        title_layout.addStretch()
+        title_layout.addWidget(title_icon)
+        title_layout.addSpacing(0)
+        title_layout.addWidget(title_label)
+        title_layout.addSpacing(10)
+        title_layout.addWidget(static_icon)
         title_layout.addWidget(self.title_placeholder_btn)
         title_layout.addWidget(spinner_label, alignment=Qt.AlignmentFlag.AlignVCenter)
         title_layout.addWidget(loading_label, alignment=Qt.AlignmentFlag.AlignVCenter)
