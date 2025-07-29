@@ -120,11 +120,45 @@ class SettingsDialog(QDialog):
 
         # --- Two-column layout ---
         columns_layout = QHBoxLayout()
+
+        # Create simple group boxes for left and right forms
+        left_group = QtWidgets.QGroupBox("UI Settings")
+        left_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
+
+        right_group = QtWidgets.QGroupBox("Video Settings")
+        right_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
+
         # Right column: Overlay 1 and 2 (define right_form first so it can be used for intro fields)
         right_form = QFormLayout()
         # Left column: FPS and Intro
         left_form = QFormLayout()
-        # --- Default Window Size ---
+
         window_size_layout = QHBoxLayout()
         self.default_window_width_edit = QLineEdit()
         self.default_window_width_edit.setFixedWidth(45)
@@ -217,8 +251,7 @@ class SettingsDialog(QDialog):
             default_audio_bitrate = DEFAULT_AUDIO_BITRATE
         idx = next((i for i, (label, value) in enumerate(DEFAULT_AUDIO_BITRATE_OPTIONS) if value == default_audio_bitrate), 5)
         self.audio_bitrate_combo.setCurrentIndex(idx)
-        
-
+    
         # --- FFmpeg Video Bitrate Combo ---
         self.video_bitrate_combo = NoWheelComboBox(self)
         self.video_bitrate_combo.setFixedWidth(120)
@@ -230,7 +263,6 @@ class SettingsDialog(QDialog):
             default_video_bitrate = DEFAULT_VIDEO_BITRATE
         idx = next((i for i, (label, value) in enumerate(DEFAULT_VIDEO_BITRATE_OPTIONS) if value == default_video_bitrate), 5)
         self.video_bitrate_combo.setCurrentIndex(idx)
-        
 
         # --- FFmpeg Maxrate Combo ---
         self.maxrate_combo = NoWheelComboBox(self)
@@ -259,12 +291,16 @@ class SettingsDialog(QDialog):
 
         # --- Add to SettingsDialog: Show Placeholder Controls Checkbox ---
         
-        # Add both forms to columns_layout
+        # Set forms as layouts for group boxes
+        left_group.setLayout(left_form)
+        right_group.setLayout(right_form)
+
+        # Add both group boxes to columns_layout
         columns_layout.addSpacing(25)
-        columns_layout.addLayout(left_form)
-        columns_layout.addSpacing(0)  # Increased spacing between columns
-        columns_layout.addLayout(right_form)
-        columns_layout.addSpacing(35)
+        columns_layout.addWidget(left_group)
+        columns_layout.addSpacing(20)  # Spacing between bordered containers
+        columns_layout.addWidget(right_group)
+        columns_layout.addSpacing(25)
         main_layout.addLayout(columns_layout)
 
         # Add more space before the button row
@@ -973,7 +1009,6 @@ class SuperCutUI(QWidget):
         self.part1_edit.textChanged.connect(self.update_output_name)
         self.part2_edit.textChanged.connect(self.update_output_name)
         self.folder_edit.textChanged.connect(self.update_output_name)
-        
         
         self.part_layout.addSpacing(1)
         self.part_layout.addWidget(self.name_list_checkbox)
