@@ -109,15 +109,14 @@ class SettingsDialog(QDialog):
         self.selected_fps = None
         main_layout = QtWidgets.QVBoxLayout(self)        
         # Add Settings label at the top
-        main_layout.addSpacing(0)  # Move label up by 20px
+        main_layout.addSpacing(20)  # Move label up by 20px
         settings_label = QLabel("Default Settings")
-        settings_label.setStyleSheet("font-size: 22px; font-weight: bold; margin-bottom: 0px;")
+        settings_label.setStyleSheet("font-size: 22px; font-weight: bold; margin: 0px; padding: 0px;")
         settings_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        settings_label.setFixedHeight(30)
         main_layout.addWidget(settings_label)
         # Add Default button below Settings label  
-        main_layout.addSpacing(0)      
-        # Reset button will be moved to button row
-        main_layout.addSpacing(0)
+        main_layout.addSpacing(20)      
 
         # --- Two-column layout ---
         columns_layout = QHBoxLayout()
@@ -158,30 +157,16 @@ class SettingsDialog(QDialog):
         
 
         # --- Default MP3 # Enabled Checkbox ---
-        self.default_mp3_count_enabled_checkbox = QtWidgets.QCheckBox("Enable MP3 #")
+        self.default_mp3_count_enabled_checkbox = QtWidgets.QCheckBox("Enable")
         self.default_mp3_count_enabled_checkbox.setChecked(
             self.settings.value('default_mp3_count_enabled', False, type=bool) if self.settings is not None else False
         )
         # --- Default List Name Enabled Checkbox ---
-        self.default_list_name_enabled_checkbox = QtWidgets.QCheckBox("Enable List Name")
+        self.default_list_name_enabled_checkbox = QtWidgets.QCheckBox("Enable")
         self.default_list_name_enabled_checkbox.setChecked(
             self.settings.value('default_list_name_enabled', False, type=bool) if self.settings is not None else False
         )
-        # --- Default Intro Enabled Checkbox ---
-        self.default_intro_enabled_checkbox = QtWidgets.QCheckBox("Enable Intro")
-        self.default_intro_enabled_checkbox.setChecked(
-            self.settings.value('default_intro_enabled', True, type=bool) if self.settings is not None else True
-        )
-        # --- Default Overlay 1 Enabled Checkbox ---
-        self.default_overlay1_enabled_checkbox = QtWidgets.QCheckBox("Enable Overlay 1")
-        self.default_overlay1_enabled_checkbox.setChecked(
-            self.settings.value('default_overlay1_enabled', True, type=bool) if self.settings is not None else True
-        )
-        # --- Default Overlay 2 Enabled Checkbox ---
-        self.default_overlay2_enabled_checkbox = QtWidgets.QCheckBox("Enable Overlay 2")
-        self.default_overlay2_enabled_checkbox.setChecked(
-            self.settings.value('default_overlay2_enabled', True, type=bool) if self.settings is not None else True
-        )
+        
         # --- FPS Combo ---
         self.fps_combo = NoWheelComboBox(self)
         self.fps_combo.setFixedWidth(120)
@@ -272,26 +257,14 @@ class SettingsDialog(QDialog):
         idx = next((i for i, (label, value) in enumerate(DEFAULT_BUFSIZE_OPTIONS) if value == default_bufsize), 4)
         self.bufsize_combo.setCurrentIndex(idx)
 
-        # Add to left_form in new order with reduced spacing
-        left_form.addRow("Window Size:", window_size_layout)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("FPS:", self.fps_combo)
-        left_form.addRow("Resolution:", self.resolution_combo)
-        left_form.addRow("FFmpeg Preset:", self.preset_combo)
-        left_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
-        left_form.addRow("Video Bitrate:", self.video_bitrate_combo)
-        left_form.addRow("Maxrate:", self.maxrate_combo)
-        left_form.addRow("Buffsize:", self.bufsize_combo)
+        # --- Add to SettingsDialog: Show Placeholder Controls Checkbox ---
         
         # Add both forms to columns_layout
-        columns_layout.addSpacing(0)
+        columns_layout.addSpacing(25)
         columns_layout.addLayout(left_form)
         columns_layout.addSpacing(0)  # Increased spacing between columns
         columns_layout.addLayout(right_form)
+        columns_layout.addSpacing(35)
         main_layout.addLayout(columns_layout)
 
         # Add more space before the button row
@@ -330,18 +303,37 @@ class SettingsDialog(QDialog):
         self.shortcut.activated.connect(self.reject)
 
         # --- Add to SettingsDialog: Show Placeholder Controls Checkbox ---
-        self.show_placeholder_checkbox = QtWidgets.QCheckBox("Show Placeholder")
+        self.show_placeholder_checkbox = QtWidgets.QCheckBox("Enable")
         self.show_placeholder_checkbox.setChecked(
             self.settings.value('show_placeholder_controls', False, type=bool) if self.settings is not None else False
         )
-        left_form.addRow("Show Placeholder:", self.show_placeholder_checkbox)
 
         # --- Add to SettingsDialog: Filter Complex Alt Mode Checkbox ---
-        self.filter_complex_alt_checkbox = QtWidgets.QCheckBox("Filter Complex Alt Mode")
+        self.filter_complex_alt_checkbox = QtWidgets.QCheckBox("Alt Mode")
         self.filter_complex_alt_checkbox.setChecked(
             self.settings.value('filter_complex_alt_mode', False, type=bool) if self.settings is not None else False
         )
+
+        # Add to left_form in new order with reduced spacing
+        left_form.addRow("Window Size:", window_size_layout)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Show Placeholder:", self.show_placeholder_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("Filter Complex Alt:", self.filter_complex_alt_checkbox)
+
+        # Add video/encoding settings to right_form
+        right_form.addRow("FPS:", self.fps_combo)
+        right_form.addRow("Resolution:", self.resolution_combo)
+        right_form.addRow("FFmpeg Preset:", self.preset_combo)
+        right_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
+        right_form.addRow("Video Bitrate:", self.video_bitrate_combo)
+        right_form.addRow("Maxrate:", self.maxrate_combo)
+        right_form.addRow("Buffsize:", self.bufsize_combo)
+        
 
     def accept(self):
         self.selected_fps = self.fps_combo.currentData()
