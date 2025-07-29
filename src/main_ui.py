@@ -604,28 +604,6 @@ class SettingsDialog(QDialog):
         self.maxrate_combo.setCurrentIndex(5)  # '16M' is default
         # Bufsize
         self.bufsize_combo.setCurrentIndex(4)  # '24M' is default
-        # Intro
-        self.default_intro_enabled_checkbox.setChecked(True)
-        self.default_intro_path_edit.setText("")
-        self.default_intro_x_combo.setCurrentIndex(50)  # 50% X
-        self.default_intro_y_combo.setCurrentIndex(50)  # 50% Y
-        idx_intro_size = 9  # 50% size
-        self.default_intro_size_combo.setCurrentIndex(9)  # Default 50%
-        # Note: Default intro duration is now 6 seconds (set in main UI)
-        # Overlay 1
-        self.default_overlay1_path_edit.setText("")
-        self.default_overlay1_x_combo.setCurrentIndex(0)  # 0% X
-        self.default_overlay1_y_combo.setCurrentIndex(0)  # 0% Y
-        idx_overlay1_size = 9  # 50% size
-        self.default_overlay1_size_combo.setCurrentIndex(idx_overlay1_size)
-        self.default_overlay1_enabled_checkbox.setChecked(True)
-        # Overlay 2
-        self.default_overlay2_path_edit.setText("")
-        self.default_overlay2_x_combo.setCurrentIndex(0)  # 0% X
-        self.default_overlay2_y_combo.setCurrentIndex(0)  # 0% Y
-        idx_overlay2_size = 9  # 50% size
-        self.default_overlay2_size_combo.setCurrentIndex(idx_overlay2_size)
-        self.default_overlay2_enabled_checkbox.setChecked(True)
         # List Name
         self.default_list_name_enabled_checkbox.setChecked(False)
         # MP3 #
