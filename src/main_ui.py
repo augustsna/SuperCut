@@ -7344,7 +7344,7 @@ class SuperCutUI(QWidget):
         # Add last_item label to layout
         last_item_label_layout = QHBoxLayout()
         last_item_label_layout.addStretch()
-        last_item_label_layout.addSpacing(30)
+        last_item_label_layout.addSpacing(50)
         last_item_label_layout.addWidget(self.last_item_label)
         last_item_label_layout.addStretch()
         layout.addLayout(last_item_label_layout)
