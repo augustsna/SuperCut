@@ -913,7 +913,7 @@ class SuperCutUI(QWidget):
         self.part1_edit.setFixedWidth(90)
         self.part1_edit.setFixedHeight(30)
         self.part2_edit = KhmerSupportLineEdit(DEFAULT_START_NUMBER)
-        self.part2_edit.setPlaceholderText("12345")
+        self.part2_edit.setPlaceholderText("1234")
         self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
         self.part2_edit.setFixedWidth(50)
         self.part2_edit.setFixedHeight(30)
@@ -1140,7 +1140,7 @@ class SuperCutUI(QWidget):
         self.intro_checkbox = QtWidgets.QCheckBox(" Intro :")
         self.intro_checkbox.setFixedWidth(label_checkbox_width)
         self.intro_checkbox.setFixedHeight(unified_height)
-        self.intro_checkbox.setChecked(True)
+        self.intro_checkbox.setChecked(False)
         def update_intro_checkbox_style(state):
             self.intro_checkbox.setStyleSheet("")  # Always default color
         self.intro_checkbox.stateChanged.connect(update_intro_checkbox_style)
@@ -1406,6 +1406,17 @@ class SuperCutUI(QWidget):
         
         # Function to control intro duration field based on duration full checkbox
         def set_intro_duration_enabled(state):
+            # First check if intro checkbox is enabled
+            if not self.intro_checkbox.isChecked():
+                # If intro is disabled, disable duration controls regardless of duration checkbox
+                self.intro_duration_edit.setEnabled(False)
+                intro_duration_label.setEnabled(False)
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.intro_duration_edit.setStyleSheet(grey_btn_style)
+                intro_duration_label.setStyleSheet("color: grey;")
+                intro_duration_full_label.setStyleSheet("color: grey;")
+                return
+                
             enabled = state == Qt.CheckState.Checked
             # When duration full checkbox is checked, disable duration input field
             self.intro_duration_edit.setEnabled(not enabled)
@@ -1503,7 +1514,7 @@ class SuperCutUI(QWidget):
         self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1:")
         self.overlay_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay_checkbox.setFixedHeight(unified_height)
-        self.overlay_checkbox.setChecked(True)
+        self.overlay_checkbox.setChecked(False)
         def update_overlay_checkbox_style(state):
             self.overlay_checkbox.setStyleSheet("")  # Always default color
         self.overlay_checkbox.stateChanged.connect(update_overlay_checkbox_style)
@@ -1653,7 +1664,7 @@ class SuperCutUI(QWidget):
         self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2:")
         self.overlay2_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay2_checkbox.setFixedHeight(unified_height)
-        self.overlay2_checkbox.setChecked(True)
+        self.overlay2_checkbox.setChecked(False)
         def update_overlay2_checkbox_style(state):
             self.overlay2_checkbox.setStyleSheet("")  # Always default color
         self.overlay2_checkbox.stateChanged.connect(update_overlay2_checkbox_style)
@@ -1846,6 +1857,18 @@ class SuperCutUI(QWidget):
 
         # Function to control overlay1_2 start at/from fields based on start at checkbox
         def set_overlay1_2_start_at_enabled(state):
+            # First check if overlay1 or overlay2 checkboxes are enabled
+            if not (self.overlay_checkbox.isChecked() or self.overlay2_checkbox.isChecked()):
+                # If overlays are disabled, disable start controls regardless of start at checkbox
+                self.overlay_start_at_edit.setEnabled(False)
+                self.overlay1_2_start_from_edit.setEnabled(False)
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay_start_at_edit.setStyleSheet(grey_btn_style)
+                self.overlay1_2_start_from_edit.setStyleSheet(grey_btn_style)
+                overlay1_2_start_at_label.setStyleSheet("color: grey;")
+                overlay1_2_start_from_label.setStyleSheet("color: grey;")
+                return
+                
             enabled = state == Qt.CheckState.Checked
             # When start at checkbox is checked, enable start at field and disable start from field
             # When start at checkbox is unchecked, enable start from field and disable start at field
@@ -1899,6 +1922,17 @@ class SuperCutUI(QWidget):
 
         # Function to control overlay1_2 duration field based on duration full checkbox
         def set_overlay1_2_duration_enabled(state):
+            # First check if overlay1 or overlay2 checkboxes are enabled
+            if not (self.overlay_checkbox.isChecked() or self.overlay2_checkbox.isChecked()):
+                # If overlays are disabled, disable duration controls regardless of duration checkbox
+                self.overlay1_2_duration_edit.setEnabled(False)
+                overlay1_2_duration_label.setEnabled(False)
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay1_2_duration_edit.setStyleSheet(grey_btn_style)
+                overlay1_2_duration_label.setStyleSheet("color: grey;")
+                overlay1_2_duration_full_label.setStyleSheet("color: grey;")
+                return
+                
             enabled = state == Qt.CheckState.Checked
             # When duration full checkbox is checked, disable duration input field
             self.overlay1_2_duration_edit.setEnabled(not enabled)
@@ -9044,59 +9078,6 @@ class SuperCutUI(QWidget):
             idx = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == default_fps), 0)
             self.fps_combo.setCurrentIndex(idx)
                 
-        # Apply default overlay 3 settings if overlay 3 is checked and fields are empty
-        default_overlay3_path = self.settings.value('default_overlay3_path', '', type=str)
-        default_overlay3_size = self.settings.value('default_overlay3_size', 50, type=int)
-        default_overlay3_enabled = self.settings.value('default_overlay3_enabled', False, type=bool)
-        if default_overlay3_enabled:
-            if hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked():
-                if not self.overlay3_edit.text().strip():
-                    self.overlay3_edit.setText(default_overlay3_path)
-                idx = next((i for i in range(self.overlay3_size_combo.count()) if self.overlay3_size_combo.itemData(i) == default_overlay3_size), 9)
-                self.overlay3_size_combo.setCurrentIndex(idx)
-        # Apply default overlay 4 settings if overlay 4 is checked and fields are empty
-        default_overlay4_path = self.settings.value('default_overlay4_path', '', type=str)
-        default_overlay4_x = self.settings.value('default_overlay4_x_percent', 0, type=int)
-        default_overlay4_y = self.settings.value('default_overlay4_y_percent', 0, type=int)
-        default_overlay4_size = self.settings.value('default_overlay4_size', 50, type=int)
-        default_overlay4_enabled = self.settings.value('default_overlay4_enabled', False, type=bool)
-        if default_overlay4_enabled:
-            if hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked():
-                if not self.overlay4_edit.text().strip():
-                    self.overlay4_edit.setText(default_overlay4_path)
-                idx = default_overlay4_x if 0 <= default_overlay4_x <= 100 else 75
-                self.overlay4_x_combo.setCurrentIndex(idx)
-                idx = default_overlay4_y if 0 <= default_overlay4_y <= 100 else 0
-                self.overlay4_y_combo.setCurrentIndex(idx)
-                idx = next((i for i in range(self.overlay4_size_combo.count()) if self.overlay4_size_combo.itemData(i) == default_overlay4_size), 9)
-                self.overlay4_size_combo.setCurrentIndex(idx)
-        if hasattr(self, 'overlay4_checkbox'):
-            self.overlay4_checkbox.setChecked(default_overlay4_enabled)
-        
-        # Set overlay3 checkbox state from settings
-        if hasattr(self, 'overlay3_checkbox'):
-            self.overlay3_checkbox.setChecked(default_overlay3_enabled)
-        # Set overlay4 checkbox state from settings
-        if hasattr(self, 'overlay4_checkbox'):
-            self.overlay4_checkbox.setChecked(default_overlay4_enabled)
-        # Set overlay5 checkbox state from settings
-        default_overlay5_path = self.settings.value('default_overlay5_path', '', type=str)
-        default_overlay5_x = self.settings.value('default_overlay5_x_percent', 0, type=int)
-        default_overlay5_y = self.settings.value('default_overlay5_y_percent', 0, type=int)
-        default_overlay5_size = self.settings.value('default_overlay5_size', 50, type=int)
-        default_overlay5_enabled = self.settings.value('default_overlay5_enabled', False, type=bool)
-        if default_overlay5_enabled:
-            if hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked():
-                if not self.overlay5_edit.text().strip():
-                    self.overlay5_edit.setText(default_overlay5_path)
-                idx = default_overlay5_x if 0 <= default_overlay5_x <= 100 else 75
-                self.overlay5_x_combo.setCurrentIndex(idx)
-                idx = default_overlay5_y if 0 <= default_overlay5_y <= 100 else 0
-                self.overlay5_y_combo.setCurrentIndex(idx)
-                idx = next((i for i in range(self.overlay5_size_combo.count()) if self.overlay5_size_combo.itemData(i) == default_overlay5_size), 9)
-                self.overlay5_size_combo.setCurrentIndex(idx)
-        if hasattr(self, 'overlay5_checkbox'):
-            self.overlay5_checkbox.setChecked(default_overlay5_enabled)
         # Set list name checkbox state from settings
         default_list_name_enabled = self.settings.value('default_list_name_enabled', False, type=bool)
         if hasattr(self, 'name_list_checkbox'):
