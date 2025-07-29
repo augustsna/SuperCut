@@ -9613,10 +9613,28 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 if not self.main_window or not self.text_edit:
                     return
                 
-                # Generate updated settings string
-                settings_str = self.main_window.generate_settings_preview()
-                if settings_str:
-                    self.text_edit.setPlainText(settings_str.lstrip())
+                try:
+                    # Store current cursor position and scroll value
+                    cursor = self.text_edit.textCursor()
+                    scrollbar = self.text_edit.verticalScrollBar()
+                    scroll_pos = scrollbar.value()
+                    
+                    # Generate updated settings string
+                    settings_str = self.main_window.generate_settings_preview()
+                    if not settings_str:
+                        return
+                        
+                    # Only update if content has actually changed
+                    current_text = self.text_edit.toPlainText()
+                    new_text = settings_str.lstrip()
+                    if current_text != new_text:
+                        self.text_edit.setPlainText(new_text)
+                        
+                        # Restore cursor position and scroll value
+                        self.text_edit.setTextCursor(cursor)
+                        scrollbar.setValue(scroll_pos)
+                except Exception as e:
+                    print(f"Error updating preview content: {str(e)}")
             
             def closeEvent(self, event):
                 """Clean up timer when dialog is closed"""
