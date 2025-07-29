@@ -116,7 +116,7 @@ class SettingsDialog(QDialog):
         settings_label.setFixedHeight(30)
         main_layout.addWidget(settings_label)
         # Add Default button below Settings label  
-        main_layout.addSpacing(20)      
+        main_layout.addSpacing(15)      
 
         # --- Two-column layout ---
         columns_layout = QHBoxLayout()
@@ -295,39 +295,51 @@ class SettingsDialog(QDialog):
         left_group.setLayout(left_form)
         right_group.setLayout(right_form)
 
+        # Add left margin to form contents
+        left_form.setContentsMargins(15, 10, 10, 10)  # left, top, right, bottom
+        right_form.setContentsMargins(20, 10, 10, 10)  # left, top, right, bottom
+
+        #Set fixed sizes for both groups
+        left_group.setFixedWidth(275)
+        right_group.setFixedWidth(275)
+
+        # Set custom spacing for form layouts
+        left_form.setHorizontalSpacing(10)  # 15px between labels and fields
+        right_form.setHorizontalSpacing(10)  # 15px between labels and fields
+
         # Add both group boxes to columns_layout
-        columns_layout.addSpacing(25)
+        columns_layout.addSpacing(20)
         columns_layout.addWidget(left_group)
         columns_layout.addSpacing(20)  # Spacing between bordered containers
         columns_layout.addWidget(right_group)
         columns_layout.addSpacing(25)
         main_layout.addLayout(columns_layout)
+        main_layout.addSpacing(15)
 
-        # Add more space before the button row
-        main_layout.addSpacing(0)
-        button_layout = QHBoxLayout()
-        # Reset button on the very left with smaller width
-        button_layout.addSpacing(0)
         self.reset_btn = QPushButton("Reset")
         self.reset_btn.setFixedSize(70, 32)
         self.reset_btn.setStyleSheet("QPushButton { background: white; border: 1px solid #ccc; color: #333; } QPushButton:hover { background: #f5f5f5; }")
         self.reset_btn.clicked.connect(self.reset_to_defaults)
-        button_layout.addWidget(self.reset_btn)
-        button_layout.addSpacing(0)
-        button_layout.addStretch()
+        
         self.save_btn = QPushButton("Save")
         self.cancel_btn = QPushButton("Cancel")
         self.save_btn.setFixedSize(100, 32)
         self.cancel_btn.setFixedSize(100, 32)
-        button_layout.addWidget(self.save_btn)
-        button_layout.addSpacing(0)
-        button_layout.addWidget(self.cancel_btn)
-        button_layout.addSpacing(0)
-        button_layout.addStretch()
-        main_layout.addLayout(button_layout)
-        main_layout.addSpacing(0)
         self.save_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
+
+        button_layout = QHBoxLayout()
+        button_layout.setSpacing(0)
+        button_layout.addSpacing(20)
+        button_layout.addWidget(self.reset_btn)
+        button_layout.addStretch(0)  
+        button_layout.addSpacing(-95)     
+        button_layout.addWidget(self.save_btn)
+        button_layout.addSpacing(15)
+        button_layout.addWidget(self.cancel_btn)
+        button_layout.addStretch(0)
+        main_layout.addLayout(button_layout)
+        main_layout.addSpacing(10)
         
         # Make Enter key trigger save button
         self.save_btn.setDefault(True)
