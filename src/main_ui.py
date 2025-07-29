@@ -1239,7 +1239,7 @@ class SuperCutUI(QWidget):
 
         combo_medium_width = 100
 
-        combo_bg_width = 70
+        combo_bg_width = 80
 
         combo_short_width = 55
 
@@ -7229,11 +7229,11 @@ class SuperCutUI(QWidget):
         on_bg_effect_changed(self.bg_effect_combo.currentIndex())
 
         # Background effect intensity dropdown (1-100)
-        bg_intensity_label = QLabel("Intensity:")
+        bg_intensity_label = QLabel("Level:")
         bg_intensity_label.setFixedWidth(label_short_width)
         bg_intensity_label.setFixedHeight(unified_height)
         self.bg_intensity_combo = NoWheelComboBox()
-        self.bg_intensity_combo.setFixedWidth(combo_bg_width)
+        self.bg_intensity_combo.setFixedWidth(combo_short_width)
         self.bg_intensity_combo.setFixedHeight(unified_height)
         for intensity in range(1, 101):
             self.bg_intensity_combo.addItem(str(intensity), intensity)
@@ -7275,17 +7275,21 @@ class SuperCutUI(QWidget):
         bg_layer_layout = QHBoxLayout()
         bg_layer_layout.setSpacing(0)
         bg_layer_layout.addWidget(self.bg_layer_checkbox)
-        bg_layer_layout.addSpacing(-21)
+        bg_layer_layout.addSpacing(-18)
         bg_layer_layout.addWidget(bg_scale_label)
+        bg_layer_layout.addSpacing(-3)
         bg_layer_layout.addWidget(self.bg_scale_combo)
-        bg_layer_layout.addSpacing(12)
+        bg_layer_layout.addSpacing(8)
         bg_layer_layout.addWidget(bg_crop_position_label)
+        bg_layer_layout.addSpacing(-6)
         bg_layer_layout.addWidget(self.bg_crop_position_combo)
-        bg_layer_layout.addSpacing(0)
+        bg_layer_layout.addSpacing(8)
         bg_layer_layout.addWidget(bg_effect_label)
+        bg_layer_layout.addSpacing(-1)
         bg_layer_layout.addWidget(self.bg_effect_combo)
-        bg_layer_layout.addSpacing(0)
+        bg_layer_layout.addSpacing(12)
         bg_layer_layout.addWidget(bg_intensity_label)
+        bg_layer_layout.addSpacing(-4)
         bg_layer_layout.addWidget(self.bg_intensity_combo)
         bg_layer_layout.addStretch()
         final_settings_groupbox_layout.addLayout(bg_layer_layout)
