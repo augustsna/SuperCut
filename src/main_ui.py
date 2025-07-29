@@ -7356,35 +7356,34 @@ class SuperCutUI(QWidget):
 
     def create_action_buttons(self, layout):
         """Create action buttons"""
-        button_layout = QHBoxLayout()
-        button_layout.setContentsMargins(0, 0, 0, 0)  # Remove bottom margin
 
         # Add settings button first, before terminal
-        button_layout.addSpacing(10)
         self.settings_btn = QPushButton()
         icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "settings.png")
         self.settings_btn.setIcon(QIcon(icon_path))
-        self.settings_btn.setFixedSize(32, 32)
+        self.settings_btn.setFixedSize(28, 28)
+        self.settings_btn.setFixedHeight(38)
+        self.settings_btn.setFixedWidth(38)
         self.settings_btn.setIconSize(self.settings_btn.size())  # Make icon fill button
         self.settings_btn.setToolTip("Settings")
         self.settings_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         self.settings_btn.clicked.connect(self.show_settings_dialog)
-        button_layout.addWidget(self.settings_btn)
+        
 
         # Add layer manager button
-        button_layout.addSpacing(10)
         self.layer_manager_btn = QPushButton()
         layer_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "logo", "icons8-program-100.png")
         self.layer_manager_btn.setIcon(QIcon(layer_icon_path))
-        self.layer_manager_btn.setFixedSize(32, 32)
+        self.layer_manager_btn.setFixedSize(28, 28)
+        self.layer_manager_btn.setFixedHeight(38)
+        self.layer_manager_btn.setFixedWidth(38)
         self.layer_manager_btn.setIconSize(self.layer_manager_btn.size())
         self.layer_manager_btn.setToolTip("Layer Order Manager")
         self.layer_manager_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         self.layer_manager_btn.clicked.connect(self.show_layer_manager)
-        button_layout.addWidget(self.layer_manager_btn)
+        
 
         # Add terminal button next
-        button_layout.addSpacing(10)
         self.terminal_btn = QPushButton()
         self.terminal_icon_off_path = os.path.join(PROJECT_ROOT, "src", "sources", "terminal.png")
         self.terminal_icon_on_path = os.path.join(PROJECT_ROOT, "src", "sources", "terminal_on.png")
@@ -7394,18 +7393,16 @@ class SuperCutUI(QWidget):
         self.terminal_btn.setFixedWidth(38)
         self.terminal_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         self.terminal_btn.clicked.connect(self.show_terminal)
-        button_layout.addWidget(self.terminal_btn)
+        
 
         # Then add create video button
-        button_layout.addSpacing(10)
         self.create_btn = QPushButton("Create Video")
         self.create_btn.setFixedHeight(38)
         self.create_btn.setFixedWidth(370)
         self.create_btn.clicked.connect(self.create_video)
-        button_layout.addWidget(self.create_btn)
+        
 
         # Add preview button after create video button
-        button_layout.addSpacing(0)
         self.preview_btn = QPushButton()
         preview_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "preview.png")
         self.preview_btn.setIcon(QIcon(preview_icon_path))
@@ -7415,10 +7412,9 @@ class SuperCutUI(QWidget):
         self.preview_btn.setToolTip("Preview")
         self.preview_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         self.preview_btn.clicked.connect(self.show_preview_dialog)
-        button_layout.addWidget(self.preview_btn)
+        
 
         # Add placeholder button after create video button
-        button_layout.addSpacing(-5)
         self.placeholder_btn = QPushButton()
         rocket_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "rocket.png")
         self.placeholder_btn.setIcon(QIcon(rocket_icon_path))
@@ -7428,15 +7424,30 @@ class SuperCutUI(QWidget):
         self.placeholder_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         # self.placeholder_btn.setVisible(self.static_icon.isVisible())  # Ensure always visible
         self.placeholder_btn.clicked.connect(self.open_iconsna_website)
-        button_layout.addWidget(self.placeholder_btn)
+        
 
         # Add version text after placeholder button
-        button_layout.addSpacing(25)
         version_label = QLabel("v2025.1")
         version_label.setStyleSheet("color: #666; font-size: 12px; font-weight: normal;")
         version_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-        button_layout.addWidget(version_label)
+        
 
+        button_layout = QHBoxLayout()
+        button_layout.setSpacing(0)
+        button_layout.addSpacing(0)
+        button_layout.addWidget(self.settings_btn)
+        button_layout.addSpacing(0)
+        button_layout.addWidget(self.layer_manager_btn)
+        button_layout.addSpacing(0)
+        button_layout.addWidget(self.terminal_btn)
+        button_layout.addSpacing(0)
+        button_layout.addWidget(self.create_btn)
+        button_layout.addSpacing(0)  
+        button_layout.addWidget(self.preview_btn)
+        button_layout.addSpacing(0)
+        button_layout.addWidget(self.placeholder_btn)
+        button_layout.addStretch(0)
+        button_layout.addWidget(version_label)
         layout.addLayout(button_layout)
 
     def create_progress_controls(self, layout):
