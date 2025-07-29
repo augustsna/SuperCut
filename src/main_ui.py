@@ -279,12 +279,6 @@ class SettingsDialog(QDialog):
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Intro Defaults:", self.default_intro_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Overlay 1 Defaults:", self.default_overlay1_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Overlay 2 Defaults:", self.default_overlay2_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("FPS:", self.fps_combo)
         left_form.addRow("Resolution:", self.resolution_combo)
         left_form.addRow("FFmpeg Preset:", self.preset_combo)
@@ -292,184 +286,7 @@ class SettingsDialog(QDialog):
         left_form.addRow("Video Bitrate:", self.video_bitrate_combo)
         left_form.addRow("Maxrate:", self.maxrate_combo)
         left_form.addRow("Buffsize:", self.bufsize_combo)
-        # --- Default Intro Path ---
-        intro_path_layout = QHBoxLayout()
-        self.default_intro_path_edit = KhmerSupportLineEdit()
-        self.default_intro_path_edit.setFixedWidth(120)
-        if self.settings is not None:
-            self.default_intro_path_edit.setText(self.settings.value('default_intro_path', '', type=str))
         
-        # Add text change handler to clean file paths
-        def clean_default_intro_path():
-            current_text = self.default_intro_path_edit.text()
-            cleaned_text = clean_file_path(current_text)
-            if cleaned_text != current_text:
-                self.default_intro_path_edit.setText(cleaned_text)
-        self.default_intro_path_edit.textChanged.connect(clean_default_intro_path)
-        self.default_intro_path_btn = QPushButton('...')
-        self.default_intro_path_btn.setFixedWidth(32)
-        def pick_intro_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Intro Media", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
-            if file_path:
-                self.default_intro_path_edit.setText(file_path)
-        self.default_intro_path_btn.clicked.connect(pick_intro_path)
-        intro_path_layout.addWidget(self.default_intro_path_edit)
-        intro_path_layout.addWidget(self.default_intro_path_btn)
-        right_form.addRow("Intro Path:", intro_path_layout)
-        # --- Default Intro X Position ---
-        self.default_intro_x_combo = NoWheelComboBox()
-        self.default_intro_x_combo.setFixedWidth(120)
-        for percent in range(0, 101, 1):
-            self.default_intro_x_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_intro_x = self.settings.value('default_intro_x_percent', 50, type=int)
-            idx = default_intro_x if 0 <= default_intro_x <= 100 else 50
-            self.default_intro_x_combo.setCurrentIndex(idx)
-        right_form.addRow("Intro X:", self.default_intro_x_combo)
-        
-        # --- Default Intro Y Position ---
-        self.default_intro_y_combo = NoWheelComboBox()
-        self.default_intro_y_combo.setFixedWidth(120)
-        for percent in range(0, 101, 1):
-            self.default_intro_y_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_intro_y = self.settings.value('default_intro_y_percent', 50, type=int)
-            idx = default_intro_y if 0 <= default_intro_y <= 100 else 50
-            self.default_intro_y_combo.setCurrentIndex(idx)
-        right_form.addRow("Intro Y:", self.default_intro_y_combo)
-        # --- Default Intro Size ---
-        self.default_intro_size_combo = NoWheelComboBox()
-        self.default_intro_size_combo.setFixedWidth(120)
-        for percent in range(5, 101, 5):
-            self.default_intro_size_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_intro_size = self.settings.value('default_intro_size', 50, type=int)
-            idx = (default_intro_size // 5) - 1 if 5 <= default_intro_size <= 100 else 9
-            self.default_intro_size_combo.setCurrentIndex(9)  # Default 50%
-        else:
-            self.default_intro_size_combo.setCurrentIndex(9)  # Default 50%
-        right_form.addRow("Intro Size:", self.default_intro_size_combo)
-        # --- Default Overlay 1 Path ---
-        overlay1_path_layout = QHBoxLayout()
-        self.default_overlay1_path_edit = KhmerSupportLineEdit()
-        self.default_overlay1_path_edit.setFixedWidth(120)
-        if self.settings is not None:
-            self.default_overlay1_path_edit.setText(self.settings.value('default_overlay1_path', '', type=str))
-
-        # Add text change handler to clean file paths
-        def clean_default_overlay1_path():
-            current_text = self.default_overlay1_path_edit.text()
-            cleaned_text = clean_file_path(current_text)
-            if cleaned_text != current_text:
-                self.default_overlay1_path_edit.setText(cleaned_text)
-        self.default_overlay1_path_edit.textChanged.connect(clean_default_overlay1_path)
-        self.default_overlay1_path_btn = QPushButton('...')
-        self.default_overlay1_path_btn.setFixedWidth(32)
-        def pick_overlay1_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 1 File", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
-            if file_path:
-                self.default_overlay1_path_edit.setText(file_path)
-        self.default_overlay1_path_btn.clicked.connect(pick_overlay1_path)
-        overlay1_path_layout.addWidget(self.default_overlay1_path_edit)
-        overlay1_path_layout.addWidget(self.default_overlay1_path_btn)
-        right_form.addRow("Overlay 1 Path:", overlay1_path_layout)
-        # --- Default Overlay 1 X Position ---
-        self.default_overlay1_x_combo = NoWheelComboBox()
-        self.default_overlay1_x_combo.setFixedWidth(120)
-        for percent in range(0, 101, 1):
-            self.default_overlay1_x_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_overlay1_x = self.settings.value('default_overlay1_x_percent', 0, type=int)
-            idx = default_overlay1_x if 0 <= default_overlay1_x <= 100 else 0
-            self.default_overlay1_x_combo.setCurrentIndex(idx)
-        else:
-            self.default_overlay1_x_combo.setCurrentIndex(0)  # Default 0%
-        right_form.addRow("Overlay 1 X Position:", self.default_overlay1_x_combo)
-        # --- Default Overlay 1 Y Position ---
-        self.default_overlay1_y_combo = NoWheelComboBox()
-        self.default_overlay1_y_combo.setFixedWidth(120)
-        for percent in range(0, 101, 1):
-            self.default_overlay1_y_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_overlay1_y = self.settings.value('default_overlay1_y_percent', 0, type=int)
-            idx = default_overlay1_y if 0 <= default_overlay1_y <= 100 else 0
-            self.default_overlay1_y_combo.setCurrentIndex(idx)
-        else:
-            self.default_overlay1_y_combo.setCurrentIndex(0)  # Default 0%
-        right_form.addRow("Overlay 1 Y Position:", self.default_overlay1_y_combo)
-        # --- Default Overlay 1 Size ---
-        self.default_overlay1_size_combo = NoWheelComboBox()
-        self.default_overlay1_size_combo.setFixedWidth(120)
-        for percent in range(5, 101, 5):
-            self.default_overlay1_size_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_overlay1_size = self.settings.value('default_overlay1_size', 50, type=int)
-            idx = (default_overlay1_size // 5) - 1 if 5 <= default_overlay1_size <= 100 else 9
-            self.default_overlay1_size_combo.setCurrentIndex(idx)
-        else:
-            self.default_overlay1_size_combo.setCurrentIndex(9)  # Default 50%
-        right_form.addRow("Overlay 1 Size:", self.default_overlay1_size_combo)
-        # --- Default Overlay 2 Path ---
-        overlay2_path_layout = QHBoxLayout()
-        self.default_overlay2_path_edit = KhmerSupportLineEdit()
-        self.default_overlay2_path_edit.setFixedWidth(120)
-        if self.settings is not None:
-            self.default_overlay2_path_edit.setText(self.settings.value('default_overlay2_path', '', type=str))
-        
-        # Add text change handler to clean file paths
-        def clean_default_overlay2_path():
-            current_text = self.default_overlay2_path_edit.text()
-            cleaned_text = clean_file_path(current_text)
-            if cleaned_text != current_text:
-                self.default_overlay2_path_edit.setText(cleaned_text)
-        self.default_overlay2_path_edit.textChanged.connect(clean_default_overlay2_path)
-        self.default_overlay2_path_btn = QPushButton('...')
-        self.default_overlay2_path_btn.setFixedWidth(32)
-        def pick_overlay2_path():
-            file_path, _ = QFileDialog.getOpenFileName(self, "Select Default Overlay 2 Image", "", "Media Files (*.gif *.png *.jpg *.jpeg *.mp4 *.mov *.mkv)")
-            if file_path:
-                self.default_overlay2_path_edit.setText(file_path)
-        self.default_overlay2_path_btn.clicked.connect(pick_overlay2_path)
-        overlay2_path_layout.addWidget(self.default_overlay2_path_edit)
-        overlay2_path_layout.addWidget(self.default_overlay2_path_btn)
-        right_form.addRow("Overlay 2 Path:", overlay2_path_layout)
-        # --- Default Overlay 2 X Position ---
-        self.default_overlay2_x_combo = NoWheelComboBox()
-        self.default_overlay2_x_combo.setFixedWidth(120)
-        for percent in range(0, 101, 1):
-            self.default_overlay2_x_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_overlay2_x = self.settings.value('default_overlay2_x_percent', 0, type=int)
-            idx = default_overlay2_x if 0 <= default_overlay2_x <= 100 else 0
-            self.default_overlay2_x_combo.setCurrentIndex(idx)
-        else:
-            self.default_overlay2_x_combo.setCurrentIndex(0)  # Default 0%
-        right_form.addRow("Overlay 2 X Position:", self.default_overlay2_x_combo)
-        # --- Default Overlay 2 Y Position ---
-        self.default_overlay2_y_combo = NoWheelComboBox()
-        self.default_overlay2_y_combo.setFixedWidth(120)
-        for percent in range(0, 101, 1):
-            self.default_overlay2_y_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_overlay2_y = self.settings.value('default_overlay2_y_percent', 0, type=int)
-            idx = default_overlay2_y if 0 <= default_overlay2_y <= 100 else 0
-            self.default_overlay2_y_combo.setCurrentIndex(idx)
-        else:
-            self.default_overlay2_y_combo.setCurrentIndex(0)  # Default 0%
-        right_form.addRow("Overlay 2 Y Position:", self.default_overlay2_y_combo)
-        # --- Default Overlay 2 Size ---
-        self.default_overlay2_size_combo = NoWheelComboBox()
-        self.default_overlay2_size_combo.setFixedWidth(120)
-        for percent in range(5, 101, 5):
-            self.default_overlay2_size_combo.addItem(f"{percent}%", percent)
-        if self.settings is not None:
-            default_overlay2_size = self.settings.value('default_overlay2_size', 50, type=int)
-            idx = (default_overlay2_size // 5) - 1 if 5 <= default_overlay2_size <= 100 else 9
-            self.default_overlay2_size_combo.setCurrentIndex(idx)
-        else:
-            self.default_overlay2_size_combo.setCurrentIndex(9)  # Default 50%
-        right_form.addRow("Overlay 2 Size:", self.default_overlay2_size_combo)
-
         # Add both forms to columns_layout
         columns_layout.addSpacing(0)
         columns_layout.addLayout(left_form)
@@ -552,21 +369,6 @@ class SettingsDialog(QDialog):
                 self.settings.setValue('default_window_height', WINDOW_SIZE[1])
             
             self.settings.setValue('default_fps', self.selected_fps)
-            self.settings.setValue('default_intro_enabled', self.default_intro_enabled_checkbox.isChecked())
-            self.settings.setValue('default_intro_path', self.default_intro_path_edit.text())
-            self.settings.setValue('default_intro_x_percent', self.default_intro_x_combo.currentData())
-            self.settings.setValue('default_intro_y_percent', self.default_intro_y_combo.currentData())
-            self.settings.setValue('default_intro_size', self.default_intro_size_combo.currentData())
-            self.settings.setValue('default_overlay1_path', self.default_overlay1_path_edit.text())
-            self.settings.setValue('default_overlay1_x_percent', self.default_overlay1_x_combo.currentData())
-            self.settings.setValue('default_overlay1_y_percent', self.default_overlay1_y_combo.currentData())
-            self.settings.setValue('default_overlay1_size', self.default_overlay1_size_combo.currentData())
-            self.settings.setValue('default_overlay2_path', self.default_overlay2_path_edit.text())
-            self.settings.setValue('default_overlay2_x_percent', self.default_overlay2_x_combo.currentData())
-            self.settings.setValue('default_overlay2_y_percent', self.default_overlay2_y_combo.currentData())
-            self.settings.setValue('default_overlay2_size', self.default_overlay2_size_combo.currentData())
-            self.settings.setValue('default_overlay1_enabled', self.default_overlay1_enabled_checkbox.isChecked())
-            self.settings.setValue('default_overlay2_enabled', self.default_overlay2_enabled_checkbox.isChecked())
             self.settings.setValue('default_list_name_enabled', self.default_list_name_enabled_checkbox.isChecked())
             self.settings.setValue('default_mp3_count_enabled', self.default_mp3_count_enabled_checkbox.isChecked())
             # Debug prints for video settings when saving
@@ -9249,54 +9051,7 @@ class SuperCutUI(QWidget):
         if default_fps is not None:
             idx = next((i for i, (label, value) in enumerate(DEFAULT_FPS_OPTIONS) if value == default_fps), 0)
             self.fps_combo.setCurrentIndex(idx)
-        # Apply default intro settings only if enabled
-        default_intro_enabled = self.settings.value('default_intro_enabled', True, type=bool)
-        if default_intro_enabled:
-            default_intro_path = self.settings.value('default_intro_path', '', type=str)
-            default_intro_x = self.settings.value('default_intro_x_percent', 50, type=int)
-            default_intro_y = self.settings.value('default_intro_y_percent', 50, type=int)
-            default_intro_size = self.settings.value('default_intro_size', 50, type=int)
-            if self.intro_checkbox.isChecked():
-                if not self.intro_edit.text().strip():
-                    self.intro_edit.setText(default_intro_path)
-                idx = default_intro_x if 0 <= default_intro_x <= 100 else 50
-                self.intro_x_combo.setCurrentIndex(idx)
-                idx = default_intro_y if 0 <= default_intro_y <= 100 else 50
-                self.intro_y_combo.setCurrentIndex(idx)
-                idx = next((i for i in range(self.intro_size_combo.count()) if self.intro_size_combo.itemData(i) == default_intro_size), 9)
-                self.intro_size_combo.setCurrentIndex(idx)
-        # Apply default overlay 1 settings if overlay 1 is checked and fields are empty
-        default_overlay1_path = self.settings.value('default_overlay1_path', '', type=str)
-        default_overlay1_x = self.settings.value('default_overlay1_x_percent', 0, type=int)
-        default_overlay1_y = self.settings.value('default_overlay1_y_percent', 0, type=int)
-        default_overlay1_size = self.settings.value('default_overlay1_size', 50, type=int)
-        default_overlay1_enabled = self.settings.value('default_overlay1_enabled', True, type=bool)
-        if default_overlay1_enabled:
-            if self.overlay_checkbox.isChecked():
-                if not self.overlay1_edit.text().strip():
-                    self.overlay1_edit.setText(default_overlay1_path)
-                idx = default_overlay1_x if 0 <= default_overlay1_x <= 100 else 0
-                self.overlay1_x_combo.setCurrentIndex(idx)
-                idx = default_overlay1_y if 0 <= default_overlay1_y <= 100 else 0
-                self.overlay1_y_combo.setCurrentIndex(idx)
-                idx = next((i for i in range(self.overlay1_size_combo.count()) if self.overlay1_size_combo.itemData(i) == default_overlay1_size), 9)
-                self.overlay1_size_combo.setCurrentIndex(idx)
-        # Apply default overlay 2 settings if overlay 2 is checked and fields are empty
-        default_overlay2_path = self.settings.value('default_overlay2_path', '', type=str)
-        default_overlay2_x = self.settings.value('default_overlay2_x_percent', 0, type=int)
-        default_overlay2_y = self.settings.value('default_overlay2_y_percent', 0, type=int)
-        default_overlay2_size = self.settings.value('default_overlay2_size', 50, type=int)
-        default_overlay2_enabled = self.settings.value('default_overlay2_enabled', True, type=bool)
-        if default_overlay2_enabled:
-            if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
-                if not self.overlay2_edit.text().strip():
-                    self.overlay2_edit.setText(default_overlay2_path)
-                idx = default_overlay2_x if 0 <= default_overlay2_x <= 100 else 75
-                self.overlay2_x_combo.setCurrentIndex(idx)
-                idx = default_overlay2_y if 0 <= default_overlay2_y <= 100 else 0
-                self.overlay2_y_combo.setCurrentIndex(idx)
-                idx = next((i for i in range(self.overlay2_size_combo.count()) if self.overlay2_size_combo.itemData(i) == default_overlay2_size), 9)
-                self.overlay2_size_combo.setCurrentIndex(idx)
+                
         # Apply default overlay 3 settings if overlay 3 is checked and fields are empty
         default_overlay3_path = self.settings.value('default_overlay3_path', '', type=str)
         default_overlay3_size = self.settings.value('default_overlay3_size', 50, type=int)
@@ -9325,15 +9080,7 @@ class SuperCutUI(QWidget):
                 self.overlay4_size_combo.setCurrentIndex(idx)
         if hasattr(self, 'overlay4_checkbox'):
             self.overlay4_checkbox.setChecked(default_overlay4_enabled)
-        # Set intro checkbox state from settings
-        if hasattr(self, 'intro_checkbox'):
-            self.intro_checkbox.setChecked(default_intro_enabled)
-        # Set overlay1 checkbox state from settings
-        if hasattr(self, 'overlay_checkbox'):
-            self.overlay_checkbox.setChecked(default_overlay1_enabled)
-        # Set overlay2 checkbox state from settings
-        if hasattr(self, 'overlay2_checkbox'):
-            self.overlay2_checkbox.setChecked(default_overlay2_enabled)
+        
         # Set overlay3 checkbox state from settings
         if hasattr(self, 'overlay3_checkbox'):
             self.overlay3_checkbox.setChecked(default_overlay3_enabled)
