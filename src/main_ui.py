@@ -1216,7 +1216,7 @@ class SuperCutUI(QWidget):
         self.part_layout.addSpacing(0)
         self.part_layout.addStretch()
         self.part_layout.addWidget(self.mp3_count_checkbox)
-        self.part_layout.addSpacing(0)
+        self.part_layout.addSpacing(7)
         self.part_layout.addWidget(self.mp3_count_edit)
         
         # Don't add to main layout here - will be added to core settings group box
