@@ -7477,10 +7477,10 @@ class SuperCutUI(QWidget):
         progress_row = QtWidgets.QHBoxLayout()
         progress_row.setContentsMargins(0, 0, 0, 5)
         progress_row.setSpacing(0)
-        progress_row.addSpacing(0)        
+        progress_row.addSpacing(33)        
         progress_row.addStretch(0)
         progress_row.addWidget(self.stop_btn)
-        progress_row.addSpacing(10)
+        progress_row.addSpacing(0)
         progress_row.addStretch(0) 
         progress_row.addWidget(self.progress_bar)
         progress_row.addStretch(0)
@@ -9149,7 +9149,7 @@ class SuperCutUI(QWidget):
         # Control horizontal scrollbar based on window width
         if hasattr(self, 'scroll_area') and self.scroll_area is not None:
             window_width = self.width()
-            if window_width < 650:
+            if window_width < 630:
                 # Show horizontal scrollbar when window is narrow
                 self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
             else:
