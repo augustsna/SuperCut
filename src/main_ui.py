@@ -635,7 +635,6 @@ class SettingsDialog(QDialog):
         # Window Size (reset uses config defaults)
         self.default_window_width_edit.setText(str(WINDOW_SIZE[0]))
         self.default_window_height_edit.setText(str(WINDOW_SIZE[1]))
-
 class NameListDialog(QDialog):
     def __init__(self, parent=None, initial_names=None):
         super().__init__(parent)
@@ -1221,7 +1220,6 @@ class SuperCutUI(QWidget):
         self.part_layout.addStretch()
         # Don't add to main layout here - will be added to core settings group box
         layout.addSpacing(0)  # Add spacing after export inputs
-
     def create_video_settings(self, layout):
         """Create video settings controls"""
         # Combined layout for codec, resolution, and fps
@@ -1869,7 +1867,6 @@ class SuperCutUI(QWidget):
         overlay_groupbox_1_2_layout.setSpacing(8)
         overlay_groupbox_1_2_layout.setContentsMargins(10, 5, 10, 10)
         overlay_groupbox_1_2_layout.addLayout(overlay1_layout)
-
         # Overlay 2 controls (similar to Overlay 1)
         self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2:")
         self.overlay2_checkbox.setFixedWidth(label_checkbox_width)
@@ -2335,7 +2332,6 @@ class SuperCutUI(QWidget):
                 overlay4_x_label.setStyleSheet("color: grey;")
                 overlay4_y_label.setStyleSheet("color: grey;")
         self.overlay4_checkbox.stateChanged.connect(lambda _: set_overlay4_enabled(self.overlay4_checkbox.checkState()))
-       
        # Overlay 4 layout
         overlay4_layout = QHBoxLayout()
         overlay4_layout.setSpacing(0)
@@ -2984,7 +2980,6 @@ class SuperCutUI(QWidget):
             self.overlay6_7_start_at_checkbox.setStyleSheet("")  # Always default color
         self.overlay6_7_start_at_checkbox.stateChanged.connect(update_overlay6_7_start_at_checkbox_style)
         update_overlay6_7_start_at_checkbox_style(self.overlay6_7_start_at_checkbox.checkState())
-        
         self.overlay6_7_start_edit = QLineEdit("5")
         self.overlay6_7_start_edit.setFixedWidth(edit_short_width)
         self.overlay6_7_start_edit.setFixedHeight(unified_height)
@@ -3634,7 +3629,6 @@ class SuperCutUI(QWidget):
             else:
                 # Transparent or other - disabled gray
                 self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
-        
         # Connect background dropdown to update color button state
         self.song_title_bg_combo.currentIndexChanged.connect(lambda _: update_bg_color_state())
         
@@ -4284,7 +4278,6 @@ class SuperCutUI(QWidget):
             self.overlay8_start_at_checkbox.setStyleSheet("")
         self.overlay8_start_at_checkbox.stateChanged.connect(update_overlay8_start_at_checkbox_style)
         update_overlay8_start_at_checkbox_style(self.overlay8_start_at_checkbox.checkState())
-
         overlay8_start_label = QLabel("Start:")
         overlay8_start_label.setFixedWidth(label_short_width)
         overlay8_start_label.setFixedHeight(unified_height)
@@ -4918,7 +4911,6 @@ class SuperCutUI(QWidget):
             self.overlay9_start_from_combo.setEnabled(not enabled)
             overlay9_start_from_label.setStyleSheet("" if not enabled else "color: grey;")
             self.overlay9_start_from_combo.setStyleSheet("" if not enabled else "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-
         def update_overlay9_effect_label_style():
             if not self.overlay9_checkbox.isChecked():
                 overlay9_effect_label.setStyleSheet("color: grey;")
@@ -6212,7 +6204,6 @@ class SuperCutUI(QWidget):
             self.frame_box_y_percent = self.frame_box_y_combo.itemData(idx)
         self.frame_box_y_combo.currentIndexChanged.connect(on_frame_box_y_changed)
         on_frame_box_y_changed(self.frame_box_y_combo.currentIndex())
-
         # --- EFFECT CONTROL FOR FRAME BOX ---
         frame_box_label = QLabel("Effect:")
         frame_box_label.setFixedWidth(label_short_width)
@@ -6787,7 +6778,6 @@ class SuperCutUI(QWidget):
                 grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
                 self.frame_box_custom_image_edit.setStyleSheet(grey_btn_style)
                 self.frame_box_custom_image_btn.setStyleSheet(grey_btn_style)
-        
         # Function to update caption controls state
         def update_caption_controls_state():
             # Check if both frame box and caption are enabled
@@ -7353,7 +7343,6 @@ class SuperCutUI(QWidget):
         last_item_label_layout.addWidget(self.last_item_label)
         last_item_label_layout.addStretch()
         layout.addLayout(last_item_label_layout)
-
     def create_action_buttons(self, layout):
         """Create action buttons"""
 
@@ -7396,7 +7385,7 @@ class SuperCutUI(QWidget):
         # Then add create video button
         self.create_btn = QPushButton("Create Video")
         self.create_btn.setFixedHeight(38)
-        self.create_btn.setFixedWidth(370)
+        self.create_btn.setFixedWidth(360)
         self.create_btn.clicked.connect(self.create_video)
         
 
@@ -7425,34 +7414,31 @@ class SuperCutUI(QWidget):
         
 
         # Add version text after placeholder button
-        version_label = QLabel("v2025.1")
-        version_label.setStyleSheet("color: #666; font-size: 12px; font-weight: normal;")
-        version_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.version_label = QLabel("v2025.1")
+        self.version_label.setStyleSheet("color: #666; font-size: 12px; font-weight: normal;")
+        self.version_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         
 
         button_layout = QHBoxLayout()
         button_layout.setSpacing(0)
         button_layout.addSpacing(0)
         button_layout.addWidget(self.settings_btn)
-        button_layout.addStretch(0)
+        button_layout.addSpacing(5)
         button_layout.addWidget(self.layer_manager_btn)
-        button_layout.addStretch(0)
+
+        button_layout.addSpacing(10)
         button_layout.addWidget(self.terminal_btn)
         button_layout.addStretch(0)
         button_layout.addWidget(self.create_btn)
         button_layout.addStretch(0)
         button_layout.addWidget(self.preview_btn)
-        button_layout.addStretch(0)
         button_layout.addWidget(self.placeholder_btn)
-        button_layout.addStretch(0)
-        button_layout.addWidget(version_label)
+        button_layout.addSpacing(10)
         layout.addLayout(button_layout)
 
     def create_progress_controls(self, layout):
         """Create progress bar and stop button on the same line, with stop button before progress bar. Progress bar should stretch to fill space."""
-        progress_row = QtWidgets.QHBoxLayout()
-        progress_row.setContentsMargins(0, 0, 0, 10)  # Add 10px bottom margin for spacing from window edge
-        progress_row.addSpacing(15)
+        
         self.stop_btn = QPushButton()
         self.stop_btn.setFixedHeight(24)
         self.stop_btn.setFixedWidth(24)
@@ -7462,11 +7448,9 @@ class SuperCutUI(QWidget):
         self.stop_btn.setIcon(QIcon(stop_icon_path))
         self.stop_btn.setIconSize(QSize(22, 22))
         self.stop_btn.setStyleSheet("QPushButton { background: transparent; border: none; opacity: 0.6; } QPushButton:pressed { background: transparent; }")
-        self.stop_btn.clicked.connect(self.stop_video_creation)
-        progress_row.addWidget(self.stop_btn)    
-        progress_row.addSpacing(0)  # Add 16px space between stop button and progress bar
+        self.stop_btn.clicked.connect(self.stop_video_creation)        
         self.progress_bar = QtWidgets.QProgressBar()
-        self.progress_bar.setFixedWidth(545)   
+        self.progress_bar.setFixedWidth(340)   
         self.progress_bar.setMinimum(0)
         self.progress_bar.setMaximum(1)
         self.progress_bar.setValue(0)
@@ -7488,7 +7472,19 @@ class SuperCutUI(QWidget):
                 background: transparent;  /* Hide the blue fill */
             }
         """)
+
+
+        progress_row = QtWidgets.QHBoxLayout()
+        progress_row.setContentsMargins(0, 0, 0, 5)
+        progress_row.setSpacing(0)
+        progress_row.addSpacing(0)        
+        progress_row.addStretch(0)
+        progress_row.addWidget(self.stop_btn)
+        progress_row.addSpacing(10)
+        progress_row.addStretch(0) 
         progress_row.addWidget(self.progress_bar)
+        progress_row.addStretch(0)
+        progress_row.addWidget(self.version_label)
         layout.addLayout(progress_row)
 
     def restore_window_position(self):
@@ -7877,7 +7873,6 @@ class SuperCutUI(QWidget):
             QMessageBox.critical(self, "❌ Error", error_msg)
             return None
         return (media_sources, export_name, number, folder, codec, resolution, fps, set(mp3_files), set(image_files), min_mp3_count)
-
     def _set_ui_processing_state(self, processing, total_batches=0):
         """Enable/disable UI controls for processing state."""
         # --- No window resize - use opacity instead to prevent black flash ---
@@ -8476,7 +8471,6 @@ class SuperCutUI(QWidget):
         # Handle Preview button (which contains Dry Run) - disable during normal processing
         if hasattr(self, 'preview_btn'):
             self.preview_btn.setEnabled(not processing)
-    
     def _set_dry_run_state(self, is_dry_run):
         """Set dry run state and update UI accordingly."""
         self.is_dry_run_mode = is_dry_run
@@ -9114,7 +9108,6 @@ class SuperCutUI(QWidget):
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
         super().closeEvent(event)
-
     def handle_quit_response(self, button, event):
         if self.quit_dialog is not None and button == self.quit_dialog.button(QMessageBox.StandardButton.Yes):
             # Close the quit dialog immediately
@@ -9148,11 +9141,11 @@ class SuperCutUI(QWidget):
             if self.quit_dialog is not None:
                 self.quit_dialog.close()
                 self.quit_dialog = None
-
+    
     def resizeEvent(self, event):
         """Handle window resize event to control horizontal scrollbar visibility"""
         super().resizeEvent(event)
-        
+    
         # Control horizontal scrollbar based on window width
         if hasattr(self, 'scroll_area') and self.scroll_area is not None:
             window_width = self.width()
@@ -9162,33 +9155,44 @@ class SuperCutUI(QWidget):
             else:
                 # Hide horizontal scrollbar when window is wide enough
                 self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        
+    
+        # Dynamic create_btn width based on window width
+        if hasattr(self, 'create_btn') and self.create_btn is not None:
+            window_width = self.width()
+            if window_width >= 660 and window_width <= 800:
+                
+                self.create_btn.setFixedWidth(360)
+            elif window_width >= 400 and window_width < 660:
+                btn_width = 100 + (window_width - 400)
+                self.create_btn.setFixedWidth(btn_width)
+            else:
+                # For widths < 400, keep minimum width of 100
+                self.create_btn.setFixedWidth(100)
+    
+        # Dynamic progress_bar width based on window width
+        if hasattr(self, 'progress_bar') and self.progress_bar is not None:
+            window_width = self.width()
+            if window_width >= 660 and window_width <= 800:
+                self.progress_bar.setFixedWidth(340)
+            elif window_width >= 500 and window_width < 660:
+                progress_width = 180 + (window_width - 500)
+                self.progress_bar.setFixedWidth(progress_width)
+            else:
+                self.progress_bar.setFixedWidth(180)
+    
         # Reposition terminal widget if it exists and is visible
         if (hasattr(self, 'terminal_widget') and 
             self.terminal_widget is not None and 
             self.terminal_widget.isVisible()):
             self.position_terminal_widget()
-        
+    
         # Reposition layer manager dialog if it exists and is visible
         if (hasattr(self, 'layer_manager_dialog') and 
             self.layer_manager_dialog is not None and 
             self.layer_manager_dialog.isVisible()):
             self.position_layer_manager_dialog()
 
-    def moveEvent(self, event):
-        """Handle window move event to reposition terminal widget and layer manager dialog"""
-        super().moveEvent(event)
-        # Reposition terminal widget if it exists and is visible
-        if (hasattr(self, 'terminal_widget') and 
-            self.terminal_widget is not None and 
-            self.terminal_widget.isVisible()):
-            self.position_terminal_widget()
-        
-        # Reposition layer manager dialog if it exists and is visible
-        if (hasattr(self, 'layer_manager_dialog') and 
-            self.layer_manager_dialog is not None and 
-            self.layer_manager_dialog.isVisible()):
-            self.position_layer_manager_dialog()
+    
 
     def on_media_folder_changed(self):
         """When media folder is changed, set output folder to same only if output folder is empty"""
@@ -9546,7 +9550,6 @@ Size: {self.overlay8_size_percent}% | X: {self.overlay8_x_percent}% | Y: {self.o
 Soundwave Overlay: {self.overlay3_checkbox.isChecked()} | Path: {self.overlay3_path}
 Size: {self.overlay3_size_percent}% | X: {self.overlay3_x_percent}% | Y: {self.overlay3_y_percent}%
 Effect: fadein | Soundwave Start at: {self.song_title_start_at}
-
 Use Song Title: {self.song_title_checkbox.isChecked()}
 Effect: {self.song_title_effect}
 Font: {self.song_title_font}
@@ -9919,7 +9922,6 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         
         # Create button layout
         btn_layout = QHBoxLayout()
-        
         # Add Dry Run button (placeholder for now)
         dry_run_btn = QPushButton("Dry Run")
         dry_run_btn.setFixedSize(80, 28)  # Bigger button
