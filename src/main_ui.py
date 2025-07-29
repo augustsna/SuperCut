@@ -1139,12 +1139,12 @@ class SuperCutUI(QWidget):
         self.part_layout = QHBoxLayout()
         self.part1_edit = KhmerSupportLineEdit(DEFAULT_EXPORT_NAME)
         self.part1_edit.setPlaceholderText("Export Name")
-        self.part1_edit.setFixedWidth(100)
+        self.part1_edit.setFixedWidth(90)
         self.part1_edit.setFixedHeight(30)
         self.part2_edit = KhmerSupportLineEdit(DEFAULT_START_NUMBER)
         self.part2_edit.setPlaceholderText("12345")
         self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
-        self.part2_edit.setFixedWidth(70)
+        self.part2_edit.setFixedWidth(50)
         self.part2_edit.setFixedHeight(30)
         self.name_list_checkbox = QtWidgets.QCheckBox("List name:")
         self.name_list_checkbox.setChecked(True)
@@ -1203,27 +1203,28 @@ class SuperCutUI(QWidget):
         self.folder_edit.textChanged.connect(self.update_output_name)
         self.part_layout.addSpacing(0)
         self.part_layout.addWidget(self.name_list_checkbox)
-        self.part_layout.addSpacing(0)
+        self.part_layout.addSpacing(10)
         self.part_layout.addWidget(self.name_list_enter_btn)
-        self.part_layout.addSpacing(0)
+        self.part_layout.addSpacing(16)
         self.part_layout.addWidget(QLabel("Name:"))
-        self.part_layout.addSpacing(0)  # Reduce space between label and textbox
-        self.part_layout.addWidget(self.part1_edit)
-        self.part_layout.addSpacing(0)
-        self.part_layout.addWidget(QLabel("#"))
         self.part_layout.addSpacing(0) 
+        self.part_layout.addWidget(self.part1_edit)
+        self.part_layout.addSpacing(2)
+        self.part_layout.addWidget(QLabel("#"))
+        self.part_layout.addSpacing(2) 
         self.part_layout.addWidget(self.part2_edit)
         self.part_layout.addSpacing(0)
+        self.part_layout.addStretch()
         self.part_layout.addWidget(self.mp3_count_checkbox)
         self.part_layout.addSpacing(0)
         self.part_layout.addWidget(self.mp3_count_edit)
-        self.part_layout.addStretch()
+        
         # Don't add to main layout here - will be added to core settings group box
         layout.addSpacing(0)  # Add spacing after export inputs
     def create_video_settings(self, layout):
         """Create video settings controls"""
         # Combined layout for codec, resolution, and fps
-        settings_layout = QHBoxLayout()
+        
          
         # var size
 
@@ -1265,7 +1266,7 @@ class SuperCutUI(QWidget):
 
         # Codec selection        
         codec_label = QLabel("Codec:")  
-        codec_label.setFixedWidth(label_medium_width)      
+        codec_label.setFixedWidth(50)      
         self.codec_combo = NoWheelComboBox()
         self.codec_combo.setFixedWidth(combo_medium_width)
         self.codec_combo.setFixedHeight(unified_height)
@@ -1275,9 +1276,9 @@ class SuperCutUI(QWidget):
 
         # Video resolution selection
         resolution_label = QLabel("Size:")
-        resolution_label.setFixedWidth(label_mini_width)
+        resolution_label.setFixedWidth(40)
         self.resolution_combo = NoWheelComboBox()
-        self.resolution_combo.setFixedWidth(combo_mini_width) 
+        self.resolution_combo.setFixedWidth(75) 
         self.resolution_combo.setFixedHeight(unified_height)
         for label, value in DEFAULT_RESOLUTIONS:
             self.resolution_combo.addItem(label, value)
@@ -1285,9 +1286,9 @@ class SuperCutUI(QWidget):
 
          # FPS selection
         fps_label = QLabel("FPS:")
-        fps_label.setFixedWidth(label_mini_width)
+        fps_label.setFixedWidth(edit_short_width)
         self.fps_combo = NoWheelComboBox()
-        self.fps_combo.setFixedWidth(combo_mini_width)
+        self.fps_combo.setFixedWidth(65)
         self.fps_combo.setFixedHeight(unified_height)
         for label, value in DEFAULT_FPS_OPTIONS:
             self.fps_combo.addItem(label, value)
@@ -1301,9 +1302,9 @@ class SuperCutUI(QWidget):
         
         # Preset selection
         preset_label = QLabel("Preset:")
-        preset_label.setFixedWidth(label_medium_width)
+        preset_label.setFixedWidth(50)
         self.preset_combo = NoWheelComboBox()
-        self.preset_combo.setFixedWidth(combo_mini_width)
+        self.preset_combo.setFixedWidth(90)
         self.preset_combo.setFixedHeight(unified_height)
         for label, value in DEFAULT_FFMPEG_PRESETS:
             self.preset_combo.addItem(label, value)
@@ -1313,22 +1314,25 @@ class SuperCutUI(QWidget):
         self.preset_combo.setCurrentIndex(preset_index)
         
         # core setting setting layout
+        settings_layout = QHBoxLayout()
+        settings_layout.setSpacing(0)
+        settings_layout.addSpacing(29)
         settings_layout.addWidget(codec_label)
-        settings_layout.addSpacing(0)  # Small space between label and combo
+        settings_layout.addSpacing(0)  
         settings_layout.addWidget(self.codec_combo)
-        settings_layout.addSpacing(0)  # Space between groups
+         
+        settings_layout.addSpacing(18)
         settings_layout.addWidget(resolution_label)
-        settings_layout.addSpacing(0)
         settings_layout.addWidget(self.resolution_combo)
-        settings_layout.addSpacing(0)
+        settings_layout.addSpacing(15)
         settings_layout.addWidget(fps_label)
-        settings_layout.addSpacing(0)
         settings_layout.addWidget(self.fps_combo)
         settings_layout.addSpacing(0)
+        settings_layout.addStretch()
         settings_layout.addWidget(preset_label)
         settings_layout.addSpacing(0)
-        settings_layout.addWidget(self.preset_combo)     
-        settings_layout.addStretch()
+        settings_layout.addWidget(self.preset_combo)   
+        
         # Don't add to main layout here - will be added to core settings group box
 
         # --- CORE SETTINGS GROUP BOX ---
@@ -7477,7 +7481,7 @@ class SuperCutUI(QWidget):
         progress_row = QtWidgets.QHBoxLayout()
         progress_row.setContentsMargins(0, 0, 0, 5)
         progress_row.setSpacing(0)
-        progress_row.addSpacing(33)        
+        progress_row.addSpacing(32)        
         progress_row.addStretch(0)
         progress_row.addWidget(self.stop_btn)
         progress_row.addSpacing(0)
