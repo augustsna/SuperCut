@@ -94,6 +94,10 @@ class FolderDropLineEdit(KhmerSupportLineEdit):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setAcceptDrops(True)
+        self._original_style = self.styleSheet()
+        # Ensure consistent border width to prevent size changes
+        if "border:" not in self._original_style:
+            self._original_style += " border: 2px solid transparent;"
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -102,8 +106,15 @@ class FolderDropLineEdit(KhmerSupportLineEdit):
                 path = urls[0].toLocalFile()
                 if os.path.isdir(path):
                     event.acceptProposedAction()
+                    # Visual feedback for valid drag - change border color only
+                    self.setStyleSheet(self._original_style.replace("border: 2px solid transparent;", "border: 2px solid #4CAF50;") + " background-color: #E8F5E8;")
                     return
         event.ignore()
+
+    def dragLeaveEvent(self, event):
+        # Restore original style when drag leaves
+        self.setStyleSheet(self._original_style)
+        super().dragLeaveEvent(event)
 
     def dropEvent(self, event):
         urls = event.mimeData().urls()
@@ -112,6 +123,8 @@ class FolderDropLineEdit(KhmerSupportLineEdit):
             if os.path.isdir(path):
                 self.setText(path)
                 self.editingFinished.emit()
+        # Restore original style after drop
+        self.setStyleSheet(self._original_style)
 
     def paste(self):
         """Override paste to clean file paths"""
@@ -138,6 +151,10 @@ class ImageDropLineEdit(KhmerSupportLineEdit):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setAcceptDrops(True)
+        self._original_style = self.styleSheet()
+        # Ensure consistent border width to prevent size changes
+        if "border:" not in self._original_style:
+            self._original_style += " border: 2px solid transparent;"
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -146,8 +163,15 @@ class ImageDropLineEdit(KhmerSupportLineEdit):
                 path = urls[0].toLocalFile()
                 if os.path.isfile(path) and os.path.splitext(path)[1].lower() in ['.gif', '.png', '.mp4']:
                     event.acceptProposedAction()
+                    # Visual feedback for valid drag - change border color only
+                    self.setStyleSheet(self._original_style.replace("border: 2px solid transparent;", "border: 2px solid #2196F3;") + " background-color: #E3F2FD;")
                     return
         event.ignore()
+
+    def dragLeaveEvent(self, event):
+        # Restore original style when drag leaves
+        self.setStyleSheet(self._original_style)
+        super().dragLeaveEvent(event)
 
     def dropEvent(self, event):
         urls = event.mimeData().urls()
@@ -156,6 +180,8 @@ class ImageDropLineEdit(KhmerSupportLineEdit):
             if os.path.isfile(path) and os.path.splitext(path)[1].lower() in ['.gif', '.png', '.mp4']:
                 self.setText(path)
                 self.editingFinished.emit()
+        # Restore original style after drop
+        self.setStyleSheet(self._original_style)
 
     def paste(self):
         """Override paste to clean file paths"""
