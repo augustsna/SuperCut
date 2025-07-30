@@ -670,24 +670,18 @@ class SettingsDialog(QDialog):
         left_form.addRow("Overlay 9:", self.overlay9_label_edit)
         left_form.addRow("Overlay 10:", self.overlay10_label_edit)
         left_form.addRow("Frame MP3:", self.frame_mp3cover_label_edit)
-        left_form.addRow("Background:", self.background_label_edit)
+        left_form.addRow("Background:  ", self.background_label_edit)
 
         # Add to left_form in new order with reduced spacing
         center_form.addRow("Window Size:", window_size_layout)
         center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        center_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
-        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        center_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
-        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        center_form.addRow("Placeholder:", self.show_placeholder_checkbox)
-        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         center_form.addRow("Intro Settings:", self.show_intro_settings_checkbox)
         center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        center_form.addRow("Overlay 1&2:", self.show_overlay1_2_settings_checkbox)
+        center_form.addRow("Overlay 1 && 2:", self.show_overlay1_2_settings_checkbox)
         center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        center_form.addRow("Overlay 4&5:", self.show_overlay4_5_settings_checkbox)
+        center_form.addRow("Overlay 4 && 5:", self.show_overlay4_5_settings_checkbox)
         center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        center_form.addRow("Overlay 6&7:", self.show_overlay6_7_settings_checkbox)
+        center_form.addRow("Overlay 6 && 7:", self.show_overlay6_7_settings_checkbox)
         center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         center_form.addRow("Song Titles:", self.show_overlay3_titles_soundwave_settings_checkbox)
         center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
@@ -703,10 +697,12 @@ class SettingsDialog(QDialog):
         center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         center_form.addRow("Frame Box:", self.show_frame_box_settings_checkbox)
         center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        center_form.addRow("Filter Complex:", self.filter_complex_alt_checkbox)
-        
+        center_form.addRow("Placeholder:", self.show_placeholder_checkbox)
 
         # Add video/encoding settings to center_form
+        right_form.addRow("List Name:", self.default_list_name_enabled_checkbox)
+        right_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
+        right_form.addRow("Filter Complex:", self.filter_complex_alt_checkbox)
         right_form.addRow("FPS:", self.fps_combo)
         right_form.addRow("Resolution:", self.resolution_combo)
         right_form.addRow("FFmpeg Preset:", self.preset_combo)
@@ -714,6 +710,7 @@ class SettingsDialog(QDialog):
         right_form.addRow("Video Bitrate:", self.video_bitrate_combo)
         right_form.addRow("Maxrate:", self.maxrate_combo)
         right_form.addRow("Buffsize:", self.buffsize_combo)
+
         
 
     def accept(self):
