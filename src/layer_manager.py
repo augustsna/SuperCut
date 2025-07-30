@@ -175,7 +175,7 @@ class LayerManagerWidget(QWidget):
                 border: 1px solid #e0e0e0;
                 border-radius: 4px;
                 margin: 2px;
-                background-color: #ffffff;
+                background-color: #f5f7fa;
                 outline: none;
                 color: #333;
             }
@@ -186,17 +186,19 @@ class LayerManagerWidget(QWidget):
                 margin-bottom: 4px;
                 margin-top: 2px;
             }
-            QListWidget::item:selected {
-                background-color: #4a90e2;
-                background-color: #f8f8f8;
-                border-color: #e0e0e0;
-                color: #000000;
+            QListWidget::item:selected {                
+                background-color: #f5f7fa;
+                border: 2px solid #e0e0e0;
+                border-color: #47a4ff;
+                color: #000000;                
                 outline: none;
             }
             QListWidget::item:hover {
-                background-color: #f8f8f8;
-                border-color: #a0a0a0;
+                background-color: #f5f7fa;
+                border: 2px solid #e0e0e0;
+                border-color: #47a4ff;
                 color: #000000;
+                
             }
             QListWidget::item:focus {
                 outline: none;
