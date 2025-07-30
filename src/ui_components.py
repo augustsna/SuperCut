@@ -195,10 +195,7 @@ class NoWheelComboBox(QComboBox):
             QComboBox:hover {
                 border: 2px solid #4687f4;
             }
-            QComboBox:focus {
-                border: 1px solid #4a90e2;
-                background-color: #ffffff;
-            }
+            
             QComboBox::drop-down {
                 border: none;
                 width: 0px;

@@ -37,6 +37,10 @@ STYLE_SHEET = os.path.join(PROJECT_ROOT, "src", "sources", "style.qss") if os.pa
         font-size: 13px;
         line-height: 1.4;
     }
+    QLineEdit:hover {
+        border: 2px solid #4a90e2;
+        background-color: #ffffff;
+    }                
     QPushButton {
         background-color: #4a90e2;
         color: white;
