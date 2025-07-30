@@ -878,8 +878,12 @@ class LayerManagerDialog(QWidget):
             self.main_window.layer_order = order
             self.main_window.enabled_layers = self.layer_manager.get_enabled_layers()
     
-            print(f"🔧 Updated layer order: {order}")
-            print(f"Enabled layers: {self.layer_manager.get_enabled_layers()}")
+            # Convert layer IDs to custom labels for display
+            order_labels = [self.custom_labels.get(layer_id, layer_id) for layer_id in order]
+            enabled_labels = [self.custom_labels.get(layer_id, layer_id) for layer_id in self.layer_manager.get_enabled_layers()]
+            
+            print(f"🔧 Updated layer order: {order_labels}")
+            print(f"Enabled layers: {enabled_labels}")
             
             # Save layer order to configuration
             try:
