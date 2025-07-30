@@ -140,7 +140,7 @@ class SettingsDialog(QDialog):
         """)
         
         settings_label = QLabel("Default Settings")
-        settings_label.setStyleSheet("font-size: 22px; font-weight: bold; margin: 0px; padding: 0px;")
+        settings_label.setStyleSheet("font-size: 22px; font-weight: normal; margin: 0px; padding: 0px;")
         settings_label.setFixedHeight(30)
         
         # Add fixed positioning like previous solo title
