@@ -332,18 +332,28 @@ class SettingsDialog(QDialog):
         
 
         # --- FFmpeg Bufsize Combo ---
-        self.bufsize_combo = NoWheelComboBox(self)
-        self.bufsize_combo.setFixedWidth(120)
+        self.buffsize_combo = NoWheelComboBox(self)
+        self.buffsize_combo.setFixedWidth(120)
         for label, value in DEFAULT_BUFSIZE_OPTIONS:
-            self.bufsize_combo.addItem(label, value)
+            self.buffsize_combo.addItem(label, value)
         if self.settings is not None:
             default_bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
         else:
             default_bufsize = DEFAULT_BUFSIZE
         idx = next((i for i, (label, value) in enumerate(DEFAULT_BUFSIZE_OPTIONS) if value == default_bufsize), 4)
-        self.bufsize_combo.setCurrentIndex(idx)
+        self.buffsize_combo.setCurrentIndex(idx)
 
         # --- Add to SettingsDialog: Show Placeholder Controls Checkbox ---
+        
+        # --- Intro Checkbox Label Setting ---
+        self.intro_checkbox_label_edit = QLineEdit()
+        self.intro_checkbox_label_edit.setFixedWidth(120)
+        self.intro_checkbox_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_intro_label = self.settings.value('intro_checkbox_label', " Intro :", type=str)
+        else:
+            default_intro_label = " Intro :"
+        self.intro_checkbox_label_edit.setText(default_intro_label)
         
         # Set forms as layouts for group boxes
         left_group.setLayout(left_form)
@@ -436,12 +446,14 @@ class SettingsDialog(QDialog):
         center_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
         center_form.addRow("Video Bitrate:", self.video_bitrate_combo)
         center_form.addRow("Maxrate:", self.maxrate_combo)
-        center_form.addRow("Buffsize:", self.bufsize_combo)
+        center_form.addRow("Buffsize:", self.buffsize_combo)
 
         # Add advanced settings to right_form
-        right_form.addRow("Show Placeholder:", self.show_placeholder_checkbox)
+        right_form.addRow("Placeholder:", self.show_placeholder_checkbox)
         right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Filter Complex Alt:", self.filter_complex_alt_checkbox)
+        right_form.addRow("Filter Complex:", self.filter_complex_alt_checkbox)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Intro Checkbox:", self.intro_checkbox_label_edit)
         
 
     def accept(self):
@@ -477,7 +489,7 @@ class SettingsDialog(QDialog):
             print(f"FPS: {self.selected_fps}")            
             print(f"Preset: {self.preset_combo.currentData()}")
             print(f"Maxrate: {self.maxrate_combo.currentData()}")
-            print(f"Bufsize: {self.bufsize_combo.currentData()}")
+            print(f"Bufsize: {self.buffsize_combo.currentData()}")
             print(f"Video bitrate: {self.video_bitrate_combo.currentData()}")
             print(f"Audio bitrate: {self.audio_bitrate_combo.currentData()}")
             print(f"Resolution: {self.resolution_combo.currentData()}")
@@ -487,9 +499,10 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_ffmpeg_audio_bitrate', self.audio_bitrate_combo.currentData())
             self.settings.setValue('default_ffmpeg_video_bitrate', self.video_bitrate_combo.currentData())
             self.settings.setValue('default_ffmpeg_maxrate', self.maxrate_combo.currentData())
-            self.settings.setValue('default_ffmpeg_bufsize', self.bufsize_combo.currentData())
+            self.settings.setValue('default_ffmpeg_bufsize', self.buffsize_combo.currentData())
             self.settings.setValue('show_placeholder_controls', self.show_placeholder_checkbox.isChecked())
             self.settings.setValue('filter_complex_alt_mode', self.filter_complex_alt_checkbox.isChecked())
+            self.settings.setValue('intro_checkbox_label', self.intro_checkbox_label_edit.text().strip())
         super().accept()
 
     def reset_to_defaults(self):
@@ -506,7 +519,7 @@ class SettingsDialog(QDialog):
         # Maxrate
         self.maxrate_combo.setCurrentIndex(5)  # '16M' is default
         # Bufsize
-        self.bufsize_combo.setCurrentIndex(4)  # '24M' is default
+        self.buffsize_combo.setCurrentIndex(4)  # '24M' is default
         # List Name
         self.default_list_name_enabled_checkbox.setChecked(False)
         # MP3 #
@@ -516,6 +529,8 @@ class SettingsDialog(QDialog):
         # Window Size (reset uses config defaults)
         self.default_window_width_edit.setText(str(WINDOW_SIZE[0]))
         self.default_window_height_edit.setText(str(WINDOW_SIZE[1]))
+        # Intro Checkbox Label
+        self.intro_checkbox_label_edit.setText(" Intro :")
 class NameListDialog(QDialog):
     def __init__(self, parent=None, initial_names=None):
         super().__init__(parent)
@@ -1245,7 +1260,12 @@ class SuperCutUI(QWidget):
         layout.addWidget(core_settings_groupbox)
 
         # --- INTRO OVERLAY CONTROLS ---
-        self.intro_checkbox = QtWidgets.QCheckBox(" Intro :")
+        # Load custom intro checkbox label from settings
+        if hasattr(self, 'settings') and self.settings is not None:
+            intro_label = self.settings.value('intro_checkbox_label', " Intro :", type=str)
+        else:
+            intro_label = " Intro :"
+        self.intro_checkbox = QtWidgets.QCheckBox(intro_label)
         self.intro_checkbox.setFixedWidth(label_checkbox_width)
         self.intro_checkbox.setFixedHeight(unified_height)
         self.intro_checkbox.setChecked(False)
@@ -9226,6 +9246,11 @@ class SuperCutUI(QWidget):
             # Also hide the label if present
             if hasattr(self, 'lyric_dropdown_label'):
                 self.lyric_dropdown_label.setVisible(show_placeholder)
+
+        # Update intro checkbox label from settings
+        if hasattr(self, 'intro_checkbox'):
+            intro_label = self.settings.value('intro_checkbox_label', " Intro :", type=str)
+            self.intro_checkbox.setText(intro_label)
 
         # Set preset combo state from settings
         default_preset = self.settings.value('default_ffmpeg_preset', DEFAULT_FFMPEG_PRESET, type=str)
