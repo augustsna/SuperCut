@@ -1142,8 +1142,6 @@ class SuperCutUI(QWidget):
         self.setup_shortcuts()
         self.update_output_name()
         self.apply_settings()
-        
-
 
     def init_ui(self):
         """Initialize the user interface"""
@@ -1172,7 +1170,7 @@ class SuperCutUI(QWidget):
         # Create main layout
         layout = QVBoxLayout()
         layout.setContentsMargins(14, 18, 0, 2)  # Reduce left margin from 20px to 10px
-        layout.setSpacing(10)
+        layout.setSpacing(0)
 
         # --- Add program title with icon at the top (FIXED) ---
         layout.addSpacing(0)
@@ -1227,15 +1225,15 @@ class SuperCutUI(QWidget):
         layout.addSpacing(0)
         # --- End program title ---        
 
-        # --- Add Navigation Menu (STICKY) ---
-        self.create_navigation_menu(layout)
-        # --- End Navigation Menu ---
-
         # --- Create scrollable area for main content ---
         scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        
+        # --- Add Navigation Menu (INDEPENDENT - outside scroll area) ---
+        self.create_navigation_menu(layout)
+        # --- End Navigation Menu ---
         scroll_area.setStyleSheet("""
             QScrollArea {
                 border: none;
@@ -1295,8 +1293,7 @@ class SuperCutUI(QWidget):
         scroll_layout.setSpacing(10)
         
         # Add UI components to scrollable area
-        self.create_folder_inputs(scroll_layout)
-        self.create_export_inputs(scroll_layout)
+        self.create_folder_inputs(scroll_layout)        
         self.create_video_settings(scroll_layout)
         
         # Set the scroll content widget
@@ -1321,15 +1318,18 @@ class SuperCutUI(QWidget):
         """Create the sticky navigation menu"""
         nav_widget = QWidget()
         nav_widget.setFixedHeight(40)
+        nav_widget.setFixedWidth(620)
         nav_widget.setStyleSheet("""
             QWidget {
-                background: #f8f9fa;
-                border-bottom: 1px solid #e9ecef;
+                background: #000;
+                border-bottom: none;
+                margin: 0px;
+                padding: 0px;
             }
         """)
         
         nav_layout = QHBoxLayout(nav_widget)
-        nav_layout.setContentsMargins(10, 5, 10, 5)
+        nav_layout.setContentsMargins(5, 5, 5, 5)
         nav_layout.setSpacing(5)
         
         # Create navigation buttons
@@ -1340,7 +1340,7 @@ class SuperCutUI(QWidget):
             'overlay6_7': 'Overlay 6&7',
             'frame_box': 'Frame Box',
             'mp3_cover': 'MP3 Cover',
-            'overlay8': 'Overlay 8',
+            'overlay9': 'Overlay 9',
             'final': 'Final Settings'
         }
         
@@ -1358,17 +1358,13 @@ class SuperCutUI(QWidget):
                     color: #495057;
                 }
                 QPushButton:hover {
-                    background: #e9ecef;
-                    border-color: #adb5bd;
+                    background: #ffffff;
+                    border: 1px solid #47a4ff;
                 }
                 QPushButton:pressed {
-                    background: #dee2e6;
+                    background: #ffffff;
                 }
-                QPushButton:checked {
-                    background: #007bff;
-                    color: white;
-                    border-color: #0056b3;
-                }
+                
             """)
             btn.setCheckable(True)
             btn.clicked.connect(lambda checked, sid=section_id: self.scroll_to_section(sid))
@@ -1420,8 +1416,8 @@ class SuperCutUI(QWidget):
         # Create wrapper widget for folder section
         folder_widget = QWidget()
         folder_layout_inner = QVBoxLayout(folder_widget)
-        folder_layout_inner.setContentsMargins(0, 10, 0, 10)  # Add top and bottom margins
-        folder_layout_inner.setSpacing(10)  # Add spacing between elements
+        folder_layout_inner.setContentsMargins(0, 5, 0, 0) 
+        folder_layout_inner.setSpacing(10)  
         
         folder_row_style = {
             "label_width": 90,
@@ -1488,115 +1484,10 @@ class SuperCutUI(QWidget):
         # Register for navigation
         self.register_section_widget('folder', folder_widget)
 
-    def create_export_inputs(self, layout):
-        """Create export name, number, and mp3 per video inputs"""
-        # Create wrapper widget for export section
-        export_widget = QWidget()
-        export_layout_inner = QVBoxLayout(export_widget)
-        export_layout_inner.setContentsMargins(0, 10, 0, 10)  # Add top and bottom margins
-        export_layout_inner.setSpacing(10)  # Add spacing between elements
-        
-        self.part_layout = QHBoxLayout()
-        self.part1_edit = KhmerSupportLineEdit(DEFAULT_EXPORT_NAME)
-        self.part1_edit.setPlaceholderText("Export Name")
-        self.part1_edit.setFixedWidth(90)
-        self.part1_edit.setFixedHeight(30)
-        self.part2_edit = KhmerSupportLineEdit(DEFAULT_START_NUMBER)
-        self.part2_edit.setPlaceholderText("1234")
-        self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
-        self.part2_edit.setFixedWidth(50)
-        self.part2_edit.setFixedHeight(30)
-        self.name_list_checkbox = QtWidgets.QCheckBox("List name:")
-        self.name_list_checkbox.setChecked(True)
-        self.name_list_enter_btn = QPushButton("Enter")
-        self.name_list_enter_btn.setFixedWidth(60)
-        self.name_list_enter_btn.setFixedHeight(30)
-        self.name_list = []  # Store the name list
-        self.name_list_dialog = None
-        def update_name_list_controls():
-            checked = self.name_list_checkbox.isChecked()
-            self.name_list_enter_btn.setEnabled(checked)
-            self.part1_edit.setEnabled(not checked)
-            self.part2_edit.setEnabled(not checked)
-            if checked:
-                self.name_list_enter_btn.setStyleSheet("")
-                self.part1_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.part2_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-            else:
-                self.name_list_enter_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.part1_edit.setStyleSheet("")
-                self.part2_edit.setStyleSheet("")
-            if not checked:
-                self.name_list = []
-        self.name_list_checkbox.stateChanged.connect(lambda _: update_name_list_controls())
-        update_name_list_controls()
-        def open_name_list_dialog():
-            dlg = NameListDialog(self, self.name_list)
-            if dlg.exec() == QDialog.DialogCode.Accepted:
-                self.name_list = dlg.get_names()
-        self.name_list_enter_btn.clicked.connect(open_name_list_dialog)
-        self.mp3_count_checkbox = QtWidgets.QCheckBox("")
-        self.mp3_count_checkbox.setFixedWidth(20)
-        self.mp3_count_checkbox.setChecked(False)
-        self.mp3_count_edit = QLineEdit(str(DEFAULT_MIN_MP3_COUNT))
-        self.mp3_count_edit.setPlaceholderText("MP3")
-        self.mp3_count_edit.setValidator(QIntValidator(1, 999, self))
-        self.mp3_count_edit.setEnabled(False)
-        self.mp3_count_edit.setFixedWidth(35)
-        self.mp3_count_edit.setFixedHeight(30)
-        def set_mp3_count_edit_enabled(state):
-            if isinstance(state, int):
-                state = Qt.CheckState(state)
-            checked = state == Qt.CheckState.Checked
-            self.mp3_count_edit.setEnabled(checked)
-            if checked:
-                self.mp3_count_edit.setStyleSheet("")  # Default style
-            else:
-                self.mp3_count_edit.setStyleSheet("background-color: #f2f2f2; color: #888;")  # Greyed out
-        self.mp3_count_checkbox.stateChanged.connect(set_mp3_count_edit_enabled)
-        def update_mp3_checkbox_style(state):
-            self.mp3_count_checkbox.setStyleSheet("")  # Always default
-        self.mp3_count_checkbox.stateChanged.connect(update_mp3_checkbox_style)
-        update_mp3_checkbox_style(self.mp3_count_checkbox.checkState())
-        set_mp3_count_edit_enabled(self.mp3_count_checkbox.checkState())
-        self.part1_edit.textChanged.connect(self.update_output_name)
-        self.part2_edit.textChanged.connect(self.update_output_name)
-        self.folder_edit.textChanged.connect(self.update_output_name)
-        
-        self.part_layout.addSpacing(1)
-        self.part_layout.addWidget(self.name_list_checkbox)
-        self.part_layout.addSpacing(5)
-        self.part_layout.addWidget(self.name_list_enter_btn)
-        self.part_layout.addSpacing(23)
-        self.part_layout.addWidget(QLabel("Name:"))
-        self.part_layout.addSpacing(-3) 
-        self.part_layout.addWidget(self.part1_edit)
-        self.part_layout.addSpacing(2)
-        self.part_layout.addWidget(QLabel("#"))
-        self.part_layout.addSpacing(2) 
-        self.part_layout.addWidget(self.part2_edit)
-        self.part_layout.addSpacing(0)
-        self.part_layout.addStretch()
-        self.part_layout.addSpacing(26)
-        self.part_layout.addWidget(self.mp3_count_checkbox)
-        self.part_layout.addSpacing(-3)
-        self.part_layout.addWidget(QLabel("MP3 #"))
-        self.part_layout.addSpacing(-3)
-        self.part_layout.addWidget(self.mp3_count_edit)
-        self.part_layout.addStretch()
-        # Add to export layout
-        export_layout_inner.addLayout(self.part_layout)
-        export_layout_inner.addSpacing(0)  # Add spacing after export inputs
-        
-        # Add wrapper widget to main layout
-        layout.addWidget(export_widget)
-        # Register for navigation
-        self.register_section_widget('export', export_widget)
     def create_video_settings(self, layout):
         """Create video settings controls"""
         # Combined layout for codec, resolution, and fps
         
-         
         # var size
 
         unified_height = 30
@@ -1705,7 +1596,95 @@ class SuperCutUI(QWidget):
         settings_layout.addSpacing(0)
         settings_layout.addWidget(self.preset_combo)   
         
-        # Don't add to main layout here - will be added to core settings group box
+        # Create part_layout for export inputs (moved from create_export_inputs)
+        self.part_layout = QHBoxLayout()
+        self.part1_edit = KhmerSupportLineEdit(DEFAULT_EXPORT_NAME)
+        self.part1_edit.setPlaceholderText("Export Name")
+        self.part1_edit.setFixedWidth(90)
+        self.part1_edit.setFixedHeight(30)
+        self.part2_edit = KhmerSupportLineEdit(DEFAULT_START_NUMBER)
+        self.part2_edit.setPlaceholderText("1234")
+        self.part2_edit.setValidator(QIntValidator(1, 9999999, self))
+        self.part2_edit.setFixedWidth(50)
+        self.part2_edit.setFixedHeight(30)
+        self.name_list_checkbox = QtWidgets.QCheckBox("List name:")
+        self.name_list_checkbox.setChecked(True)
+        self.name_list_enter_btn = QPushButton("Enter")
+        self.name_list_enter_btn.setFixedWidth(60)
+        self.name_list_enter_btn.setFixedHeight(30)
+        self.name_list = []  # Store the name list
+        self.name_list_dialog = None
+        def update_name_list_controls():
+            checked = self.name_list_checkbox.isChecked()
+            self.name_list_enter_btn.setEnabled(checked)
+            self.part1_edit.setEnabled(not checked)
+            self.part2_edit.setEnabled(not checked)
+            if checked:
+                self.name_list_enter_btn.setStyleSheet("")
+                self.part1_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.part2_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+            else:
+                self.name_list_enter_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.part1_edit.setStyleSheet("")
+                self.part2_edit.setStyleSheet("")
+            if not checked:
+                self.name_list = []
+        self.name_list_checkbox.stateChanged.connect(lambda _: update_name_list_controls())
+        update_name_list_controls()
+        def open_name_list_dialog():
+            dlg = NameListDialog(self, self.name_list)
+            if dlg.exec() == QDialog.DialogCode.Accepted:
+                self.name_list = dlg.get_names()
+        self.name_list_enter_btn.clicked.connect(open_name_list_dialog)
+        self.mp3_count_checkbox = QtWidgets.QCheckBox("")
+        self.mp3_count_checkbox.setFixedWidth(20)
+        self.mp3_count_checkbox.setChecked(False)
+        self.mp3_count_edit = QLineEdit(str(DEFAULT_MIN_MP3_COUNT))
+        self.mp3_count_edit.setPlaceholderText("MP3")
+        self.mp3_count_edit.setValidator(QIntValidator(1, 999, self))
+        self.mp3_count_edit.setEnabled(False)
+        self.mp3_count_edit.setFixedWidth(35)
+        self.mp3_count_edit.setFixedHeight(30)
+        def set_mp3_count_edit_enabled(state):
+            if isinstance(state, int):
+                state = Qt.CheckState(state)
+            checked = state == Qt.CheckState.Checked
+            self.mp3_count_edit.setEnabled(checked)
+            if checked:
+                self.mp3_count_edit.setStyleSheet("")  # Default style
+            else:
+                self.mp3_count_edit.setStyleSheet("background-color: #f2f2f2; color: #888;")  # Greyed out
+        self.mp3_count_checkbox.stateChanged.connect(set_mp3_count_edit_enabled)
+        def update_mp3_checkbox_style(state):
+            self.mp3_count_checkbox.setStyleSheet("")  # Always default
+        self.mp3_count_checkbox.stateChanged.connect(update_mp3_checkbox_style)
+        update_mp3_checkbox_style(self.mp3_count_checkbox.checkState())
+        set_mp3_count_edit_enabled(self.mp3_count_checkbox.checkState())
+        self.part1_edit.textChanged.connect(self.update_output_name)
+        self.part2_edit.textChanged.connect(self.update_output_name)
+        self.folder_edit.textChanged.connect(self.update_output_name)
+        
+        self.part_layout.addSpacing(1)
+        self.part_layout.addWidget(self.name_list_checkbox)
+        self.part_layout.addSpacing(5)
+        self.part_layout.addWidget(self.name_list_enter_btn)
+        self.part_layout.addSpacing(23)
+        self.part_layout.addWidget(QLabel("Name:"))
+        self.part_layout.addSpacing(-3) 
+        self.part_layout.addWidget(self.part1_edit)
+        self.part_layout.addSpacing(2)
+        self.part_layout.addWidget(QLabel("#"))
+        self.part_layout.addSpacing(2) 
+        self.part_layout.addWidget(self.part2_edit)
+        self.part_layout.addSpacing(0)
+        self.part_layout.addStretch()
+        self.part_layout.addSpacing(26)
+        self.part_layout.addWidget(self.mp3_count_checkbox)
+        self.part_layout.addSpacing(-3)
+        self.part_layout.addWidget(QLabel("MP3 #"))
+        self.part_layout.addSpacing(-3)
+        self.part_layout.addWidget(self.mp3_count_edit)
+        self.part_layout.addStretch()
 
         # --- CORE SETTINGS GROUP BOX ---
         core_settings_groupbox = QtWidgets.QGroupBox("Core Settings")
@@ -1725,10 +1704,11 @@ class SuperCutUI(QWidget):
             }
         """)
         core_settings_groupbox_layout = QVBoxLayout()
+        core_settings_groupbox_layout.addLayout(self.part_layout)
         core_settings_groupbox_layout.addLayout(settings_layout)
         core_settings_groupbox.setLayout(core_settings_groupbox_layout)
         layout.addWidget(core_settings_groupbox)
-        # Register for navigation
+
         self.register_section_widget('settings', core_settings_groupbox)
 
         # --- INTRO OVERLAY CONTROLS ---
