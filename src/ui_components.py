@@ -193,8 +193,7 @@ class NoWheelComboBox(QComboBox):
                 min-height: 20px;
             }
             QComboBox:hover {
-                border: 1px solid #a0a0a0;
-                background-color: #f8f8f8;
+                border: 2px solid #4687f4;
             }
             QComboBox:focus {
                 border: 1px solid #4a90e2;
