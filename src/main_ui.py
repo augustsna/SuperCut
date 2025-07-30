@@ -110,11 +110,47 @@ class SettingsDialog(QDialog):
         main_layout = QtWidgets.QVBoxLayout(self)        
         # Add Settings label at the top
         main_layout.addSpacing(20)  # Move label up by 20px
+        
+        # Create horizontal layout for button and title with fixed position
+        title_layout = QHBoxLayout()
+        title_layout.setContentsMargins(0, 0, 0, 0)
+        title_layout.setSpacing(0)
+        
+        # Add setting logo button with icon
+        setting_logo_button = QPushButton()
+        setting_logo_button.setFixedSize(30, 30)
+        
+        # Load and set the settings icon
+        settings_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "settings.png")
+        if os.path.exists(settings_icon_path):
+            settings_pixmap = QPixmap(settings_icon_path)
+            settings_icon = QIcon(settings_pixmap)
+            setting_logo_button.setIcon(settings_icon)
+            setting_logo_button.setIconSize(QSize(30, 30))
+        
+        setting_logo_button.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                border-radius: 3px;
+            }
+            QPushButton:hover {
+                background-color: transparent;
+            }
+        """)
+        
         settings_label = QLabel("Default Settings")
         settings_label.setStyleSheet("font-size: 22px; font-weight: bold; margin: 0px; padding: 0px;")
-        settings_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         settings_label.setFixedHeight(30)
-        main_layout.addWidget(settings_label)
+        
+        # Add fixed positioning like previous solo title
+        title_layout.addStretch()  # Push content to center
+        title_layout.addWidget(setting_logo_button)
+        title_layout.addSpacing(10)  # Space between button and title
+        title_layout.addWidget(settings_label)
+        title_layout.addStretch()  # Push content to center
+        
+        main_layout.addLayout(title_layout)
         # Add Default button below Settings label  
         main_layout.addSpacing(15)      
 
@@ -134,7 +170,11 @@ class SettingsDialog(QDialog):
             QGroupBox::title {
                 subcontrol-origin: margin;
                 left: 10px;
-                padding: 0 5px 0 5px;
+                padding: 2px 8px 2px 8px;
+                background-color: #f5f7fa;
+                border: 1px solid #cccccc;
+                border-radius: 3px;
+                color: #333333;
             }
         """)
 
@@ -150,7 +190,11 @@ class SettingsDialog(QDialog):
             QGroupBox::title {
                 subcontrol-origin: margin;
                 left: 10px;
-                padding: 0 5px 0 5px;
+                padding: 2px 8px 2px 8px;
+                background-color: #f5f7fa;
+                border: 1px solid #cccccc;
+                border-radius: 3px;
+                color: #333333;
             }
         """)
 
@@ -166,7 +210,11 @@ class SettingsDialog(QDialog):
             QGroupBox::title {
                 subcontrol-origin: margin;
                 left: 10px;
-                padding: 0 5px 0 5px;
+                padding: 2px 8px 2px 8px;
+                background-color: #f5f7fa;
+                border: 1px solid #cccccc;
+                border-radius: 3px;
+                color: #333333;
             }
         """)
 
