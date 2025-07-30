@@ -94,7 +94,7 @@ class LayerManagerWidget(QWidget):
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll_area.setMinimumHeight(250)
         scroll_area.setMaximumHeight(400)  # Increased to give more space
-        scroll_area.setMinimumWidth(350)  # Ensure minimum width for proper layout
+        scroll_area.setMinimumWidth(300)  # Ensure minimum width for proper layout
         scroll_area.setStyleSheet("""
             QScrollArea {
                 border: none;
@@ -161,21 +161,21 @@ class LayerManagerWidget(QWidget):
         self.layer_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.layer_list.setStyleSheet("""
             QListWidget {
-                background-color: #ffffff;
-                border: none;
+                background-color: #f5f7fa;                
                 padding: 6px;
-                border: 1px solid #e0e0e0;
+                border: none;
                 border-radius: 2px;
                 color: #333;
                 font-family: 'Segoe UI', sans-serif;
                 font-size: 13px;
+                outline: none;
             }
             QListWidget::item {
                 padding: 8px;
                 border: 1px solid #e0e0e0;
                 border-radius: 4px;
                 margin: 2px;
-                background-color: #f5f7fa;
+                background-color: #ffffff;
                 outline: none;
                 color: #333;
             }
@@ -187,22 +187,35 @@ class LayerManagerWidget(QWidget):
                 margin-top: 2px;
             }
             QListWidget::item:selected {                
-                background-color: #f5f7fa;
-                border: 2px solid #e0e0e0;
-                border-color: #47a4ff;
+                background-color: #ffffff;
+                border: 2px solid #47a4ff;
                 color: #000000;                
                 outline: none;
             }
             QListWidget::item:hover {
-                background-color: #f5f7fa;
-                border: 2px solid #e0e0e0;
-                border-color: #47a4ff;
+                background-color: #ffffff;
+                border: 2px solid #47a4ff;
                 color: #000000;
-                
+                outline: none;
             }
             QListWidget::item:focus {
                 outline: none;
             }
+            QListWidget::item:selected:focus {
+                outline: none;
+            }
+            QListWidget::item:selected:active {
+                outline: none;
+            }
+            QListWidget::item:selected:!focus {
+                outline: none;
+            }
+            QListWidget::item:selected:!active {
+                outline: none;
+            }
+            QListWidget::item:selected:!hover {
+                outline: none;
+            }  
             QListWidget::indicator {
                 width: 16px;
                 height: 16px;
@@ -608,7 +621,7 @@ class LayerManagerDialog(QWidget):
     def __init__(self, parent=None, saved_order=None):
         super().__init__()
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
-        self.setFixedSize(500, 520)  # Fixed size to prevent auto-resizing when moving between screens
+        self.setFixedSize(380, 520)  # Fixed size to prevent auto-resizing when moving between screens
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)  # Enable rounded corners
         self.saved_order = saved_order
         self.main_window = parent  # Store parent reference for live updates
