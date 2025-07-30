@@ -655,22 +655,22 @@ class SettingsDialog(QDialog):
 
         # Add advanced settings to right_form
         left_form.addRow("Intro:", self.intro_checkbox_label_edit)
-        left_form.addRow("Background :", self.background_label_edit)
         left_form.addRow("Overlay 1 :", self.overlay1_label_edit)
         left_form.addRow("Overlay 2 :", self.overlay2_label_edit)
-        left_form.addRow("Frame Box :", self.frame_box_label_edit)
-        left_form.addRow("Song Titles :", self.song_titles_label_edit)
-        left_form.addRow("Soundwave :", self.soundwave_label_edit)
-        left_form.addRow("Overlay 3 :", self.overlay3_label_edit)
         left_form.addRow("Overlay 4 :", self.overlay4_label_edit)
         left_form.addRow("Overlay 5 :", self.overlay5_label_edit)
         left_form.addRow("Overlay 6 :", self.overlay6_label_edit)
         left_form.addRow("Overlay 7 :", self.overlay7_label_edit)
+        left_form.addRow("Soundwave :", self.soundwave_label_edit)
+        left_form.addRow("Overlay 3 :", self.overlay3_label_edit)
+        left_form.addRow("Song Titles :", self.song_titles_label_edit)
+        left_form.addRow("Frame Box :", self.frame_box_label_edit)
+        left_form.addRow("MP3 Cover :", self.mp3_cover_overlay_label_edit)
         left_form.addRow("Overlay 8 :", self.overlay8_label_edit)
         left_form.addRow("Overlay 9 :", self.overlay9_label_edit)
         left_form.addRow("Overlay 10 :", self.overlay10_label_edit)
         left_form.addRow("Frame MP3 :", self.frame_mp3cover_label_edit)
-        left_form.addRow("MP3 Cover :", self.mp3_cover_overlay_label_edit)
+        left_form.addRow("Background :", self.background_label_edit)
 
         # Add to left_form in new order with reduced spacing
         center_form.addRow("Window Size:", window_size_layout)
@@ -3482,7 +3482,7 @@ class SuperCutUI(QWidget):
         set_overlay6_7_start_at_enabled(self.overlay6_7_start_at_checkbox.checkState())
 
         # --- Overlay 3, Song Titles, and Soundwave Group Box ---
-        overlay_groupbox_3_titles_wave = QtWidgets.QGroupBox("Song Titles & Soundwave")
+        overlay_groupbox_3_titles_wave = QtWidgets.QGroupBox("Song Titles && Soundwave")
         self.overlay_groupbox_3_titles_wave = overlay_groupbox_3_titles_wave  # Store reference for visibility control
         overlay_groupbox_3_titles_wave.setStyleSheet("""
             QGroupBox {
@@ -4348,6 +4348,1436 @@ class SuperCutUI(QWidget):
         song_title_controls_layout.addStretch()
         overlay_groupbox_3_titles_wave_layout.addLayout(song_title_controls_layout)
         
+                ###
+        # --- FRAME BOX GROUP BOX ---
+        frame_box_groupbox = QtWidgets.QGroupBox("Frame Box Settings")
+        self.frame_box_groupbox = frame_box_groupbox  # Store reference for visibility control
+        frame_box_groupbox.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        frame_box_groupbox_layout = QVBoxLayout(frame_box_groupbox)
+        frame_box_groupbox_layout.setSpacing(8)
+        frame_box_groupbox_layout.setContentsMargins(10, 5, 10, 10)
+        layout.addWidget(frame_box_groupbox)
+
+        # --- FRAME BOX OVERLAY ---
+        # Load custom frame box checkbox label from settings
+        if hasattr(self, 'settings') and self.settings is not None:
+            frame_box_label = self.settings.value('frame_box_checkbox_label', " Frame Box :", type=str)
+        else:
+            frame_box_label = " Frame Box :"
+        self.frame_box_checkbox = QtWidgets.QCheckBox(frame_box_label)
+        self.frame_box_checkbox.setFixedWidth(label_checkbox_width)
+        self.frame_box_checkbox.setFixedHeight(unified_height)
+        self.frame_box_checkbox.setChecked(False)
+        def update_frame_box_checkbox_style(state):
+            self.frame_box_checkbox.setStyleSheet("")  # Always default color
+        self.frame_box_checkbox.stateChanged.connect(update_frame_box_checkbox_style)
+        update_frame_box_checkbox_style(self.frame_box_checkbox.checkState())
+
+        # Custom image checkbox for framebox
+        frame_box_custom_image_label = QLabel("Custom:")
+        frame_box_custom_image_label.setFixedWidth(label_medium_width)
+        frame_box_custom_image_label.setFixedHeight(unified_height)
+        self.frame_box_custom_image_checkbox = QtWidgets.QCheckBox("")
+        self.frame_box_custom_image_checkbox.setFixedWidth(checkbox_solo_width)
+        self.frame_box_custom_image_checkbox.setFixedHeight(unified_height)
+        self.frame_box_custom_image_checkbox.setChecked(False)
+        def update_frame_box_custom_image_checkbox_style(state):
+            self.frame_box_custom_image_checkbox.setStyleSheet("")  # Always default color
+        self.frame_box_custom_image_checkbox.stateChanged.connect(update_frame_box_custom_image_checkbox_style)
+        update_frame_box_custom_image_checkbox_style(self.frame_box_custom_image_checkbox.checkState())
+
+        # Custom image file selection
+        self.frame_box_custom_image_edit = ImageDropLineEdit()
+        self.frame_box_custom_image_edit.setFixedWidth(edit_medium_width)
+        self.frame_box_custom_image_edit.setFixedHeight(unified_height)
+        self.frame_box_custom_image_edit.setPlaceholderText("Select custom image...")
+        self.frame_box_custom_image_path = None
+        
+        def select_frame_box_custom_image():
+            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self, "Select Custom Image for Frame Box", "", 
+                "Image Files (*.png *.jpg *.jpeg *.gif *.bmp *.tiff)"
+            )
+            if file_path:
+                self.frame_box_custom_image_edit.setText(file_path)
+                self.frame_box_custom_image_path = file_path
+        
+        self.frame_box_custom_image_btn = QPushButton("File")
+        self.frame_box_custom_image_btn.setFixedWidth(file_btn_width)
+        self.frame_box_custom_image_btn.setFixedHeight(unified_height)
+        self.frame_box_custom_image_btn.clicked.connect(select_frame_box_custom_image)
+        
+        def on_frame_box_custom_image_changed():
+            self.frame_box_custom_image_path = self.frame_box_custom_image_edit.text()
+        
+        self.frame_box_custom_image_edit.textChanged.connect(on_frame_box_custom_image_changed)
+
+        frame_box_layout = QHBoxLayout()
+        frame_box_layout.setSpacing(4)
+        
+        # Frame box size option (5% to 100%)
+        frame_box_size_label = QLabel("S:")
+        frame_box_size_label.setFixedWidth(label_micro_width)
+        frame_box_size_label.setFixedHeight(unified_height)
+        self.frame_box_size_combo = NoWheelComboBox()
+        self.frame_box_size_combo.setFixedWidth(combo_mini_width)
+        self.frame_box_size_combo.setFixedHeight(unified_height)
+        for percent in range(5, 101, 5):
+            self.frame_box_size_combo.addItem(f"{percent}%", percent)
+        self.frame_box_size_combo.setCurrentIndex(9)  # Default 50%
+        self.frame_box_size_percent = 50
+        def on_frame_box_size_changed(idx):
+            self.frame_box_size_percent = self.frame_box_size_combo.itemData(idx)
+        self.frame_box_size_combo.setEditable(False)
+        self.frame_box_size_combo.currentIndexChanged.connect(on_frame_box_size_changed)
+        on_frame_box_size_changed(self.frame_box_size_combo.currentIndex())
+
+        # Frame box X coordinate
+        frame_box_x_label = QLabel("X:")
+        frame_box_x_label.setFixedWidth(label_micro_width)
+        frame_box_x_label.setFixedHeight(unified_height)
+        self.frame_box_x_combo = NoWheelComboBox()
+        self.frame_box_x_combo.setFixedWidth(combo_mini_width)
+        self.frame_box_x_combo.setFixedHeight(unified_height)
+        for percent in range(0, 101, 1):
+            self.frame_box_x_combo.addItem(f"{percent}%", percent)
+        self.frame_box_x_combo.setCurrentIndex(0)  # Default 0%
+        self.frame_box_x_percent = 0
+        def on_frame_box_x_changed(idx):
+            self.frame_box_x_percent = self.frame_box_x_combo.itemData(idx)
+        self.frame_box_x_combo.currentIndexChanged.connect(on_frame_box_x_changed)
+        on_frame_box_x_changed(self.frame_box_x_combo.currentIndex())
+
+        # Frame box Y coordinate
+        frame_box_y_label = QLabel("Y:")
+        frame_box_y_label.setFixedWidth(label_micro_width)
+        frame_box_y_label.setFixedHeight(unified_height)
+        self.frame_box_y_combo = NoWheelComboBox()
+        self.frame_box_y_combo.setFixedWidth(combo_mini_width)
+        self.frame_box_y_combo.setFixedHeight(unified_height)
+        for percent in range(0, 101, 1):
+            self.frame_box_y_combo.addItem(f"{percent}%", percent)
+        self.frame_box_y_combo.setCurrentIndex(0)  # Default 0%
+        self.frame_box_y_percent = 0
+        def on_frame_box_y_changed(idx):
+            self.frame_box_y_percent = self.frame_box_y_combo.itemData(idx)
+        self.frame_box_y_combo.currentIndexChanged.connect(on_frame_box_y_changed)
+        on_frame_box_y_changed(self.frame_box_y_combo.currentIndex())
+        # --- EFFECT CONTROL FOR FRAME BOX ---
+        frame_box_label = QLabel("Effect:")
+        frame_box_label.setFixedWidth(label_short_width)
+        frame_box_label.setFixedHeight(unified_height)
+        self.frame_box_effect_combo = NoWheelComboBox()
+        self.frame_box_effect_combo.setFixedWidth(combo_medium_width)
+        self.frame_box_effect_combo.setFixedHeight(unified_height)
+        for label, value in effect_options:
+            self.frame_box_effect_combo.addItem(label, value)
+        self.frame_box_effect_combo.setCurrentIndex(1)
+        self.selected_frame_box_effect = "fadein"
+        def on_frame_box_effect_changed(idx):
+            self.selected_frame_box_effect = self.frame_box_effect_combo.itemData(idx)
+        self.frame_box_effect_combo.currentIndexChanged.connect(on_frame_box_effect_changed)
+        on_frame_box_effect_changed(self.frame_box_effect_combo.currentIndex())
+
+        # Frame box duration controls
+        frame_box_duration_label = QLabel("For:")
+        frame_box_duration_label.setFixedWidth(label_mini_width)
+        frame_box_duration_label.setFixedHeight(unified_height)
+        self.frame_box_duration_edit = QLineEdit("6")
+        self.frame_box_duration_edit.setFixedWidth(edit_short_width)
+        self.frame_box_duration_edit.setFixedHeight(unified_height)
+        self.frame_box_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.frame_box_duration_edit.setPlaceholderText("6")
+        self.frame_box_duration = 6
+        def on_frame_box_duration_changed():
+            try:
+                self.frame_box_duration = int(self.frame_box_duration_edit.text())
+            except Exception:
+                self.frame_box_duration = 6
+        self.frame_box_duration_edit.textChanged.connect(on_frame_box_duration_changed)
+        on_frame_box_duration_changed()
+
+        # Frame box full duration checkbox
+        frame_box_duration_full_label = QLabel("Full:")
+        frame_box_duration_full_label.setFixedWidth(label_mini_width)
+        frame_box_duration_full_label.setFixedHeight(unified_height)
+        self.frame_box_duration_full_checkbox = QtWidgets.QCheckBox("")
+        self.frame_box_duration_full_checkbox.setFixedWidth(checkbox_solo_width)
+        self.frame_box_duration_full_checkbox.setFixedHeight(unified_height)
+        self.frame_box_duration_full_checkbox.setChecked(True)
+        def update_frame_box_duration_full_checkbox_style(state):
+            self.frame_box_duration_full_checkbox.setStyleSheet("")  # Always default color
+        self.frame_box_duration_full_checkbox.stateChanged.connect(update_frame_box_duration_full_checkbox_style)
+        update_frame_box_duration_full_checkbox_style(self.frame_box_duration_full_checkbox.checkState())
+
+        # Function to control frame box duration field based on duration full checkbox
+        def set_frame_box_duration_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When duration full checkbox is checked, disable duration input field
+            self.frame_box_duration_edit.setEnabled(not enabled)
+            frame_box_duration_label.setEnabled(not enabled)
+            
+            if enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.frame_box_duration_edit.setStyleSheet(grey_btn_style)
+                frame_box_duration_label.setStyleSheet("color: grey;")
+                frame_box_duration_full_label.setStyleSheet("")  # Full label is active when checkbox is checked
+            else:
+                self.frame_box_duration_edit.setStyleSheet("")
+                frame_box_duration_label.setStyleSheet("")
+                frame_box_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
+
+        # Frame box start at control
+        frame_box_start_label = QLabel("Start:")
+        frame_box_start_label.setFixedWidth(label_short_width)
+        self.frame_box_start_edit = QLineEdit("5")
+        self.frame_box_start_edit.setFixedWidth(combo_short_width)
+        self.frame_box_start_edit.setFixedHeight(unified_height)
+        self.frame_box_start_edit.setValidator(QIntValidator(1, 999, self))
+        self.frame_box_start_edit.setPlaceholderText("5")
+        self.frame_box_start_time = 5
+        def on_frame_box_start_changed():
+            try:
+                self.frame_box_start_time = int(self.frame_box_start_edit.text())
+            except Exception:
+                self.frame_box_start_time = 5
+        self.frame_box_start_edit.textChanged.connect(on_frame_box_start_changed)
+        on_frame_box_start_changed()
+        
+        # --- Frame Box Color Picker and Opacity Control (same line) ---
+        frame_box_color_label = QLabel("C:")
+        frame_box_color_label.setFixedWidth(label_micro_width)
+        frame_box_color_label.setFixedHeight(unified_height)
+        self.frame_box_color_btn = QPushButton()        
+        self.frame_box_color_btn.setFixedWidth(27)
+        self.frame_box_color_btn.setFixedHeight(27)
+        self.frame_box_color = (255, 255, 255)  # Default white
+        self.frame_box_color_btn.setStyleSheet(
+            f"background-color: white; border: 1px solid #ccc;")
+        
+        def on_frame_box_color_clicked():
+            color = QColorDialog.getColor()
+            if color.isValid():
+                self.frame_box_color = (color.red(), color.green(), color.blue())
+                self.frame_box_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc;")
+        self.frame_box_color_btn.clicked.connect(on_frame_box_color_clicked)
+        self.frame_box_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")        
+
+        frame_box_opacity_label = QLabel("O:")
+        frame_box_opacity_label.setFixedWidth(label_micro_width)
+        frame_box_opacity_label.setFixedHeight(unified_height)
+        self.frame_box_opacity_combo = NoWheelComboBox()
+        self.frame_box_opacity_combo.setFixedWidth(combo_mini_width)
+        self.frame_box_opacity_combo.setFixedHeight(unified_height)
+        for percent in range(0, 101, 5):
+            self.frame_box_opacity_combo.addItem(f"{percent}%", percent / 100.0)
+        self.frame_box_opacity_combo.setCurrentIndex(100 // 5)  # Default 100%
+        self.frame_box_opacity = 1.0
+        def on_frame_box_opacity_changed(idx):
+            self.frame_box_opacity = self.frame_box_opacity_combo.itemData(idx)
+        self.frame_box_opacity_combo.currentIndexChanged.connect(on_frame_box_opacity_changed)
+        on_frame_box_opacity_changed(self.frame_box_opacity_combo.currentIndex())    
+               
+        # Padding label
+        pad_label = QLabel("Padding:")
+        pad_label.setFixedWidth(label_medium_width)   
+        pad_label.setFixedHeight(unified_height)     
+        
+        # Left padding
+        left_pad_label = QLabel("Left:")
+        left_pad_label.setFixedWidth(label_short_width)
+        left_pad_label.setFixedHeight(unified_height)
+        self.frame_box_pad_left_combo = NoWheelComboBox()
+        self.frame_box_pad_left_combo.setFixedWidth(combo_mini_width)
+        self.frame_box_pad_left_combo.setFixedHeight(unified_height)
+        
+        # Right padding
+        right_pad_label = QLabel("Right:")
+        right_pad_label.setFixedWidth(label_short_width)
+        right_pad_label.setFixedHeight(unified_height)
+        self.frame_box_pad_right_combo = NoWheelComboBox()
+        self.frame_box_pad_right_combo.setFixedWidth(combo_mini_width)
+        self.frame_box_pad_right_combo.setFixedHeight(unified_height)
+        
+        # Top padding
+        top_pad_label = QLabel("Top:")
+        top_pad_label.setFixedWidth(label_short_width)
+        top_pad_label.setFixedHeight(unified_height)
+        self.frame_box_pad_top_combo = NoWheelComboBox()
+        self.frame_box_pad_top_combo.setFixedWidth(combo_mini_width)
+        self.frame_box_pad_top_combo.setFixedHeight(unified_height)
+        
+        # Bottom padding
+        bottom_pad_label = QLabel("Bottom:")
+        bottom_pad_label.setFixedWidth(label_medium_width)
+        bottom_pad_label.setFixedHeight(unified_height)
+        self.frame_box_pad_bottom_combo = NoWheelComboBox()
+        self.frame_box_pad_bottom_combo.setFixedWidth(combo_mini_width)
+        self.frame_box_pad_bottom_combo.setFixedHeight(unified_height)
+        
+        # Populate padding dropdowns with values 0-250 (step 1)
+        for px in range(0, 251, 1):
+            self.frame_box_pad_left_combo.addItem(f"{px}px", px)
+            self.frame_box_pad_right_combo.addItem(f"{px}px", px)
+            self.frame_box_pad_top_combo.addItem(f"{px}px", px)
+            self.frame_box_pad_bottom_combo.addItem(f"{px}px", px)
+        self.frame_box_pad_left_combo.setCurrentIndex(12)   # 12px
+        self.frame_box_pad_right_combo.setCurrentIndex(12)  # 12px
+        self.frame_box_pad_top_combo.setCurrentIndex(12)    # 12px
+        self.frame_box_pad_bottom_combo.setCurrentIndex(48) # 48px
+        self.frame_box_pad_left = 12
+        self.frame_box_pad_right = 12
+        self.frame_box_pad_top = 12
+        self.frame_box_pad_bottom = 48
+        def on_frame_box_pad_left_changed(idx):
+            self.frame_box_pad_left = self.frame_box_pad_left_combo.itemData(idx)
+        def on_frame_box_pad_right_changed(idx):
+            self.frame_box_pad_right = self.frame_box_pad_right_combo.itemData(idx)
+        def on_frame_box_pad_top_changed(idx):
+            self.frame_box_pad_top = self.frame_box_pad_top_combo.itemData(idx)
+        def on_frame_box_pad_bottom_changed(idx):
+            self.frame_box_pad_bottom = self.frame_box_pad_bottom_combo.itemData(idx)
+        self.frame_box_pad_left_combo.currentIndexChanged.connect(on_frame_box_pad_left_changed)
+        self.frame_box_pad_right_combo.currentIndexChanged.connect(on_frame_box_pad_right_changed)
+        self.frame_box_pad_top_combo.currentIndexChanged.connect(on_frame_box_pad_top_changed)
+        self.frame_box_pad_bottom_combo.currentIndexChanged.connect(on_frame_box_pad_bottom_changed)
+        on_frame_box_pad_left_changed(self.frame_box_pad_left_combo.currentIndex())
+        on_frame_box_pad_right_changed(self.frame_box_pad_right_combo.currentIndex())
+        on_frame_box_pad_top_changed(self.frame_box_pad_top_combo.currentIndex())
+        on_frame_box_pad_bottom_changed(self.frame_box_pad_bottom_combo.currentIndex())
+        
+        # Framebox layout
+        frame_box_layout.setSpacing(0)
+        frame_box_layout.addWidget(self.frame_box_checkbox)
+        frame_box_layout.addSpacing(0)
+        frame_box_layout.addWidget(self.frame_box_custom_image_checkbox)
+        frame_box_layout.addSpacing(5)
+        frame_box_layout.addWidget(self.frame_box_custom_image_edit)
+        frame_box_layout.addSpacing(5)
+        frame_box_layout.addWidget(self.frame_box_custom_image_btn)
+        frame_box_layout.addSpacing(3)
+        frame_box_layout.addWidget(frame_box_size_label)
+        frame_box_layout.addWidget(self.frame_box_size_combo)
+        frame_box_layout.addSpacing(4)
+        frame_box_layout.addWidget(frame_box_color_label)
+        frame_box_layout.addWidget(self.frame_box_color_btn) 
+        frame_box_layout.addSpacing(5)
+        frame_box_layout.addWidget(frame_box_x_label)
+        frame_box_layout.addWidget(self.frame_box_x_combo)
+        frame_box_layout.addSpacing(16)
+        frame_box_layout.addWidget(frame_box_y_label)
+        frame_box_layout.addWidget(self.frame_box_y_combo)
+        frame_box_layout.addStretch()
+        frame_box_groupbox_layout.addLayout(frame_box_layout)
+
+        # Framebox Effect Layout
+        frame_box_effect_layout = QHBoxLayout()
+        frame_box_effect_layout.setSpacing(0)
+        frame_box_effect_layout.addSpacing(70)                
+        frame_box_effect_layout.addWidget(frame_box_label)
+        frame_box_effect_layout.addSpacing(19)
+        frame_box_effect_layout.addWidget(self.frame_box_effect_combo)
+        frame_box_effect_layout.addSpacing(5)
+        frame_box_effect_layout.addWidget(frame_box_duration_full_label)
+        frame_box_effect_layout.addWidget(self.frame_box_duration_full_checkbox)
+        frame_box_effect_layout.addSpacing(5)
+        frame_box_effect_layout.addWidget(frame_box_duration_label)
+        frame_box_effect_layout.addSpacing(3)
+        frame_box_effect_layout.addWidget(self.frame_box_duration_edit)
+        frame_box_effect_layout.addSpacing(30)
+        frame_box_effect_layout.addWidget(frame_box_start_label)
+        frame_box_effect_layout.addWidget(self.frame_box_start_edit)
+        frame_box_effect_layout.addSpacing(16)
+        frame_box_effect_layout.addWidget(frame_box_opacity_label)
+        frame_box_effect_layout.addWidget(self.frame_box_opacity_combo)
+        frame_box_effect_layout.addStretch()
+        frame_box_groupbox_layout.addLayout(frame_box_effect_layout)
+
+        # Add padding controls with labels  
+        frame_box_padding_layout = QHBoxLayout() 
+        frame_box_padding_layout.setSpacing(0)
+        frame_box_padding_layout.addSpacing(69)
+        frame_box_padding_layout.addWidget(pad_label)
+        frame_box_padding_layout.addSpacing(17)   
+        frame_box_padding_layout.addWidget(left_pad_label)
+        frame_box_padding_layout.addSpacing(-7)
+        frame_box_padding_layout.addWidget(self.frame_box_pad_left_combo)
+        frame_box_padding_layout.addSpacing(27)
+        frame_box_padding_layout.addWidget(right_pad_label)
+        frame_box_padding_layout.addSpacing(0)
+        frame_box_padding_layout.addWidget(self.frame_box_pad_right_combo)
+        frame_box_padding_layout.addSpacing(20)
+        frame_box_padding_layout.addWidget(bottom_pad_label)
+        frame_box_padding_layout.addSpacing(1)
+        frame_box_padding_layout.addWidget(self.frame_box_pad_bottom_combo)
+        frame_box_padding_layout.addSpacing(5)
+        frame_box_padding_layout.addWidget(top_pad_label)
+        frame_box_padding_layout.addSpacing(-15)
+        frame_box_padding_layout.addWidget(self.frame_box_pad_top_combo)        
+        frame_box_padding_layout.addStretch()        
+        frame_box_groupbox_layout.addLayout(frame_box_padding_layout)
+        
+        # Frame Box Caption Checkbox
+        frame_box_caption_label = QLabel("Caption:")
+        frame_box_caption_label.setFixedWidth(label_medium_width)
+        frame_box_caption_label.setFixedHeight(unified_height)
+        self.frame_box_caption_checkbox = QtWidgets.QCheckBox("")
+        self.frame_box_caption_checkbox.setFixedWidth(checkbox_solo_width)
+        self.frame_box_caption_checkbox.setFixedHeight(unified_height)
+        self.frame_box_caption_checkbox.setChecked(False)
+        def update_frame_box_caption_checkbox_style(state):
+            self.frame_box_caption_checkbox.setStyleSheet("")  # Always default color
+        self.frame_box_caption_checkbox.stateChanged.connect(update_frame_box_caption_checkbox_style)
+        update_frame_box_caption_checkbox_style(self.frame_box_caption_checkbox.checkState())
+        
+        # Caption position selection
+        caption_position_label = QLabel("P:")
+        caption_position_label.setFixedWidth(label_micro_width)
+        caption_position_label.setFixedHeight(unified_height)
+        self.frame_box_caption_position_combo = NoWheelComboBox()
+        self.frame_box_caption_position_combo.setFixedWidth(combo_medium_width)
+        self.frame_box_caption_position_combo.setFixedHeight(unified_height)
+        self.frame_box_caption_position_combo.addItem("B. Center", "bottom_center")
+        self.frame_box_caption_position_combo.addItem("B. Left", "bottom_left")
+        self.frame_box_caption_position_combo.addItem("B. Right", "bottom_right")
+        self.frame_box_caption_position_combo.addItem("Top Center", "top_center")
+        self.frame_box_caption_position_combo.addItem("Top Left", "top_left")
+        self.frame_box_caption_position_combo.addItem("Top Right", "top_right")
+        self.frame_box_caption_position = "bottom_center"
+        
+        def on_frame_box_caption_position_changed(idx):
+            self.frame_box_caption_position = self.frame_box_caption_position_combo.itemData(idx)
+        
+        self.frame_box_caption_position_combo.currentIndexChanged.connect(on_frame_box_caption_position_changed)
+        
+        # Caption type selection using single PNG checkbox
+        caption_type_label = QLabel("Type:")
+        caption_type_label.setFixedWidth(label_mini_width)
+        
+        # PNG type checkbox (single checkbox approach)
+        frame_box_caption_png_label = QLabel("PNG:")
+        frame_box_caption_png_label.setFixedWidth(label_mini_width)
+        frame_box_caption_png_label.setFixedHeight(unified_height)
+        self.frame_box_caption_png_checkbox = QtWidgets.QCheckBox("")
+        self.frame_box_caption_png_checkbox.setFixedWidth(checkbox_solo_width)
+        self.frame_box_caption_png_checkbox.setFixedHeight(unified_height)
+        self.frame_box_caption_png_checkbox.setChecked(False)  # Default to text mode
+        
+        self.frame_box_caption_type = "text"  # Default to text mode
+        
+        def on_frame_box_caption_png_checked(state):
+            if state == Qt.CheckState.Checked:
+                self.frame_box_caption_type = "png"
+            else:
+                self.frame_box_caption_type = "text"
+            update_caption_controls_state()
+        
+        self.frame_box_caption_png_checkbox.stateChanged.connect(on_frame_box_caption_png_checked)
+        
+        # Text caption input
+        caption_text_label = QLabel("txt:")
+        caption_text_label.setFixedWidth(label_mini_width)
+        caption_text_label.setFixedHeight(unified_height)
+        self.frame_box_caption_text_edit = KhmerSupportLineEdit()
+        self.frame_box_caption_text_edit.setFixedWidth(edit_medium_width)
+        self.frame_box_caption_text_edit.setFixedHeight(unified_height)
+        self.frame_box_caption_text_edit.setText("Caption")
+        self.frame_box_caption_text = "Caption"
+        
+        def on_frame_box_caption_text_changed():
+            self.frame_box_caption_text = self.frame_box_caption_text_edit.text()
+        
+        self.frame_box_caption_text_edit.textChanged.connect(on_frame_box_caption_text_changed)
+        
+        # PNG file input
+        caption_png_label = QLabel("PNG:")
+        caption_png_label.setFixedWidth(label_mini_width)
+        caption_png_label.setFixedHeight(unified_height)
+        self.frame_box_caption_png_edit = ImageDropLineEdit()
+        self.frame_box_caption_png_edit.setFixedWidth(104)
+        self.frame_box_caption_png_edit.setFixedHeight(unified_height)
+        self.frame_box_caption_png_edit.setPlaceholderText("Select PNG file...")
+        self.frame_box_caption_png_path = None
+        
+        def select_frame_box_caption_png():
+            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self, "Select PNG File", "", "PNG Files (*.png)"
+            )
+            if file_path:
+                self.frame_box_caption_png_edit.setText(file_path)
+                self.frame_box_caption_png_path = file_path
+        
+        self.frame_box_caption_png_btn = QPushButton("File")
+        self.frame_box_caption_png_btn.setFixedWidth(combo_short_width)
+        self.frame_box_caption_png_btn.setFixedHeight(unified_height)
+        self.frame_box_caption_png_btn.clicked.connect(select_frame_box_caption_png)
+        
+        def on_frame_box_caption_png_changed():
+            self.frame_box_caption_png_path = self.frame_box_caption_png_edit.text()
+        
+        self.frame_box_caption_png_edit.textChanged.connect(on_frame_box_caption_png_changed)
+        
+        
+        # --- Frame Box Caption Checkbox and Position Selection ---
+        frame_box_caption_header_layout = QHBoxLayout()
+        frame_box_caption_header_layout.setSpacing(0)
+        frame_box_caption_header_layout.addSpacing(48)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_checkbox)
+        frame_box_caption_header_layout.addWidget(frame_box_caption_label)
+        frame_box_caption_header_layout.addSpacing(12)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_position_combo)
+        frame_box_caption_header_layout.addSpacing(3)
+        frame_box_caption_header_layout.addWidget(caption_text_label)
+        frame_box_caption_header_layout.addSpacing(-5)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_text_edit)
+        frame_box_caption_header_layout.addSpacing(32)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_checkbox)  
+        frame_box_caption_header_layout.addSpacing(6)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_edit)
+        frame_box_caption_header_layout.addSpacing(5)
+        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_btn)    
+        frame_box_caption_header_layout.addStretch()
+        frame_box_groupbox_layout.addLayout(frame_box_caption_header_layout)
+        
+        # Font selection
+        caption_font_label = QLabel("Font:")
+        caption_font_label.setFixedWidth(label_short_width)
+        caption_font_label.setFixedHeight(unified_height)
+        
+        self.frame_box_caption_font_combo = NoWheelComboBox()
+        self.frame_box_caption_font_combo.setFixedWidth(combo_medium_width)
+        self.frame_box_caption_font_combo.setFixedHeight(unified_height)
+        self.frame_box_caption_font_combo.addItem("Default", "")
+        self.frame_box_caption_font_combo.addItem("KantumruyPro", "KantumruyPro-VariableFont_wght.ttf")
+        self.frame_box_caption_font_combo.addItem("KantumruyPro Italic", "KantumruyPro-Italic-VariableFont_wght.ttf")
+        self.frame_box_caption_font_combo.addItem("Roboto", "Roboto-VariableFont_wdth,wght.ttf")
+        self.frame_box_caption_font_combo.addItem("Roboto Italic", "Roboto-Italic-VariableFont_wdth,wght.ttf")
+        self.frame_box_caption_font = ""
+        
+        def on_frame_box_caption_font_changed(idx):
+            self.frame_box_caption_font = self.frame_box_caption_font_combo.itemData(idx)
+        
+        self.frame_box_caption_font_combo.currentIndexChanged.connect(on_frame_box_caption_font_changed)
+        
+        # Font size
+        caption_font_size_label = QLabel("S:")
+        caption_font_size_label.setFixedWidth(label_micro_width)
+        caption_font_size_label.setFixedHeight(unified_height)
+        self.frame_box_caption_font_size_combo = NoWheelComboBox()
+        self.frame_box_caption_font_size_combo.setFixedWidth(combo_mini_width)
+        self.frame_box_caption_font_size_combo.setFixedHeight(unified_height)
+        for size in range(48, 221, 4):
+            self.frame_box_caption_font_size_combo.addItem(f"{size}", size)
+        self.frame_box_caption_font_size_combo.setCurrentIndex(6)  # Default 72
+        self.frame_box_caption_font_size = 72
+        
+        def on_frame_box_caption_font_size_changed(idx):
+            self.frame_box_caption_font_size = self.frame_box_caption_font_size_combo.itemData(idx)
+        
+        self.frame_box_caption_font_size_combo.currentIndexChanged.connect(on_frame_box_caption_font_size_changed)
+        
+        # Text color picker
+        caption_color_label = QLabel("C:")
+        caption_color_label.setFixedWidth(label_micro_width)
+        caption_color_label.setFixedHeight(unified_height)
+        self.frame_box_caption_color_btn = QPushButton()
+        self.frame_box_caption_color_btn.setFixedWidth(27)
+        self.frame_box_caption_color_btn.setFixedHeight(27)
+        self.frame_box_caption_color = (255, 255, 255)  # Default white
+        self.frame_box_caption_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
+        
+        def on_frame_box_caption_color_clicked():
+            color = QColorDialog.getColor()
+            if color.isValid():
+                self.frame_box_caption_color = (color.red(), color.green(), color.blue())
+                self.frame_box_caption_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc;")
+        
+        self.frame_box_caption_color_btn.clicked.connect(on_frame_box_caption_color_clicked)
+        self.frame_box_caption_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
+        
+        # Text effect
+        caption_effect_label = QLabel("FX:")
+        caption_effect_label.setFixedWidth(label_mini_width)
+        caption_effect_label.setFixedHeight(unified_height)
+        self.frame_box_caption_effect_combo = NoWheelComboBox()
+        self.frame_box_caption_effect_combo.setFixedWidth(combo_short_width)
+        self.frame_box_caption_effect_combo.addItem("None", "none")
+        self.frame_box_caption_effect_combo.addItem("Outline", "outline")
+        self.frame_box_caption_effect_combo.addItem("Outward Stroke", "outward_stroke")
+        self.frame_box_caption_effect_combo.addItem("Inward Stroke", "inward_stroke")
+        self.frame_box_caption_effect_combo.addItem("Shadow", "shadow")
+        self.frame_box_caption_effect_combo.addItem("Glow", "glow")
+        self.frame_box_caption_effect = "none"
+        
+        def on_frame_box_caption_effect_changed(idx):
+            self.frame_box_caption_effect = self.frame_box_caption_effect_combo.itemData(idx)
+            # Enable/disable effect controls based on selection
+            effect_enabled = self.frame_box_caption_effect != "none"
+            self.frame_box_caption_effect_color_btn.setEnabled(effect_enabled)
+            self.frame_box_caption_effect_intensity_combo.setEnabled(effect_enabled)
+            caption_effect_color_label.setEnabled(effect_enabled)
+            caption_effect_intensity_label.setEnabled(effect_enabled)
+            
+            # Update styling
+            if effect_enabled:
+                # Set background to white when effect is enabled (like MP3 cover color picker)
+                self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                self.frame_box_caption_effect_intensity_combo.setStyleSheet("")
+                caption_effect_color_label.setStyleSheet("")
+                caption_effect_intensity_label.setStyleSheet("")
+            else:
+                self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.frame_box_caption_effect_intensity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                caption_effect_color_label.setStyleSheet("color: grey;")
+                caption_effect_intensity_label.setStyleSheet("color: grey;")
+        
+        self.frame_box_caption_effect_combo.currentIndexChanged.connect(on_frame_box_caption_effect_changed)
+        
+        # Effect color picker
+        caption_effect_color_label = QLabel("C:")
+        caption_effect_color_label.setFixedWidth(label_micro_width)
+        caption_effect_color_label.setFixedHeight(unified_height)
+        self.frame_box_caption_effect_color_btn = QPushButton()
+        self.frame_box_caption_effect_color_btn.setFixedWidth(27)
+        self.frame_box_caption_effect_color_btn.setFixedHeight(27)
+        self.frame_box_caption_effect_color = (255, 255, 255)  # Default white
+        self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+        
+        def on_frame_box_caption_effect_color_clicked():
+            color = QColorDialog.getColor(QColor(*self.frame_box_caption_effect_color), self, "Select Frame Box Caption Effect Color")
+            if color.isValid():
+                self.frame_box_caption_effect_color = (color.red(), color.green(), color.blue())
+                self.frame_box_caption_effect_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
+        
+        self.frame_box_caption_effect_color_btn.clicked.connect(on_frame_box_caption_effect_color_clicked)
+        
+        # Effect intensity
+        caption_effect_intensity_label = QLabel("i")
+        caption_effect_intensity_label.setFixedWidth(label_micro_width)
+        caption_effect_intensity_label.setFixedHeight(unified_height)
+        self.frame_box_caption_effect_intensity_combo = NoWheelComboBox()
+        self.frame_box_caption_effect_intensity_combo.setFixedWidth(combo_short_width)
+        self.frame_box_caption_effect_intensity_combo.setFixedHeight(unified_height)
+        for intensity in range(1, 11, 1):
+            self.frame_box_caption_effect_intensity_combo.addItem(f"{intensity}", intensity)
+        self.frame_box_caption_effect_intensity_combo.setCurrentIndex(4)  # Default 5
+        self.frame_box_caption_effect_intensity = 5
+        
+        def on_frame_box_caption_effect_intensity_changed(idx):
+            self.frame_box_caption_effect_intensity = self.frame_box_caption_effect_intensity_combo.itemData(idx)
+        
+        self.frame_box_caption_effect_intensity_combo.currentIndexChanged.connect(on_frame_box_caption_effect_intensity_changed)
+        
+        # Add styling controls to layout
+        # Text styling controls
+        frame_box_caption_styling_layout = QHBoxLayout()        
+        frame_box_caption_styling_layout.setSpacing(0)
+        frame_box_caption_styling_layout.addSpacing(85)
+        frame_box_caption_styling_layout.addWidget(caption_font_label)
+        frame_box_caption_styling_layout.addSpacing(4)
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_font_combo)
+        frame_box_caption_styling_layout.addSpacing(8)
+        frame_box_caption_styling_layout.addWidget(caption_font_size_label)        
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_font_size_combo)
+        frame_box_caption_styling_layout.addSpacing(1)
+        frame_box_caption_styling_layout.addWidget(caption_color_label)
+        frame_box_caption_styling_layout.addSpacing(-3)
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_color_btn)
+        frame_box_caption_styling_layout.addSpacing(28)
+        frame_box_caption_styling_layout.addWidget(caption_effect_label)        
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_combo)
+        frame_box_caption_styling_layout.addSpacing(2)
+        frame_box_caption_styling_layout.addWidget(caption_effect_color_label)
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_color_btn)      
+        frame_box_caption_styling_layout.addSpacing(5)
+        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_intensity_combo)
+        frame_box_caption_styling_layout.addStretch()
+        
+        # Initialize effect controls state
+        on_frame_box_caption_effect_changed(0)  # Default to "none"
+        
+        # Add styling controls layout
+        frame_box_groupbox_layout.addLayout(frame_box_caption_styling_layout)
+        
+        # Function to update custom image controls state
+        def update_custom_image_controls_state():
+            # Check if frame box is enabled
+            frame_box_enabled = self.frame_box_checkbox.isChecked()
+            custom_image_enabled = self.frame_box_custom_image_checkbox.isChecked()
+            both_enabled = frame_box_enabled and custom_image_enabled
+            
+            # Enable/disable custom image checkbox based on frame box state
+            self.frame_box_custom_image_checkbox.setEnabled(frame_box_enabled)
+            
+            # Update custom image checkbox styling
+            if frame_box_enabled:
+                self.frame_box_custom_image_checkbox.setStyleSheet("")
+                if custom_image_enabled:
+                    frame_box_custom_image_label.setStyleSheet("")  # Label is active when checkbox is checked
+                else:
+                    frame_box_custom_image_label.setStyleSheet("color: grey;")  # Grey out label when checkbox is unchecked
+            else:
+                self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
+                frame_box_custom_image_label.setStyleSheet("color: grey;")
+            
+            # Enable/disable custom image controls
+            self.frame_box_custom_image_edit.setEnabled(both_enabled)
+            self.frame_box_custom_image_btn.setEnabled(both_enabled)
+            
+            # Update styling based on state
+            if both_enabled:
+                # Custom image controls are enabled
+                self.frame_box_custom_image_edit.setStyleSheet("")
+                self.frame_box_custom_image_btn.setStyleSheet("")
+            else:
+                # Custom image controls are disabled
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.frame_box_custom_image_edit.setStyleSheet(grey_btn_style)
+                self.frame_box_custom_image_btn.setStyleSheet(grey_btn_style)
+        # Function to update caption controls state
+        def update_caption_controls_state():
+            # Check if both frame box and caption are enabled
+            frame_box_enabled = self.frame_box_checkbox.isChecked()
+            caption_enabled = self.frame_box_caption_checkbox.isChecked()
+            both_enabled = frame_box_enabled and caption_enabled
+            
+            # Enable/disable caption controls
+            self.frame_box_caption_png_checkbox.setEnabled(both_enabled)
+            self.frame_box_caption_position_combo.setEnabled(both_enabled)
+            caption_type_label.setEnabled(both_enabled)
+            caption_position_label.setEnabled(both_enabled)
+            caption_text_label.setEnabled(both_enabled)
+            caption_png_label.setEnabled(both_enabled)
+            
+            # Set input states based on PNG checkbox state
+            if both_enabled:
+                if not self.frame_box_caption_png_checkbox.isChecked():  # Text mode
+                    if hasattr(self, 'frame_box_caption_text_edit'):
+                        self.frame_box_caption_text_edit.setEnabled(True)
+                    if hasattr(self, 'frame_box_caption_png_edit'):
+                        self.frame_box_caption_png_edit.setEnabled(False)
+                    if hasattr(self, 'frame_box_caption_png_btn'):
+                        self.frame_box_caption_png_btn.setEnabled(False)
+                    
+                    # Enable text styling controls
+                    self.frame_box_caption_font_combo.setEnabled(True)
+                    self.frame_box_caption_font_size_combo.setEnabled(True)
+                    self.frame_box_caption_color_btn.setEnabled(True)
+                    self.frame_box_caption_effect_combo.setEnabled(True)
+                    caption_font_label.setEnabled(True)
+                    caption_font_size_label.setEnabled(True)
+                    caption_color_label.setEnabled(True)
+                    caption_effect_label.setEnabled(True)
+                    
+                    # Effect controls state depends on effect selection
+                    effect_enabled = self.frame_box_caption_effect != "none"
+                    self.frame_box_caption_effect_color_btn.setEnabled(effect_enabled)
+                    self.frame_box_caption_effect_intensity_combo.setEnabled(effect_enabled)
+                    caption_effect_color_label.setEnabled(effect_enabled)
+                    caption_effect_intensity_label.setEnabled(effect_enabled)
+                else:  # PNG mode
+                    if hasattr(self, 'frame_box_caption_text_edit'):
+                        self.frame_box_caption_text_edit.setEnabled(False)
+                    if hasattr(self, 'frame_box_caption_png_edit'):
+                        self.frame_box_caption_png_edit.setEnabled(True)
+                    if hasattr(self, 'frame_box_caption_png_btn'):
+                        self.frame_box_caption_png_btn.setEnabled(True)
+                    
+                    # Disable text styling controls for PNG mode
+                    self.frame_box_caption_font_combo.setEnabled(False)
+                    self.frame_box_caption_font_size_combo.setEnabled(False)
+                    self.frame_box_caption_color_btn.setEnabled(False)
+                    self.frame_box_caption_effect_combo.setEnabled(False)
+                    self.frame_box_caption_effect_color_btn.setEnabled(False)
+                    self.frame_box_caption_effect_intensity_combo.setEnabled(False)
+                    caption_font_label.setEnabled(False)
+                    caption_font_size_label.setEnabled(False)
+                    caption_color_label.setEnabled(False)
+                    caption_effect_label.setEnabled(False)
+                    caption_effect_color_label.setEnabled(False)
+                    caption_effect_intensity_label.setEnabled(False)
+            else:
+                if hasattr(self, 'frame_box_caption_text_edit'):
+                    self.frame_box_caption_text_edit.setEnabled(False)
+                if hasattr(self, 'frame_box_caption_png_edit'):
+                    self.frame_box_caption_png_edit.setEnabled(False)
+                if hasattr(self, 'frame_box_caption_png_btn'):
+                    self.frame_box_caption_png_btn.setEnabled(False)
+                
+                # Disable all styling controls
+                self.frame_box_caption_font_combo.setEnabled(False)
+                self.frame_box_caption_font_size_combo.setEnabled(False)
+                self.frame_box_caption_color_btn.setEnabled(False)
+                self.frame_box_caption_effect_combo.setEnabled(False)
+                self.frame_box_caption_effect_color_btn.setEnabled(False)
+                self.frame_box_caption_effect_intensity_combo.setEnabled(False)
+                caption_font_label.setEnabled(False)
+                caption_font_size_label.setEnabled(False)
+                caption_color_label.setEnabled(False)
+                caption_effect_label.setEnabled(False)
+                caption_effect_color_label.setEnabled(False)
+                caption_effect_intensity_label.setEnabled(False)
+            
+            # Update styling based on state
+            if both_enabled:
+                # Caption controls are enabled
+                self.frame_box_caption_png_checkbox.setStyleSheet("")
+                frame_box_caption_png_label.setStyleSheet("")
+                self.frame_box_caption_position_combo.setStyleSheet("")
+                caption_type_label.setStyleSheet("")
+                caption_position_label.setStyleSheet("")
+                caption_text_label.setStyleSheet("")
+                caption_png_label.setStyleSheet("")
+                
+                if not self.frame_box_caption_png_checkbox.isChecked():  # Text mode
+                    if hasattr(self, 'frame_box_caption_text_edit'):
+                        self.frame_box_caption_text_edit.setStyleSheet("")
+                    if hasattr(self, 'frame_box_caption_png_edit'):
+                        self.frame_box_caption_png_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    if hasattr(self, 'frame_box_caption_png_btn'):
+                        self.frame_box_caption_png_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    
+                    # Text styling controls enabled
+                    self.frame_box_caption_font_combo.setStyleSheet("")
+                    self.frame_box_caption_font_size_combo.setStyleSheet("")
+                    self.frame_box_caption_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
+                    self.frame_box_caption_effect_combo.setStyleSheet("")
+                    caption_font_label.setStyleSheet("")
+                    caption_font_size_label.setStyleSheet("")
+                    caption_color_label.setStyleSheet("")
+                    caption_effect_label.setStyleSheet("")
+                    caption_text_label.setStyleSheet("")  # Keep text label active in text mode
+                    caption_png_label.setStyleSheet("color: grey;")  # Grey out PNG label in text mode
+                    
+                    # Effect controls styling
+                    effect_enabled = self.frame_box_caption_effect != "none"
+                    if effect_enabled:
+                        # Set background to white when effect is enabled (like MP3 cover color picker)
+                        self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                        self.frame_box_caption_effect_intensity_combo.setStyleSheet("")
+                        caption_effect_color_label.setStyleSheet("")
+                        caption_effect_intensity_label.setStyleSheet("")
+                    else:
+                        self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                        self.frame_box_caption_effect_intensity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                        caption_effect_color_label.setStyleSheet("color: grey;")
+                        caption_effect_intensity_label.setStyleSheet("color: grey;")
+                else:  # PNG mode
+                    if hasattr(self, 'frame_box_caption_text_edit'):
+                        self.frame_box_caption_text_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                    if hasattr(self, 'frame_box_caption_png_edit'):
+                        self.frame_box_caption_png_edit.setStyleSheet("")
+                    if hasattr(self, 'frame_box_caption_png_btn'):
+                        self.frame_box_caption_png_btn.setStyleSheet("")
+                    
+                    # Text styling controls disabled for PNG mode
+                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                    self.frame_box_caption_font_combo.setStyleSheet(grey_btn_style)
+                    self.frame_box_caption_font_size_combo.setStyleSheet(grey_btn_style)
+                    self.frame_box_caption_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+                    self.frame_box_caption_effect_combo.setStyleSheet(grey_btn_style)
+                    self.frame_box_caption_effect_color_btn.setStyleSheet(grey_btn_style)
+                    self.frame_box_caption_effect_intensity_combo.setStyleSheet(grey_btn_style)
+                    caption_font_label.setStyleSheet("color: grey;")
+                    caption_font_size_label.setStyleSheet("color: grey;")
+                    caption_color_label.setStyleSheet("color: grey;")
+                    caption_effect_label.setStyleSheet("color: grey;")
+                    caption_effect_color_label.setStyleSheet("color: grey;")
+                    caption_effect_intensity_label.setStyleSheet("color: grey;")
+                    caption_text_label.setStyleSheet("color: grey;")  # Grey out text label in PNG mode
+                    caption_png_label.setStyleSheet("")  # Keep PNG label active in PNG mode
+            else:
+                # Caption controls are disabled
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.frame_box_caption_png_checkbox.setStyleSheet("color: grey;")
+                frame_box_caption_png_label.setStyleSheet("color: grey;")
+                self.frame_box_caption_position_combo.setStyleSheet(grey_btn_style)
+                caption_type_label.setStyleSheet("color: grey;")
+                caption_position_label.setStyleSheet("color: grey;")
+                caption_text_label.setStyleSheet("color: grey;")
+                caption_png_label.setStyleSheet("color: grey;")
+                if hasattr(self, 'frame_box_caption_text_edit'):
+                    self.frame_box_caption_text_edit.setStyleSheet(grey_btn_style)
+                if hasattr(self, 'frame_box_caption_png_edit'):
+                    self.frame_box_caption_png_edit.setStyleSheet(grey_btn_style)
+                if hasattr(self, 'frame_box_caption_png_btn'):
+                    self.frame_box_caption_png_btn.setStyleSheet(grey_btn_style)
+                
+                # All styling controls disabled
+                self.frame_box_caption_font_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_font_size_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
+                self.frame_box_caption_effect_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_effect_color_btn.setStyleSheet(grey_btn_style)
+                self.frame_box_caption_effect_intensity_combo.setStyleSheet(grey_btn_style)
+                caption_font_label.setStyleSheet("color: grey;")
+                caption_font_size_label.setStyleSheet("color: grey;")
+                caption_color_label.setStyleSheet("color: grey;")
+                caption_effect_label.setStyleSheet("color: grey;")
+                caption_effect_color_label.setStyleSheet("color: grey;")
+                caption_effect_intensity_label.setStyleSheet("color: grey;")
+        
+        # Initialize caption type (text mode is default)
+        # Initial state
+        update_caption_controls_state()
+
+        # --- Frame box custom image checkbox handler ---
+        def on_frame_box_custom_image_checked(state):
+            # Update custom image controls state
+            update_custom_image_controls_state()
+        self.frame_box_custom_image_checkbox.stateChanged.connect(on_frame_box_custom_image_checked)
+        
+        # --- Frame box caption checkbox handler ---
+        def on_frame_box_caption_checked(state):
+            # Update caption controls state
+            update_caption_controls_state()
+        self.frame_box_caption_checkbox.stateChanged.connect(on_frame_box_caption_checked)
+
+        def set_frame_box_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.frame_box_size_combo.setEnabled(enabled)
+            self.frame_box_x_combo.setEnabled(enabled)
+            self.frame_box_y_combo.setEnabled(enabled)
+            self.frame_box_duration_edit.setEnabled(enabled)
+            frame_box_duration_label.setEnabled(enabled)
+            self.frame_box_start_edit.setEnabled(enabled)
+            frame_box_start_label.setEnabled(enabled)
+            self.frame_box_caption_checkbox.setEnabled(enabled)
+            self.frame_box_custom_image_checkbox.setEnabled(enabled)
+            self.frame_box_effect_combo.setEnabled(enabled)
+            self.frame_box_color_btn.setEnabled(enabled)
+            self.frame_box_opacity_combo.setEnabled(enabled)
+            self.frame_box_pad_left_combo.setEnabled(enabled)
+            self.frame_box_pad_right_combo.setEnabled(enabled)
+            self.frame_box_pad_top_combo.setEnabled(enabled)
+            self.frame_box_pad_bottom_combo.setEnabled(enabled)
+            left_pad_label.setEnabled(enabled)
+            right_pad_label.setEnabled(enabled)
+            top_pad_label.setEnabled(enabled)
+            bottom_pad_label.setEnabled(enabled)
+            pad_label.setEnabled(enabled)
+            
+            # Update caption controls state
+            update_caption_controls_state()
+            if enabled:
+                self.frame_box_size_combo.setStyleSheet("")
+                self.frame_box_x_combo.setStyleSheet("")
+                self.frame_box_y_combo.setStyleSheet("")
+                self.frame_box_duration_edit.setStyleSheet("")
+                self.frame_box_start_edit.setStyleSheet("")
+                frame_box_size_label.setStyleSheet("")
+                frame_box_x_label.setStyleSheet("")
+                frame_box_y_label.setStyleSheet("")
+                frame_box_duration_label.setStyleSheet("")
+                frame_box_start_label.setStyleSheet("")
+                self.frame_box_caption_checkbox.setStyleSheet("")
+                frame_box_caption_label.setStyleSheet("")
+                self.frame_box_custom_image_checkbox.setStyleSheet("")
+                frame_box_custom_image_label.setStyleSheet("")
+                frame_box_label.setStyleSheet("")
+                frame_box_color_label.setStyleSheet("")
+                self.frame_box_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
+                frame_box_opacity_label.setStyleSheet("")
+                self.frame_box_opacity_combo.setStyleSheet("")
+                self.frame_box_pad_left_combo.setStyleSheet("")
+                self.frame_box_pad_right_combo.setStyleSheet("")
+                self.frame_box_pad_top_combo.setStyleSheet("")
+                self.frame_box_pad_bottom_combo.setStyleSheet("")
+                left_pad_label.setStyleSheet("")
+                right_pad_label.setStyleSheet("")
+                top_pad_label.setStyleSheet("")
+                bottom_pad_label.setStyleSheet("")
+                pad_label.setStyleSheet("")
+
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.frame_box_size_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_x_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_y_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_duration_edit.setStyleSheet(grey_btn_style)
+                self.frame_box_start_edit.setStyleSheet(grey_btn_style)
+                frame_box_size_label.setStyleSheet("color: grey;")
+                frame_box_x_label.setStyleSheet("color: grey;")
+                frame_box_y_label.setStyleSheet("color: grey;")
+                frame_box_duration_label.setStyleSheet("color: grey;")
+                frame_box_start_label.setStyleSheet("color: grey;")
+                self.frame_box_caption_checkbox.setStyleSheet("color: grey;")
+                frame_box_caption_label.setStyleSheet("color: grey;")
+                self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
+                frame_box_custom_image_label.setStyleSheet("color: grey;")
+                frame_box_label.setStyleSheet("color: grey;")
+                frame_box_color_label.setStyleSheet("color: grey;")
+                self.frame_box_color_btn.setStyleSheet(grey_btn_style)
+                frame_box_opacity_label.setStyleSheet("color: grey;")
+                self.frame_box_opacity_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_pad_left_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_pad_right_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_pad_top_combo.setStyleSheet(grey_btn_style)
+                self.frame_box_pad_bottom_combo.setStyleSheet(grey_btn_style)
+                left_pad_label.setStyleSheet("color: grey;")
+                right_pad_label.setStyleSheet("color: grey;")
+                top_pad_label.setStyleSheet("color: grey;")
+                bottom_pad_label.setStyleSheet("color: grey;")
+                pad_label.setStyleSheet("color: grey;")
+                
+
+        self.frame_box_checkbox.stateChanged.connect(lambda _: set_frame_box_enabled(self.frame_box_checkbox.checkState()))
+        self.frame_box_checkbox.stateChanged.connect(lambda _: update_custom_image_controls_state())
+        
+         # Initialize frame box enabled state after all controls are created
+        set_frame_box_enabled(self.frame_box_checkbox.checkState())
+        update_custom_image_controls_state()
+
+        # --- Frame box effect greying logic ---
+        def update_frame_box_effect_label_style():
+            if not self.frame_box_checkbox.isChecked():
+                frame_box_label.setStyleSheet("color: grey;")
+                self.frame_box_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.frame_box_effect_combo.setEnabled(False)
+                frame_box_start_label.setStyleSheet("color: grey;")
+                self.frame_box_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.frame_box_start_edit.setEnabled(False)
+                frame_box_duration_label.setStyleSheet("color: grey;")
+                self.frame_box_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
+                self.frame_box_duration_edit.setEnabled(False)
+                self.frame_box_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.frame_box_duration_full_checkbox.setEnabled(False)
+                frame_box_duration_full_label.setStyleSheet("color: grey;")
+                frame_box_custom_image_label.setStyleSheet("color: grey;")
+                self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
+                self.frame_box_custom_image_checkbox.setEnabled(False)
+                frame_box_color_label.setStyleSheet("color: grey;")
+                frame_box_opacity_label.setStyleSheet("color: grey;")
+                frame_box_caption_label.setStyleSheet("color: grey;")
+                # Don't manage caption checkbox here - let the caption system handle it
+            else:
+                frame_box_label.setStyleSheet("")
+                self.frame_box_effect_combo.setStyleSheet("")
+                self.frame_box_effect_combo.setEnabled(True)
+                frame_box_start_label.setStyleSheet("")
+                self.frame_box_start_edit.setStyleSheet("")
+                self.frame_box_start_edit.setEnabled(True)
+                # Re-enable the full duration checkbox and let it control the duration field styling
+                self.frame_box_duration_full_checkbox.setStyleSheet("")
+                self.frame_box_duration_full_checkbox.setEnabled(True)
+                frame_box_duration_full_label.setStyleSheet("")
+                frame_box_custom_image_label.setStyleSheet("")
+                self.frame_box_custom_image_checkbox.setStyleSheet("")
+                self.frame_box_custom_image_checkbox.setEnabled(True)
+                frame_box_color_label.setStyleSheet("")
+                frame_box_opacity_label.setStyleSheet("")
+                frame_box_caption_label.setStyleSheet("")
+                # Don't manage caption checkbox here - let the caption system handle it
+                set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
+        self.frame_box_checkbox.stateChanged.connect(lambda _: update_frame_box_effect_label_style())
+        self.frame_box_checkbox.stateChanged.connect(lambda _: update_custom_image_controls_state())
+        self.frame_box_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState()))
+        update_frame_box_effect_label_style()
+        update_custom_image_controls_state()
+
+        # --- MP3 COVER OVERLAY GROUP BOX ---
+        mp3_cover_groupbox = QtWidgets.QGroupBox("MP3 Cover Overlay Settings")
+        self.mp3_cover_groupbox = mp3_cover_groupbox  # Store reference for visibility control
+        mp3_cover_groupbox.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                color: #333333;
+            }
+        """)
+        mp3_cover_groupbox_layout = QVBoxLayout(mp3_cover_groupbox)
+        mp3_cover_groupbox_layout.setSpacing(8)
+        mp3_cover_groupbox_layout.setContentsMargins(10, 5, 10, 10)
+        layout.addWidget(mp3_cover_groupbox)
+
+        # --- DYNAMIC MP3 COVER OVERLAY ---
+        mp3_cover_overlay_label = self.settings.value('mp3_cover_overlay_checkbox_label', " MP3 Cover Overlay :", type=str)
+        self.mp3_cover_overlay_checkbox = QtWidgets.QCheckBox(mp3_cover_overlay_label)
+        self.mp3_cover_overlay_checkbox.setFixedWidth(label_checkbox_width)
+        self.mp3_cover_overlay_checkbox.setChecked(False)
+        def update_mp3_cover_overlay_checkbox_style(state):
+            self.mp3_cover_overlay_checkbox.setStyleSheet("")  # Always default color
+        self.mp3_cover_overlay_checkbox.stateChanged.connect(update_mp3_cover_overlay_checkbox_style)
+        update_mp3_cover_overlay_checkbox_style(self.mp3_cover_overlay_checkbox.checkState())
+
+        
+        # MP3 cover size option (5% to 100%)
+        mp3_cover_size_label = QLabel("S:")
+        mp3_cover_size_label.setFixedWidth(label_micro_width)
+        mp3_cover_size_label.setFixedHeight(unified_height)
+        self.mp3_cover_size_combo = NoWheelComboBox()
+        self.mp3_cover_size_combo.setFixedWidth(combo_mini_width)
+        self.mp3_cover_size_combo.setFixedHeight(unified_height)
+        for percent in range(5, 101, 5):
+            self.mp3_cover_size_combo.addItem(f"{percent}%", percent)
+        self.mp3_cover_size_combo.setCurrentIndex(3)  # Default 20%
+        self.mp3_cover_size_percent = 20
+        def on_mp3_cover_size_changed(idx):
+            self.mp3_cover_size_percent = self.mp3_cover_size_combo.itemData(idx)
+        self.mp3_cover_size_combo.setEditable(False)
+        self.mp3_cover_size_combo.currentIndexChanged.connect(on_mp3_cover_size_changed)
+        on_mp3_cover_size_changed(self.mp3_cover_size_combo.currentIndex())
+
+        # MP3 cover X coordinate
+        mp3_cover_x_label = QLabel("X:")
+        mp3_cover_x_label.setFixedWidth(label_micro_width)
+        mp3_cover_x_label.setFixedHeight(unified_height)
+        self.mp3_cover_x_combo = NoWheelComboBox()
+        self.mp3_cover_x_combo.setFixedWidth(combo_mini_width)
+        self.mp3_cover_x_combo.setFixedHeight(unified_height)
+        for percent in range(0, 101, 1):
+            self.mp3_cover_x_combo.addItem(f"{percent}%", percent)
+        self.mp3_cover_x_combo.setCurrentIndex(75)  # Default 75%
+        self.mp3_cover_x_percent = 75
+        def on_mp3_cover_x_changed(idx):
+            self.mp3_cover_x_percent = self.mp3_cover_x_combo.itemData(idx)
+        self.mp3_cover_x_combo.currentIndexChanged.connect(on_mp3_cover_x_changed)
+        on_mp3_cover_x_changed(self.mp3_cover_x_combo.currentIndex())
+
+        # MP3 cover Y coordinate
+        mp3_cover_y_label = QLabel("Y:")
+        mp3_cover_y_label.setFixedWidth(label_micro_width)
+        mp3_cover_y_label.setFixedHeight(unified_height)
+        self.mp3_cover_y_combo = NoWheelComboBox()
+        self.mp3_cover_y_combo.setFixedWidth(combo_mini_width)
+        self.mp3_cover_y_combo.setFixedHeight(unified_height)
+        for percent in range(0, 101, 1):
+            self.mp3_cover_y_combo.addItem(f"{percent}%", percent)
+        self.mp3_cover_y_combo.setCurrentIndex(75)  # Default 75%
+        self.mp3_cover_y_percent = 75
+        def on_mp3_cover_y_changed(idx):
+            self.mp3_cover_y_percent = self.mp3_cover_y_combo.itemData(idx)
+        self.mp3_cover_y_combo.currentIndexChanged.connect(on_mp3_cover_y_changed)
+        on_mp3_cover_y_changed(self.mp3_cover_y_combo.currentIndex())
+
+        # MP3 cover effect
+        mp3_cover_effect_label = QLabel("Effect:")
+        mp3_cover_effect_label.setFixedWidth(label_short_width)
+        mp3_cover_effect_label.setFixedHeight(unified_height)
+        self.mp3_cover_effect_combo = NoWheelComboBox()
+        self.mp3_cover_effect_combo.setFixedWidth(combo_medium_width)
+        self.mp3_cover_effect_combo.setFixedHeight(unified_height)
+        for label, value in effect_options:
+            self.mp3_cover_effect_combo.addItem(label, value)
+        self.mp3_cover_effect_combo.setCurrentIndex(0)  # Default fadeinout
+        self.selected_mp3_cover_effect = "fadeinout"
+        def on_mp3_cover_effect_changed(idx):
+            self.selected_mp3_cover_effect = self.mp3_cover_effect_combo.itemData(idx)
+        self.mp3_cover_effect_combo.currentIndexChanged.connect(on_mp3_cover_effect_changed)
+        on_mp3_cover_effect_changed(self.mp3_cover_effect_combo.currentIndex())
+
+        # MP3 cover overlay duration controls
+        mp3_cover_duration_label = QLabel("For:")
+        mp3_cover_duration_label.setFixedWidth(label_mini_width)
+        mp3_cover_duration_label.setFixedHeight(unified_height)
+        self.mp3_cover_duration_edit = QLineEdit("6")
+        self.mp3_cover_duration_edit.setFixedWidth(edit_short_width)
+        self.mp3_cover_duration_edit.setFixedHeight(unified_height)
+        self.mp3_cover_duration_edit.setValidator(QIntValidator(1, 999, self))
+        self.mp3_cover_duration_edit.setPlaceholderText("6")
+        self.mp3_cover_duration = 6
+        def on_mp3_cover_duration_changed():
+            try:
+                self.mp3_cover_duration = int(self.mp3_cover_duration_edit.text())
+            except Exception:
+                self.mp3_cover_duration = 6
+        self.mp3_cover_duration_edit.textChanged.connect(on_mp3_cover_duration_changed)
+        on_mp3_cover_duration_changed()
+
+        # MP3 cover overlay full duration checkbox
+        mp3_cover_duration_full_label = QLabel("Full:")
+        mp3_cover_duration_full_label.setFixedWidth(label_mini_width)
+        mp3_cover_duration_full_label.setFixedHeight(unified_height)
+        self.mp3_cover_duration_full_checkbox = QtWidgets.QCheckBox("")
+        self.mp3_cover_duration_full_checkbox.setFixedWidth(checkbox_solo_width)
+        self.mp3_cover_duration_full_checkbox.setFixedHeight(unified_height)
+        self.mp3_cover_duration_full_checkbox.setChecked(True)
+        def update_mp3_cover_duration_full_checkbox_style(state):
+            self.mp3_cover_duration_full_checkbox.setStyleSheet("")  # Always default color
+        self.mp3_cover_duration_full_checkbox.stateChanged.connect(update_mp3_cover_duration_full_checkbox_style)
+        update_mp3_cover_duration_full_checkbox_style(self.mp3_cover_duration_full_checkbox.checkState())
+
+        # Function to control MP3 cover overlay duration field based on duration full checkbox
+        def set_mp3_cover_duration_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            # When duration full checkbox is checked, disable duration input field
+            self.mp3_cover_duration_edit.setEnabled(not enabled)
+            mp3_cover_duration_label.setEnabled(not enabled)
+            
+            if enabled:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.mp3_cover_duration_edit.setStyleSheet(grey_btn_style)
+                mp3_cover_duration_label.setStyleSheet("color: grey;")
+                mp3_cover_duration_full_label.setStyleSheet("")  # Full label is active when checkbox is checked
+            else:
+                self.mp3_cover_duration_edit.setStyleSheet("")
+                mp3_cover_duration_label.setStyleSheet("")
+                mp3_cover_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
+
+        # MP3 cover overlay start at control
+        mp3_cover_start_label = QLabel("Start:")
+        mp3_cover_start_label.setFixedWidth(label_short_width)
+        mp3_cover_start_label.setFixedHeight(unified_height)
+        self.mp3_cover_start_edit = QLineEdit("0")
+        self.mp3_cover_start_edit.setFixedWidth(combo_short_width)
+        self.mp3_cover_start_edit.setFixedHeight(unified_height)
+        self.mp3_cover_start_edit.setValidator(QIntValidator(0, 999, self))
+        self.mp3_cover_start_edit.setPlaceholderText("0")
+        self.mp3_cover_start_at = 0
+        def on_mp3_cover_start_changed():
+            try:
+                self.mp3_cover_start_at = int(self.mp3_cover_start_edit.text())
+            except Exception:
+                self.mp3_cover_start_at = 0
+        self.mp3_cover_start_edit.textChanged.connect(on_mp3_cover_start_changed)
+        on_mp3_cover_start_changed()
+
+        # MP3 cover frame color picker
+        mp3_cover_frame_color_label = QLabel("C:")
+        mp3_cover_frame_color_label.setFixedWidth(label_micro_width)
+        mp3_cover_frame_color_label.setFixedHeight(unified_height)
+        self.mp3_cover_frame_color_btn = QPushButton()
+        self.mp3_cover_frame_color_btn.setFixedSize(27, 27)
+        self.mp3_cover_frame_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+        self.mp3_cover_frame_color = (0, 0, 0)  # Default black
+        def on_mp3_cover_frame_color_clicked():
+            color = QColorDialog.getColor(QColor(*self.mp3_cover_frame_color), self, "Select MP3 Cover Frame Color")
+            if color.isValid():
+                self.mp3_cover_frame_color = (color.red(), color.green(), color.blue())
+                self.mp3_cover_frame_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
+        self.mp3_cover_frame_color_btn.clicked.connect(on_mp3_cover_frame_color_clicked)
+
+        # MP3 cover frame size dropdown
+        mp3_cover_frame_size_label = QLabel("F:")
+        mp3_cover_frame_size_label.setFixedWidth(label_micro_width)
+        mp3_cover_frame_size_label.setFixedHeight(unified_height)
+        self.mp3_cover_frame_size_combo = NoWheelComboBox()
+        self.mp3_cover_frame_size_combo.setFixedWidth(combo_mini_width)
+        self.mp3_cover_frame_size_combo.setFixedHeight(unified_height)
+        frame_size_options = [
+            ("5px", 5),
+            ("10px", 10),
+            ("15px", 15),
+            ("20px", 20),
+            ("25px", 25),
+            ("30px", 30)
+        ]
+        for label, value in frame_size_options:
+            self.mp3_cover_frame_size_combo.addItem(label, value)
+        self.mp3_cover_frame_size_combo.setCurrentIndex(1)  # Default 10px
+        self.mp3_cover_frame_size = 10
+        def on_mp3_cover_frame_size_changed(idx):
+            if idx >= 0:
+                self.mp3_cover_frame_size = self.mp3_cover_frame_size_combo.itemData(idx)
+        self.mp3_cover_frame_size_combo.currentIndexChanged.connect(on_mp3_cover_frame_size_changed)
+        on_mp3_cover_frame_size_changed(self.mp3_cover_frame_size_combo.currentIndex())
+
+        # Custom image checkbox for MP3 cover overlay
+        mp3_cover_custom_image_label = QLabel("Custom:")
+        mp3_cover_custom_image_label.setFixedWidth(label_medium_width)
+        mp3_cover_custom_image_label.setFixedHeight(unified_height)
+        self.mp3_cover_custom_image_checkbox = QtWidgets.QCheckBox("")
+        self.mp3_cover_custom_image_checkbox.setFixedWidth(checkbox_solo_width)
+        self.mp3_cover_custom_image_checkbox.setFixedHeight(unified_height)
+        self.mp3_cover_custom_image_checkbox.setChecked(False)
+        def update_mp3_cover_custom_image_checkbox_style(state):
+            self.mp3_cover_custom_image_checkbox.setStyleSheet("")  # Always default color
+        self.mp3_cover_custom_image_checkbox.stateChanged.connect(update_mp3_cover_custom_image_checkbox_style)
+        update_mp3_cover_custom_image_checkbox_style(self.mp3_cover_custom_image_checkbox.checkState())
+
+        # Custom image file selection for MP3 cover overlay
+        self.mp3_cover_custom_image_edit = ImageDropLineEdit()
+        self.mp3_cover_custom_image_edit.setFixedWidth(edit_medium_width)
+        self.mp3_cover_custom_image_edit.setFixedHeight(unified_height)
+        self.mp3_cover_custom_image_edit.setPlaceholderText("Select custom image...")
+        self.mp3_cover_custom_image_path = None
+        
+        def select_mp3_cover_custom_image():
+            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+                self, "Select Custom Image for MP3 Cover", "", 
+                "Image Files (*.png *.jpg *.jpeg)"
+            )
+            if file_path:
+                self.mp3_cover_custom_image_edit.setText(file_path)
+                self.mp3_cover_custom_image_path = file_path
+        
+        self.mp3_cover_custom_image_btn = QPushButton("File")
+        self.mp3_cover_custom_image_btn.setFixedWidth(file_btn_width)
+        self.mp3_cover_custom_image_btn.setFixedHeight(unified_height)
+        self.mp3_cover_custom_image_btn.clicked.connect(select_mp3_cover_custom_image)
+        
+        def on_mp3_cover_custom_image_changed():
+            self.mp3_cover_custom_image_path = self.mp3_cover_custom_image_edit.text()
+        
+        self.mp3_cover_custom_image_edit.textChanged.connect(on_mp3_cover_custom_image_changed)
+
+        # Function to update custom image controls state for MP3 cover overlay
+        def update_mp3_cover_custom_image_controls_state():
+            # Check if both MP3 cover overlay and custom image are enabled
+            mp3_cover_enabled = self.mp3_cover_overlay_checkbox.isChecked()
+            custom_image_enabled = self.mp3_cover_custom_image_checkbox.isChecked()
+            both_enabled = mp3_cover_enabled and custom_image_enabled
+            
+            # Enable/disable custom image controls
+            self.mp3_cover_custom_image_edit.setEnabled(both_enabled)
+            self.mp3_cover_custom_image_btn.setEnabled(both_enabled)
+            
+            # Update styling based on state
+            if both_enabled:
+                # Custom image controls are enabled
+                self.mp3_cover_custom_image_edit.setStyleSheet("")
+                self.mp3_cover_custom_image_btn.setStyleSheet("")
+            else:
+                # Custom image controls are disabled
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.mp3_cover_custom_image_edit.setStyleSheet(grey_btn_style)
+                self.mp3_cover_custom_image_btn.setStyleSheet(grey_btn_style)
+
+        def set_mp3_cover_overlay_enabled(state):
+            enabled = state == Qt.CheckState.Checked
+            self.mp3_cover_size_combo.setEnabled(enabled)
+            self.mp3_cover_x_combo.setEnabled(enabled)
+            self.mp3_cover_y_combo.setEnabled(enabled)
+            self.mp3_cover_effect_combo.setEnabled(enabled)
+            self.mp3_cover_duration_edit.setEnabled(enabled and not self.mp3_cover_duration_full_checkbox.isChecked())
+            self.mp3_cover_duration_full_checkbox.setEnabled(enabled)
+            self.mp3_cover_start_edit.setEnabled(enabled)
+            self.mp3_cover_frame_color_btn.setEnabled(enabled)
+            self.mp3_cover_frame_size_combo.setEnabled(enabled)
+            self.mp3_cover_custom_image_checkbox.setEnabled(enabled)
+            
+            if enabled:
+                self.mp3_cover_size_combo.setStyleSheet("")
+                self.mp3_cover_x_combo.setStyleSheet("")
+                self.mp3_cover_y_combo.setStyleSheet("")
+                self.mp3_cover_effect_combo.setStyleSheet("")
+                self.mp3_cover_duration_full_checkbox.setStyleSheet("")
+                self.mp3_cover_start_edit.setStyleSheet("")
+                self.mp3_cover_frame_color_btn.setStyleSheet(f"background-color: rgb({self.mp3_cover_frame_color[0]}, {self.mp3_cover_frame_color[1]}, {self.mp3_cover_frame_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                self.mp3_cover_frame_size_combo.setStyleSheet("")
+                mp3_cover_size_label.setStyleSheet("")
+                mp3_cover_x_label.setStyleSheet("")
+                mp3_cover_y_label.setStyleSheet("")
+                mp3_cover_effect_label.setStyleSheet("")
+                mp3_cover_duration_full_label.setStyleSheet("")
+                mp3_cover_start_label.setStyleSheet("")
+                mp3_cover_frame_color_label.setStyleSheet("")
+                mp3_cover_frame_size_label.setStyleSheet("")
+                mp3_cover_custom_image_label.setStyleSheet("")
+                # Reset custom image checkbox styling when MP3 cover overlay is enabled
+                self.mp3_cover_custom_image_checkbox.setStyleSheet("")
+                # Duration controls depend on full duration checkbox
+                if not self.mp3_cover_duration_full_checkbox.isChecked():
+                    self.mp3_cover_duration_edit.setStyleSheet("")
+                    mp3_cover_duration_label.setStyleSheet("")
+                # Let the duration full checkbox control the duration field styling
+                set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState())
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.mp3_cover_size_combo.setStyleSheet(grey_btn_style)
+                self.mp3_cover_x_combo.setStyleSheet(grey_btn_style)
+                self.mp3_cover_y_combo.setStyleSheet(grey_btn_style)
+                self.mp3_cover_effect_combo.setStyleSheet(grey_btn_style)
+                self.mp3_cover_duration_edit.setStyleSheet(grey_btn_style)
+                self.mp3_cover_duration_full_checkbox.setStyleSheet("color: grey;")
+                self.mp3_cover_start_edit.setStyleSheet(grey_btn_style)
+                self.mp3_cover_frame_color_btn.setStyleSheet(grey_btn_style)
+                self.mp3_cover_frame_size_combo.setStyleSheet(grey_btn_style)
+                mp3_cover_size_label.setStyleSheet("color: grey;")
+                mp3_cover_x_label.setStyleSheet("color: grey;")
+                mp3_cover_y_label.setStyleSheet("color: grey;")
+                mp3_cover_effect_label.setStyleSheet("color: grey;")
+                mp3_cover_duration_label.setStyleSheet("color: grey;")
+                mp3_cover_duration_full_label.setStyleSheet("color: grey;")
+                mp3_cover_start_label.setStyleSheet("color: grey;")
+                mp3_cover_frame_color_label.setStyleSheet("color: grey;")
+                mp3_cover_frame_size_label.setStyleSheet("color: grey;")
+                mp3_cover_custom_image_label.setStyleSheet("color: grey;")
+                # Also grey out custom image controls when MP3 cover overlay is disabled
+                self.mp3_cover_custom_image_checkbox.setStyleSheet("color: grey;")
+                self.mp3_cover_custom_image_edit.setStyleSheet(grey_btn_style)
+                self.mp3_cover_custom_image_btn.setStyleSheet(grey_btn_style)
+            
+            # Update custom image controls state
+            update_mp3_cover_custom_image_controls_state()
+        
+        self.mp3_cover_overlay_checkbox.stateChanged.connect(lambda _: set_mp3_cover_overlay_enabled(self.mp3_cover_overlay_checkbox.checkState()))
+        self.mp3_cover_custom_image_checkbox.stateChanged.connect(lambda _: update_mp3_cover_custom_image_controls_state())
+        self.mp3_cover_duration_full_checkbox.stateChanged.connect(lambda _: set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState()))
+        
+        # First line: checkbox, frame controls, size, x, y controls
+        mp3_cover_overlay_layout = QHBoxLayout()        
+        mp3_cover_overlay_layout.setSpacing(0)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_overlay_checkbox)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_checkbox)
+        mp3_cover_overlay_layout.addSpacing(5)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_edit)
+        mp3_cover_overlay_layout.addSpacing(5)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_btn)
+        mp3_cover_overlay_layout.addSpacing(3)
+        mp3_cover_overlay_layout.addWidget(mp3_cover_size_label)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_size_combo)
+        mp3_cover_overlay_layout.addSpacing(4)
+        mp3_cover_overlay_layout.addWidget(mp3_cover_frame_color_label)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_frame_color_btn)
+        mp3_cover_overlay_layout.addSpacing(5)
+        mp3_cover_overlay_layout.addWidget(mp3_cover_x_label)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_x_combo)
+        mp3_cover_overlay_layout.addSpacing(16)
+        mp3_cover_overlay_layout.addWidget(mp3_cover_y_label)
+        mp3_cover_overlay_layout.addWidget(self.mp3_cover_y_combo)
+        mp3_cover_overlay_layout.addStretch()        
+        mp3_cover_groupbox_layout.addLayout(mp3_cover_overlay_layout)
+
+        # Second line: custom image controls, effect, duration, and start controls
+        mp3_cover_effect_layout = QHBoxLayout()
+        mp3_cover_effect_layout.setSpacing(0)       
+        mp3_cover_effect_layout.addSpacing(70)
+        mp3_cover_effect_layout.addWidget(mp3_cover_effect_label)
+        mp3_cover_effect_layout.addSpacing(19)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_effect_combo)
+        mp3_cover_effect_layout.addSpacing(5)
+        mp3_cover_effect_layout.addWidget(mp3_cover_duration_full_label)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_duration_full_checkbox)
+        mp3_cover_effect_layout.addSpacing(5)
+        mp3_cover_effect_layout.addWidget(mp3_cover_duration_label)
+        mp3_cover_effect_layout.addSpacing(3)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_duration_edit)
+        mp3_cover_effect_layout.addSpacing(30)
+        mp3_cover_effect_layout.addWidget(mp3_cover_start_label)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_start_edit)
+        mp3_cover_effect_layout.addSpacing(16)
+        mp3_cover_effect_layout.addWidget(mp3_cover_frame_size_label)
+        mp3_cover_effect_layout.addWidget(self.mp3_cover_frame_size_combo)
+        mp3_cover_effect_layout.addStretch()        
+        mp3_cover_groupbox_layout.addLayout(mp3_cover_effect_layout)
+
+        # Initialize MP3 cover overlay enabled state
+        set_mp3_cover_overlay_enabled(self.mp3_cover_overlay_checkbox.checkState())
+        # --- END DYNAMIC MP3 COVER OVERLAY ---
+
         # --- OVERLAY 8 GROUP BOX ---
         overlay_groupbox_8 = QtWidgets.QGroupBox("Overlay 8 Settings")
         self.overlay_groupbox_8 = overlay_groupbox_8  # Store reference for visibility control
@@ -6097,1439 +7527,6 @@ class SuperCutUI(QWidget):
         update_frame_mp3cover_effect_label_style()
         update_frame_mp3cover_custom_image_controls_state()
 
-        # --- MP3 COVER OVERLAY GROUP BOX ---
-        mp3_cover_groupbox = QtWidgets.QGroupBox("MP3 Cover Overlay Settings")
-        self.mp3_cover_groupbox = mp3_cover_groupbox  # Store reference for visibility control
-        mp3_cover_groupbox.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 2px solid #cccccc;
-                border-radius: 5px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
-                color: #333333;
-            }
-        """)
-        mp3_cover_groupbox_layout = QVBoxLayout(mp3_cover_groupbox)
-        mp3_cover_groupbox_layout.setSpacing(8)
-        mp3_cover_groupbox_layout.setContentsMargins(10, 5, 10, 10)
-        layout.addWidget(mp3_cover_groupbox)
-
-        # --- DYNAMIC MP3 COVER OVERLAY ---
-        mp3_cover_overlay_label = self.settings.value('mp3_cover_overlay_checkbox_label', " MP3 Cover Overlay :", type=str)
-        self.mp3_cover_overlay_checkbox = QtWidgets.QCheckBox(mp3_cover_overlay_label)
-        self.mp3_cover_overlay_checkbox.setFixedWidth(label_checkbox_width)
-        self.mp3_cover_overlay_checkbox.setChecked(False)
-        def update_mp3_cover_overlay_checkbox_style(state):
-            self.mp3_cover_overlay_checkbox.setStyleSheet("")  # Always default color
-        self.mp3_cover_overlay_checkbox.stateChanged.connect(update_mp3_cover_overlay_checkbox_style)
-        update_mp3_cover_overlay_checkbox_style(self.mp3_cover_overlay_checkbox.checkState())
-
-        
-        # MP3 cover size option (5% to 100%)
-        mp3_cover_size_label = QLabel("S:")
-        mp3_cover_size_label.setFixedWidth(label_micro_width)
-        mp3_cover_size_label.setFixedHeight(unified_height)
-        self.mp3_cover_size_combo = NoWheelComboBox()
-        self.mp3_cover_size_combo.setFixedWidth(combo_mini_width)
-        self.mp3_cover_size_combo.setFixedHeight(unified_height)
-        for percent in range(5, 101, 5):
-            self.mp3_cover_size_combo.addItem(f"{percent}%", percent)
-        self.mp3_cover_size_combo.setCurrentIndex(3)  # Default 20%
-        self.mp3_cover_size_percent = 20
-        def on_mp3_cover_size_changed(idx):
-            self.mp3_cover_size_percent = self.mp3_cover_size_combo.itemData(idx)
-        self.mp3_cover_size_combo.setEditable(False)
-        self.mp3_cover_size_combo.currentIndexChanged.connect(on_mp3_cover_size_changed)
-        on_mp3_cover_size_changed(self.mp3_cover_size_combo.currentIndex())
-
-        # MP3 cover X coordinate
-        mp3_cover_x_label = QLabel("X:")
-        mp3_cover_x_label.setFixedWidth(label_micro_width)
-        mp3_cover_x_label.setFixedHeight(unified_height)
-        self.mp3_cover_x_combo = NoWheelComboBox()
-        self.mp3_cover_x_combo.setFixedWidth(combo_mini_width)
-        self.mp3_cover_x_combo.setFixedHeight(unified_height)
-        for percent in range(0, 101, 1):
-            self.mp3_cover_x_combo.addItem(f"{percent}%", percent)
-        self.mp3_cover_x_combo.setCurrentIndex(75)  # Default 75%
-        self.mp3_cover_x_percent = 75
-        def on_mp3_cover_x_changed(idx):
-            self.mp3_cover_x_percent = self.mp3_cover_x_combo.itemData(idx)
-        self.mp3_cover_x_combo.currentIndexChanged.connect(on_mp3_cover_x_changed)
-        on_mp3_cover_x_changed(self.mp3_cover_x_combo.currentIndex())
-
-        # MP3 cover Y coordinate
-        mp3_cover_y_label = QLabel("Y:")
-        mp3_cover_y_label.setFixedWidth(label_micro_width)
-        mp3_cover_y_label.setFixedHeight(unified_height)
-        self.mp3_cover_y_combo = NoWheelComboBox()
-        self.mp3_cover_y_combo.setFixedWidth(combo_mini_width)
-        self.mp3_cover_y_combo.setFixedHeight(unified_height)
-        for percent in range(0, 101, 1):
-            self.mp3_cover_y_combo.addItem(f"{percent}%", percent)
-        self.mp3_cover_y_combo.setCurrentIndex(75)  # Default 75%
-        self.mp3_cover_y_percent = 75
-        def on_mp3_cover_y_changed(idx):
-            self.mp3_cover_y_percent = self.mp3_cover_y_combo.itemData(idx)
-        self.mp3_cover_y_combo.currentIndexChanged.connect(on_mp3_cover_y_changed)
-        on_mp3_cover_y_changed(self.mp3_cover_y_combo.currentIndex())
-
-        # MP3 cover effect
-        mp3_cover_effect_label = QLabel("Effect:")
-        mp3_cover_effect_label.setFixedWidth(label_short_width)
-        mp3_cover_effect_label.setFixedHeight(unified_height)
-        self.mp3_cover_effect_combo = NoWheelComboBox()
-        self.mp3_cover_effect_combo.setFixedWidth(combo_medium_width)
-        self.mp3_cover_effect_combo.setFixedHeight(unified_height)
-        for label, value in effect_options:
-            self.mp3_cover_effect_combo.addItem(label, value)
-        self.mp3_cover_effect_combo.setCurrentIndex(0)  # Default fadeinout
-        self.selected_mp3_cover_effect = "fadeinout"
-        def on_mp3_cover_effect_changed(idx):
-            self.selected_mp3_cover_effect = self.mp3_cover_effect_combo.itemData(idx)
-        self.mp3_cover_effect_combo.currentIndexChanged.connect(on_mp3_cover_effect_changed)
-        on_mp3_cover_effect_changed(self.mp3_cover_effect_combo.currentIndex())
-
-        # MP3 cover overlay duration controls
-        mp3_cover_duration_label = QLabel("For:")
-        mp3_cover_duration_label.setFixedWidth(label_mini_width)
-        mp3_cover_duration_label.setFixedHeight(unified_height)
-        self.mp3_cover_duration_edit = QLineEdit("6")
-        self.mp3_cover_duration_edit.setFixedWidth(edit_short_width)
-        self.mp3_cover_duration_edit.setFixedHeight(unified_height)
-        self.mp3_cover_duration_edit.setValidator(QIntValidator(1, 999, self))
-        self.mp3_cover_duration_edit.setPlaceholderText("6")
-        self.mp3_cover_duration = 6
-        def on_mp3_cover_duration_changed():
-            try:
-                self.mp3_cover_duration = int(self.mp3_cover_duration_edit.text())
-            except Exception:
-                self.mp3_cover_duration = 6
-        self.mp3_cover_duration_edit.textChanged.connect(on_mp3_cover_duration_changed)
-        on_mp3_cover_duration_changed()
-
-        # MP3 cover overlay full duration checkbox
-        mp3_cover_duration_full_label = QLabel("Full:")
-        mp3_cover_duration_full_label.setFixedWidth(label_mini_width)
-        mp3_cover_duration_full_label.setFixedHeight(unified_height)
-        self.mp3_cover_duration_full_checkbox = QtWidgets.QCheckBox("")
-        self.mp3_cover_duration_full_checkbox.setFixedWidth(checkbox_solo_width)
-        self.mp3_cover_duration_full_checkbox.setFixedHeight(unified_height)
-        self.mp3_cover_duration_full_checkbox.setChecked(True)
-        def update_mp3_cover_duration_full_checkbox_style(state):
-            self.mp3_cover_duration_full_checkbox.setStyleSheet("")  # Always default color
-        self.mp3_cover_duration_full_checkbox.stateChanged.connect(update_mp3_cover_duration_full_checkbox_style)
-        update_mp3_cover_duration_full_checkbox_style(self.mp3_cover_duration_full_checkbox.checkState())
-
-        # Function to control MP3 cover overlay duration field based on duration full checkbox
-        def set_mp3_cover_duration_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            # When duration full checkbox is checked, disable duration input field
-            self.mp3_cover_duration_edit.setEnabled(not enabled)
-            mp3_cover_duration_label.setEnabled(not enabled)
-            
-            if enabled:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.mp3_cover_duration_edit.setStyleSheet(grey_btn_style)
-                mp3_cover_duration_label.setStyleSheet("color: grey;")
-                mp3_cover_duration_full_label.setStyleSheet("")  # Full label is active when checkbox is checked
-            else:
-                self.mp3_cover_duration_edit.setStyleSheet("")
-                mp3_cover_duration_label.setStyleSheet("")
-                mp3_cover_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
-
-        # MP3 cover overlay start at control
-        mp3_cover_start_label = QLabel("Start:")
-        mp3_cover_start_label.setFixedWidth(label_short_width)
-        mp3_cover_start_label.setFixedHeight(unified_height)
-        self.mp3_cover_start_edit = QLineEdit("0")
-        self.mp3_cover_start_edit.setFixedWidth(combo_short_width)
-        self.mp3_cover_start_edit.setFixedHeight(unified_height)
-        self.mp3_cover_start_edit.setValidator(QIntValidator(0, 999, self))
-        self.mp3_cover_start_edit.setPlaceholderText("0")
-        self.mp3_cover_start_at = 0
-        def on_mp3_cover_start_changed():
-            try:
-                self.mp3_cover_start_at = int(self.mp3_cover_start_edit.text())
-            except Exception:
-                self.mp3_cover_start_at = 0
-        self.mp3_cover_start_edit.textChanged.connect(on_mp3_cover_start_changed)
-        on_mp3_cover_start_changed()
-
-        # MP3 cover frame color picker
-        mp3_cover_frame_color_label = QLabel("C:")
-        mp3_cover_frame_color_label.setFixedWidth(label_micro_width)
-        mp3_cover_frame_color_label.setFixedHeight(unified_height)
-        self.mp3_cover_frame_color_btn = QPushButton()
-        self.mp3_cover_frame_color_btn.setFixedSize(27, 27)
-        self.mp3_cover_frame_color_btn.setStyleSheet("background-color: black; border: 1px solid #ccc; padding: 0px; margin: 0px;")
-        self.mp3_cover_frame_color = (0, 0, 0)  # Default black
-        def on_mp3_cover_frame_color_clicked():
-            color = QColorDialog.getColor(QColor(*self.mp3_cover_frame_color), self, "Select MP3 Cover Frame Color")
-            if color.isValid():
-                self.mp3_cover_frame_color = (color.red(), color.green(), color.blue())
-                self.mp3_cover_frame_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
-        self.mp3_cover_frame_color_btn.clicked.connect(on_mp3_cover_frame_color_clicked)
-
-        # MP3 cover frame size dropdown
-        mp3_cover_frame_size_label = QLabel("F:")
-        mp3_cover_frame_size_label.setFixedWidth(label_micro_width)
-        mp3_cover_frame_size_label.setFixedHeight(unified_height)
-        self.mp3_cover_frame_size_combo = NoWheelComboBox()
-        self.mp3_cover_frame_size_combo.setFixedWidth(combo_mini_width)
-        self.mp3_cover_frame_size_combo.setFixedHeight(unified_height)
-        frame_size_options = [
-            ("5px", 5),
-            ("10px", 10),
-            ("15px", 15),
-            ("20px", 20),
-            ("25px", 25),
-            ("30px", 30)
-        ]
-        for label, value in frame_size_options:
-            self.mp3_cover_frame_size_combo.addItem(label, value)
-        self.mp3_cover_frame_size_combo.setCurrentIndex(1)  # Default 10px
-        self.mp3_cover_frame_size = 10
-        def on_mp3_cover_frame_size_changed(idx):
-            if idx >= 0:
-                self.mp3_cover_frame_size = self.mp3_cover_frame_size_combo.itemData(idx)
-        self.mp3_cover_frame_size_combo.currentIndexChanged.connect(on_mp3_cover_frame_size_changed)
-        on_mp3_cover_frame_size_changed(self.mp3_cover_frame_size_combo.currentIndex())
-
-        # Custom image checkbox for MP3 cover overlay
-        mp3_cover_custom_image_label = QLabel("Custom:")
-        mp3_cover_custom_image_label.setFixedWidth(label_medium_width)
-        mp3_cover_custom_image_label.setFixedHeight(unified_height)
-        self.mp3_cover_custom_image_checkbox = QtWidgets.QCheckBox("")
-        self.mp3_cover_custom_image_checkbox.setFixedWidth(checkbox_solo_width)
-        self.mp3_cover_custom_image_checkbox.setFixedHeight(unified_height)
-        self.mp3_cover_custom_image_checkbox.setChecked(False)
-        def update_mp3_cover_custom_image_checkbox_style(state):
-            self.mp3_cover_custom_image_checkbox.setStyleSheet("")  # Always default color
-        self.mp3_cover_custom_image_checkbox.stateChanged.connect(update_mp3_cover_custom_image_checkbox_style)
-        update_mp3_cover_custom_image_checkbox_style(self.mp3_cover_custom_image_checkbox.checkState())
-
-        # Custom image file selection for MP3 cover overlay
-        self.mp3_cover_custom_image_edit = ImageDropLineEdit()
-        self.mp3_cover_custom_image_edit.setFixedWidth(edit_medium_width)
-        self.mp3_cover_custom_image_edit.setFixedHeight(unified_height)
-        self.mp3_cover_custom_image_edit.setPlaceholderText("Select custom image...")
-        self.mp3_cover_custom_image_path = None
-        
-        def select_mp3_cover_custom_image():
-            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-                self, "Select Custom Image for MP3 Cover", "", 
-                "Image Files (*.png *.jpg *.jpeg)"
-            )
-            if file_path:
-                self.mp3_cover_custom_image_edit.setText(file_path)
-                self.mp3_cover_custom_image_path = file_path
-        
-        self.mp3_cover_custom_image_btn = QPushButton("File")
-        self.mp3_cover_custom_image_btn.setFixedWidth(file_btn_width)
-        self.mp3_cover_custom_image_btn.setFixedHeight(unified_height)
-        self.mp3_cover_custom_image_btn.clicked.connect(select_mp3_cover_custom_image)
-        
-        def on_mp3_cover_custom_image_changed():
-            self.mp3_cover_custom_image_path = self.mp3_cover_custom_image_edit.text()
-        
-        self.mp3_cover_custom_image_edit.textChanged.connect(on_mp3_cover_custom_image_changed)
-
-        # Function to update custom image controls state for MP3 cover overlay
-        def update_mp3_cover_custom_image_controls_state():
-            # Check if both MP3 cover overlay and custom image are enabled
-            mp3_cover_enabled = self.mp3_cover_overlay_checkbox.isChecked()
-            custom_image_enabled = self.mp3_cover_custom_image_checkbox.isChecked()
-            both_enabled = mp3_cover_enabled and custom_image_enabled
-            
-            # Enable/disable custom image controls
-            self.mp3_cover_custom_image_edit.setEnabled(both_enabled)
-            self.mp3_cover_custom_image_btn.setEnabled(both_enabled)
-            
-            # Update styling based on state
-            if both_enabled:
-                # Custom image controls are enabled
-                self.mp3_cover_custom_image_edit.setStyleSheet("")
-                self.mp3_cover_custom_image_btn.setStyleSheet("")
-            else:
-                # Custom image controls are disabled
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.mp3_cover_custom_image_edit.setStyleSheet(grey_btn_style)
-                self.mp3_cover_custom_image_btn.setStyleSheet(grey_btn_style)
-
-        def set_mp3_cover_overlay_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            self.mp3_cover_size_combo.setEnabled(enabled)
-            self.mp3_cover_x_combo.setEnabled(enabled)
-            self.mp3_cover_y_combo.setEnabled(enabled)
-            self.mp3_cover_effect_combo.setEnabled(enabled)
-            self.mp3_cover_duration_edit.setEnabled(enabled and not self.mp3_cover_duration_full_checkbox.isChecked())
-            self.mp3_cover_duration_full_checkbox.setEnabled(enabled)
-            self.mp3_cover_start_edit.setEnabled(enabled)
-            self.mp3_cover_frame_color_btn.setEnabled(enabled)
-            self.mp3_cover_frame_size_combo.setEnabled(enabled)
-            self.mp3_cover_custom_image_checkbox.setEnabled(enabled)
-            
-            if enabled:
-                self.mp3_cover_size_combo.setStyleSheet("")
-                self.mp3_cover_x_combo.setStyleSheet("")
-                self.mp3_cover_y_combo.setStyleSheet("")
-                self.mp3_cover_effect_combo.setStyleSheet("")
-                self.mp3_cover_duration_full_checkbox.setStyleSheet("")
-                self.mp3_cover_start_edit.setStyleSheet("")
-                self.mp3_cover_frame_color_btn.setStyleSheet(f"background-color: rgb({self.mp3_cover_frame_color[0]}, {self.mp3_cover_frame_color[1]}, {self.mp3_cover_frame_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
-                self.mp3_cover_frame_size_combo.setStyleSheet("")
-                mp3_cover_size_label.setStyleSheet("")
-                mp3_cover_x_label.setStyleSheet("")
-                mp3_cover_y_label.setStyleSheet("")
-                mp3_cover_effect_label.setStyleSheet("")
-                mp3_cover_duration_full_label.setStyleSheet("")
-                mp3_cover_start_label.setStyleSheet("")
-                mp3_cover_frame_color_label.setStyleSheet("")
-                mp3_cover_frame_size_label.setStyleSheet("")
-                mp3_cover_custom_image_label.setStyleSheet("")
-                # Reset custom image checkbox styling when MP3 cover overlay is enabled
-                self.mp3_cover_custom_image_checkbox.setStyleSheet("")
-                # Duration controls depend on full duration checkbox
-                if not self.mp3_cover_duration_full_checkbox.isChecked():
-                    self.mp3_cover_duration_edit.setStyleSheet("")
-                    mp3_cover_duration_label.setStyleSheet("")
-                # Let the duration full checkbox control the duration field styling
-                set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState())
-            else:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.mp3_cover_size_combo.setStyleSheet(grey_btn_style)
-                self.mp3_cover_x_combo.setStyleSheet(grey_btn_style)
-                self.mp3_cover_y_combo.setStyleSheet(grey_btn_style)
-                self.mp3_cover_effect_combo.setStyleSheet(grey_btn_style)
-                self.mp3_cover_duration_edit.setStyleSheet(grey_btn_style)
-                self.mp3_cover_duration_full_checkbox.setStyleSheet("color: grey;")
-                self.mp3_cover_start_edit.setStyleSheet(grey_btn_style)
-                self.mp3_cover_frame_color_btn.setStyleSheet(grey_btn_style)
-                self.mp3_cover_frame_size_combo.setStyleSheet(grey_btn_style)
-                mp3_cover_size_label.setStyleSheet("color: grey;")
-                mp3_cover_x_label.setStyleSheet("color: grey;")
-                mp3_cover_y_label.setStyleSheet("color: grey;")
-                mp3_cover_effect_label.setStyleSheet("color: grey;")
-                mp3_cover_duration_label.setStyleSheet("color: grey;")
-                mp3_cover_duration_full_label.setStyleSheet("color: grey;")
-                mp3_cover_start_label.setStyleSheet("color: grey;")
-                mp3_cover_frame_color_label.setStyleSheet("color: grey;")
-                mp3_cover_frame_size_label.setStyleSheet("color: grey;")
-                mp3_cover_custom_image_label.setStyleSheet("color: grey;")
-                # Also grey out custom image controls when MP3 cover overlay is disabled
-                self.mp3_cover_custom_image_checkbox.setStyleSheet("color: grey;")
-                self.mp3_cover_custom_image_edit.setStyleSheet(grey_btn_style)
-                self.mp3_cover_custom_image_btn.setStyleSheet(grey_btn_style)
-            
-            # Update custom image controls state
-            update_mp3_cover_custom_image_controls_state()
-        
-        self.mp3_cover_overlay_checkbox.stateChanged.connect(lambda _: set_mp3_cover_overlay_enabled(self.mp3_cover_overlay_checkbox.checkState()))
-        self.mp3_cover_custom_image_checkbox.stateChanged.connect(lambda _: update_mp3_cover_custom_image_controls_state())
-        self.mp3_cover_duration_full_checkbox.stateChanged.connect(lambda _: set_mp3_cover_duration_enabled(self.mp3_cover_duration_full_checkbox.checkState()))
-        
-        # First line: checkbox, frame controls, size, x, y controls
-        mp3_cover_overlay_layout = QHBoxLayout()        
-        mp3_cover_overlay_layout.setSpacing(0)
-        mp3_cover_overlay_layout.addWidget(self.mp3_cover_overlay_checkbox)
-        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_checkbox)
-        mp3_cover_overlay_layout.addSpacing(5)
-        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_edit)
-        mp3_cover_overlay_layout.addSpacing(5)
-        mp3_cover_overlay_layout.addWidget(self.mp3_cover_custom_image_btn)
-        mp3_cover_overlay_layout.addSpacing(3)
-        mp3_cover_overlay_layout.addWidget(mp3_cover_size_label)
-        mp3_cover_overlay_layout.addWidget(self.mp3_cover_size_combo)
-        mp3_cover_overlay_layout.addSpacing(4)
-        mp3_cover_overlay_layout.addWidget(mp3_cover_frame_color_label)
-        mp3_cover_overlay_layout.addWidget(self.mp3_cover_frame_color_btn)
-        mp3_cover_overlay_layout.addSpacing(5)
-        mp3_cover_overlay_layout.addWidget(mp3_cover_x_label)
-        mp3_cover_overlay_layout.addWidget(self.mp3_cover_x_combo)
-        mp3_cover_overlay_layout.addSpacing(16)
-        mp3_cover_overlay_layout.addWidget(mp3_cover_y_label)
-        mp3_cover_overlay_layout.addWidget(self.mp3_cover_y_combo)
-        mp3_cover_overlay_layout.addStretch()        
-        mp3_cover_groupbox_layout.addLayout(mp3_cover_overlay_layout)
-
-        # Second line: custom image controls, effect, duration, and start controls
-        mp3_cover_effect_layout = QHBoxLayout()
-        mp3_cover_effect_layout.setSpacing(0)       
-        mp3_cover_effect_layout.addSpacing(70)
-        mp3_cover_effect_layout.addWidget(mp3_cover_effect_label)
-        mp3_cover_effect_layout.addSpacing(19)
-        mp3_cover_effect_layout.addWidget(self.mp3_cover_effect_combo)
-        mp3_cover_effect_layout.addSpacing(5)
-        mp3_cover_effect_layout.addWidget(mp3_cover_duration_full_label)
-        mp3_cover_effect_layout.addWidget(self.mp3_cover_duration_full_checkbox)
-        mp3_cover_effect_layout.addSpacing(5)
-        mp3_cover_effect_layout.addWidget(mp3_cover_duration_label)
-        mp3_cover_effect_layout.addSpacing(3)
-        mp3_cover_effect_layout.addWidget(self.mp3_cover_duration_edit)
-        mp3_cover_effect_layout.addSpacing(30)
-        mp3_cover_effect_layout.addWidget(mp3_cover_start_label)
-        mp3_cover_effect_layout.addWidget(self.mp3_cover_start_edit)
-        mp3_cover_effect_layout.addSpacing(16)
-        mp3_cover_effect_layout.addWidget(mp3_cover_frame_size_label)
-        mp3_cover_effect_layout.addWidget(self.mp3_cover_frame_size_combo)
-        mp3_cover_effect_layout.addStretch()        
-        mp3_cover_groupbox_layout.addLayout(mp3_cover_effect_layout)
-
-        # Initialize MP3 cover overlay enabled state
-        set_mp3_cover_overlay_enabled(self.mp3_cover_overlay_checkbox.checkState())
-        # --- END DYNAMIC MP3 COVER OVERLAY ---
-
-        ###
-        # --- FRAME BOX GROUP BOX ---
-        frame_box_groupbox = QtWidgets.QGroupBox("Frame Box Settings")
-        self.frame_box_groupbox = frame_box_groupbox  # Store reference for visibility control
-        frame_box_groupbox.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 2px solid #cccccc;
-                border-radius: 5px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
-                color: #333333;
-            }
-        """)
-        frame_box_groupbox_layout = QVBoxLayout(frame_box_groupbox)
-        frame_box_groupbox_layout.setSpacing(8)
-        frame_box_groupbox_layout.setContentsMargins(10, 5, 10, 10)
-        layout.addWidget(frame_box_groupbox)
-
-        # --- FRAME BOX OVERLAY ---
-        # Load custom frame box checkbox label from settings
-        if hasattr(self, 'settings') and self.settings is not None:
-            frame_box_label = self.settings.value('frame_box_checkbox_label', " Frame Box :", type=str)
-        else:
-            frame_box_label = " Frame Box :"
-        self.frame_box_checkbox = QtWidgets.QCheckBox(frame_box_label)
-        self.frame_box_checkbox.setFixedWidth(label_checkbox_width)
-        self.frame_box_checkbox.setFixedHeight(unified_height)
-        self.frame_box_checkbox.setChecked(False)
-        def update_frame_box_checkbox_style(state):
-            self.frame_box_checkbox.setStyleSheet("")  # Always default color
-        self.frame_box_checkbox.stateChanged.connect(update_frame_box_checkbox_style)
-        update_frame_box_checkbox_style(self.frame_box_checkbox.checkState())
-
-        # Custom image checkbox for framebox
-        frame_box_custom_image_label = QLabel("Custom:")
-        frame_box_custom_image_label.setFixedWidth(label_medium_width)
-        frame_box_custom_image_label.setFixedHeight(unified_height)
-        self.frame_box_custom_image_checkbox = QtWidgets.QCheckBox("")
-        self.frame_box_custom_image_checkbox.setFixedWidth(checkbox_solo_width)
-        self.frame_box_custom_image_checkbox.setFixedHeight(unified_height)
-        self.frame_box_custom_image_checkbox.setChecked(False)
-        def update_frame_box_custom_image_checkbox_style(state):
-            self.frame_box_custom_image_checkbox.setStyleSheet("")  # Always default color
-        self.frame_box_custom_image_checkbox.stateChanged.connect(update_frame_box_custom_image_checkbox_style)
-        update_frame_box_custom_image_checkbox_style(self.frame_box_custom_image_checkbox.checkState())
-
-        # Custom image file selection
-        self.frame_box_custom_image_edit = ImageDropLineEdit()
-        self.frame_box_custom_image_edit.setFixedWidth(edit_medium_width)
-        self.frame_box_custom_image_edit.setFixedHeight(unified_height)
-        self.frame_box_custom_image_edit.setPlaceholderText("Select custom image...")
-        self.frame_box_custom_image_path = None
-        
-        def select_frame_box_custom_image():
-            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-                self, "Select Custom Image for Frame Box", "", 
-                "Image Files (*.png *.jpg *.jpeg *.gif *.bmp *.tiff)"
-            )
-            if file_path:
-                self.frame_box_custom_image_edit.setText(file_path)
-                self.frame_box_custom_image_path = file_path
-        
-        self.frame_box_custom_image_btn = QPushButton("File")
-        self.frame_box_custom_image_btn.setFixedWidth(file_btn_width)
-        self.frame_box_custom_image_btn.setFixedHeight(unified_height)
-        self.frame_box_custom_image_btn.clicked.connect(select_frame_box_custom_image)
-        
-        def on_frame_box_custom_image_changed():
-            self.frame_box_custom_image_path = self.frame_box_custom_image_edit.text()
-        
-        self.frame_box_custom_image_edit.textChanged.connect(on_frame_box_custom_image_changed)
-
-        frame_box_layout = QHBoxLayout()
-        frame_box_layout.setSpacing(4)
-        
-        # Frame box size option (5% to 100%)
-        frame_box_size_label = QLabel("S:")
-        frame_box_size_label.setFixedWidth(label_micro_width)
-        frame_box_size_label.setFixedHeight(unified_height)
-        self.frame_box_size_combo = NoWheelComboBox()
-        self.frame_box_size_combo.setFixedWidth(combo_mini_width)
-        self.frame_box_size_combo.setFixedHeight(unified_height)
-        for percent in range(5, 101, 5):
-            self.frame_box_size_combo.addItem(f"{percent}%", percent)
-        self.frame_box_size_combo.setCurrentIndex(9)  # Default 50%
-        self.frame_box_size_percent = 50
-        def on_frame_box_size_changed(idx):
-            self.frame_box_size_percent = self.frame_box_size_combo.itemData(idx)
-        self.frame_box_size_combo.setEditable(False)
-        self.frame_box_size_combo.currentIndexChanged.connect(on_frame_box_size_changed)
-        on_frame_box_size_changed(self.frame_box_size_combo.currentIndex())
-
-        # Frame box X coordinate
-        frame_box_x_label = QLabel("X:")
-        frame_box_x_label.setFixedWidth(label_micro_width)
-        frame_box_x_label.setFixedHeight(unified_height)
-        self.frame_box_x_combo = NoWheelComboBox()
-        self.frame_box_x_combo.setFixedWidth(combo_mini_width)
-        self.frame_box_x_combo.setFixedHeight(unified_height)
-        for percent in range(0, 101, 1):
-            self.frame_box_x_combo.addItem(f"{percent}%", percent)
-        self.frame_box_x_combo.setCurrentIndex(0)  # Default 0%
-        self.frame_box_x_percent = 0
-        def on_frame_box_x_changed(idx):
-            self.frame_box_x_percent = self.frame_box_x_combo.itemData(idx)
-        self.frame_box_x_combo.currentIndexChanged.connect(on_frame_box_x_changed)
-        on_frame_box_x_changed(self.frame_box_x_combo.currentIndex())
-
-        # Frame box Y coordinate
-        frame_box_y_label = QLabel("Y:")
-        frame_box_y_label.setFixedWidth(label_micro_width)
-        frame_box_y_label.setFixedHeight(unified_height)
-        self.frame_box_y_combo = NoWheelComboBox()
-        self.frame_box_y_combo.setFixedWidth(combo_mini_width)
-        self.frame_box_y_combo.setFixedHeight(unified_height)
-        for percent in range(0, 101, 1):
-            self.frame_box_y_combo.addItem(f"{percent}%", percent)
-        self.frame_box_y_combo.setCurrentIndex(0)  # Default 0%
-        self.frame_box_y_percent = 0
-        def on_frame_box_y_changed(idx):
-            self.frame_box_y_percent = self.frame_box_y_combo.itemData(idx)
-        self.frame_box_y_combo.currentIndexChanged.connect(on_frame_box_y_changed)
-        on_frame_box_y_changed(self.frame_box_y_combo.currentIndex())
-        # --- EFFECT CONTROL FOR FRAME BOX ---
-        frame_box_label = QLabel("Effect:")
-        frame_box_label.setFixedWidth(label_short_width)
-        frame_box_label.setFixedHeight(unified_height)
-        self.frame_box_effect_combo = NoWheelComboBox()
-        self.frame_box_effect_combo.setFixedWidth(combo_medium_width)
-        self.frame_box_effect_combo.setFixedHeight(unified_height)
-        for label, value in effect_options:
-            self.frame_box_effect_combo.addItem(label, value)
-        self.frame_box_effect_combo.setCurrentIndex(1)
-        self.selected_frame_box_effect = "fadein"
-        def on_frame_box_effect_changed(idx):
-            self.selected_frame_box_effect = self.frame_box_effect_combo.itemData(idx)
-        self.frame_box_effect_combo.currentIndexChanged.connect(on_frame_box_effect_changed)
-        on_frame_box_effect_changed(self.frame_box_effect_combo.currentIndex())
-
-        # Frame box duration controls
-        frame_box_duration_label = QLabel("For:")
-        frame_box_duration_label.setFixedWidth(label_mini_width)
-        frame_box_duration_label.setFixedHeight(unified_height)
-        self.frame_box_duration_edit = QLineEdit("6")
-        self.frame_box_duration_edit.setFixedWidth(edit_short_width)
-        self.frame_box_duration_edit.setFixedHeight(unified_height)
-        self.frame_box_duration_edit.setValidator(QIntValidator(1, 999, self))
-        self.frame_box_duration_edit.setPlaceholderText("6")
-        self.frame_box_duration = 6
-        def on_frame_box_duration_changed():
-            try:
-                self.frame_box_duration = int(self.frame_box_duration_edit.text())
-            except Exception:
-                self.frame_box_duration = 6
-        self.frame_box_duration_edit.textChanged.connect(on_frame_box_duration_changed)
-        on_frame_box_duration_changed()
-
-        # Frame box full duration checkbox
-        frame_box_duration_full_label = QLabel("Full:")
-        frame_box_duration_full_label.setFixedWidth(label_mini_width)
-        frame_box_duration_full_label.setFixedHeight(unified_height)
-        self.frame_box_duration_full_checkbox = QtWidgets.QCheckBox("")
-        self.frame_box_duration_full_checkbox.setFixedWidth(checkbox_solo_width)
-        self.frame_box_duration_full_checkbox.setFixedHeight(unified_height)
-        self.frame_box_duration_full_checkbox.setChecked(True)
-        def update_frame_box_duration_full_checkbox_style(state):
-            self.frame_box_duration_full_checkbox.setStyleSheet("")  # Always default color
-        self.frame_box_duration_full_checkbox.stateChanged.connect(update_frame_box_duration_full_checkbox_style)
-        update_frame_box_duration_full_checkbox_style(self.frame_box_duration_full_checkbox.checkState())
-
-        # Function to control frame box duration field based on duration full checkbox
-        def set_frame_box_duration_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            # When duration full checkbox is checked, disable duration input field
-            self.frame_box_duration_edit.setEnabled(not enabled)
-            frame_box_duration_label.setEnabled(not enabled)
-            
-            if enabled:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.frame_box_duration_edit.setStyleSheet(grey_btn_style)
-                frame_box_duration_label.setStyleSheet("color: grey;")
-                frame_box_duration_full_label.setStyleSheet("")  # Full label is active when checkbox is checked
-            else:
-                self.frame_box_duration_edit.setStyleSheet("")
-                frame_box_duration_label.setStyleSheet("")
-                frame_box_duration_full_label.setStyleSheet("color: grey;")  # Grey out full label when checkbox is unchecked
-
-        # Frame box start at control
-        frame_box_start_label = QLabel("Start:")
-        frame_box_start_label.setFixedWidth(label_short_width)
-        self.frame_box_start_edit = QLineEdit("5")
-        self.frame_box_start_edit.setFixedWidth(combo_short_width)
-        self.frame_box_start_edit.setFixedHeight(unified_height)
-        self.frame_box_start_edit.setValidator(QIntValidator(1, 999, self))
-        self.frame_box_start_edit.setPlaceholderText("5")
-        self.frame_box_start_time = 5
-        def on_frame_box_start_changed():
-            try:
-                self.frame_box_start_time = int(self.frame_box_start_edit.text())
-            except Exception:
-                self.frame_box_start_time = 5
-        self.frame_box_start_edit.textChanged.connect(on_frame_box_start_changed)
-        on_frame_box_start_changed()
-        
-        # --- Frame Box Color Picker and Opacity Control (same line) ---
-        frame_box_color_label = QLabel("C:")
-        frame_box_color_label.setFixedWidth(label_micro_width)
-        frame_box_color_label.setFixedHeight(unified_height)
-        self.frame_box_color_btn = QPushButton()        
-        self.frame_box_color_btn.setFixedWidth(27)
-        self.frame_box_color_btn.setFixedHeight(27)
-        self.frame_box_color = (255, 255, 255)  # Default white
-        self.frame_box_color_btn.setStyleSheet(
-            f"background-color: white; border: 1px solid #ccc;")
-        
-        def on_frame_box_color_clicked():
-            color = QColorDialog.getColor()
-            if color.isValid():
-                self.frame_box_color = (color.red(), color.green(), color.blue())
-                self.frame_box_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc;")
-        self.frame_box_color_btn.clicked.connect(on_frame_box_color_clicked)
-        self.frame_box_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")        
-
-        frame_box_opacity_label = QLabel("O:")
-        frame_box_opacity_label.setFixedWidth(label_micro_width)
-        frame_box_opacity_label.setFixedHeight(unified_height)
-        self.frame_box_opacity_combo = NoWheelComboBox()
-        self.frame_box_opacity_combo.setFixedWidth(combo_mini_width)
-        self.frame_box_opacity_combo.setFixedHeight(unified_height)
-        for percent in range(0, 101, 5):
-            self.frame_box_opacity_combo.addItem(f"{percent}%", percent / 100.0)
-        self.frame_box_opacity_combo.setCurrentIndex(100 // 5)  # Default 100%
-        self.frame_box_opacity = 1.0
-        def on_frame_box_opacity_changed(idx):
-            self.frame_box_opacity = self.frame_box_opacity_combo.itemData(idx)
-        self.frame_box_opacity_combo.currentIndexChanged.connect(on_frame_box_opacity_changed)
-        on_frame_box_opacity_changed(self.frame_box_opacity_combo.currentIndex())    
-               
-        # Padding label
-        pad_label = QLabel("Padding:")
-        pad_label.setFixedWidth(label_medium_width)   
-        pad_label.setFixedHeight(unified_height)     
-        
-        # Left padding
-        left_pad_label = QLabel("Left:")
-        left_pad_label.setFixedWidth(label_short_width)
-        left_pad_label.setFixedHeight(unified_height)
-        self.frame_box_pad_left_combo = NoWheelComboBox()
-        self.frame_box_pad_left_combo.setFixedWidth(combo_mini_width)
-        self.frame_box_pad_left_combo.setFixedHeight(unified_height)
-        
-        # Right padding
-        right_pad_label = QLabel("Right:")
-        right_pad_label.setFixedWidth(label_short_width)
-        right_pad_label.setFixedHeight(unified_height)
-        self.frame_box_pad_right_combo = NoWheelComboBox()
-        self.frame_box_pad_right_combo.setFixedWidth(combo_mini_width)
-        self.frame_box_pad_right_combo.setFixedHeight(unified_height)
-        
-        # Top padding
-        top_pad_label = QLabel("Top:")
-        top_pad_label.setFixedWidth(label_short_width)
-        top_pad_label.setFixedHeight(unified_height)
-        self.frame_box_pad_top_combo = NoWheelComboBox()
-        self.frame_box_pad_top_combo.setFixedWidth(combo_mini_width)
-        self.frame_box_pad_top_combo.setFixedHeight(unified_height)
-        
-        # Bottom padding
-        bottom_pad_label = QLabel("Bottom:")
-        bottom_pad_label.setFixedWidth(label_medium_width)
-        bottom_pad_label.setFixedHeight(unified_height)
-        self.frame_box_pad_bottom_combo = NoWheelComboBox()
-        self.frame_box_pad_bottom_combo.setFixedWidth(combo_mini_width)
-        self.frame_box_pad_bottom_combo.setFixedHeight(unified_height)
-        
-        # Populate padding dropdowns with values 0-250 (step 1)
-        for px in range(0, 251, 1):
-            self.frame_box_pad_left_combo.addItem(f"{px}px", px)
-            self.frame_box_pad_right_combo.addItem(f"{px}px", px)
-            self.frame_box_pad_top_combo.addItem(f"{px}px", px)
-            self.frame_box_pad_bottom_combo.addItem(f"{px}px", px)
-        self.frame_box_pad_left_combo.setCurrentIndex(12)   # 12px
-        self.frame_box_pad_right_combo.setCurrentIndex(12)  # 12px
-        self.frame_box_pad_top_combo.setCurrentIndex(12)    # 12px
-        self.frame_box_pad_bottom_combo.setCurrentIndex(48) # 48px
-        self.frame_box_pad_left = 12
-        self.frame_box_pad_right = 12
-        self.frame_box_pad_top = 12
-        self.frame_box_pad_bottom = 48
-        def on_frame_box_pad_left_changed(idx):
-            self.frame_box_pad_left = self.frame_box_pad_left_combo.itemData(idx)
-        def on_frame_box_pad_right_changed(idx):
-            self.frame_box_pad_right = self.frame_box_pad_right_combo.itemData(idx)
-        def on_frame_box_pad_top_changed(idx):
-            self.frame_box_pad_top = self.frame_box_pad_top_combo.itemData(idx)
-        def on_frame_box_pad_bottom_changed(idx):
-            self.frame_box_pad_bottom = self.frame_box_pad_bottom_combo.itemData(idx)
-        self.frame_box_pad_left_combo.currentIndexChanged.connect(on_frame_box_pad_left_changed)
-        self.frame_box_pad_right_combo.currentIndexChanged.connect(on_frame_box_pad_right_changed)
-        self.frame_box_pad_top_combo.currentIndexChanged.connect(on_frame_box_pad_top_changed)
-        self.frame_box_pad_bottom_combo.currentIndexChanged.connect(on_frame_box_pad_bottom_changed)
-        on_frame_box_pad_left_changed(self.frame_box_pad_left_combo.currentIndex())
-        on_frame_box_pad_right_changed(self.frame_box_pad_right_combo.currentIndex())
-        on_frame_box_pad_top_changed(self.frame_box_pad_top_combo.currentIndex())
-        on_frame_box_pad_bottom_changed(self.frame_box_pad_bottom_combo.currentIndex())
-        
-        # Framebox layout
-        frame_box_layout.setSpacing(0)
-        frame_box_layout.addWidget(self.frame_box_checkbox)
-        frame_box_layout.addSpacing(0)
-        frame_box_layout.addWidget(self.frame_box_custom_image_checkbox)
-        frame_box_layout.addSpacing(5)
-        frame_box_layout.addWidget(self.frame_box_custom_image_edit)
-        frame_box_layout.addSpacing(5)
-        frame_box_layout.addWidget(self.frame_box_custom_image_btn)
-        frame_box_layout.addSpacing(3)
-        frame_box_layout.addWidget(frame_box_size_label)
-        frame_box_layout.addWidget(self.frame_box_size_combo)
-        frame_box_layout.addSpacing(4)
-        frame_box_layout.addWidget(frame_box_color_label)
-        frame_box_layout.addWidget(self.frame_box_color_btn) 
-        frame_box_layout.addSpacing(5)
-        frame_box_layout.addWidget(frame_box_x_label)
-        frame_box_layout.addWidget(self.frame_box_x_combo)
-        frame_box_layout.addSpacing(16)
-        frame_box_layout.addWidget(frame_box_y_label)
-        frame_box_layout.addWidget(self.frame_box_y_combo)
-        frame_box_layout.addStretch()
-        frame_box_groupbox_layout.addLayout(frame_box_layout)
-
-        # Framebox Effect Layout
-        frame_box_effect_layout = QHBoxLayout()
-        frame_box_effect_layout.setSpacing(0)
-        frame_box_effect_layout.addSpacing(70)                
-        frame_box_effect_layout.addWidget(frame_box_label)
-        frame_box_effect_layout.addSpacing(19)
-        frame_box_effect_layout.addWidget(self.frame_box_effect_combo)
-        frame_box_effect_layout.addSpacing(5)
-        frame_box_effect_layout.addWidget(frame_box_duration_full_label)
-        frame_box_effect_layout.addWidget(self.frame_box_duration_full_checkbox)
-        frame_box_effect_layout.addSpacing(5)
-        frame_box_effect_layout.addWidget(frame_box_duration_label)
-        frame_box_effect_layout.addSpacing(3)
-        frame_box_effect_layout.addWidget(self.frame_box_duration_edit)
-        frame_box_effect_layout.addSpacing(30)
-        frame_box_effect_layout.addWidget(frame_box_start_label)
-        frame_box_effect_layout.addWidget(self.frame_box_start_edit)
-        frame_box_effect_layout.addSpacing(16)
-        frame_box_effect_layout.addWidget(frame_box_opacity_label)
-        frame_box_effect_layout.addWidget(self.frame_box_opacity_combo)
-        frame_box_effect_layout.addStretch()
-        frame_box_groupbox_layout.addLayout(frame_box_effect_layout)
-
-        # Add padding controls with labels  
-        frame_box_padding_layout = QHBoxLayout() 
-        frame_box_padding_layout.setSpacing(0)
-        frame_box_padding_layout.addSpacing(69)
-        frame_box_padding_layout.addWidget(pad_label)
-        frame_box_padding_layout.addSpacing(17)   
-        frame_box_padding_layout.addWidget(left_pad_label)
-        frame_box_padding_layout.addSpacing(-7)
-        frame_box_padding_layout.addWidget(self.frame_box_pad_left_combo)
-        frame_box_padding_layout.addSpacing(27)
-        frame_box_padding_layout.addWidget(right_pad_label)
-        frame_box_padding_layout.addSpacing(0)
-        frame_box_padding_layout.addWidget(self.frame_box_pad_right_combo)
-        frame_box_padding_layout.addSpacing(20)
-        frame_box_padding_layout.addWidget(bottom_pad_label)
-        frame_box_padding_layout.addSpacing(1)
-        frame_box_padding_layout.addWidget(self.frame_box_pad_bottom_combo)
-        frame_box_padding_layout.addSpacing(5)
-        frame_box_padding_layout.addWidget(top_pad_label)
-        frame_box_padding_layout.addSpacing(-15)
-        frame_box_padding_layout.addWidget(self.frame_box_pad_top_combo)        
-        frame_box_padding_layout.addStretch()        
-        frame_box_groupbox_layout.addLayout(frame_box_padding_layout)
-        
-        # Frame Box Caption Checkbox
-        frame_box_caption_label = QLabel("Caption:")
-        frame_box_caption_label.setFixedWidth(label_medium_width)
-        frame_box_caption_label.setFixedHeight(unified_height)
-        self.frame_box_caption_checkbox = QtWidgets.QCheckBox("")
-        self.frame_box_caption_checkbox.setFixedWidth(checkbox_solo_width)
-        self.frame_box_caption_checkbox.setFixedHeight(unified_height)
-        self.frame_box_caption_checkbox.setChecked(False)
-        def update_frame_box_caption_checkbox_style(state):
-            self.frame_box_caption_checkbox.setStyleSheet("")  # Always default color
-        self.frame_box_caption_checkbox.stateChanged.connect(update_frame_box_caption_checkbox_style)
-        update_frame_box_caption_checkbox_style(self.frame_box_caption_checkbox.checkState())
-        
-        # Caption position selection
-        caption_position_label = QLabel("P:")
-        caption_position_label.setFixedWidth(label_micro_width)
-        caption_position_label.setFixedHeight(unified_height)
-        self.frame_box_caption_position_combo = NoWheelComboBox()
-        self.frame_box_caption_position_combo.setFixedWidth(combo_medium_width)
-        self.frame_box_caption_position_combo.setFixedHeight(unified_height)
-        self.frame_box_caption_position_combo.addItem("B. Center", "bottom_center")
-        self.frame_box_caption_position_combo.addItem("B. Left", "bottom_left")
-        self.frame_box_caption_position_combo.addItem("B. Right", "bottom_right")
-        self.frame_box_caption_position_combo.addItem("Top Center", "top_center")
-        self.frame_box_caption_position_combo.addItem("Top Left", "top_left")
-        self.frame_box_caption_position_combo.addItem("Top Right", "top_right")
-        self.frame_box_caption_position = "bottom_center"
-        
-        def on_frame_box_caption_position_changed(idx):
-            self.frame_box_caption_position = self.frame_box_caption_position_combo.itemData(idx)
-        
-        self.frame_box_caption_position_combo.currentIndexChanged.connect(on_frame_box_caption_position_changed)
-        
-        # Caption type selection using single PNG checkbox
-        caption_type_label = QLabel("Type:")
-        caption_type_label.setFixedWidth(label_mini_width)
-        
-        # PNG type checkbox (single checkbox approach)
-        frame_box_caption_png_label = QLabel("PNG:")
-        frame_box_caption_png_label.setFixedWidth(label_mini_width)
-        frame_box_caption_png_label.setFixedHeight(unified_height)
-        self.frame_box_caption_png_checkbox = QtWidgets.QCheckBox("")
-        self.frame_box_caption_png_checkbox.setFixedWidth(checkbox_solo_width)
-        self.frame_box_caption_png_checkbox.setFixedHeight(unified_height)
-        self.frame_box_caption_png_checkbox.setChecked(False)  # Default to text mode
-        
-        self.frame_box_caption_type = "text"  # Default to text mode
-        
-        def on_frame_box_caption_png_checked(state):
-            if state == Qt.CheckState.Checked:
-                self.frame_box_caption_type = "png"
-            else:
-                self.frame_box_caption_type = "text"
-            update_caption_controls_state()
-        
-        self.frame_box_caption_png_checkbox.stateChanged.connect(on_frame_box_caption_png_checked)
-        
-        # Text caption input
-        caption_text_label = QLabel("txt:")
-        caption_text_label.setFixedWidth(label_mini_width)
-        caption_text_label.setFixedHeight(unified_height)
-        self.frame_box_caption_text_edit = KhmerSupportLineEdit()
-        self.frame_box_caption_text_edit.setFixedWidth(edit_medium_width)
-        self.frame_box_caption_text_edit.setFixedHeight(unified_height)
-        self.frame_box_caption_text_edit.setText("Caption")
-        self.frame_box_caption_text = "Caption"
-        
-        def on_frame_box_caption_text_changed():
-            self.frame_box_caption_text = self.frame_box_caption_text_edit.text()
-        
-        self.frame_box_caption_text_edit.textChanged.connect(on_frame_box_caption_text_changed)
-        
-        # PNG file input
-        caption_png_label = QLabel("PNG:")
-        caption_png_label.setFixedWidth(label_mini_width)
-        caption_png_label.setFixedHeight(unified_height)
-        self.frame_box_caption_png_edit = ImageDropLineEdit()
-        self.frame_box_caption_png_edit.setFixedWidth(104)
-        self.frame_box_caption_png_edit.setFixedHeight(unified_height)
-        self.frame_box_caption_png_edit.setPlaceholderText("Select PNG file...")
-        self.frame_box_caption_png_path = None
-        
-        def select_frame_box_caption_png():
-            file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-                self, "Select PNG File", "", "PNG Files (*.png)"
-            )
-            if file_path:
-                self.frame_box_caption_png_edit.setText(file_path)
-                self.frame_box_caption_png_path = file_path
-        
-        self.frame_box_caption_png_btn = QPushButton("File")
-        self.frame_box_caption_png_btn.setFixedWidth(combo_short_width)
-        self.frame_box_caption_png_btn.setFixedHeight(unified_height)
-        self.frame_box_caption_png_btn.clicked.connect(select_frame_box_caption_png)
-        
-        def on_frame_box_caption_png_changed():
-            self.frame_box_caption_png_path = self.frame_box_caption_png_edit.text()
-        
-        self.frame_box_caption_png_edit.textChanged.connect(on_frame_box_caption_png_changed)
-        
-        
-        # --- Frame Box Caption Checkbox and Position Selection ---
-        frame_box_caption_header_layout = QHBoxLayout()
-        frame_box_caption_header_layout.setSpacing(0)
-        frame_box_caption_header_layout.addSpacing(48)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_checkbox)
-        frame_box_caption_header_layout.addWidget(frame_box_caption_label)
-        frame_box_caption_header_layout.addSpacing(12)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_position_combo)
-        frame_box_caption_header_layout.addSpacing(3)
-        frame_box_caption_header_layout.addWidget(caption_text_label)
-        frame_box_caption_header_layout.addSpacing(-5)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_text_edit)
-        frame_box_caption_header_layout.addSpacing(32)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_checkbox)  
-        frame_box_caption_header_layout.addSpacing(6)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_edit)
-        frame_box_caption_header_layout.addSpacing(5)
-        frame_box_caption_header_layout.addWidget(self.frame_box_caption_png_btn)    
-        frame_box_caption_header_layout.addStretch()
-        frame_box_groupbox_layout.addLayout(frame_box_caption_header_layout)
-        
-       
-        
-        
-        # Font selection
-        caption_font_label = QLabel("Font:")
-        caption_font_label.setFixedWidth(label_short_width)
-        caption_font_label.setFixedHeight(unified_height)
-        
-        self.frame_box_caption_font_combo = NoWheelComboBox()
-        self.frame_box_caption_font_combo.setFixedWidth(combo_medium_width)
-        self.frame_box_caption_font_combo.setFixedHeight(unified_height)
-        self.frame_box_caption_font_combo.addItem("Default", "")
-        self.frame_box_caption_font_combo.addItem("KantumruyPro", "KantumruyPro-VariableFont_wght.ttf")
-        self.frame_box_caption_font_combo.addItem("KantumruyPro Italic", "KantumruyPro-Italic-VariableFont_wght.ttf")
-        self.frame_box_caption_font_combo.addItem("Roboto", "Roboto-VariableFont_wdth,wght.ttf")
-        self.frame_box_caption_font_combo.addItem("Roboto Italic", "Roboto-Italic-VariableFont_wdth,wght.ttf")
-        self.frame_box_caption_font = ""
-        
-        def on_frame_box_caption_font_changed(idx):
-            self.frame_box_caption_font = self.frame_box_caption_font_combo.itemData(idx)
-        
-        self.frame_box_caption_font_combo.currentIndexChanged.connect(on_frame_box_caption_font_changed)
-        
-        # Font size
-        caption_font_size_label = QLabel("S:")
-        caption_font_size_label.setFixedWidth(label_micro_width)
-        caption_font_size_label.setFixedHeight(unified_height)
-        self.frame_box_caption_font_size_combo = NoWheelComboBox()
-        self.frame_box_caption_font_size_combo.setFixedWidth(combo_mini_width)
-        self.frame_box_caption_font_size_combo.setFixedHeight(unified_height)
-        for size in range(48, 221, 4):
-            self.frame_box_caption_font_size_combo.addItem(f"{size}", size)
-        self.frame_box_caption_font_size_combo.setCurrentIndex(6)  # Default 72
-        self.frame_box_caption_font_size = 72
-        
-        def on_frame_box_caption_font_size_changed(idx):
-            self.frame_box_caption_font_size = self.frame_box_caption_font_size_combo.itemData(idx)
-        
-        self.frame_box_caption_font_size_combo.currentIndexChanged.connect(on_frame_box_caption_font_size_changed)
-        
-        # Text color picker
-        caption_color_label = QLabel("C:")
-        caption_color_label.setFixedWidth(label_micro_width)
-        caption_color_label.setFixedHeight(unified_height)
-        self.frame_box_caption_color_btn = QPushButton()
-        self.frame_box_caption_color_btn.setFixedWidth(27)
-        self.frame_box_caption_color_btn.setFixedHeight(27)
-        self.frame_box_caption_color = (255, 255, 255)  # Default white
-        self.frame_box_caption_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
-        
-        def on_frame_box_caption_color_clicked():
-            color = QColorDialog.getColor()
-            if color.isValid():
-                self.frame_box_caption_color = (color.red(), color.green(), color.blue())
-                self.frame_box_caption_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc;")
-        
-        self.frame_box_caption_color_btn.clicked.connect(on_frame_box_caption_color_clicked)
-        self.frame_box_caption_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
-        
-        # Text effect
-        caption_effect_label = QLabel("FX:")
-        caption_effect_label.setFixedWidth(label_mini_width)
-        caption_effect_label.setFixedHeight(unified_height)
-        self.frame_box_caption_effect_combo = NoWheelComboBox()
-        self.frame_box_caption_effect_combo.setFixedWidth(combo_short_width)
-        self.frame_box_caption_effect_combo.addItem("None", "none")
-        self.frame_box_caption_effect_combo.addItem("Outline", "outline")
-        self.frame_box_caption_effect_combo.addItem("Outward Stroke", "outward_stroke")
-        self.frame_box_caption_effect_combo.addItem("Inward Stroke", "inward_stroke")
-        self.frame_box_caption_effect_combo.addItem("Shadow", "shadow")
-        self.frame_box_caption_effect_combo.addItem("Glow", "glow")
-        self.frame_box_caption_effect = "none"
-        
-        def on_frame_box_caption_effect_changed(idx):
-            self.frame_box_caption_effect = self.frame_box_caption_effect_combo.itemData(idx)
-            # Enable/disable effect controls based on selection
-            effect_enabled = self.frame_box_caption_effect != "none"
-            self.frame_box_caption_effect_color_btn.setEnabled(effect_enabled)
-            self.frame_box_caption_effect_intensity_combo.setEnabled(effect_enabled)
-            caption_effect_color_label.setEnabled(effect_enabled)
-            caption_effect_intensity_label.setEnabled(effect_enabled)
-            
-            # Update styling
-            if effect_enabled:
-                # Set background to white when effect is enabled (like MP3 cover color picker)
-                self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
-                self.frame_box_caption_effect_intensity_combo.setStyleSheet("")
-                caption_effect_color_label.setStyleSheet("")
-                caption_effect_intensity_label.setStyleSheet("")
-            else:
-                self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.frame_box_caption_effect_intensity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                caption_effect_color_label.setStyleSheet("color: grey;")
-                caption_effect_intensity_label.setStyleSheet("color: grey;")
-        
-        self.frame_box_caption_effect_combo.currentIndexChanged.connect(on_frame_box_caption_effect_changed)
-        
-        # Effect color picker
-        caption_effect_color_label = QLabel("C:")
-        caption_effect_color_label.setFixedWidth(label_micro_width)
-        caption_effect_color_label.setFixedHeight(unified_height)
-        self.frame_box_caption_effect_color_btn = QPushButton()
-        self.frame_box_caption_effect_color_btn.setFixedWidth(27)
-        self.frame_box_caption_effect_color_btn.setFixedHeight(27)
-        self.frame_box_caption_effect_color = (255, 255, 255)  # Default white
-        self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
-        
-        def on_frame_box_caption_effect_color_clicked():
-            color = QColorDialog.getColor(QColor(*self.frame_box_caption_effect_color), self, "Select Frame Box Caption Effect Color")
-            if color.isValid():
-                self.frame_box_caption_effect_color = (color.red(), color.green(), color.blue())
-                self.frame_box_caption_effect_color_btn.setStyleSheet(f"background-color: rgb({color.red()}, {color.green()}, {color.blue()}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
-        
-        self.frame_box_caption_effect_color_btn.clicked.connect(on_frame_box_caption_effect_color_clicked)
-        
-        # Effect intensity
-        caption_effect_intensity_label = QLabel("i")
-        caption_effect_intensity_label.setFixedWidth(label_micro_width)
-        caption_effect_intensity_label.setFixedHeight(unified_height)
-        self.frame_box_caption_effect_intensity_combo = NoWheelComboBox()
-        self.frame_box_caption_effect_intensity_combo.setFixedWidth(combo_short_width)
-        self.frame_box_caption_effect_intensity_combo.setFixedHeight(unified_height)
-        for intensity in range(1, 11, 1):
-            self.frame_box_caption_effect_intensity_combo.addItem(f"{intensity}", intensity)
-        self.frame_box_caption_effect_intensity_combo.setCurrentIndex(4)  # Default 5
-        self.frame_box_caption_effect_intensity = 5
-        
-        def on_frame_box_caption_effect_intensity_changed(idx):
-            self.frame_box_caption_effect_intensity = self.frame_box_caption_effect_intensity_combo.itemData(idx)
-        
-        self.frame_box_caption_effect_intensity_combo.currentIndexChanged.connect(on_frame_box_caption_effect_intensity_changed)
-        
-        # Add styling controls to layout
-        # Text styling controls
-        frame_box_caption_styling_layout = QHBoxLayout()        
-        frame_box_caption_styling_layout.setSpacing(0)
-        frame_box_caption_styling_layout.addSpacing(85)
-        frame_box_caption_styling_layout.addWidget(caption_font_label)
-        frame_box_caption_styling_layout.addSpacing(4)
-        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_font_combo)
-        frame_box_caption_styling_layout.addSpacing(8)
-        frame_box_caption_styling_layout.addWidget(caption_font_size_label)        
-        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_font_size_combo)
-        frame_box_caption_styling_layout.addSpacing(1)
-        frame_box_caption_styling_layout.addWidget(caption_color_label)
-        frame_box_caption_styling_layout.addSpacing(-3)
-        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_color_btn)
-        frame_box_caption_styling_layout.addSpacing(28)
-        frame_box_caption_styling_layout.addWidget(caption_effect_label)        
-        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_combo)
-        frame_box_caption_styling_layout.addSpacing(2)
-        frame_box_caption_styling_layout.addWidget(caption_effect_color_label)
-        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_color_btn)      
-        frame_box_caption_styling_layout.addSpacing(5)
-        frame_box_caption_styling_layout.addWidget(self.frame_box_caption_effect_intensity_combo)
-        frame_box_caption_styling_layout.addStretch()
-        
-        # Initialize effect controls state
-        on_frame_box_caption_effect_changed(0)  # Default to "none"
-        
-        # Add styling controls layout
-        frame_box_groupbox_layout.addLayout(frame_box_caption_styling_layout)
-        
-        # Function to update custom image controls state
-        def update_custom_image_controls_state():
-            # Check if frame box is enabled
-            frame_box_enabled = self.frame_box_checkbox.isChecked()
-            custom_image_enabled = self.frame_box_custom_image_checkbox.isChecked()
-            both_enabled = frame_box_enabled and custom_image_enabled
-            
-            # Enable/disable custom image checkbox based on frame box state
-            self.frame_box_custom_image_checkbox.setEnabled(frame_box_enabled)
-            
-            # Update custom image checkbox styling
-            if frame_box_enabled:
-                self.frame_box_custom_image_checkbox.setStyleSheet("")
-                if custom_image_enabled:
-                    frame_box_custom_image_label.setStyleSheet("")  # Label is active when checkbox is checked
-                else:
-                    frame_box_custom_image_label.setStyleSheet("color: grey;")  # Grey out label when checkbox is unchecked
-            else:
-                self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
-                frame_box_custom_image_label.setStyleSheet("color: grey;")
-            
-            # Enable/disable custom image controls
-            self.frame_box_custom_image_edit.setEnabled(both_enabled)
-            self.frame_box_custom_image_btn.setEnabled(both_enabled)
-            
-            # Update styling based on state
-            if both_enabled:
-                # Custom image controls are enabled
-                self.frame_box_custom_image_edit.setStyleSheet("")
-                self.frame_box_custom_image_btn.setStyleSheet("")
-            else:
-                # Custom image controls are disabled
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.frame_box_custom_image_edit.setStyleSheet(grey_btn_style)
-                self.frame_box_custom_image_btn.setStyleSheet(grey_btn_style)
-        # Function to update caption controls state
-        def update_caption_controls_state():
-            # Check if both frame box and caption are enabled
-            frame_box_enabled = self.frame_box_checkbox.isChecked()
-            caption_enabled = self.frame_box_caption_checkbox.isChecked()
-            both_enabled = frame_box_enabled and caption_enabled
-            
-            # Enable/disable caption controls
-            self.frame_box_caption_png_checkbox.setEnabled(both_enabled)
-            self.frame_box_caption_position_combo.setEnabled(both_enabled)
-            caption_type_label.setEnabled(both_enabled)
-            caption_position_label.setEnabled(both_enabled)
-            caption_text_label.setEnabled(both_enabled)
-            caption_png_label.setEnabled(both_enabled)
-            
-            # Set input states based on PNG checkbox state
-            if both_enabled:
-                if not self.frame_box_caption_png_checkbox.isChecked():  # Text mode
-                    if hasattr(self, 'frame_box_caption_text_edit'):
-                        self.frame_box_caption_text_edit.setEnabled(True)
-                    if hasattr(self, 'frame_box_caption_png_edit'):
-                        self.frame_box_caption_png_edit.setEnabled(False)
-                    if hasattr(self, 'frame_box_caption_png_btn'):
-                        self.frame_box_caption_png_btn.setEnabled(False)
-                    
-                    # Enable text styling controls
-                    self.frame_box_caption_font_combo.setEnabled(True)
-                    self.frame_box_caption_font_size_combo.setEnabled(True)
-                    self.frame_box_caption_color_btn.setEnabled(True)
-                    self.frame_box_caption_effect_combo.setEnabled(True)
-                    caption_font_label.setEnabled(True)
-                    caption_font_size_label.setEnabled(True)
-                    caption_color_label.setEnabled(True)
-                    caption_effect_label.setEnabled(True)
-                    
-                    # Effect controls state depends on effect selection
-                    effect_enabled = self.frame_box_caption_effect != "none"
-                    self.frame_box_caption_effect_color_btn.setEnabled(effect_enabled)
-                    self.frame_box_caption_effect_intensity_combo.setEnabled(effect_enabled)
-                    caption_effect_color_label.setEnabled(effect_enabled)
-                    caption_effect_intensity_label.setEnabled(effect_enabled)
-                else:  # PNG mode
-                    if hasattr(self, 'frame_box_caption_text_edit'):
-                        self.frame_box_caption_text_edit.setEnabled(False)
-                    if hasattr(self, 'frame_box_caption_png_edit'):
-                        self.frame_box_caption_png_edit.setEnabled(True)
-                    if hasattr(self, 'frame_box_caption_png_btn'):
-                        self.frame_box_caption_png_btn.setEnabled(True)
-                    
-                    # Disable text styling controls for PNG mode
-                    self.frame_box_caption_font_combo.setEnabled(False)
-                    self.frame_box_caption_font_size_combo.setEnabled(False)
-                    self.frame_box_caption_color_btn.setEnabled(False)
-                    self.frame_box_caption_effect_combo.setEnabled(False)
-                    self.frame_box_caption_effect_color_btn.setEnabled(False)
-                    self.frame_box_caption_effect_intensity_combo.setEnabled(False)
-                    caption_font_label.setEnabled(False)
-                    caption_font_size_label.setEnabled(False)
-                    caption_color_label.setEnabled(False)
-                    caption_effect_label.setEnabled(False)
-                    caption_effect_color_label.setEnabled(False)
-                    caption_effect_intensity_label.setEnabled(False)
-            else:
-                if hasattr(self, 'frame_box_caption_text_edit'):
-                    self.frame_box_caption_text_edit.setEnabled(False)
-                if hasattr(self, 'frame_box_caption_png_edit'):
-                    self.frame_box_caption_png_edit.setEnabled(False)
-                if hasattr(self, 'frame_box_caption_png_btn'):
-                    self.frame_box_caption_png_btn.setEnabled(False)
-                
-                # Disable all styling controls
-                self.frame_box_caption_font_combo.setEnabled(False)
-                self.frame_box_caption_font_size_combo.setEnabled(False)
-                self.frame_box_caption_color_btn.setEnabled(False)
-                self.frame_box_caption_effect_combo.setEnabled(False)
-                self.frame_box_caption_effect_color_btn.setEnabled(False)
-                self.frame_box_caption_effect_intensity_combo.setEnabled(False)
-                caption_font_label.setEnabled(False)
-                caption_font_size_label.setEnabled(False)
-                caption_color_label.setEnabled(False)
-                caption_effect_label.setEnabled(False)
-                caption_effect_color_label.setEnabled(False)
-                caption_effect_intensity_label.setEnabled(False)
-            
-            # Update styling based on state
-            if both_enabled:
-                # Caption controls are enabled
-                self.frame_box_caption_png_checkbox.setStyleSheet("")
-                frame_box_caption_png_label.setStyleSheet("")
-                self.frame_box_caption_position_combo.setStyleSheet("")
-                caption_type_label.setStyleSheet("")
-                caption_position_label.setStyleSheet("")
-                caption_text_label.setStyleSheet("")
-                caption_png_label.setStyleSheet("")
-                
-                if not self.frame_box_caption_png_checkbox.isChecked():  # Text mode
-                    if hasattr(self, 'frame_box_caption_text_edit'):
-                        self.frame_box_caption_text_edit.setStyleSheet("")
-                    if hasattr(self, 'frame_box_caption_png_edit'):
-                        self.frame_box_caption_png_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                    if hasattr(self, 'frame_box_caption_png_btn'):
-                        self.frame_box_caption_png_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                    
-                    # Text styling controls enabled
-                    self.frame_box_caption_font_combo.setStyleSheet("")
-                    self.frame_box_caption_font_size_combo.setStyleSheet("")
-                    self.frame_box_caption_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
-                    self.frame_box_caption_effect_combo.setStyleSheet("")
-                    caption_font_label.setStyleSheet("")
-                    caption_font_size_label.setStyleSheet("")
-                    caption_color_label.setStyleSheet("")
-                    caption_effect_label.setStyleSheet("")
-                    caption_text_label.setStyleSheet("")  # Keep text label active in text mode
-                    caption_png_label.setStyleSheet("color: grey;")  # Grey out PNG label in text mode
-                    
-                    # Effect controls styling
-                    effect_enabled = self.frame_box_caption_effect != "none"
-                    if effect_enabled:
-                        # Set background to white when effect is enabled (like MP3 cover color picker)
-                        self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc; padding: 0px; margin: 0px;")
-                        self.frame_box_caption_effect_intensity_combo.setStyleSheet("")
-                        caption_effect_color_label.setStyleSheet("")
-                        caption_effect_intensity_label.setStyleSheet("")
-                    else:
-                        self.frame_box_caption_effect_color_btn.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                        self.frame_box_caption_effect_intensity_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                        caption_effect_color_label.setStyleSheet("color: grey;")
-                        caption_effect_intensity_label.setStyleSheet("color: grey;")
-                else:  # PNG mode
-                    if hasattr(self, 'frame_box_caption_text_edit'):
-                        self.frame_box_caption_text_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                    if hasattr(self, 'frame_box_caption_png_edit'):
-                        self.frame_box_caption_png_edit.setStyleSheet("")
-                    if hasattr(self, 'frame_box_caption_png_btn'):
-                        self.frame_box_caption_png_btn.setStyleSheet("")
-                    
-                    # Text styling controls disabled for PNG mode
-                    grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                    self.frame_box_caption_font_combo.setStyleSheet(grey_btn_style)
-                    self.frame_box_caption_font_size_combo.setStyleSheet(grey_btn_style)
-                    self.frame_box_caption_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
-                    self.frame_box_caption_effect_combo.setStyleSheet(grey_btn_style)
-                    self.frame_box_caption_effect_color_btn.setStyleSheet(grey_btn_style)
-                    self.frame_box_caption_effect_intensity_combo.setStyleSheet(grey_btn_style)
-                    caption_font_label.setStyleSheet("color: grey;")
-                    caption_font_size_label.setStyleSheet("color: grey;")
-                    caption_color_label.setStyleSheet("color: grey;")
-                    caption_effect_label.setStyleSheet("color: grey;")
-                    caption_effect_color_label.setStyleSheet("color: grey;")
-                    caption_effect_intensity_label.setStyleSheet("color: grey;")
-                    caption_text_label.setStyleSheet("color: grey;")  # Grey out text label in PNG mode
-                    caption_png_label.setStyleSheet("")  # Keep PNG label active in PNG mode
-            else:
-                # Caption controls are disabled
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.frame_box_caption_png_checkbox.setStyleSheet("color: grey;")
-                frame_box_caption_png_label.setStyleSheet("color: grey;")
-                self.frame_box_caption_position_combo.setStyleSheet(grey_btn_style)
-                caption_type_label.setStyleSheet("color: grey;")
-                caption_position_label.setStyleSheet("color: grey;")
-                caption_text_label.setStyleSheet("color: grey;")
-                caption_png_label.setStyleSheet("color: grey;")
-                if hasattr(self, 'frame_box_caption_text_edit'):
-                    self.frame_box_caption_text_edit.setStyleSheet(grey_btn_style)
-                if hasattr(self, 'frame_box_caption_png_edit'):
-                    self.frame_box_caption_png_edit.setStyleSheet(grey_btn_style)
-                if hasattr(self, 'frame_box_caption_png_btn'):
-                    self.frame_box_caption_png_btn.setStyleSheet(grey_btn_style)
-                
-                # All styling controls disabled
-                self.frame_box_caption_font_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_caption_font_size_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_caption_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
-                self.frame_box_caption_effect_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_caption_effect_color_btn.setStyleSheet(grey_btn_style)
-                self.frame_box_caption_effect_intensity_combo.setStyleSheet(grey_btn_style)
-                caption_font_label.setStyleSheet("color: grey;")
-                caption_font_size_label.setStyleSheet("color: grey;")
-                caption_color_label.setStyleSheet("color: grey;")
-                caption_effect_label.setStyleSheet("color: grey;")
-                caption_effect_color_label.setStyleSheet("color: grey;")
-                caption_effect_intensity_label.setStyleSheet("color: grey;")
-        
-        # Initialize caption type (text mode is default)
-        # Initial state
-        update_caption_controls_state()
-
-        # --- Frame box custom image checkbox handler ---
-        def on_frame_box_custom_image_checked(state):
-            # Update custom image controls state
-            update_custom_image_controls_state()
-        self.frame_box_custom_image_checkbox.stateChanged.connect(on_frame_box_custom_image_checked)
-        
-        # --- Frame box caption checkbox handler ---
-        def on_frame_box_caption_checked(state):
-            # Update caption controls state
-            update_caption_controls_state()
-        self.frame_box_caption_checkbox.stateChanged.connect(on_frame_box_caption_checked)
-
-        def set_frame_box_enabled(state):
-            enabled = state == Qt.CheckState.Checked
-            self.frame_box_size_combo.setEnabled(enabled)
-            self.frame_box_x_combo.setEnabled(enabled)
-            self.frame_box_y_combo.setEnabled(enabled)
-            self.frame_box_duration_edit.setEnabled(enabled)
-            frame_box_duration_label.setEnabled(enabled)
-            self.frame_box_start_edit.setEnabled(enabled)
-            frame_box_start_label.setEnabled(enabled)
-            self.frame_box_caption_checkbox.setEnabled(enabled)
-            self.frame_box_custom_image_checkbox.setEnabled(enabled)
-            self.frame_box_effect_combo.setEnabled(enabled)
-            self.frame_box_color_btn.setEnabled(enabled)
-            self.frame_box_opacity_combo.setEnabled(enabled)
-            self.frame_box_pad_left_combo.setEnabled(enabled)
-            self.frame_box_pad_right_combo.setEnabled(enabled)
-            self.frame_box_pad_top_combo.setEnabled(enabled)
-            self.frame_box_pad_bottom_combo.setEnabled(enabled)
-            left_pad_label.setEnabled(enabled)
-            right_pad_label.setEnabled(enabled)
-            top_pad_label.setEnabled(enabled)
-            bottom_pad_label.setEnabled(enabled)
-            pad_label.setEnabled(enabled)
-            
-            # Update caption controls state
-            update_caption_controls_state()
-            if enabled:
-                self.frame_box_size_combo.setStyleSheet("")
-                self.frame_box_x_combo.setStyleSheet("")
-                self.frame_box_y_combo.setStyleSheet("")
-                self.frame_box_duration_edit.setStyleSheet("")
-                self.frame_box_start_edit.setStyleSheet("")
-                frame_box_size_label.setStyleSheet("")
-                frame_box_x_label.setStyleSheet("")
-                frame_box_y_label.setStyleSheet("")
-                frame_box_duration_label.setStyleSheet("")
-                frame_box_start_label.setStyleSheet("")
-                self.frame_box_caption_checkbox.setStyleSheet("")
-                frame_box_caption_label.setStyleSheet("")
-                self.frame_box_custom_image_checkbox.setStyleSheet("")
-                frame_box_custom_image_label.setStyleSheet("")
-                frame_box_label.setStyleSheet("")
-                frame_box_color_label.setStyleSheet("")
-                self.frame_box_color_btn.setStyleSheet("background-color: white; border: 1px solid #ccc;")
-                frame_box_opacity_label.setStyleSheet("")
-                self.frame_box_opacity_combo.setStyleSheet("")
-                self.frame_box_pad_left_combo.setStyleSheet("")
-                self.frame_box_pad_right_combo.setStyleSheet("")
-                self.frame_box_pad_top_combo.setStyleSheet("")
-                self.frame_box_pad_bottom_combo.setStyleSheet("")
-                left_pad_label.setStyleSheet("")
-                right_pad_label.setStyleSheet("")
-                top_pad_label.setStyleSheet("")
-                bottom_pad_label.setStyleSheet("")
-                pad_label.setStyleSheet("")
-
-            else:
-                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
-                self.frame_box_size_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_x_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_y_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_duration_edit.setStyleSheet(grey_btn_style)
-                self.frame_box_start_edit.setStyleSheet(grey_btn_style)
-                frame_box_size_label.setStyleSheet("color: grey;")
-                frame_box_x_label.setStyleSheet("color: grey;")
-                frame_box_y_label.setStyleSheet("color: grey;")
-                frame_box_duration_label.setStyleSheet("color: grey;")
-                frame_box_start_label.setStyleSheet("color: grey;")
-                self.frame_box_caption_checkbox.setStyleSheet("color: grey;")
-                frame_box_caption_label.setStyleSheet("color: grey;")
-                self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
-                frame_box_custom_image_label.setStyleSheet("color: grey;")
-                frame_box_label.setStyleSheet("color: grey;")
-                frame_box_color_label.setStyleSheet("color: grey;")
-                self.frame_box_color_btn.setStyleSheet(grey_btn_style)
-                frame_box_opacity_label.setStyleSheet("color: grey;")
-                self.frame_box_opacity_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_pad_left_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_pad_right_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_pad_top_combo.setStyleSheet(grey_btn_style)
-                self.frame_box_pad_bottom_combo.setStyleSheet(grey_btn_style)
-                left_pad_label.setStyleSheet("color: grey;")
-                right_pad_label.setStyleSheet("color: grey;")
-                top_pad_label.setStyleSheet("color: grey;")
-                bottom_pad_label.setStyleSheet("color: grey;")
-                pad_label.setStyleSheet("color: grey;")
-                
-
-        self.frame_box_checkbox.stateChanged.connect(lambda _: set_frame_box_enabled(self.frame_box_checkbox.checkState()))
-        self.frame_box_checkbox.stateChanged.connect(lambda _: update_custom_image_controls_state())
-        
-         # Initialize frame box enabled state after all controls are created
-        set_frame_box_enabled(self.frame_box_checkbox.checkState())
-        update_custom_image_controls_state()
-
-        # --- Frame box effect greying logic ---
-        def update_frame_box_effect_label_style():
-            if not self.frame_box_checkbox.isChecked():
-                frame_box_label.setStyleSheet("color: grey;")
-                self.frame_box_effect_combo.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.frame_box_effect_combo.setEnabled(False)
-                frame_box_start_label.setStyleSheet("color: grey;")
-                self.frame_box_start_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.frame_box_start_edit.setEnabled(False)
-                frame_box_duration_label.setStyleSheet("color: grey;")
-                self.frame_box_duration_edit.setStyleSheet("background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;")
-                self.frame_box_duration_edit.setEnabled(False)
-                self.frame_box_duration_full_checkbox.setStyleSheet("color: grey;")
-                self.frame_box_duration_full_checkbox.setEnabled(False)
-                frame_box_duration_full_label.setStyleSheet("color: grey;")
-                frame_box_custom_image_label.setStyleSheet("color: grey;")
-                self.frame_box_custom_image_checkbox.setStyleSheet("color: grey;")
-                self.frame_box_custom_image_checkbox.setEnabled(False)
-                frame_box_color_label.setStyleSheet("color: grey;")
-                frame_box_opacity_label.setStyleSheet("color: grey;")
-                frame_box_caption_label.setStyleSheet("color: grey;")
-                # Don't manage caption checkbox here - let the caption system handle it
-            else:
-                frame_box_label.setStyleSheet("")
-                self.frame_box_effect_combo.setStyleSheet("")
-                self.frame_box_effect_combo.setEnabled(True)
-                frame_box_start_label.setStyleSheet("")
-                self.frame_box_start_edit.setStyleSheet("")
-                self.frame_box_start_edit.setEnabled(True)
-                # Re-enable the full duration checkbox and let it control the duration field styling
-                self.frame_box_duration_full_checkbox.setStyleSheet("")
-                self.frame_box_duration_full_checkbox.setEnabled(True)
-                frame_box_duration_full_label.setStyleSheet("")
-                frame_box_custom_image_label.setStyleSheet("")
-                self.frame_box_custom_image_checkbox.setStyleSheet("")
-                self.frame_box_custom_image_checkbox.setEnabled(True)
-                frame_box_color_label.setStyleSheet("")
-                frame_box_opacity_label.setStyleSheet("")
-                frame_box_caption_label.setStyleSheet("")
-                # Don't manage caption checkbox here - let the caption system handle it
-                set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState())
-        self.frame_box_checkbox.stateChanged.connect(lambda _: update_frame_box_effect_label_style())
-        self.frame_box_checkbox.stateChanged.connect(lambda _: update_custom_image_controls_state())
-        self.frame_box_duration_full_checkbox.stateChanged.connect(lambda _: set_frame_box_duration_enabled(self.frame_box_duration_full_checkbox.checkState()))
-        update_frame_box_effect_label_style()
-        update_custom_image_controls_state()
-
         # --- FINAL SETTINGS GROUP BOX ---
         final_settings_groupbox = QtWidgets.QGroupBox("Final Settings")
         final_settings_groupbox.setStyleSheet("""
@@ -7551,7 +7548,7 @@ class SuperCutUI(QWidget):
         final_settings_groupbox_layout.setSpacing(8)
         final_settings_groupbox_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(final_settings_groupbox)
-
+        
         # --- BACKGROUND LAYER SCALE CONTROL ---
         # Load custom background checkbox label from settings
         if hasattr(self, 'settings') and self.settings is not None:
