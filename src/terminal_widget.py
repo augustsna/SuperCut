@@ -199,10 +199,10 @@ class TerminalWidget(QWidget):
             }
             QPushButton:hover {
                 background-color: #505050;
-                border-color: #58a6ff;
+                
             }
             QPushButton:pressed {
-                background-color: #1f6feb;
+                background-color: #404040;
             }
             QLabel {
                 color: #b0b0b0;
