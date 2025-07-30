@@ -580,6 +580,72 @@ class SettingsDialog(QDialog):
             self.settings.value('show_placeholder_controls', False, type=bool) if self.settings is not None else False
         )
 
+        # --- Add to SettingsDialog: Show Intro Settings Checkbox ---
+        self.show_intro_settings_checkbox = QtWidgets.QCheckBox("Enable")
+        self.show_intro_settings_checkbox.setChecked(
+            self.settings.value('show_intro_settings', False, type=bool) if self.settings is not None else False
+        )
+
+        # --- Add to SettingsDialog: Show Overlay 1&2 Settings Checkbox ---
+        self.show_overlay1_2_settings_checkbox = QtWidgets.QCheckBox("Enable")
+        self.show_overlay1_2_settings_checkbox.setChecked(
+            self.settings.value('show_overlay1_2_settings', False, type=bool) if self.settings is not None else False
+        )
+
+        # --- Add to SettingsDialog: Show Overlay 4&5 Settings Checkbox ---
+        self.show_overlay4_5_settings_checkbox = QtWidgets.QCheckBox("Enable")
+        self.show_overlay4_5_settings_checkbox.setChecked(
+            self.settings.value('show_overlay4_5_settings', False, type=bool) if self.settings is not None else False
+        )
+
+        # --- Add to SettingsDialog: Show Overlay 6&7 Settings Checkbox ---
+        self.show_overlay6_7_settings_checkbox = QtWidgets.QCheckBox("Enable")
+        self.show_overlay6_7_settings_checkbox.setChecked(
+            self.settings.value('show_overlay6_7_settings', False, type=bool) if self.settings is not None else False
+        )
+
+        # --- Add to SettingsDialog: Show Overlay 3, Song Titles & Soundwave Settings Checkbox ---
+        self.show_overlay3_titles_soundwave_settings_checkbox = QtWidgets.QCheckBox("Enable")
+        self.show_overlay3_titles_soundwave_settings_checkbox.setChecked(
+            self.settings.value('show_overlay3_titles_soundwave_settings', False, type=bool) if self.settings is not None else False
+        )
+
+        # --- Add to SettingsDialog: Show Overlay 8 Settings Checkbox ---
+        self.show_overlay8_settings_checkbox = QtWidgets.QCheckBox("Enable")
+        self.show_overlay8_settings_checkbox.setChecked(
+            self.settings.value('show_overlay8_settings', False, type=bool) if self.settings is not None else False
+        )
+
+        # --- Add to SettingsDialog: Show Overlay 9 Settings Checkbox ---
+        self.show_overlay9_settings_checkbox = QtWidgets.QCheckBox("Enable")
+        self.show_overlay9_settings_checkbox.setChecked(
+            self.settings.value('show_overlay9_settings', False, type=bool) if self.settings is not None else False
+        )
+
+        # --- Add to SettingsDialog: Show Overlay 10 Settings Checkbox ---
+        self.show_overlay10_settings_checkbox = QtWidgets.QCheckBox("Enable")
+        self.show_overlay10_settings_checkbox.setChecked(
+            self.settings.value('show_overlay10_settings', False, type=bool) if self.settings is not None else False
+        )
+
+        # --- Add to SettingsDialog: Show Frame MP3 Cover Settings Checkbox ---
+        self.show_frame_mp3cover_settings_checkbox = QtWidgets.QCheckBox("Enable")
+        self.show_frame_mp3cover_settings_checkbox.setChecked(
+            self.settings.value('show_frame_mp3cover_settings', False, type=bool) if self.settings is not None else False
+        )
+
+        # --- Add to SettingsDialog: Show MP3 Cover Overlay Settings Checkbox ---
+        self.show_mp3_cover_overlay_settings_checkbox = QtWidgets.QCheckBox("Enable")
+        self.show_mp3_cover_overlay_settings_checkbox.setChecked(
+            self.settings.value('show_mp3_cover_overlay_settings', False, type=bool) if self.settings is not None else False
+        )
+
+        # --- Add to SettingsDialog: Show Frame Box Settings Checkbox ---
+        self.show_frame_box_settings_checkbox = QtWidgets.QCheckBox("Enable")
+        self.show_frame_box_settings_checkbox.setChecked(
+            self.settings.value('show_frame_box_settings', False, type=bool) if self.settings is not None else False
+        )
+
         # --- Add to SettingsDialog: Filter Complex Alt Mode Checkbox ---
         self.filter_complex_alt_checkbox = QtWidgets.QCheckBox("Alt Mode")
         self.filter_complex_alt_checkbox.setChecked(
@@ -594,6 +660,28 @@ class SettingsDialog(QDialog):
         left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("Placeholder:", self.show_placeholder_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Intro Settings:", self.show_intro_settings_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Overlay 1&2:", self.show_overlay1_2_settings_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Overlay 4&5:", self.show_overlay4_5_settings_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Overlay 6&7:", self.show_overlay6_7_settings_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Song Titles & Wave:", self.show_overlay3_titles_soundwave_settings_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Overlay 8:", self.show_overlay8_settings_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Overlay 9:", self.show_overlay9_settings_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Overlay 10:", self.show_overlay10_settings_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Frame MP3:", self.show_frame_mp3cover_settings_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("MP3 Cover:", self.show_mp3_cover_overlay_settings_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Frame Box:", self.show_frame_box_settings_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("Filter Complex:", self.filter_complex_alt_checkbox)
         
@@ -673,6 +761,17 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_ffmpeg_maxrate', self.maxrate_combo.currentData())
             self.settings.setValue('default_ffmpeg_bufsize', self.buffsize_combo.currentData())
             self.settings.setValue('show_placeholder_controls', self.show_placeholder_checkbox.isChecked())
+            self.settings.setValue('show_intro_settings', self.show_intro_settings_checkbox.isChecked())
+            self.settings.setValue('show_overlay1_2_settings', self.show_overlay1_2_settings_checkbox.isChecked())
+            self.settings.setValue('show_overlay4_5_settings', self.show_overlay4_5_settings_checkbox.isChecked())
+            self.settings.setValue('show_overlay6_7_settings', self.show_overlay6_7_settings_checkbox.isChecked())
+            self.settings.setValue('show_overlay3_titles_soundwave_settings', self.show_overlay3_titles_soundwave_settings_checkbox.isChecked())
+            self.settings.setValue('show_overlay8_settings', self.show_overlay8_settings_checkbox.isChecked())
+            self.settings.setValue('show_overlay9_settings', self.show_overlay9_settings_checkbox.isChecked())
+            self.settings.setValue('show_overlay10_settings', self.show_overlay10_settings_checkbox.isChecked())
+            self.settings.setValue('show_frame_mp3cover_settings', self.show_frame_mp3cover_settings_checkbox.isChecked())
+            self.settings.setValue('show_mp3_cover_overlay_settings', self.show_mp3_cover_overlay_settings_checkbox.isChecked())
+            self.settings.setValue('show_frame_box_settings', self.show_frame_box_settings_checkbox.isChecked())
             self.settings.setValue('filter_complex_alt_mode', self.filter_complex_alt_checkbox.isChecked())
             # Validate and save layer label customizations
             intro_label = self.intro_checkbox_label_edit.text().strip()
@@ -738,13 +837,35 @@ class SettingsDialog(QDialog):
         self.default_mp3_count_enabled_checkbox.setChecked(False)
         # Filter Complex Alt Mode
         self.filter_complex_alt_checkbox.setChecked(False)
+        # Show Intro Settings
+        self.show_intro_settings_checkbox.setChecked(False)
+        # Show Overlay 1&2 Settings
+        self.show_overlay1_2_settings_checkbox.setChecked(False)
+        # Show Overlay 4&5 Settings
+        self.show_overlay4_5_settings_checkbox.setChecked(False)
+        # Show Overlay 6&7 Settings
+        self.show_overlay6_7_settings_checkbox.setChecked(False)
+        # Show Overlay 3, Song Titles & Soundwave Settings
+        self.show_overlay3_titles_soundwave_settings_checkbox.setChecked(False)
+        # Show Overlay 8 Settings
+        self.show_overlay8_settings_checkbox.setChecked(False)
+        # Show Overlay 9 Settings
+        self.show_overlay9_settings_checkbox.setChecked(False)
+        # Show Overlay 10 Settings
+        self.show_overlay10_settings_checkbox.setChecked(False)
+        # Show Frame MP3 Cover Settings
+        self.show_frame_mp3cover_settings_checkbox.setChecked(False)
+        # Show MP3 Cover Overlay Settings
+        self.show_mp3_cover_overlay_settings_checkbox.setChecked(False)
+        # Show Frame Box Settings
+        self.show_frame_box_settings_checkbox.setChecked(False)
         # Window Size (reset uses config defaults)
         self.default_window_width_edit.setText(str(WINDOW_SIZE[0]))
         self.default_window_height_edit.setText(str(WINDOW_SIZE[1]))
         
         
         self.intro_checkbox_label_edit.setText("Intro")
-        self.background_label_edit.setText("BG layer")
+        self.background_label_edit.setText("BG Layer")
         self.overlay1_label_edit.setText("Overlay 1")
         self.overlay2_label_edit.setText("Overlay 2")
         self.overlay3_label_edit.setText("Overlay 3")
@@ -1798,6 +1919,7 @@ class SuperCutUI(QWidget):
 
         # Create intro group box to visually group intro and intro effect controls
         intro_group_box = QtWidgets.QGroupBox("Intro Settings")
+        self.intro_group_box = intro_group_box  # Store reference for visibility control
         intro_group_box.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -2003,6 +2125,7 @@ class SuperCutUI(QWidget):
         set_overlay1_enabled(self.overlay_checkbox.checkState())
         # --- Overlay 1, 2, and 1_2 Effect Group Box ---
         overlay_groupbox_1_2 = QtWidgets.QGroupBox("Overlay 1 && 2")
+        self.overlay_groupbox_1_2 = overlay_groupbox_1_2  # Store reference for visibility control
         overlay_groupbox_1_2.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -2394,7 +2517,8 @@ class SuperCutUI(QWidget):
         set_overlay1_2_start_at_enabled(self.overlay1_2_start_at_checkbox.checkState())
         
         # --- Overlay 4, 5, and 4_5 Effect Group Box ---
-        overlay_groupbox_4_5 = QtWidgets.QGroupBox("Overlay 4, 5, and 4_5 Effect")
+        overlay_groupbox_4_5 = QtWidgets.QGroupBox("Overlay 4 && 5")
+        self.overlay_groupbox_4_5 = overlay_groupbox_4_5  # Store reference for visibility control
         overlay_groupbox_4_5.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -2865,6 +2989,7 @@ class SuperCutUI(QWidget):
 
         # --- Overlay 6, 7, and 6_7 Effect Group Box ---
         overlay_groupbox_6_7 = QtWidgets.QGroupBox("Overlay 6 && 7")
+        self.overlay_groupbox_6_7 = overlay_groupbox_6_7  # Store reference for visibility control
         overlay_groupbox_6_7.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -3358,6 +3483,7 @@ class SuperCutUI(QWidget):
 
         # --- Overlay 3, Song Titles, and Soundwave Group Box ---
         overlay_groupbox_3_titles_wave = QtWidgets.QGroupBox("Overlay 3, Song Titles, and Soundwave")
+        self.overlay_groupbox_3_titles_wave = overlay_groupbox_3_titles_wave  # Store reference for visibility control
         overlay_groupbox_3_titles_wave.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -4153,6 +4279,7 @@ class SuperCutUI(QWidget):
         
         # --- OVERLAY 8 GROUP BOX ---
         overlay_groupbox_8 = QtWidgets.QGroupBox("Overlay 8 Settings")
+        self.overlay_groupbox_8 = overlay_groupbox_8  # Store reference for visibility control
         overlay_groupbox_8.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -4655,6 +4782,7 @@ class SuperCutUI(QWidget):
 
         # --- OVERLAY 9 GROUP BOX ---
         overlay_groupbox_9 = QtWidgets.QGroupBox("Overlay 9 Settings")
+        self.overlay_groupbox_9 = overlay_groupbox_9  # Store reference for visibility control
         overlay_groupbox_9.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -5154,6 +5282,7 @@ class SuperCutUI(QWidget):
 
         # --- OVERLAY 10 GROUP BOX ---
         overlay_groupbox_10 = QtWidgets.QGroupBox("Overlay 10 Settings")
+        self.overlay_groupbox_10 = overlay_groupbox_10  # Store reference for visibility control
         overlay_groupbox_10.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -5542,6 +5671,7 @@ class SuperCutUI(QWidget):
 
         # --- FRAME MP3 COVER GROUP BOX ---
         frame_mp3cover_groupbox = QtWidgets.QGroupBox("Frame MP3 Cover Settings")
+        self.frame_mp3cover_groupbox = frame_mp3cover_groupbox  # Store reference for visibility control
         frame_mp3cover_groupbox.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -5898,6 +6028,7 @@ class SuperCutUI(QWidget):
 
         # --- MP3 COVER OVERLAY GROUP BOX ---
         mp3_cover_groupbox = QtWidgets.QGroupBox("MP3 Cover Overlay Settings")
+        self.mp3_cover_groupbox = mp3_cover_groupbox  # Store reference for visibility control
         mp3_cover_groupbox.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -6287,6 +6418,7 @@ class SuperCutUI(QWidget):
         ###
         # --- FRAME BOX GROUP BOX ---
         frame_box_groupbox = QtWidgets.QGroupBox("Frame Box Settings")
+        self.frame_box_groupbox = frame_box_groupbox  # Store reference for visibility control
         frame_box_groupbox.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -9526,6 +9658,137 @@ class SuperCutUI(QWidget):
             # Also hide the label if present
             if hasattr(self, 'lyric_dropdown_label'):
                 self.lyric_dropdown_label.setVisible(show_placeholder)
+
+        # Show/hide intro controls based on settings
+        show_intro_settings = self.settings.value('show_intro_settings', False, type=bool)
+        if hasattr(self, 'intro_group_box'):
+            self.intro_group_box.setVisible(show_intro_settings)
+            # Auto-disable/uncheck intro checkbox when group is hidden
+            if hasattr(self, 'intro_checkbox'):
+                if not show_intro_settings:
+                    # When hiding the group, uncheck the intro checkbox
+                    self.intro_checkbox.setChecked(False)
+                # The existing set_intro_enabled function will handle disabling/enabling other controls
+
+        # Show/hide overlay 1&2 controls based on settings
+        show_overlay1_2_settings = self.settings.value('show_overlay1_2_settings', False, type=bool)
+        if hasattr(self, 'overlay_groupbox_1_2'):
+            self.overlay_groupbox_1_2.setVisible(show_overlay1_2_settings)
+            # Auto-disable/uncheck overlay checkboxes when group is hidden
+            if hasattr(self, 'overlay_checkbox'):
+                if not show_overlay1_2_settings:
+                    # When hiding the group, uncheck the overlay 1 checkbox
+                    self.overlay_checkbox.setChecked(False)
+            if hasattr(self, 'overlay2_checkbox'):
+                if not show_overlay1_2_settings:
+                    # When hiding the group, uncheck the overlay 2 checkbox
+                    self.overlay2_checkbox.setChecked(False)
+
+        # Show/hide overlay 4&5 controls based on settings
+        show_overlay4_5_settings = self.settings.value('show_overlay4_5_settings', False, type=bool)
+        if hasattr(self, 'overlay_groupbox_4_5'):
+            self.overlay_groupbox_4_5.setVisible(show_overlay4_5_settings)
+            # Auto-disable/uncheck overlay checkboxes when group is hidden
+            if hasattr(self, 'overlay4_checkbox'):
+                if not show_overlay4_5_settings:
+                    # When hiding the group, uncheck the overlay 4 checkbox
+                    self.overlay4_checkbox.setChecked(False)
+            if hasattr(self, 'overlay5_checkbox'):
+                if not show_overlay4_5_settings:
+                    # When hiding the group, uncheck the overlay 5 checkbox
+                    self.overlay5_checkbox.setChecked(False)
+
+        # Show/hide overlay 6&7 controls based on settings
+        show_overlay6_7_settings = self.settings.value('show_overlay6_7_settings', False, type=bool)
+        if hasattr(self, 'overlay_groupbox_6_7'):
+            self.overlay_groupbox_6_7.setVisible(show_overlay6_7_settings)
+            # Auto-disable/uncheck overlay checkboxes when group is hidden
+            if hasattr(self, 'overlay6_checkbox'):
+                if not show_overlay6_7_settings:
+                    # When hiding the group, uncheck the overlay 6 checkbox
+                    self.overlay6_checkbox.setChecked(False)
+            if hasattr(self, 'overlay7_checkbox'):
+                if not show_overlay6_7_settings:
+                    # When hiding the group, uncheck the overlay 7 checkbox
+                    self.overlay7_checkbox.setChecked(False)
+
+        # Show/hide overlay 3, song titles & soundwave controls based on settings
+        show_overlay3_titles_soundwave_settings = self.settings.value('show_overlay3_titles_soundwave_settings', False, type=bool)
+        if hasattr(self, 'overlay_groupbox_3_titles_wave'):
+            self.overlay_groupbox_3_titles_wave.setVisible(show_overlay3_titles_soundwave_settings)
+            # Auto-disable/uncheck overlay checkboxes when group is hidden
+            if hasattr(self, 'overlay3_checkbox'):
+                if not show_overlay3_titles_soundwave_settings:
+                    # When hiding the group, uncheck the overlay 3 checkbox
+                    self.overlay3_checkbox.setChecked(False)
+            if hasattr(self, 'song_title_checkbox'):
+                if not show_overlay3_titles_soundwave_settings:
+                    # When hiding the group, uncheck the song title checkbox
+                    self.song_title_checkbox.setChecked(False)
+            if hasattr(self, 'soundwave_checkbox'):
+                if not show_overlay3_titles_soundwave_settings:
+                    # When hiding the group, uncheck the soundwave checkbox
+                    self.soundwave_checkbox.setChecked(False)
+
+        # Show/hide overlay 8 controls based on settings
+        show_overlay8_settings = self.settings.value('show_overlay8_settings', False, type=bool)
+        if hasattr(self, 'overlay_groupbox_8'):
+            self.overlay_groupbox_8.setVisible(show_overlay8_settings)
+            # Auto-disable/uncheck overlay checkbox when group is hidden
+            if hasattr(self, 'overlay8_checkbox'):
+                if not show_overlay8_settings:
+                    # When hiding the group, uncheck the overlay 8 checkbox
+                    self.overlay8_checkbox.setChecked(False)
+
+        # Show/hide overlay 9 controls based on settings
+        show_overlay9_settings = self.settings.value('show_overlay9_settings', False, type=bool)
+        if hasattr(self, 'overlay_groupbox_9'):
+            self.overlay_groupbox_9.setVisible(show_overlay9_settings)
+            # Auto-disable/uncheck overlay checkbox when group is hidden
+            if hasattr(self, 'overlay9_checkbox'):
+                if not show_overlay9_settings:
+                    # When hiding the group, uncheck the overlay 9 checkbox
+                    self.overlay9_checkbox.setChecked(False)
+
+        # Show/hide overlay 10 controls based on settings
+        show_overlay10_settings = self.settings.value('show_overlay10_settings', False, type=bool)
+        if hasattr(self, 'overlay_groupbox_10'):
+            self.overlay_groupbox_10.setVisible(show_overlay10_settings)
+            # Auto-disable/uncheck overlay checkbox when group is hidden
+            if hasattr(self, 'overlay10_checkbox'):
+                if not show_overlay10_settings:
+                    # When hiding the group, uncheck the overlay 10 checkbox
+                    self.overlay10_checkbox.setChecked(False)
+
+        # Show/hide frame mp3cover controls based on settings
+        show_frame_mp3cover_settings = self.settings.value('show_frame_mp3cover_settings', False, type=bool)
+        if hasattr(self, 'frame_mp3cover_groupbox'):
+            self.frame_mp3cover_groupbox.setVisible(show_frame_mp3cover_settings)
+            # Auto-disable/uncheck frame mp3cover checkbox when group is hidden
+            if hasattr(self, 'frame_mp3cover_checkbox'):
+                if not show_frame_mp3cover_settings:
+                    # When hiding the group, uncheck the frame mp3cover checkbox
+                    self.frame_mp3cover_checkbox.setChecked(False)
+
+        # Show/hide mp3 cover overlay controls based on settings
+        show_mp3_cover_overlay_settings = self.settings.value('show_mp3_cover_overlay_settings', False, type=bool)
+        if hasattr(self, 'mp3_cover_groupbox'):
+            self.mp3_cover_groupbox.setVisible(show_mp3_cover_overlay_settings)
+            # Auto-disable/uncheck mp3 cover overlay checkbox when group is hidden
+            if hasattr(self, 'mp3_cover_overlay_checkbox'):
+                if not show_mp3_cover_overlay_settings:
+                    # When hiding the group, uncheck the mp3 cover overlay checkbox
+                    self.mp3_cover_overlay_checkbox.setChecked(False)
+
+        # Show/hide frame box controls based on settings
+        show_frame_box_settings = self.settings.value('show_frame_box_settings', False, type=bool)
+        if hasattr(self, 'frame_box_groupbox'):
+            self.frame_box_groupbox.setVisible(show_frame_box_settings)
+            # Auto-disable/uncheck frame box checkbox when group is hidden
+            if hasattr(self, 'frame_box_checkbox'):
+                if not show_frame_box_settings:
+                    # When hiding the group, uncheck the frame box checkbox
+                    self.frame_box_checkbox.setChecked(False)
 
         # Update intro checkbox label from settings
         if hasattr(self, 'intro_checkbox'):
