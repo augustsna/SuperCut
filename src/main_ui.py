@@ -4,7 +4,7 @@ from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QFileDialog, QMessageBox, QDialog, QComboBox, QDialogButtonBox, QFormLayout,
-    QColorDialog
+    QColorDialog, QScrollArea
 )
 from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize, QTimer, QObject, QEvent
 from PyQt6.QtGui import QIntValidator, QIcon, QPixmap, QMovie, QImage, QShortcut, QKeySequence, QColor
@@ -1227,6 +1227,10 @@ class SuperCutUI(QWidget):
         layout.addSpacing(0)
         # --- End program title ---        
 
+        # --- Add Navigation Menu (STICKY) ---
+        self.create_navigation_menu(layout)
+        # --- End Navigation Menu ---
+
         # --- Create scrollable area for main content ---
         scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -1313,9 +1317,112 @@ class SuperCutUI(QWidget):
         # Store scroll area reference for resize handling
         self.scroll_area = scroll_area
 
+    def create_navigation_menu(self, main_layout):
+        """Create the sticky navigation menu"""
+        nav_widget = QWidget()
+        nav_widget.setFixedHeight(40)
+        nav_widget.setStyleSheet("""
+            QWidget {
+                background: #f8f9fa;
+                border-bottom: 1px solid #e9ecef;
+            }
+        """)
+        
+        nav_layout = QHBoxLayout(nav_widget)
+        nav_layout.setContentsMargins(10, 5, 10, 5)
+        nav_layout.setSpacing(5)
+        
+        # Create navigation buttons
+        self.nav_buttons = {}
+        nav_sections = {
+            'folder': 'Top Folder',
+            'overlay1_2': 'Overlay 1&2',
+            'overlay6_7': 'Overlay 6&7',
+            'frame_box': 'Frame Box',
+            'mp3_cover': 'MP3 Cover',
+            'overlay8': 'Overlay 8',
+            'final': 'Final Settings'
+        }
+        
+        for section_id, section_name in nav_sections.items():
+            btn = QPushButton(section_name)
+            btn.setFixedHeight(30)
+            btn.setStyleSheet("""
+                QPushButton {
+                    background: #ffffff;
+                    border: 1px solid #dee2e6;
+                    border-radius: 4px;
+                    padding: 5px 10px;
+                    font-size: 11px;
+                    font-weight: normal;
+                    color: #495057;
+                }
+                QPushButton:hover {
+                    background: #e9ecef;
+                    border-color: #adb5bd;
+                }
+                QPushButton:pressed {
+                    background: #dee2e6;
+                }
+                QPushButton:checked {
+                    background: #007bff;
+                    color: white;
+                    border-color: #0056b3;
+                }
+            """)
+            btn.setCheckable(True)
+            btn.clicked.connect(lambda checked, sid=section_id: self.scroll_to_section(sid))
+            self.nav_buttons[section_id] = btn
+            nav_layout.addWidget(btn)
+        
+        # Set first button as checked by default
+        if self.nav_buttons:
+            first_btn = list(self.nav_buttons.values())[0]
+            first_btn.setChecked(True)
+        
+        main_layout.addWidget(nav_widget)
+
+    def scroll_to_section(self, section_id):
+        """Scroll to the specified section"""
+        if hasattr(self, 'section_widgets') and section_id in self.section_widgets:
+            target_widget = self.section_widgets[section_id]
+            # Find the scroll area
+            scroll_area = None
+            for child in self.children():
+                if isinstance(child, QScrollArea):
+                    scroll_area = child
+                    break
+            
+            if scroll_area:
+                # Get the scroll area's widget
+                scroll_widget = scroll_area.widget()
+                if scroll_widget:
+                    # Get the target widget's position relative to the scroll widget
+                    target_geometry = target_widget.geometry()
+                    target_y = target_widget.y()
+                    
+                    # Scroll to position the target widget near the top
+                    scroll_area.verticalScrollBar().setValue(max(0, target_y - 0))
+                
+                # Update button states
+                for btn_id, btn in self.nav_buttons.items():
+                    btn.setChecked(btn_id == section_id)
+
+    def register_section_widget(self, section_id, widget):
+        """Register a widget for a specific section for scrolling"""
+        if not hasattr(self, 'section_widgets'):
+            self.section_widgets = {}
+        self.section_widgets[section_id] = widget
+
 
     def create_folder_inputs(self, layout):
         """Create folder selection inputs"""
+        # Create wrapper widget for folder section
+        folder_widget = QWidget()
+        folder_layout_inner = QVBoxLayout(folder_widget)
+        folder_layout_inner.setContentsMargins(0, 10, 0, 10)  # Add top and bottom margins
+        folder_layout_inner.setSpacing(10)  # Add spacing between elements
+        
         folder_row_style = {
             "label_width": 90,
             "edit_min_width": 220,
@@ -1346,8 +1453,8 @@ class SuperCutUI(QWidget):
         media_sources_layout.addWidget(label_media)
         media_sources_layout.addWidget(self.media_sources_edit)
         media_sources_layout.addWidget(media_sources_btn)
-        layout.addLayout(media_sources_layout)
-        layout.addSpacing(0)  # Add spacing after media folder
+        folder_layout_inner.addLayout(media_sources_layout)
+        folder_layout_inner.addSpacing(0)  # Add spacing after media folder
 
         # Output folder selection
         folder_layout = QHBoxLayout()
@@ -1373,11 +1480,22 @@ class SuperCutUI(QWidget):
         folder_layout.addWidget(label_output)
         folder_layout.addWidget(self.folder_edit)
         folder_layout.addWidget(folder_btn)
-        layout.addLayout(folder_layout)
-        layout.addSpacing(0)  # Add spacing after output folder
+        folder_layout_inner.addLayout(folder_layout)
+        folder_layout_inner.addSpacing(0)  # Add spacing after output folder
+        
+        # Add wrapper widget to main layout
+        layout.addWidget(folder_widget)
+        # Register for navigation
+        self.register_section_widget('folder', folder_widget)
 
     def create_export_inputs(self, layout):
         """Create export name, number, and mp3 per video inputs"""
+        # Create wrapper widget for export section
+        export_widget = QWidget()
+        export_layout_inner = QVBoxLayout(export_widget)
+        export_layout_inner.setContentsMargins(0, 10, 0, 10)  # Add top and bottom margins
+        export_layout_inner.setSpacing(10)  # Add spacing between elements
+        
         self.part_layout = QHBoxLayout()
         self.part1_edit = KhmerSupportLineEdit(DEFAULT_EXPORT_NAME)
         self.part1_edit.setPlaceholderText("Export Name")
@@ -1466,8 +1584,14 @@ class SuperCutUI(QWidget):
         self.part_layout.addSpacing(-3)
         self.part_layout.addWidget(self.mp3_count_edit)
         self.part_layout.addStretch()
-        # Don't add to main layout here - will be added to core settings group box
-        layout.addSpacing(0)  # Add spacing after export inputs
+        # Add to export layout
+        export_layout_inner.addLayout(self.part_layout)
+        export_layout_inner.addSpacing(0)  # Add spacing after export inputs
+        
+        # Add wrapper widget to main layout
+        layout.addWidget(export_widget)
+        # Register for navigation
+        self.register_section_widget('export', export_widget)
     def create_video_settings(self, layout):
         """Create video settings controls"""
         # Combined layout for codec, resolution, and fps
@@ -1601,10 +1725,11 @@ class SuperCutUI(QWidget):
             }
         """)
         core_settings_groupbox_layout = QVBoxLayout()
-        core_settings_groupbox_layout.addLayout(self.part_layout)
         core_settings_groupbox_layout.addLayout(settings_layout)
         core_settings_groupbox.setLayout(core_settings_groupbox_layout)
         layout.addWidget(core_settings_groupbox)
+        # Register for navigation
+        self.register_section_widget('settings', core_settings_groupbox)
 
         # --- INTRO OVERLAY CONTROLS ---
         # Load custom intro checkbox label from settings
@@ -1985,6 +2110,8 @@ class SuperCutUI(QWidget):
         intro_group_layout.addLayout(intro_effect_layout)
         
         layout.addWidget(intro_group_box)
+        # Register for navigation
+        self.register_section_widget('intro', intro_group_box)
 
         # Move PNG overlay checkbox below video settings
         # Load custom overlay1 checkbox label from settings
@@ -2463,6 +2590,8 @@ class SuperCutUI(QWidget):
         effect_layout.addStretch()
         overlay_groupbox_1_2_layout.addLayout(effect_layout)
         layout.addWidget(overlay_groupbox_1_2)
+        # Register for navigation
+        self.register_section_widget('overlay1_2', overlay_groupbox_1_2)
 
         # --- Overlay effect label greying logic ---
         def update_overlay_effect_label_style():
@@ -2535,6 +2664,8 @@ class SuperCutUI(QWidget):
         overlay_groupbox_4_5_layout.setSpacing(8)
         overlay_groupbox_4_5_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(overlay_groupbox_4_5)
+        # Register for navigation
+        self.register_section_widget('overlay4_5', overlay_groupbox_4_5)
 
         # Overlay 4 controls 
         def update_overlay4_checkbox_style(state):
@@ -3006,6 +3137,8 @@ class SuperCutUI(QWidget):
         overlay_groupbox_6_7_layout.setSpacing(8)
         overlay_groupbox_6_7_layout.setContentsMargins(10, 5, 10, 10)        
         layout.addWidget(overlay_groupbox_6_7)
+        # Register for navigation
+        self.register_section_widget('overlay6_7', overlay_groupbox_6_7)
 
          # Overlay 6 controls (similar to Overlay 4)
         overlay6_label = self.settings.value('overlay6_checkbox_label', " Overlay 6 :", type=str)
@@ -3500,6 +3633,8 @@ class SuperCutUI(QWidget):
         overlay_groupbox_3_titles_wave_layout.setSpacing(8)
         overlay_groupbox_3_titles_wave_layout.setContentsMargins(10, 5, 10, 10)        
         layout.addWidget(overlay_groupbox_3_titles_wave)
+        # Register for navigation
+        self.register_section_widget('overlay3_titles_wave', overlay_groupbox_3_titles_wave)
 
         # --- SOUNDWAVE OVERLAY CONTROLS ---
         # Load custom soundwave checkbox label from settings
@@ -4368,6 +4503,8 @@ class SuperCutUI(QWidget):
         frame_box_groupbox_layout.setSpacing(8)
         frame_box_groupbox_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(frame_box_groupbox)
+        # Register for navigation
+        self.register_section_widget('frame_box', frame_box_groupbox)
 
         # --- FRAME BOX OVERLAY ---
         # Load custom frame box checkbox label from settings
@@ -5408,6 +5545,8 @@ class SuperCutUI(QWidget):
         mp3_cover_groupbox_layout.setSpacing(8)
         mp3_cover_groupbox_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(mp3_cover_groupbox)
+        # Register for navigation
+        self.register_section_widget('mp3_cover', mp3_cover_groupbox)
 
         # --- DYNAMIC MP3 COVER OVERLAY ---
         mp3_cover_overlay_label = self.settings.value('mp3_cover_overlay_checkbox_label', " MP3 Cover Overlay :", type=str)
@@ -5797,6 +5936,8 @@ class SuperCutUI(QWidget):
         overlay_groupbox_8_layout.setSpacing(8)
         overlay_groupbox_8_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(overlay_groupbox_8)
+        # Register for navigation
+        self.register_section_widget('overlay8', overlay_groupbox_8)
 
         # Overlay 8 controls 
         overlay8_label = self.settings.value('overlay8_checkbox_label', " Overlay 8 :", type=str)
@@ -6300,6 +6441,8 @@ class SuperCutUI(QWidget):
         overlay_groupbox_9_layout.setSpacing(8)
         overlay_groupbox_9_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(overlay_groupbox_9)
+        # Register for navigation
+        self.register_section_widget('overlay9', overlay_groupbox_9)
 
         # --- OVERLAY 9  ---
         overlay9_label = self.settings.value('overlay9_checkbox_label', " Overlay 9 :", type=str)
@@ -6800,6 +6943,8 @@ class SuperCutUI(QWidget):
         overlay_groupbox_10_layout.setSpacing(8)
         overlay_groupbox_10_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(overlay_groupbox_10)
+        # Register for navigation
+        self.register_section_widget('overlay10', overlay_groupbox_10)
 
         # --- OVERLAY 10 ---
         overlay10_label = self.settings.value('overlay10_checkbox_label', " Overlay 10 :", type=str)
@@ -7189,6 +7334,8 @@ class SuperCutUI(QWidget):
         frame_mp3cover_groupbox_layout.setSpacing(8)
         frame_mp3cover_groupbox_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(frame_mp3cover_groupbox)
+        # Register for navigation
+        self.register_section_widget('frame_mp3cover', frame_mp3cover_groupbox)
 
         # --- FRAME MP3COVER OVERLAY ---
         frame_mp3cover_label = self.settings.value('frame_mp3cover_checkbox_label', " Frame MP3 Cover :", type=str)
@@ -7545,6 +7692,8 @@ class SuperCutUI(QWidget):
         final_settings_groupbox_layout.setSpacing(8)
         final_settings_groupbox_layout.setContentsMargins(10, 5, 10, 10)
         layout.addWidget(final_settings_groupbox)
+        # Register for navigation
+        self.register_section_widget('final', final_settings_groupbox)
         
         # --- BACKGROUND LAYER SCALE CONTROL ---
         # Load custom background checkbox label from settings
