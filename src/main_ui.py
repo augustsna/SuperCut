@@ -7745,6 +7745,8 @@ class SuperCutUI(QWidget):
             self.terminal_widget.closed.connect(self.on_terminal_closed)
             # Position terminal intelligently based on main window position
             self.position_terminal_widget()
+            # Set positioning flag to prevent repositioning in resizeEvent
+            self._terminal_positioned = True
             self.terminal_widget.show_and_raise()
             # Update button icon to show terminal is on
             self.terminal_btn.setIcon(QIcon(self.terminal_icon_on_path))
@@ -7752,6 +7754,9 @@ class SuperCutUI(QWidget):
             # Terminal exists, toggle it off
             self.terminal_widget.close()
             self.terminal_widget = None
+            # Reset positioning flag so terminal can be repositioned when reopened
+            if hasattr(self, '_terminal_positioned'):
+                delattr(self, '_terminal_positioned')
             # Update button icon to show terminal is off
             self.terminal_btn.setIcon(QIcon(self.terminal_icon_off_path))
 
@@ -7901,6 +7906,9 @@ class SuperCutUI(QWidget):
     def on_terminal_closed(self):
         """Handle terminal widget closed signal"""
         self.terminal_widget = None
+        # Reset positioning flag so terminal can be repositioned when reopened
+        if hasattr(self, '_terminal_positioned'):
+            delattr(self, '_terminal_positioned')
         # Reset button icon when terminal is closed manually
         self.terminal_btn.setIcon(QIcon(self.terminal_icon_off_path))
 
@@ -9410,11 +9418,14 @@ class SuperCutUI(QWidget):
             else:
                 self.progress_bar.setFixedWidth(180)
     
-        # Reposition terminal widget if it exists and is visible
+        # Only reposition terminal widget if it's not already positioned (first time)
+        # This prevents terminal from following main window to different screens
         if (hasattr(self, 'terminal_widget') and 
             self.terminal_widget is not None and 
-            self.terminal_widget.isVisible()):
+            self.terminal_widget.isVisible() and
+            not hasattr(self, '_terminal_positioned')):
             self.position_terminal_widget()
+            self._terminal_positioned = True
     
         # Reposition layer manager dialog if it exists and is visible
         if (hasattr(self, 'layer_manager_dialog') and 
@@ -9834,8 +9845,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         
         dlg = SuperCutPreviewDialog(self)  # Pass self as main window reference for live updates
         dlg.setWindowTitle("⚡ SuperCut Preview")
-        dlg.setMinimumSize(500, 520)
-        dlg.resize(500, 520)  # Set fixed size
+        dlg.setFixedSize(500, 520)  # Fixed size to prevent auto-resizing when moving between screens
         
         # Store dialog reference for toggle functionality
         self._preview_dialog = dlg

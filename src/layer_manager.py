@@ -606,7 +606,7 @@ class LayerManagerDialog(QWidget):
     def __init__(self, parent=None, saved_order=None):
         super().__init__()
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
-        self.setMinimumSize(500, 520)  # Increased height to give more space for the list
+        self.setFixedSize(500, 520)  # Fixed size to prevent auto-resizing when moving between screens
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)  # Enable rounded corners
         self.saved_order = saved_order
         self.main_window = parent  # Store parent reference for live updates
