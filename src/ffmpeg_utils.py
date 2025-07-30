@@ -918,7 +918,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     pass
                 chain += "format=rgba"
                 # Special case for overlays with effect 'null' or 'none'
-                if (label in ["ol3", "ol8", "ol9", "ol10"] and effect == "null") or effect == "none":
+                if effect == "null" or effect == "none":
                     chain += ",null[" + label + "]"
                     return chain
                 chain += ","
@@ -967,7 +967,12 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     # Videos already have their own fps, so we don't force fps=30
                     # Video files are now looped infinitely like GIFs
                     pass
-                chain += "format=rgba,"
+                chain += "format=rgba"
+                # Special case for overlays with effect 'null' or 'none'
+                if effect == "null" or effect == "none":
+                    chain += ",null[" + label + "]"
+                    return chain
+                chain += ","
                 fade_alpha = ":alpha=1" if ext == ".png" else ""
                 if effect == "fadein":
                     # Add comma only if scale operation will follow
