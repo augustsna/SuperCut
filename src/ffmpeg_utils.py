@@ -224,6 +224,8 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     soundwave_size_percent: int = 50,
     soundwave_x_percent: int = 50,
     soundwave_y_percent: int = 50,
+    soundwave_effect: str = "fadein",
+    soundwave_start_time: int = 5,
     # --- Add layer order parameter ---
     layer_order: Optional[List[str]] = None,
     # --- Add filter complex alt mode parameter ---
@@ -915,8 +917,8 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 elif ext in [".mp4", ".mov", ".mkv"]:
                     pass
                 chain += "format=rgba"
-                # Special case for overlay8, overlay9, and overlay10 with effect 'null'
-                if label in ["ol8", "ol9", "ol10"] and effect == "null":
+                # Special case for overlays with effect 'null' or 'none'
+                if (label in ["ol3", "ol8", "ol9", "ol10"] and effect == "null") or effect == "none":
                     chain += ",null[" + label + "]"
                     return chain
                 chain += ","
@@ -1486,11 +1488,11 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                     if layer_id == 'soundwave' and use_soundwave_overlay and soundwave_idx is not None:
                         # Add soundwave input processing
                         filter_graph += f";[{soundwave_idx}:v]format=yuva420p[soundwave]"
-                        # Apply soundwave overlay immediately
+                        # Apply soundwave overlay with timing
                         current_layer_index = final_order.index('soundwave')
                         is_last_layer = (current_layer_index == len(final_order) - 1)
                         out_label = "soundwave_final"
-                        filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[{out_label}]"
+                        filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}:enable='gte(t,{soundwave_start_time})'[{out_label}]"
                         last_label = f"[{out_label}]"
                         continue
                     
@@ -1605,7 +1607,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                         current_layer_index = final_order.index('soundwave')
                         is_last_layer = (current_layer_index == len(final_order) - 1)
                         out_label = "soundwave_final"
-                        filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}[{out_label}]"
+                        filter_graph += f";{last_label}[soundwave]overlay={ox_soundwave}:{oy_soundwave}:enable='gte(t,{soundwave_start_time})'[{out_label}]"
                         last_label = f"[{out_label}]"
                         continue
                     

@@ -19,7 +19,7 @@ class VideoWorker(QObject):
                  folder: str, codec: str = "libx264", resolution: str = "1920x1080", fps: int = 24, use_overlay: bool = False, min_mp3_count: int = 3, overlay1_path: str = "", overlay1_size_percent: int = 100, overlay1_x_percent: int = 0, overlay1_y_percent: int = 75,
                  use_overlay2: bool = False, overlay2_path: str = "", overlay2_size_percent: int = 10, overlay2_x_percent: int = 75, overlay2_y_percent: int = 0,
                  overlay1_start_at: int = 0, overlay2_start_at: int = 0,
-                 use_overlay3: bool = False, overlay3_path: str = "", overlay3_size_percent: int = 10, overlay3_x_percent: int = 75, overlay3_y_percent: int = 0,
+                 use_overlay3: bool = False, overlay3_path: str = "", overlay3_size_percent: int = 10, overlay3_x_percent: int = 75, overlay3_y_percent: int = 0, overlay3_effect: str = "fadein",
                  use_overlay4: bool = False, overlay4_path: str = "", overlay4_size_percent: int = 10, overlay4_x_percent: int = 75, overlay4_y_percent: int = 0,
                  use_overlay5: bool = False, overlay5_path: str = "", overlay5_size_percent: int = 10, overlay5_x_percent: int = 75, overlay5_y_percent: int = 0,
                  use_intro: bool = False, intro_path: str = "", intro_size_percent: int = 10, intro_x_percent: int = 50, intro_y_percent: int = 50,
@@ -101,6 +101,8 @@ class VideoWorker(QObject):
                  soundwave_size_percent: int = 50,
                  soundwave_x_percent: int = 50,
                  soundwave_y_percent: int = 50,
+                 soundwave_effect: str = "fadein",
+                 soundwave_start_time: int = 5,
                  layer_order: Optional[List[str]] = None,
                  filter_complex_alt_mode: bool = False):
         super().__init__()
@@ -129,6 +131,7 @@ class VideoWorker(QObject):
         self.overlay3_size_percent = overlay3_size_percent
         self.overlay3_x_percent = overlay3_x_percent
         self.overlay3_y_percent = overlay3_y_percent
+        self.overlay3_effect = overlay3_effect
         self.use_overlay4 = use_overlay4
         self.overlay4_path = overlay4_path
         self.overlay4_size_percent = overlay4_size_percent
@@ -307,6 +310,8 @@ class VideoWorker(QObject):
         self.soundwave_size_percent = soundwave_size_percent
         self.soundwave_x_percent = soundwave_x_percent
         self.soundwave_y_percent = soundwave_y_percent
+        self.soundwave_effect = soundwave_effect
+        self.soundwave_start_time = soundwave_start_time
         self.layer_order = layer_order
         self.filter_complex_alt_mode = filter_complex_alt_mode
                 
@@ -1165,8 +1170,8 @@ class VideoWorker(QObject):
                 song_title_text_effect=self.song_title_text_effect,
                 song_title_text_effect_color=self.song_title_text_effect_color,
                 song_title_text_effect_intensity=self.song_title_text_effect_intensity,
-                overlay3_effect="fadein",
-                overlay3_start_time=self.song_title_start_at if (self.use_song_title_overlay and self.song_title_start_at is not None) else 5,
+                overlay3_effect=self.overlay3_effect,
+                overlay3_start_time=self.soundwave_start_time,
                 overlay4_effect=self.overlay4_effect,
                 overlay4_start_time=actual_overlay4_start_at,
                 overlay4_duration=self.overlay4_duration,
@@ -1230,6 +1235,8 @@ class VideoWorker(QObject):
                 soundwave_size_percent=self.soundwave_size_percent,
                 soundwave_x_percent=self.soundwave_x_percent,
                 soundwave_y_percent=self.soundwave_y_percent,
+                soundwave_effect=self.soundwave_effect,
+                soundwave_start_time=self.soundwave_start_time,
                 overlay1_start_at=actual_overlay1_start_at,
                 overlay2_start_at=actual_overlay2_start_at,
                 # --- Add layer order parameter ---

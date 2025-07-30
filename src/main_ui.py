@@ -144,11 +144,11 @@ class SettingsDialog(QDialog):
         settings_label.setFixedHeight(30)
         
         # Add fixed positioning like previous solo title
-        title_layout.addStretch()  # Push content to center
+        title_layout.addStretch()  
         title_layout.addWidget(setting_logo_button)
-        title_layout.addSpacing(10)  # Space between button and title
+        title_layout.addSpacing(10)  
         title_layout.addWidget(settings_label)
-        title_layout.addStretch()  # Push content to center
+        title_layout.addStretch()  
         
         main_layout.addLayout(title_layout)
         # Add Default button below Settings label  
@@ -158,7 +158,7 @@ class SettingsDialog(QDialog):
         columns_layout = QHBoxLayout()
 
         # Create simple group boxes for left, center, and right forms
-        left_group = QtWidgets.QGroupBox("UI Settings")
+        left_group = QtWidgets.QGroupBox("Custom Labels")
         left_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -174,7 +174,7 @@ class SettingsDialog(QDialog):
             }
         """)
 
-        center_group = QtWidgets.QGroupBox("Video Settings")
+        center_group = QtWidgets.QGroupBox("UI Settings")
         center_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -190,7 +190,7 @@ class SettingsDialog(QDialog):
             }
         """)
 
-        right_group = QtWidgets.QGroupBox("Advanced Settings")
+        right_group = QtWidgets.QGroupBox("Video Settings")
         right_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -239,7 +239,8 @@ class SettingsDialog(QDialog):
             self.default_window_height_edit.setText(str(WINDOW_SIZE[1]))
         
         window_size_layout.addWidget(self.default_window_width_edit)
-        window_size_layout.addWidget(QLabel("×"))
+        window_size_layout.addSpacing(5)
+        window_size_layout.addWidget(QLabel("×"))        
         window_size_layout.addWidget(self.default_window_height_edit)
         window_size_layout.addStretch()
         
@@ -525,8 +526,8 @@ class SettingsDialog(QDialog):
         right_group.setFixedWidth(260)
 
         # Set custom spacing for form layouts
-        left_form.setHorizontalSpacing(5)  # 10px between labels and fields
-        center_form.setHorizontalSpacing(10)  # 10px between labels and fields
+        left_form.setHorizontalSpacing(10)  # 10px between labels and fields
+        center_form.setHorizontalSpacing(5)  # 10px between labels and fields
         right_form.setHorizontalSpacing(10)  # 10px between labels and fields
 
         # Add all group boxes to columns_layout
@@ -542,7 +543,7 @@ class SettingsDialog(QDialog):
 
         self.reset_btn = QPushButton("Reset")
         self.reset_btn.setFixedSize(70, 32)
-        self.reset_btn.setStyleSheet("QPushButton { background: white; border: 1px solid #ccc; color: #333; } QPushButton:hover { background: #f5f5f5; }")
+        self.reset_btn.setStyleSheet("QPushButton { background: white; border: 1px solid #ccc; color: #333; } QPushButton:hover { background: #f5f5f5; } QPushButton:pressed { background-color: #ffffff; }")
         self.reset_btn.clicked.connect(self.reset_to_defaults)
         
         self.save_btn = QPushButton("Save")
@@ -563,12 +564,12 @@ class SettingsDialog(QDialog):
         button_layout.addWidget(self.cancel_btn)
         button_layout.addStretch(0)
         main_layout.addLayout(button_layout)
-        main_layout.addSpacing(10)
+        main_layout.addSpacing(5)
         
         # Make Enter key trigger save button
         self.save_btn.setDefault(True)
         self.save_btn.setAutoDefault(True)
-        self.setFixedSize(860, 740)
+        self.setFixedSize(860, 720)
         
         # Add Ctrl+W shortcut to close dialog
         self.shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
@@ -652,68 +653,67 @@ class SettingsDialog(QDialog):
             self.settings.value('filter_complex_alt_mode', False, type=bool) if self.settings is not None else False
         )
 
+        # Add advanced settings to right_form
+        left_form.addRow("Intro:", self.intro_checkbox_label_edit)
+        left_form.addRow("Background :", self.background_label_edit)
+        left_form.addRow("Overlay 1 :", self.overlay1_label_edit)
+        left_form.addRow("Overlay 2 :", self.overlay2_label_edit)
+        left_form.addRow("Frame Box :", self.frame_box_label_edit)
+        left_form.addRow("Song Titles :", self.song_titles_label_edit)
+        left_form.addRow("Soundwave :", self.soundwave_label_edit)
+        left_form.addRow("Overlay 3 :", self.overlay3_label_edit)
+        left_form.addRow("Overlay 4 :", self.overlay4_label_edit)
+        left_form.addRow("Overlay 5 :", self.overlay5_label_edit)
+        left_form.addRow("Overlay 6 :", self.overlay6_label_edit)
+        left_form.addRow("Overlay 7 :", self.overlay7_label_edit)
+        left_form.addRow("Overlay 8 :", self.overlay8_label_edit)
+        left_form.addRow("Overlay 9 :", self.overlay9_label_edit)
+        left_form.addRow("Overlay 10 :", self.overlay10_label_edit)
+        left_form.addRow("Frame MP3 :", self.frame_mp3cover_label_edit)
+        left_form.addRow("MP3 Cover :", self.mp3_cover_overlay_label_edit)
+
         # Add to left_form in new order with reduced spacing
-        left_form.addRow("Window Size:", window_size_layout)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Placeholder:", self.show_placeholder_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Intro Settings:", self.show_intro_settings_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Overlay 1&2:", self.show_overlay1_2_settings_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Overlay 4&5:", self.show_overlay4_5_settings_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Overlay 6&7:", self.show_overlay6_7_settings_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Song Titles & Wave:", self.show_overlay3_titles_soundwave_settings_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Overlay 8:", self.show_overlay8_settings_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Overlay 9:", self.show_overlay9_settings_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Overlay 10:", self.show_overlay10_settings_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Frame MP3:", self.show_frame_mp3cover_settings_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("MP3 Cover:", self.show_mp3_cover_overlay_settings_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Frame Box:", self.show_frame_box_settings_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Filter Complex:", self.filter_complex_alt_checkbox)
+        center_form.addRow("Window Size:", window_size_layout)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Placeholder:", self.show_placeholder_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Intro Settings:", self.show_intro_settings_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Overlay 1&2:", self.show_overlay1_2_settings_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Overlay 4&5:", self.show_overlay4_5_settings_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Overlay 6&7:", self.show_overlay6_7_settings_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Song Titles:", self.show_overlay3_titles_soundwave_settings_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Overlay 8:", self.show_overlay8_settings_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Overlay 9:", self.show_overlay9_settings_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Overlay 10:", self.show_overlay10_settings_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Frame MP3:", self.show_frame_mp3cover_settings_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("MP3 Cover:", self.show_mp3_cover_overlay_settings_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Frame Box:", self.show_frame_box_settings_checkbox)
+        center_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        center_form.addRow("Filter Complex:", self.filter_complex_alt_checkbox)
         
 
         # Add video/encoding settings to center_form
-        center_form.addRow("FPS:", self.fps_combo)
-        center_form.addRow("Resolution:", self.resolution_combo)
-        center_form.addRow("FFmpeg Preset:", self.preset_combo)
-        center_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
-        center_form.addRow("Video Bitrate:", self.video_bitrate_combo)
-        center_form.addRow("Maxrate:", self.maxrate_combo)
-        center_form.addRow("Buffsize:", self.buffsize_combo)
-
-        # Add advanced settings to right_form
-        
-        right_form.addRow("Intro:", self.intro_checkbox_label_edit)
-        right_form.addRow("Background :", self.background_label_edit)
-        right_form.addRow("Overlay 1 :", self.overlay1_label_edit)
-        right_form.addRow("Overlay 2 :", self.overlay2_label_edit)
-        right_form.addRow("Frame Box :", self.frame_box_label_edit)
-        right_form.addRow("Song Titles :", self.song_titles_label_edit)
-        right_form.addRow("Soundwave :", self.soundwave_label_edit)
-        right_form.addRow("Overlay 3 :", self.overlay3_label_edit)
-        right_form.addRow("Overlay 4 :", self.overlay4_label_edit)
-        right_form.addRow("Overlay 5 :", self.overlay5_label_edit)
-        right_form.addRow("Overlay 6 :", self.overlay6_label_edit)
-        right_form.addRow("Overlay 7 :", self.overlay7_label_edit)
-        right_form.addRow("Overlay 8 :", self.overlay8_label_edit)
-        right_form.addRow("Overlay 9 :", self.overlay9_label_edit)
-        right_form.addRow("Overlay 10 :", self.overlay10_label_edit)
-        right_form.addRow("Frame MP3 :", self.frame_mp3cover_label_edit)
-        right_form.addRow("MP3 Cover :", self.mp3_cover_overlay_label_edit)
+        right_form.addRow("FPS:", self.fps_combo)
+        right_form.addRow("Resolution:", self.resolution_combo)
+        right_form.addRow("FFmpeg Preset:", self.preset_combo)
+        right_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
+        right_form.addRow("Video Bitrate:", self.video_bitrate_combo)
+        right_form.addRow("Maxrate:", self.maxrate_combo)
+        right_form.addRow("Buffsize:", self.buffsize_combo)
         
 
     def accept(self):
@@ -832,33 +832,33 @@ class SettingsDialog(QDialog):
         # Bufsize
         self.buffsize_combo.setCurrentIndex(4)  # '24M' is default
         # List Name
-        self.default_list_name_enabled_checkbox.setChecked(False)
+        self.default_list_name_enabled_checkbox.setChecked(True)
         # MP3 #
         self.default_mp3_count_enabled_checkbox.setChecked(False)
         # Filter Complex Alt Mode
         self.filter_complex_alt_checkbox.setChecked(False)
         # Show Intro Settings
-        self.show_intro_settings_checkbox.setChecked(False)
+        self.show_intro_settings_checkbox.setChecked(True)
         # Show Overlay 1&2 Settings
-        self.show_overlay1_2_settings_checkbox.setChecked(False)
+        self.show_overlay1_2_settings_checkbox.setChecked(True)
         # Show Overlay 4&5 Settings
-        self.show_overlay4_5_settings_checkbox.setChecked(False)
+        self.show_overlay4_5_settings_checkbox.setChecked(True)
         # Show Overlay 6&7 Settings
-        self.show_overlay6_7_settings_checkbox.setChecked(False)
+        self.show_overlay6_7_settings_checkbox.setChecked(True)
         # Show Overlay 3, Song Titles & Soundwave Settings
-        self.show_overlay3_titles_soundwave_settings_checkbox.setChecked(False)
+        self.show_overlay3_titles_soundwave_settings_checkbox.setChecked(True)
         # Show Overlay 8 Settings
-        self.show_overlay8_settings_checkbox.setChecked(False)
+        self.show_overlay8_settings_checkbox.setChecked(True)
         # Show Overlay 9 Settings
-        self.show_overlay9_settings_checkbox.setChecked(False)
+        self.show_overlay9_settings_checkbox.setChecked(True)
         # Show Overlay 10 Settings
-        self.show_overlay10_settings_checkbox.setChecked(False)
+        self.show_overlay10_settings_checkbox.setChecked(True)
         # Show Frame MP3 Cover Settings
-        self.show_frame_mp3cover_settings_checkbox.setChecked(False)
+        self.show_frame_mp3cover_settings_checkbox.setChecked(True)
         # Show MP3 Cover Overlay Settings
-        self.show_mp3_cover_overlay_settings_checkbox.setChecked(False)
+        self.show_mp3_cover_overlay_settings_checkbox.setChecked(True)
         # Show Frame Box Settings
-        self.show_frame_box_settings_checkbox.setChecked(False)
+        self.show_frame_box_settings_checkbox.setChecked(True)
         # Window Size (reset uses config defaults)
         self.default_window_width_edit.setText(str(WINDOW_SIZE[0]))
         self.default_window_height_edit.setText(str(WINDOW_SIZE[1]))
@@ -1654,7 +1654,7 @@ class SuperCutUI(QWidget):
         self.intro_size_combo.setFixedHeight(unified_height)
         for percent in range(5, 101, 5):
             self.intro_size_combo.addItem(f"{percent}%", percent)
-        self.intro_size_combo.setCurrentIndex(9)  # Default 50%
+        self.intro_size_combo.setCurrentIndex(9) 
         self.intro_size_percent = 50
         def on_intro_size_changed(idx):
             self.intro_size_percent = self.intro_size_combo.itemData(idx)
@@ -3482,7 +3482,7 @@ class SuperCutUI(QWidget):
         set_overlay6_7_start_at_enabled(self.overlay6_7_start_at_checkbox.checkState())
 
         # --- Overlay 3, Song Titles, and Soundwave Group Box ---
-        overlay_groupbox_3_titles_wave = QtWidgets.QGroupBox("Overlay 3, Song Titles, and Soundwave")
+        overlay_groupbox_3_titles_wave = QtWidgets.QGroupBox("Song Titles & Soundwave")
         self.overlay_groupbox_3_titles_wave = overlay_groupbox_3_titles_wave  # Store reference for visibility control
         overlay_groupbox_3_titles_wave.setStyleSheet("""
             QGroupBox {
@@ -3646,6 +3646,31 @@ class SuperCutUI(QWidget):
                 soundwave_size_label.setStyleSheet("color: grey;")
                 soundwave_x_label.setStyleSheet("color: grey;")
                 soundwave_y_label.setStyleSheet("color: grey;")
+            
+            # Update overlay 3 & soundwave effect control state
+            if hasattr(self, 'overlay3_checkbox'):
+                set_overlay3_soundwave_effect_enabled()
+        
+        # Function to enable/disable overlay 3 & soundwave effect and start time controls
+        def set_overlay3_soundwave_effect_enabled():
+            overlay3_enabled = self.overlay3_checkbox.isChecked()
+            soundwave_enabled = self.soundwave_checkbox.isChecked()
+            effect_enabled = overlay3_enabled or soundwave_enabled
+            
+            self.overlay3_soundwave_effect_combo.setEnabled(effect_enabled)
+            self.overlay3_soundwave_start_edit.setEnabled(effect_enabled)
+            
+            if effect_enabled:
+                self.overlay3_soundwave_effect_combo.setStyleSheet("")
+                self.overlay3_soundwave_start_edit.setStyleSheet("")
+                overlay3_soundwave_effect_label.setStyleSheet("")
+                overlay3_soundwave_start_label.setStyleSheet("")
+            else:
+                grey_btn_style = "background-color: #f2f2f2; color: #888; border: 1px solid #cfcfcf;"
+                self.overlay3_soundwave_effect_combo.setStyleSheet(grey_btn_style)
+                self.overlay3_soundwave_start_edit.setStyleSheet(grey_btn_style)
+                overlay3_soundwave_effect_label.setStyleSheet("color: grey;")
+                overlay3_soundwave_start_label.setStyleSheet("color: grey;")
         
         self.soundwave_checkbox.stateChanged.connect(lambda _: set_soundwave_controls_enabled(self.soundwave_checkbox.checkState()))
         set_soundwave_controls_enabled(self.soundwave_checkbox.checkState())
@@ -3670,6 +3695,63 @@ class SuperCutUI(QWidget):
         soundwave_layout.addWidget(self.soundwave_y_combo)
         soundwave_layout.addStretch()
         overlay_groupbox_3_titles_wave_layout.addLayout(soundwave_layout)
+        
+        # --- EFFECT CONTROL FOR OVERLAY 3 & SOUNDWAVE ---
+        overlay3_soundwave_effect_label = QLabel("Effect :")
+        overlay3_soundwave_effect_label.setFixedWidth(label_short_width)
+        overlay3_soundwave_effect_label.setFixedHeight(unified_height)
+        self.overlay3_soundwave_effect_combo = NoWheelComboBox()
+        self.overlay3_soundwave_effect_combo.setFixedWidth(combo_long_width)
+        self.overlay3_soundwave_effect_combo.setFixedHeight(unified_height)
+        effect_options = [
+            ("Fade in & out", "fadeinout"),
+            ("Fade in", "fadein"),
+            ("Fade out", "fadeout"),
+            ("Zoompan", "zoompan"),
+            ("None", "none")
+        ]
+        for label, value in effect_options:
+            self.overlay3_soundwave_effect_combo.addItem(label, value)
+        self.overlay3_soundwave_effect_combo.setCurrentIndex(1)  # Default to 'Fade in'
+        self.selected_overlay3_soundwave_effect = "fadein"
+        def on_overlay3_soundwave_effect_changed(idx):
+            self.selected_overlay3_soundwave_effect = self.overlay3_soundwave_effect_combo.itemData(idx)
+        self.overlay3_soundwave_effect_combo.currentIndexChanged.connect(on_overlay3_soundwave_effect_changed)
+        on_overlay3_soundwave_effect_changed(self.overlay3_soundwave_effect_combo.currentIndex())
+        
+        # Overlay 3 & Soundwave effect layout
+        overlay3_soundwave_effect_layout = QHBoxLayout()
+        overlay3_soundwave_effect_layout.setSpacing(0)
+        overlay3_soundwave_effect_layout.addWidget(overlay3_soundwave_effect_label)
+        overlay3_soundwave_effect_layout.addWidget(self.overlay3_soundwave_effect_combo)
+        overlay3_soundwave_effect_layout.addStretch()
+        overlay_groupbox_3_titles_wave_layout.addLayout(overlay3_soundwave_effect_layout)
+        
+        # --- START TIME CONTROL FOR OVERLAY 3 & SOUNDWAVE ---
+        overlay3_soundwave_start_label = QLabel("Start:")
+        overlay3_soundwave_start_label.setFixedWidth(label_short_width)
+        overlay3_soundwave_start_label.setFixedHeight(unified_height)
+        self.overlay3_soundwave_start_edit = QLineEdit("5")
+        self.overlay3_soundwave_start_edit.setFixedWidth(combo_short_width)
+        self.overlay3_soundwave_start_edit.setFixedHeight(unified_height)
+        self.overlay3_soundwave_start_edit.setValidator(QIntValidator(0, 999, self))
+        self.overlay3_soundwave_start_edit.setPlaceholderText("5")
+        self.overlay3_soundwave_start_time = 5
+        def on_overlay3_soundwave_start_changed():
+            try:
+                self.overlay3_soundwave_start_time = int(self.overlay3_soundwave_start_edit.text())
+            except Exception:
+                self.overlay3_soundwave_start_time = 5
+        self.overlay3_soundwave_start_edit.textChanged.connect(on_overlay3_soundwave_start_changed)
+        on_overlay3_soundwave_start_changed()
+        
+        # Overlay 3 & Soundwave start time layout
+        overlay3_soundwave_start_layout = QHBoxLayout()
+        overlay3_soundwave_start_layout.setSpacing(0)
+        overlay3_soundwave_start_layout.addWidget(overlay3_soundwave_start_label)
+        overlay3_soundwave_start_layout.addWidget(self.overlay3_soundwave_start_edit)
+        overlay3_soundwave_start_layout.addStretch()
+        overlay_groupbox_3_titles_wave_layout.addLayout(overlay3_soundwave_start_layout)
         
         # Overlay 3 controls
         overlay3_label = self.settings.value('overlay3_checkbox_label', " Overlay 3 :", type=str)
@@ -3757,14 +3839,6 @@ class SuperCutUI(QWidget):
             self.overlay3_x_combo.setEnabled(enabled)
             self.overlay3_y_combo.setEnabled(enabled)
             
-            # Also enable/disable song title start at field when overlay 3 is checked
-            # Check if song_title_checkbox exists before accessing it
-            if hasattr(self, 'song_title_checkbox') and hasattr(self, 'song_title_start_edit'):
-                song_title_enabled = self.song_title_checkbox.isChecked()
-                song_title_start_enabled = song_title_enabled or enabled
-                self.song_title_start_edit.setEnabled(song_title_start_enabled)
-                song_title_start_label.setStyleSheet("" if song_title_start_enabled else "color: grey;")
-            
             if enabled:
                 overlay3_btn.setStyleSheet("")
                 self.overlay3_edit.setStyleSheet("")
@@ -3788,6 +3862,9 @@ class SuperCutUI(QWidget):
             # Update song title controls styling to ensure proper appearance
             if hasattr(self, 'song_title_checkbox'):
                 set_song_title_controls_enabled(self.song_title_checkbox.checkState())
+            
+            # Update effect control state
+            set_overlay3_soundwave_effect_enabled()
         self.overlay3_checkbox.stateChanged.connect(lambda _: set_overlay3_enabled(self.overlay3_checkbox.checkState()))
         set_overlay3_enabled(self.overlay3_checkbox.checkState())
         
@@ -4128,11 +4205,6 @@ class SuperCutUI(QWidget):
         # Enable/disable song title controls based on checkbox
         def set_song_title_controls_enabled(state):
             enabled = state == Qt.CheckState.Checked
-            # Check if overlay3_checkbox exists before accessing it
-            overlay3_enabled = self.overlay3_checkbox.isChecked() if hasattr(self, 'overlay3_checkbox') else False
-            
-            # Song title start at field should be enabled if either song title checkbox OR overlay 3 is checked
-            song_title_start_enabled = enabled or overlay3_enabled
             
             self.song_title_effect_combo.setEnabled(enabled)
             self.song_title_font_combo.setEnabled(enabled)
@@ -4145,11 +4217,11 @@ class SuperCutUI(QWidget):
             self.song_title_scale_combo.setEnabled(enabled)
             self.song_title_x_combo.setEnabled(enabled)
             self.song_title_y_combo.setEnabled(enabled)
-            self.song_title_start_edit.setEnabled(song_title_start_enabled)
+            self.song_title_start_edit.setEnabled(enabled)
             song_title_effect_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_x_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_y_label.setStyleSheet("" if enabled else "color: grey;")
-            song_title_start_label.setStyleSheet("" if song_title_start_enabled else "color: grey;")
+            song_title_start_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_color_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_bg_label.setStyleSheet("" if enabled else "color: grey;")
             song_title_bg_color_btn_label.setStyleSheet("" if enabled else "color: grey;")
@@ -4176,8 +4248,8 @@ class SuperCutUI(QWidget):
                 self.song_title_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
                 self.song_title_bg_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
                 self.song_title_text_effect_color_btn.setStyleSheet("background-color: #f2f2f2; border: 1px solid #cfcfcf;")
-                # Only grey out song title start edit if both song title and overlay 3 are disabled
-                if not song_title_start_enabled:
+                # Grey out song title start edit if song title is disabled
+                if not enabled:
                     self.song_title_start_edit.setStyleSheet(grey_btn_style)
                 else:
                     self.song_title_start_edit.setStyleSheet("")
@@ -7688,6 +7760,9 @@ class SuperCutUI(QWidget):
         last_item_label_layout.addWidget(self.last_item_label)
         last_item_label_layout.addStretch()
         layout.addLayout(last_item_label_layout)
+        
+        # Initialize overlay 3 & soundwave effect control state
+        set_overlay3_soundwave_effect_enabled()
     def create_action_buttons(self, layout):
         """Create action buttons"""
 
@@ -8713,8 +8788,6 @@ class SuperCutUI(QWidget):
             # Song title controls
             if hasattr(self, 'song_title_checkbox'):
                 song_title_enabled = self.song_title_checkbox.isChecked()
-                overlay3_enabled = hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked()
-                song_title_start_enabled = song_title_enabled or overlay3_enabled
                 
                 for attr in ['song_title_effect_combo', 'song_title_font_combo', 'song_title_color_btn',
                             'song_title_bg_combo', 'song_title_opacity_combo', 'song_title_text_effect_combo',
@@ -8736,7 +8809,7 @@ class SuperCutUI(QWidget):
                             getattr(self, attr).setEnabled(text_effect_enabled)
                 
                 if hasattr(self, 'song_title_start_edit'):
-                    self.song_title_start_edit.setEnabled(song_title_start_enabled)
+                    self.song_title_start_edit.setEnabled(song_title_enabled)
             
             # Soundwave controls
             if hasattr(self, 'soundwave_checkbox'):
@@ -9046,7 +9119,7 @@ class SuperCutUI(QWidget):
             use_overlay=self.overlay_checkbox.isChecked(), min_mp3_count=min_mp3_count, overlay1_path=self.overlay1_path, overlay1_size_percent=self.overlay1_size_percent, overlay1_x_percent=self.overlay1_x_percent, overlay1_y_percent=self.overlay1_y_percent,
             use_overlay2=self.overlay2_checkbox.isChecked(), overlay2_path=self.overlay2_path, overlay2_size_percent=self.overlay2_size_percent, overlay2_x_percent=self.overlay2_x_percent, overlay2_y_percent=self.overlay2_y_percent,
             overlay1_start_at=overlay1_start_at, overlay2_start_at=overlay2_start_at,            
-            use_overlay3=self.overlay3_checkbox.isChecked(), overlay3_path=self.overlay3_path, overlay3_size_percent=self.overlay3_size_percent, overlay3_x_percent=self.overlay3_x_percent, overlay3_y_percent=self.overlay3_y_percent,
+            use_overlay3=self.overlay3_checkbox.isChecked(), overlay3_path=self.overlay3_path, overlay3_size_percent=self.overlay3_size_percent, overlay3_x_percent=self.overlay3_x_percent, overlay3_y_percent=self.overlay3_y_percent, overlay3_effect=self.selected_overlay3_soundwave_effect,
             use_overlay4=self.overlay4_checkbox.isChecked(), overlay4_path=self.overlay4_path, overlay4_size_percent=self.overlay4_size_percent, overlay4_x_percent=self.overlay4_x_percent, overlay4_y_percent=self.overlay4_y_percent,
             use_overlay5=self.overlay5_checkbox.isChecked(), overlay5_path=self.overlay5_path, overlay5_size_percent=self.overlay5_size_percent, overlay5_x_percent=self.overlay5_x_percent, overlay5_y_percent=self.overlay5_y_percent,
             use_intro=self.intro_checkbox.isChecked(), intro_path=self.intro_path, intro_size_percent=self.intro_size_percent, intro_x_percent=self.intro_x_percent, intro_y_percent=self.intro_y_percent,
@@ -9193,6 +9266,8 @@ class SuperCutUI(QWidget):
             soundwave_size_percent=self.soundwave_size_percent if hasattr(self, 'soundwave_size_percent') else 50,
             soundwave_x_percent=self.soundwave_x_percent if hasattr(self, 'soundwave_x_percent') else 50,
             soundwave_y_percent=self.soundwave_y_percent if hasattr(self, 'soundwave_y_percent') else 50,
+            soundwave_effect=self.selected_overlay3_soundwave_effect if hasattr(self, 'selected_overlay3_soundwave_effect') else "fadein",
+            soundwave_start_time=self.overlay3_soundwave_start_time if hasattr(self, 'overlay3_soundwave_start_time') else 5,
             # --- Add layer order parameter ---
             layer_order=getattr(self, 'layer_order', None),
             # --- Add filter complex alt mode parameter ---
@@ -10665,8 +10740,8 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             song_title_bg_color=song_title_bg_color,
                             song_title_opacity=song_title_opacity,
                             song_title_scale_percent=song_title_scale_percent,
-                            overlay3_effect="fadein",
-                            overlay3_start_time=song_title_start_at if (use_song_title_overlay and song_title_start_at is not None) else 5,
+                            overlay3_effect=self.selected_overlay3_soundwave_effect,
+                            overlay3_start_time=self.overlay3_soundwave_start_time if hasattr(self, 'overlay3_soundwave_start_time') else 5,
                             overlay4_effect=overlay4_effect,
                             overlay4_start_time=overlay4_start_time,
                             overlay4_duration=overlay4_duration,
