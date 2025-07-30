@@ -109,7 +109,7 @@ class SettingsDialog(QDialog):
         self.selected_fps = None
         main_layout = QtWidgets.QVBoxLayout(self)        
         # Add Settings label at the top
-        main_layout.addSpacing(20)  # Move label up by 20px
+        main_layout.addSpacing(5)  # Move label up by 20px
         
         # Create horizontal layout for button and title with fixed position
         title_layout = QHBoxLayout()
@@ -152,7 +152,7 @@ class SettingsDialog(QDialog):
         
         main_layout.addLayout(title_layout)
         # Add Default button below Settings label  
-        main_layout.addSpacing(15)      
+        main_layout.addSpacing(5)      
 
         # --- Three-column layout ---
         columns_layout = QHBoxLayout()
@@ -538,7 +538,7 @@ class SettingsDialog(QDialog):
         columns_layout.addWidget(right_group)
         columns_layout.addSpacing(20)
         main_layout.addLayout(columns_layout)
-        main_layout.addSpacing(15)
+        main_layout.addSpacing(5)
 
         self.reset_btn = QPushButton("Reset")
         self.reset_btn.setFixedSize(70, 32)
@@ -568,7 +568,7 @@ class SettingsDialog(QDialog):
         # Make Enter key trigger save button
         self.save_btn.setDefault(True)
         self.save_btn.setAutoDefault(True)
-        self.setFixedSize(860, 640)
+        self.setFixedSize(860, 740)
         
         # Add Ctrl+W shortcut to close dialog
         self.shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
@@ -609,39 +609,23 @@ class SettingsDialog(QDialog):
 
         # Add advanced settings to right_form
         
-        right_form.addRow("Intro Checkbox:", self.intro_checkbox_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Background Label:", self.background_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Overlay 1 Label:", self.overlay1_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Overlay 2 Label:", self.overlay2_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Frame Box Label:", self.frame_box_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Song Titles Label:", self.song_titles_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Soundwave Label:", self.soundwave_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Overlay 3 Label:", self.overlay3_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Overlay 4 Label:", self.overlay4_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Overlay 5 Label:", self.overlay5_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Overlay 6 Label:", self.overlay6_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Overlay 7 Label:", self.overlay7_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Overlay 8 Label:", self.overlay8_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Overlay 9 Label:", self.overlay9_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Overlay 10 Label:", self.overlay10_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Frame MP3 Cover Label:", self.frame_mp3cover_label_edit)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("MP3 Cover Overlay Label:", self.mp3_cover_overlay_label_edit)
+        right_form.addRow("Intro:", self.intro_checkbox_label_edit)
+        right_form.addRow("Background :", self.background_label_edit)
+        right_form.addRow("Overlay 1 :", self.overlay1_label_edit)
+        right_form.addRow("Overlay 2 :", self.overlay2_label_edit)
+        right_form.addRow("Frame Box :", self.frame_box_label_edit)
+        right_form.addRow("Song Titles :", self.song_titles_label_edit)
+        right_form.addRow("Soundwave :", self.soundwave_label_edit)
+        right_form.addRow("Overlay 3 :", self.overlay3_label_edit)
+        right_form.addRow("Overlay 4 :", self.overlay4_label_edit)
+        right_form.addRow("Overlay 5 :", self.overlay5_label_edit)
+        right_form.addRow("Overlay 6 :", self.overlay6_label_edit)
+        right_form.addRow("Overlay 7 :", self.overlay7_label_edit)
+        right_form.addRow("Overlay 8 :", self.overlay8_label_edit)
+        right_form.addRow("Overlay 9 :", self.overlay9_label_edit)
+        right_form.addRow("Overlay 10 :", self.overlay10_label_edit)
+        right_form.addRow("Frame MP3 :", self.frame_mp3cover_label_edit)
+        right_form.addRow("MP3 Cover :", self.mp3_cover_overlay_label_edit)
         
 
     def accept(self):
@@ -760,7 +744,7 @@ class SettingsDialog(QDialog):
         # Intro Checkbox Label
         self.intro_checkbox_label_edit.setText(" Intro :")
         # Layer Label Customizations
-        self.background_label_edit.setText(" Background :")
+        self.background_label_edit.setText("BG layer")
         self.overlay1_label_edit.setText(" Overlay 1 :")
         self.overlay2_label_edit.setText(" Overlay 2 :")
         self.overlay3_label_edit.setText(" Overlay 3 :")
@@ -772,8 +756,8 @@ class SettingsDialog(QDialog):
         self.overlay9_label_edit.setText(" Overlay 9 :")
         self.overlay10_label_edit.setText(" Overlay 10 :")
         self.frame_box_label_edit.setText(" Frame Box :")
-        self.frame_mp3cover_label_edit.setText(" Frame MP3 Cover :")
-        self.mp3_cover_overlay_label_edit.setText(" MP3 Cover Overlay :")
+        self.frame_mp3cover_label_edit.setText(" Frame MP3 :")
+        self.mp3_cover_overlay_label_edit.setText(" MP3 Cover :")
         self.song_titles_label_edit.setText(" Song Titles :")
         self.soundwave_label_edit.setText(" Soundwave :")
 class NameListDialog(QDialog):
