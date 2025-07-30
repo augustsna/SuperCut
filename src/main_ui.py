@@ -1430,10 +1430,11 @@ class SuperCutUI(QWidget):
         media_sources_layout = QHBoxLayout()
         label_media = QLabel("Media Folder:")
         label_media.setFixedWidth(folder_row_style["label_width"])
+        label_media.setFixedHeight(34)
         self.media_sources_edit = FolderDropLineEdit()
         self.media_sources_edit.setReadOnly(False)
         self.media_sources_edit.setMinimumWidth(folder_row_style["edit_min_width"])
-        self.media_sources_edit.setFixedHeight(32)
+        self.media_sources_edit.setFixedHeight(34)
         self.media_sources_edit.setPlaceholderText("Drag & drop or click Select Folder")
         self.media_sources_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
         def clean_media_folder_path():
@@ -1444,7 +1445,8 @@ class SuperCutUI(QWidget):
                 if cleaned_text != current_text:
                     self.media_sources_edit.setText(cleaned_text)
         self.media_sources_edit.textChanged.connect(clean_media_folder_path)
-        media_sources_btn = QPushButton("Select Folder")        
+        media_sources_btn = QPushButton("Select Folder")
+        media_sources_btn.setFixedHeight(34)
         media_sources_btn.setFixedWidth(folder_row_style["btn_width"]) 
         media_sources_btn.clicked.connect(self.select_media_sources_folder)
         self.media_sources_select_btn = media_sources_btn
@@ -1461,7 +1463,7 @@ class SuperCutUI(QWidget):
         self.folder_edit = FolderDropLineEdit()
         self.folder_edit.setReadOnly(False)
         self.folder_edit.setMinimumWidth(folder_row_style["edit_min_width"])
-        self.folder_edit.setFixedHeight(32)
+        self.folder_edit.setFixedHeight(34)
         self.folder_edit.setPlaceholderText("Drag & drop or click Select Folder")
         self.folder_edit.setToolTip("Drag and drop a folder here or click 'Select Folder'")
         def clean_output_folder_path():
