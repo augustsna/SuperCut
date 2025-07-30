@@ -604,38 +604,105 @@ class LayerManagerDialog(QWidget):
     """Window for managing layer order"""
     
     def __init__(self, parent=None, saved_order=None):
-        super().__init__(None)  # Make it a top-level window
-        self.setWindowTitle("Layer Order Manager")
-        # Make it frameless for headless appearance
+        super().__init__()
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
         self.setMinimumSize(500, 520)  # Increased height to give more space for the list
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)  # Enable rounded corners
         self.saved_order = saved_order
         self.main_window = parent  # Store parent reference for live updates
         
-        # Default layer configuration
+        # Load custom layer labels from settings
+        self.custom_labels = self.load_custom_labels()
+        
+        # Default layer configuration with custom labels
         self.default_layers = [
-            {'id': 'background', 'name': 'Background Image', 'enabled': True},
-            {'id': 'overlay1', 'name': 'Overlay 1', 'enabled': False},
-            {'id': 'overlay2', 'name': 'Overlay 2', 'enabled': False},
-            {'id': 'overlay3', 'name': 'Overlay 3', 'enabled': False},
-            {'id': 'overlay4', 'name': 'Overlay 4', 'enabled': False},
-            {'id': 'overlay5', 'name': 'Overlay 5', 'enabled': False},
-            {'id': 'overlay6', 'name': 'Overlay 6', 'enabled': False},
-            {'id': 'overlay7', 'name': 'Overlay 7', 'enabled': False},
-            {'id': 'overlay8', 'name': 'Overlay 8', 'enabled': False},
-            {'id': 'overlay9', 'name': 'Overlay 9', 'enabled': False},
-            {'id': 'overlay10', 'name': 'Overlay 10', 'enabled': False},            
-            {'id': 'intro', 'name': 'Intro', 'enabled': False},
-            {'id': 'frame_box', 'name': 'Frame Box', 'enabled': False},
-            {'id': 'frame_mp3cover', 'name': 'Frame MP3 Cover', 'enabled': False},
-            {'id': 'mp3_cover_overlay', 'name': 'MP3 Cover Overlay', 'enabled': False},
-            {'id': 'song_titles', 'name': 'Song Titles', 'enabled': False},
-            {'id': 'soundwave', 'name': 'Soundwave', 'enabled': False},
+            {'id': 'background', 'name': self.custom_labels.get('background', ' Background :'), 'enabled': True},
+            {'id': 'overlay1', 'name': self.custom_labels.get('overlay1', ' Overlay 1 :'), 'enabled': False},
+            {'id': 'overlay2', 'name': self.custom_labels.get('overlay2', ' Overlay 2 :'), 'enabled': False},
+            {'id': 'overlay3', 'name': self.custom_labels.get('overlay3', ' Overlay 3 :'), 'enabled': False},
+            {'id': 'overlay4', 'name': self.custom_labels.get('overlay4', ' Overlay 4 :'), 'enabled': False},
+            {'id': 'overlay5', 'name': self.custom_labels.get('overlay5', ' Overlay 5 :'), 'enabled': False},
+            {'id': 'overlay6', 'name': self.custom_labels.get('overlay6', ' Overlay 6 :'), 'enabled': False},
+            {'id': 'overlay7', 'name': self.custom_labels.get('overlay7', ' Overlay 7 :'), 'enabled': False},
+            {'id': 'overlay8', 'name': self.custom_labels.get('overlay8', ' Overlay 8 :'), 'enabled': False},
+            {'id': 'overlay9', 'name': self.custom_labels.get('overlay9', ' Overlay 9 :'), 'enabled': False},
+            {'id': 'overlay10', 'name': self.custom_labels.get('overlay10', ' Overlay 10 :'), 'enabled': False},            
+            {'id': 'intro', 'name': self.custom_labels.get('intro', ' Intro :'), 'enabled': False},
+            {'id': 'frame_box', 'name': self.custom_labels.get('frame_box', ' Frame Box :'), 'enabled': False},
+            {'id': 'frame_mp3cover', 'name': self.custom_labels.get('frame_mp3cover', ' Frame MP3 Cover :'), 'enabled': False},
+            {'id': 'mp3_cover_overlay', 'name': self.custom_labels.get('mp3_cover_overlay', ' MP3 Cover Overlay :'), 'enabled': False},
+            {'id': 'song_titles', 'name': self.custom_labels.get('song_titles', ' Song Titles :'), 'enabled': False},
+            {'id': 'soundwave', 'name': self.custom_labels.get('soundwave', ' Soundwave :'), 'enabled': False},
         ]
         
-        self.init_ui()
+
         
+        self.init_ui()
+    
+    def load_custom_labels(self):
+        """Load custom layer labels from settings"""
+        custom_labels = {}
+        
+        # Import QSettings here to avoid circular imports
+        from PyQt6.QtCore import QSettings
+        
+        # Create settings object - use same configuration as main_ui.py
+        settings = QSettings('SuperCut', 'SuperCutUI')
+        
+        # Load custom labels for each layer type with validation
+        custom_labels['background'] = settings.value('background_checkbox_label', ' Background :', type=str) or ' Background :'
+        custom_labels['overlay1'] = settings.value('overlay1_checkbox_label', ' Overlay 1 :', type=str) or ' Overlay 1 :'
+        custom_labels['overlay2'] = settings.value('overlay2_checkbox_label', ' Overlay 2 :', type=str) or ' Overlay 2 :'
+        custom_labels['frame_box'] = settings.value('frame_box_checkbox_label', ' Frame Box :', type=str) or ' Frame Box :'
+        custom_labels['song_titles'] = settings.value('song_titles_checkbox_label', ' Song Titles :', type=str) or ' Song Titles :'
+        custom_labels['soundwave'] = settings.value('soundwave_checkbox_label', ' Soundwave :', type=str) or ' Soundwave :'
+        custom_labels['intro'] = settings.value('intro_checkbox_label', ' Intro :', type=str) or ' Intro :'
+        
+        # For overlays 3-10, load from settings with consistent default format and validation
+        for i in range(3, 11):
+            custom_labels[f'overlay{i}'] = settings.value(f'overlay{i}_checkbox_label', f' Overlay {i} :', type=str) or f' Overlay {i} :'
+        
+        # For frame_mp3cover and mp3_cover_overlay, load from settings with validation
+        custom_labels['frame_mp3cover'] = settings.value('frame_mp3cover_checkbox_label', ' Frame MP3 Cover :', type=str) or ' Frame MP3 Cover :'
+        custom_labels['mp3_cover_overlay'] = settings.value('mp3_cover_overlay_checkbox_label', ' MP3 Cover Overlay :', type=str) or ' MP3 Cover Overlay :'
+        
+
+        
+        return custom_labels
+    
+    def update_layer_labels(self):
+        """Update layer labels from settings and refresh the display"""
+        
+        # Reload custom labels
+        self.custom_labels = self.load_custom_labels()
+        
+        # Update default_layers with new labels
+        for layer in self.default_layers:
+            layer_id = layer['id']
+            if layer_id in self.custom_labels:
+                layer['name'] = self.custom_labels[layer_id]
+        
+        # Rebuild the layer list if it exists, preserving current state
+        if hasattr(self, 'layer_manager') and hasattr(self.layer_manager, 'layer_list'):
+            # Store current state before rebuilding
+            current_states = {}
+            for i in range(self.layer_manager.layer_list.count()):
+                item = self.layer_manager.layer_list.item(i)
+                if isinstance(item, LayerItem):
+                    current_states[item.layer_id] = item.checkState() == Qt.CheckState.Checked
+            
+            # Rebuild with new labels
+            self.layer_manager.setup_layers(self.default_layers, self.saved_order)
+            
+            # Restore current states
+            for i in range(self.layer_manager.layer_list.count()):
+                item = self.layer_manager.layer_list.item(i)
+                if isinstance(item, LayerItem) and item.layer_id in current_states:
+                    if current_states[item.layer_id]:
+                        item.setCheckState(Qt.CheckState.Checked)
+                    else:
+                        item.setCheckState(Qt.CheckState.Unchecked)
+    
     def init_ui(self):
         """Initialize the dialog UI"""
         layout = QVBoxLayout(self)
@@ -1009,8 +1076,8 @@ class DraggableHeader(QWidget):
         
     def mousePressEvent(self, event: QMouseEvent):
         """Handle mouse press for window dragging"""
-        # Only allow dragging if parent is the layer dialog itself
-        if event.button() == Qt.MouseButton.LeftButton and isinstance(self.parent_window, QWidget) and self.parent_window.windowTitle() == "Layer Order Manager":
+        # Allow dragging for any QWidget parent (layer dialog)
+        if event.button() == Qt.MouseButton.LeftButton and isinstance(self.parent_window, QWidget):
             self.dragging = True
             self.drag_position = event.globalPosition().toPoint() - self.parent_window.frameGeometry().topLeft()
             event.accept()
@@ -1019,7 +1086,7 @@ class DraggableHeader(QWidget):
             
     def mouseMoveEvent(self, event: QMouseEvent):
         """Handle mouse move for window dragging"""
-        if event.buttons() == Qt.MouseButton.LeftButton and self.dragging and isinstance(self.parent_window, QWidget) and self.parent_window.windowTitle() == "Layer Order Manager":
+        if event.buttons() == Qt.MouseButton.LeftButton and self.dragging and isinstance(self.parent_window, QWidget):
             self.parent_window.move(event.globalPosition().toPoint() - self.drag_position)
             event.accept()
         else:

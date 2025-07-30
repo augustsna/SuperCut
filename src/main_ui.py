@@ -354,6 +354,160 @@ class SettingsDialog(QDialog):
         else:
             default_intro_label = " Intro :"
         self.intro_checkbox_label_edit.setText(default_intro_label)
+
+        # --- Layer Label Customization Settings ---
+        # Background Layer Label
+        self.background_label_edit = QLineEdit()
+        self.background_label_edit.setFixedWidth(120)
+        self.background_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_background_label = self.settings.value('background_checkbox_label', " Background :", type=str)
+        else:
+            default_background_label = " Background :"
+        self.background_label_edit.setText(default_background_label)
+
+        # Overlay 1 Label
+        self.overlay1_label_edit = QLineEdit()
+        self.overlay1_label_edit.setFixedWidth(120)
+        self.overlay1_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_overlay1_label = self.settings.value('overlay1_checkbox_label', " Overlay 1 :", type=str)
+        else:
+            default_overlay1_label = " Overlay 1 :"
+        self.overlay1_label_edit.setText(default_overlay1_label)
+
+        # Overlay 2 Label
+        self.overlay2_label_edit = QLineEdit()
+        self.overlay2_label_edit.setFixedWidth(120)
+        self.overlay2_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_overlay2_label = self.settings.value('overlay2_checkbox_label', " Overlay 2 :", type=str)
+        else:
+            default_overlay2_label = " Overlay 2 :"
+        self.overlay2_label_edit.setText(default_overlay2_label)
+
+        # Frame Box Label
+        self.frame_box_label_edit = QLineEdit()
+        self.frame_box_label_edit.setFixedWidth(120)
+        self.frame_box_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_frame_box_label = self.settings.value('frame_box_checkbox_label', " Frame Box :", type=str)
+        else:
+            default_frame_box_label = " Frame Box :"
+        self.frame_box_label_edit.setText(default_frame_box_label)
+
+        # Song Titles Label
+        self.song_titles_label_edit = QLineEdit()
+        self.song_titles_label_edit.setFixedWidth(120)
+        self.song_titles_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_song_titles_label = self.settings.value('song_titles_checkbox_label', " Song Titles :", type=str)
+        else:
+            default_song_titles_label = " Song Titles :"
+        self.song_titles_label_edit.setText(default_song_titles_label)
+
+        # Soundwave Label
+        self.soundwave_label_edit = QLineEdit()
+        self.soundwave_label_edit.setFixedWidth(120)
+        self.soundwave_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_soundwave_label = self.settings.value('soundwave_checkbox_label', " Soundwave :", type=str)
+        else:
+            default_soundwave_label = " Soundwave :"
+        self.soundwave_label_edit.setText(default_soundwave_label)
+
+        # Overlay 3-10 Labels
+        self.overlay3_label_edit = QLineEdit()
+        self.overlay3_label_edit.setFixedWidth(120)
+        self.overlay3_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_overlay3_label = self.settings.value('overlay3_checkbox_label', " Overlay 3 :", type=str)
+        else:
+            default_overlay3_label = " Overlay 3 :"
+        self.overlay3_label_edit.setText(default_overlay3_label)
+
+        self.overlay4_label_edit = QLineEdit()
+        self.overlay4_label_edit.setFixedWidth(120)
+        self.overlay4_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_overlay4_label = self.settings.value('overlay4_checkbox_label', " Overlay 4 :", type=str)
+        else:
+            default_overlay4_label = " Overlay 4 :"
+        self.overlay4_label_edit.setText(default_overlay4_label)
+
+        self.overlay5_label_edit = QLineEdit()
+        self.overlay5_label_edit.setFixedWidth(120)
+        self.overlay5_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_overlay5_label = self.settings.value('overlay5_checkbox_label', " Overlay 5 :", type=str)
+        else:
+            default_overlay5_label = " Overlay 5 :"
+        self.overlay5_label_edit.setText(default_overlay5_label)
+
+        self.overlay6_label_edit = QLineEdit()
+        self.overlay6_label_edit.setFixedWidth(120)
+        self.overlay6_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_overlay6_label = self.settings.value('overlay6_checkbox_label', " Overlay 6 :", type=str)
+        else:
+            default_overlay6_label = " Overlay 6 :"
+        self.overlay6_label_edit.setText(default_overlay6_label)
+
+        self.overlay7_label_edit = QLineEdit()
+        self.overlay7_label_edit.setFixedWidth(120)
+        self.overlay7_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_overlay7_label = self.settings.value('overlay7_checkbox_label', " Overlay 7 :", type=str)
+        else:
+            default_overlay7_label = " Overlay 7 :"
+        self.overlay7_label_edit.setText(default_overlay7_label)
+
+        self.overlay8_label_edit = QLineEdit()
+        self.overlay8_label_edit.setFixedWidth(120)
+        self.overlay8_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_overlay8_label = self.settings.value('overlay8_checkbox_label', " Overlay 8 :", type=str)
+        else:
+            default_overlay8_label = " Overlay 8 :"
+        self.overlay8_label_edit.setText(default_overlay8_label)
+
+        self.overlay9_label_edit = QLineEdit()
+        self.overlay9_label_edit.setFixedWidth(120)
+        self.overlay9_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_overlay9_label = self.settings.value('overlay9_checkbox_label', " Overlay 9 :", type=str)
+        else:
+            default_overlay9_label = " Overlay 9 :"
+        self.overlay9_label_edit.setText(default_overlay9_label)
+
+        self.overlay10_label_edit = QLineEdit()
+        self.overlay10_label_edit.setFixedWidth(120)
+        self.overlay10_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_overlay10_label = self.settings.value('overlay10_checkbox_label', " Overlay 10 :", type=str)
+        else:
+            default_overlay10_label = " Overlay 10 :"
+        self.overlay10_label_edit.setText(default_overlay10_label)
+
+        # Frame MP3 Cover Label
+        self.frame_mp3cover_label_edit = QLineEdit()
+        self.frame_mp3cover_label_edit.setFixedWidth(120)
+        self.frame_mp3cover_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_frame_mp3cover_label = self.settings.value('frame_mp3cover_checkbox_label', " Frame MP3 Cover :", type=str)
+        else:
+            default_frame_mp3cover_label = " Frame MP3 Cover :"
+        self.frame_mp3cover_label_edit.setText(default_frame_mp3cover_label)
+
+        # MP3 Cover Overlay Label
+        self.mp3_cover_overlay_label_edit = QLineEdit()
+        self.mp3_cover_overlay_label_edit.setFixedWidth(120)
+        self.mp3_cover_overlay_label_edit.setPlaceholderText("Enter label text")
+        if self.settings is not None:
+            default_mp3_cover_overlay_label = self.settings.value('mp3_cover_overlay_checkbox_label', " MP3 Cover Overlay :", type=str)
+        else:
+            default_mp3_cover_overlay_label = " MP3 Cover Overlay :"
+        self.mp3_cover_overlay_label_edit.setText(default_mp3_cover_overlay_label)
         
         # Set forms as layouts for group boxes
         left_group.setLayout(left_form)
@@ -438,6 +592,11 @@ class SettingsDialog(QDialog):
         left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Placeholder:", self.show_placeholder_checkbox)
+        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        left_form.addRow("Filter Complex:", self.filter_complex_alt_checkbox)
+        
 
         # Add video/encoding settings to center_form
         center_form.addRow("FPS:", self.fps_combo)
@@ -449,11 +608,40 @@ class SettingsDialog(QDialog):
         center_form.addRow("Buffsize:", self.buffsize_combo)
 
         # Add advanced settings to right_form
-        right_form.addRow("Placeholder:", self.show_placeholder_checkbox)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        right_form.addRow("Filter Complex:", self.filter_complex_alt_checkbox)
-        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        
         right_form.addRow("Intro Checkbox:", self.intro_checkbox_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Background Label:", self.background_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Overlay 1 Label:", self.overlay1_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Overlay 2 Label:", self.overlay2_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Frame Box Label:", self.frame_box_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Song Titles Label:", self.song_titles_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Soundwave Label:", self.soundwave_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Overlay 3 Label:", self.overlay3_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Overlay 4 Label:", self.overlay4_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Overlay 5 Label:", self.overlay5_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Overlay 6 Label:", self.overlay6_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Overlay 7 Label:", self.overlay7_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Overlay 8 Label:", self.overlay8_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Overlay 9 Label:", self.overlay9_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Overlay 10 Label:", self.overlay10_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Frame MP3 Cover Label:", self.frame_mp3cover_label_edit)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("MP3 Cover Overlay Label:", self.mp3_cover_overlay_label_edit)
         
 
     def accept(self):
@@ -502,7 +690,47 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_ffmpeg_bufsize', self.buffsize_combo.currentData())
             self.settings.setValue('show_placeholder_controls', self.show_placeholder_checkbox.isChecked())
             self.settings.setValue('filter_complex_alt_mode', self.filter_complex_alt_checkbox.isChecked())
-            self.settings.setValue('intro_checkbox_label', self.intro_checkbox_label_edit.text().strip())
+            # Validate and save layer label customizations
+            intro_label = self.intro_checkbox_label_edit.text().strip()
+            if not intro_label:
+                intro_label = " Intro :"  # Fallback to default if empty
+            self.settings.setValue('intro_checkbox_label', intro_label)
+            
+            # Save layer label customizations with validation
+            # Validate and save each label with fallback to defaults
+            background_label = self.background_label_edit.text().strip() or " Background :"
+            overlay1_label = self.overlay1_label_edit.text().strip() or " Overlay 1 :"
+            overlay2_label = self.overlay2_label_edit.text().strip() or " Overlay 2 :"
+            overlay3_label = self.overlay3_label_edit.text().strip() or " Overlay 3 :"
+            overlay4_label = self.overlay4_label_edit.text().strip() or " Overlay 4 :"
+            overlay5_label = self.overlay5_label_edit.text().strip() or " Overlay 5 :"
+            overlay6_label = self.overlay6_label_edit.text().strip() or " Overlay 6 :"
+            overlay7_label = self.overlay7_label_edit.text().strip() or " Overlay 7 :"
+            overlay8_label = self.overlay8_label_edit.text().strip() or " Overlay 8 :"
+            overlay9_label = self.overlay9_label_edit.text().strip() or " Overlay 9 :"
+            overlay10_label = self.overlay10_label_edit.text().strip() or " Overlay 10 :"
+            frame_box_label = self.frame_box_label_edit.text().strip() or " Frame Box :"
+            frame_mp3cover_label = self.frame_mp3cover_label_edit.text().strip() or " Frame MP3 Cover :"
+            mp3_cover_overlay_label = self.mp3_cover_overlay_label_edit.text().strip() or " MP3 Cover Overlay :"
+            song_titles_label = self.song_titles_label_edit.text().strip() or " Song Titles :"
+            soundwave_label = self.soundwave_label_edit.text().strip() or " Soundwave :"
+            
+            self.settings.setValue('background_checkbox_label', background_label)
+            self.settings.setValue('overlay1_checkbox_label', overlay1_label)
+            self.settings.setValue('overlay2_checkbox_label', overlay2_label)
+            self.settings.setValue('overlay3_checkbox_label', overlay3_label)
+            self.settings.setValue('overlay4_checkbox_label', overlay4_label)
+            self.settings.setValue('overlay5_checkbox_label', overlay5_label)
+            self.settings.setValue('overlay6_checkbox_label', overlay6_label)
+            self.settings.setValue('overlay7_checkbox_label', overlay7_label)
+            self.settings.setValue('overlay8_checkbox_label', overlay8_label)
+            self.settings.setValue('overlay9_checkbox_label', overlay9_label)
+            self.settings.setValue('overlay10_checkbox_label', overlay10_label)
+            self.settings.setValue('frame_box_checkbox_label', frame_box_label)
+            self.settings.setValue('frame_mp3cover_checkbox_label', frame_mp3cover_label)
+            self.settings.setValue('mp3_cover_overlay_checkbox_label', mp3_cover_overlay_label)
+            self.settings.setValue('song_titles_checkbox_label', song_titles_label)
+            self.settings.setValue('soundwave_checkbox_label', soundwave_label)
         super().accept()
 
     def reset_to_defaults(self):
@@ -531,6 +759,23 @@ class SettingsDialog(QDialog):
         self.default_window_height_edit.setText(str(WINDOW_SIZE[1]))
         # Intro Checkbox Label
         self.intro_checkbox_label_edit.setText(" Intro :")
+        # Layer Label Customizations
+        self.background_label_edit.setText(" Background :")
+        self.overlay1_label_edit.setText(" Overlay 1 :")
+        self.overlay2_label_edit.setText(" Overlay 2 :")
+        self.overlay3_label_edit.setText(" Overlay 3 :")
+        self.overlay4_label_edit.setText(" Overlay 4 :")
+        self.overlay5_label_edit.setText(" Overlay 5 :")
+        self.overlay6_label_edit.setText(" Overlay 6 :")
+        self.overlay7_label_edit.setText(" Overlay 7 :")
+        self.overlay8_label_edit.setText(" Overlay 8 :")
+        self.overlay9_label_edit.setText(" Overlay 9 :")
+        self.overlay10_label_edit.setText(" Overlay 10 :")
+        self.frame_box_label_edit.setText(" Frame Box :")
+        self.frame_mp3cover_label_edit.setText(" Frame MP3 Cover :")
+        self.mp3_cover_overlay_label_edit.setText(" MP3 Cover Overlay :")
+        self.song_titles_label_edit.setText(" Song Titles :")
+        self.soundwave_label_edit.setText(" Soundwave :")
 class NameListDialog(QDialog):
     def __init__(self, parent=None, initial_names=None):
         super().__init__(parent)
@@ -1639,7 +1884,12 @@ class SuperCutUI(QWidget):
         layout.addWidget(intro_group_box)
 
         # Move PNG overlay checkbox below video settings
-        self.overlay_checkbox = QtWidgets.QCheckBox("Overlay 1:")
+        # Load custom overlay1 checkbox label from settings
+        if hasattr(self, 'settings') and self.settings is not None:
+            overlay1_label = self.settings.value('overlay1_checkbox_label', " Overlay 1 :", type=str)
+        else:
+            overlay1_label = " Overlay 1 :"
+        self.overlay_checkbox = QtWidgets.QCheckBox(overlay1_label)
         self.overlay_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay_checkbox.setFixedHeight(unified_height)
         self.overlay_checkbox.setChecked(False)
@@ -1789,7 +2039,12 @@ class SuperCutUI(QWidget):
         overlay_groupbox_1_2_layout.setContentsMargins(10, 5, 10, 10)
         overlay_groupbox_1_2_layout.addLayout(overlay1_layout)
         # Overlay 2 controls (similar to Overlay 1)
-        self.overlay2_checkbox = QtWidgets.QCheckBox("Overlay 2:")
+        # Load custom overlay2 checkbox label from settings
+        if hasattr(self, 'settings') and self.settings is not None:
+            overlay2_label = self.settings.value('overlay2_checkbox_label', " Overlay 2 :", type=str)
+        else:
+            overlay2_label = " Overlay 2 :"
+        self.overlay2_checkbox = QtWidgets.QCheckBox(overlay2_label)
         self.overlay2_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay2_checkbox.setFixedHeight(unified_height)
         self.overlay2_checkbox.setChecked(False)
@@ -2179,7 +2434,8 @@ class SuperCutUI(QWidget):
         # Overlay 4 controls 
         def update_overlay4_checkbox_style(state):
             self.overlay4_checkbox.setStyleSheet("")
-        self.overlay4_checkbox = QtWidgets.QCheckBox("Overlay 4:")
+        overlay4_label = self.settings.value('overlay4_checkbox_label', " Overlay 4 :", type=str)
+        self.overlay4_checkbox = QtWidgets.QCheckBox(overlay4_label)
         self.overlay4_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay4_checkbox.setFixedHeight(unified_height)
         self.overlay4_checkbox.setChecked(False)
@@ -2301,7 +2557,8 @@ class SuperCutUI(QWidget):
         # Overlay 5 controls
         def update_overlay5_checkbox_style(state):
             self.overlay5_checkbox.setStyleSheet("")  # Always default color
-        self.overlay5_checkbox = QtWidgets.QCheckBox("Overlay 5:")
+        overlay5_label = self.settings.value('overlay5_checkbox_label', " Overlay 5 :", type=str)
+        self.overlay5_checkbox = QtWidgets.QCheckBox(overlay5_label)
         self.overlay5_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay5_checkbox.setFixedHeight(unified_height)
         self.overlay5_checkbox.setChecked(False)
@@ -2645,7 +2902,8 @@ class SuperCutUI(QWidget):
         layout.addWidget(overlay_groupbox_6_7)
 
          # Overlay 6 controls (similar to Overlay 4)
-        self.overlay6_checkbox = QtWidgets.QCheckBox("Overlay 6:")
+        overlay6_label = self.settings.value('overlay6_checkbox_label', " Overlay 6 :", type=str)
+        self.overlay6_checkbox = QtWidgets.QCheckBox(overlay6_label)
         self.overlay6_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay6_checkbox.setFixedHeight(unified_height)
         self.overlay6_checkbox.setChecked(False)
@@ -2773,7 +3031,8 @@ class SuperCutUI(QWidget):
         set_overlay6_enabled(self.overlay6_checkbox.checkState())
 
         # Overlay 7 controls
-        self.overlay7_checkbox = QtWidgets.QCheckBox("Overlay 7:")
+        overlay7_label = self.settings.value('overlay7_checkbox_label', " Overlay 7 :", type=str)
+        self.overlay7_checkbox = QtWidgets.QCheckBox(overlay7_label)
         self.overlay7_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay7_checkbox.setFixedHeight(unified_height)
         self.overlay7_checkbox.setChecked(False)
@@ -3136,7 +3395,12 @@ class SuperCutUI(QWidget):
         layout.addWidget(overlay_groupbox_3_titles_wave)
 
         # --- SOUNDWAVE OVERLAY CONTROLS ---
-        self.soundwave_checkbox = QtWidgets.QCheckBox("Soundwave:")
+        # Load custom soundwave checkbox label from settings
+        if hasattr(self, 'settings') and self.settings is not None:
+            soundwave_label = self.settings.value('soundwave_checkbox_label', " Soundwave :", type=str)
+        else:
+            soundwave_label = " Soundwave :"
+        self.soundwave_checkbox = QtWidgets.QCheckBox(soundwave_label)
         self.soundwave_checkbox.setFixedWidth(label_checkbox_width)
         self.soundwave_checkbox.setFixedHeight(unified_height)
         self.soundwave_checkbox.setChecked(False)
@@ -3298,7 +3562,8 @@ class SuperCutUI(QWidget):
         overlay_groupbox_3_titles_wave_layout.addLayout(soundwave_layout)
         
         # Overlay 3 controls
-        self.overlay3_checkbox = QtWidgets.QCheckBox("Overlay 3:")
+        overlay3_label = self.settings.value('overlay3_checkbox_label', " Overlay 3 :", type=str)
+        self.overlay3_checkbox = QtWidgets.QCheckBox(overlay3_label)
         self.overlay3_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay3_checkbox.setFixedHeight(unified_height)
         self.overlay3_checkbox.setChecked(False)
@@ -3437,7 +3702,12 @@ class SuperCutUI(QWidget):
         overlay_groupbox_3_titles_wave_layout.addLayout(overlay3_layout)
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
-        self.song_title_checkbox = QtWidgets.QCheckBox("Song Titles:")
+        # Load custom song titles checkbox label from settings
+        if hasattr(self, 'settings') and self.settings is not None:
+            song_titles_label = self.settings.value('song_titles_checkbox_label', " Song Titles :", type=str)
+        else:
+            song_titles_label = " Song Titles :"
+        self.song_title_checkbox = QtWidgets.QCheckBox(song_titles_label)
         self.song_title_checkbox.setFixedWidth(label_checkbox_width)
         self.song_title_checkbox.setFixedHeight(unified_height)
         self.song_title_checkbox.setChecked(False)
@@ -3920,7 +4190,8 @@ class SuperCutUI(QWidget):
         layout.addWidget(overlay_groupbox_8)
 
         # Overlay 8 controls 
-        self.overlay8_checkbox = QtWidgets.QCheckBox("Overlay 8:")
+        overlay8_label = self.settings.value('overlay8_checkbox_label', " Overlay 8 :", type=str)
+        self.overlay8_checkbox = QtWidgets.QCheckBox(overlay8_label)
         self.overlay8_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay8_checkbox.setFixedHeight(unified_height)
         self.overlay8_checkbox.setChecked(False)
@@ -4421,7 +4692,8 @@ class SuperCutUI(QWidget):
         layout.addWidget(overlay_groupbox_9)
 
         # --- OVERLAY 9  ---
-        self.overlay9_checkbox = QtWidgets.QCheckBox("Overlay 9:")
+        overlay9_label = self.settings.value('overlay9_checkbox_label', " Overlay 9 :", type=str)
+        self.overlay9_checkbox = QtWidgets.QCheckBox(overlay9_label)
         self.overlay9_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay9_checkbox.setFixedHeight(unified_height)
         self.overlay9_checkbox.setChecked(False)
@@ -4919,7 +5191,8 @@ class SuperCutUI(QWidget):
         layout.addWidget(overlay_groupbox_10)
 
         # --- OVERLAY 10 ---
-        self.overlay10_checkbox = QtWidgets.QCheckBox("Overlay 10:")
+        overlay10_label = self.settings.value('overlay10_checkbox_label', " Overlay 10 :", type=str)
+        self.overlay10_checkbox = QtWidgets.QCheckBox(overlay10_label)
         self.overlay10_checkbox.setFixedWidth(label_checkbox_width)
         self.overlay10_checkbox.setFixedHeight(unified_height)
         self.overlay10_checkbox.setChecked(False)
@@ -5306,7 +5579,8 @@ class SuperCutUI(QWidget):
         layout.addWidget(frame_mp3cover_groupbox)
 
         # --- FRAME MP3COVER OVERLAY ---
-        self.frame_mp3cover_checkbox = QtWidgets.QCheckBox("Frame mp3:")
+        frame_mp3cover_label = self.settings.value('frame_mp3cover_checkbox_label', " Frame MP3 Cover :", type=str)
+        self.frame_mp3cover_checkbox = QtWidgets.QCheckBox(frame_mp3cover_label)
         self.frame_mp3cover_checkbox.setFixedWidth(label_checkbox_width)
         self.frame_mp3cover_checkbox.setFixedHeight(unified_height)
         self.frame_mp3cover_checkbox.setChecked(False)
@@ -5661,7 +5935,8 @@ class SuperCutUI(QWidget):
         layout.addWidget(mp3_cover_groupbox)
 
         # --- DYNAMIC MP3 COVER OVERLAY ---
-        self.mp3_cover_overlay_checkbox = QtWidgets.QCheckBox("MP3 Cover:")
+        mp3_cover_overlay_label = self.settings.value('mp3_cover_overlay_checkbox_label', " MP3 Cover Overlay :", type=str)
+        self.mp3_cover_overlay_checkbox = QtWidgets.QCheckBox(mp3_cover_overlay_label)
         self.mp3_cover_overlay_checkbox.setFixedWidth(label_checkbox_width)
         self.mp3_cover_overlay_checkbox.setChecked(False)
         def update_mp3_cover_overlay_checkbox_style(state):
@@ -6049,7 +6324,12 @@ class SuperCutUI(QWidget):
         layout.addWidget(frame_box_groupbox)
 
         # --- FRAME BOX OVERLAY ---
-        self.frame_box_checkbox = QtWidgets.QCheckBox("Frame Box:")
+        # Load custom frame box checkbox label from settings
+        if hasattr(self, 'settings') and self.settings is not None:
+            frame_box_label = self.settings.value('frame_box_checkbox_label', " Frame Box :", type=str)
+        else:
+            frame_box_label = " Frame Box :"
+        self.frame_box_checkbox = QtWidgets.QCheckBox(frame_box_label)
         self.frame_box_checkbox.setFixedWidth(label_checkbox_width)
         self.frame_box_checkbox.setFixedHeight(unified_height)
         self.frame_box_checkbox.setChecked(False)
@@ -7086,7 +7366,12 @@ class SuperCutUI(QWidget):
         layout.addWidget(final_settings_groupbox)
 
         # --- BACKGROUND LAYER SCALE CONTROL ---
-        self.bg_layer_checkbox = QtWidgets.QCheckBox("BG Layer:")
+        # Load custom background checkbox label from settings
+        if hasattr(self, 'settings') and self.settings is not None:
+            background_label = self.settings.value('background_checkbox_label', " Background :", type=str)
+        else:
+            background_label = " Background :"
+        self.bg_layer_checkbox = QtWidgets.QCheckBox(background_label)
         self.bg_layer_checkbox.setFixedWidth(label_checkbox_width)
         self.bg_layer_checkbox.setFixedHeight(unified_height)
         self.bg_layer_checkbox.setChecked(False)
@@ -9252,11 +9537,65 @@ class SuperCutUI(QWidget):
             intro_label = self.settings.value('intro_checkbox_label', " Intro :", type=str)
             self.intro_checkbox.setText(intro_label)
 
+        # Update background checkbox label from settings
+        if hasattr(self, 'bg_layer_checkbox'):
+            background_label = self.settings.value('background_checkbox_label', " Background :", type=str)
+            self.bg_layer_checkbox.setText(background_label)
+
+        # Update overlay1 checkbox label from settings
+        if hasattr(self, 'overlay_checkbox'):
+            overlay1_label = self.settings.value('overlay1_checkbox_label', " Overlay 1 :", type=str)
+            self.overlay_checkbox.setText(overlay1_label)
+
+        # Update overlay2 checkbox label from settings
+        if hasattr(self, 'overlay2_checkbox'):
+            overlay2_label = self.settings.value('overlay2_checkbox_label', " Overlay 2 :", type=str)
+            self.overlay2_checkbox.setText(overlay2_label)
+
+        # Update overlay3-10 checkbox labels from settings
+        for i in range(3, 11):
+            checkbox_attr = f'overlay{i}_checkbox'
+            if hasattr(self, checkbox_attr):
+                checkbox = getattr(self, checkbox_attr)
+                label = self.settings.value(f'overlay{i}_checkbox_label', f" Overlay {i} :", type=str)
+                checkbox.setText(label)
+
+        # Update frame box checkbox label from settings
+        if hasattr(self, 'frame_box_checkbox'):
+            frame_box_label = self.settings.value('frame_box_checkbox_label', " Frame Box :", type=str)
+            self.frame_box_checkbox.setText(frame_box_label)
+
+        # Update song titles checkbox label from settings
+        if hasattr(self, 'song_title_checkbox'):
+            song_titles_label = self.settings.value('song_titles_checkbox_label', " Song Titles :", type=str)
+            self.song_title_checkbox.setText(song_titles_label)
+
+        # Update soundwave checkbox label from settings
+        if hasattr(self, 'soundwave_checkbox'):
+            soundwave_label = self.settings.value('soundwave_checkbox_label', " Soundwave :", type=str)
+            self.soundwave_checkbox.setText(soundwave_label)
+
+        # Update frame mp3cover checkbox label from settings
+        if hasattr(self, 'frame_mp3cover_checkbox'):
+            frame_mp3cover_label = self.settings.value('frame_mp3cover_checkbox_label', " Frame MP3 Cover :", type=str)
+            self.frame_mp3cover_checkbox.setText(frame_mp3cover_label)
+
+        # Update mp3 cover overlay checkbox label from settings
+        if hasattr(self, 'mp3_cover_overlay_checkbox'):
+            mp3_cover_overlay_label = self.settings.value('mp3_cover_overlay_checkbox_label', " MP3 Cover Overlay :", type=str)
+            self.mp3_cover_overlay_checkbox.setText(mp3_cover_overlay_label)
+
         # Set preset combo state from settings
         default_preset = self.settings.value('default_ffmpeg_preset', DEFAULT_FFMPEG_PRESET, type=str)
         if default_preset is not None and hasattr(self, 'preset_combo'):
             idx = next((i for i, (label, value) in enumerate(DEFAULT_FFMPEG_PRESETS) if value == default_preset), 1)
             self.preset_combo.setCurrentIndex(idx)
+
+        # Update layer manager labels if it exists and is visible
+        if hasattr(self, 'layer_manager_dialog'):
+            if self.layer_manager_dialog is not None:
+                if self.layer_manager_dialog.isVisible():
+                    self.layer_manager_dialog.update_layer_labels()
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""
