@@ -3719,13 +3719,7 @@ class SuperCutUI(QWidget):
         self.overlay3_soundwave_effect_combo.currentIndexChanged.connect(on_overlay3_soundwave_effect_changed)
         on_overlay3_soundwave_effect_changed(self.overlay3_soundwave_effect_combo.currentIndex())
         
-        # Overlay 3 & Soundwave effect layout
-        overlay3_soundwave_effect_layout = QHBoxLayout()
-        overlay3_soundwave_effect_layout.setSpacing(0)
-        overlay3_soundwave_effect_layout.addWidget(overlay3_soundwave_effect_label)
-        overlay3_soundwave_effect_layout.addWidget(self.overlay3_soundwave_effect_combo)
-        overlay3_soundwave_effect_layout.addStretch()
-        overlay_groupbox_3_titles_wave_layout.addLayout(overlay3_soundwave_effect_layout)
+        
         
         # --- START TIME CONTROL FOR OVERLAY 3 & SOUNDWAVE ---
         overlay3_soundwave_start_label = QLabel("Start:")
@@ -3744,14 +3738,6 @@ class SuperCutUI(QWidget):
                 self.overlay3_soundwave_start_time = 5
         self.overlay3_soundwave_start_edit.textChanged.connect(on_overlay3_soundwave_start_changed)
         on_overlay3_soundwave_start_changed()
-        
-        # Overlay 3 & Soundwave start time layout
-        overlay3_soundwave_start_layout = QHBoxLayout()
-        overlay3_soundwave_start_layout.setSpacing(0)
-        overlay3_soundwave_start_layout.addWidget(overlay3_soundwave_start_label)
-        overlay3_soundwave_start_layout.addWidget(self.overlay3_soundwave_start_edit)
-        overlay3_soundwave_start_layout.addStretch()
-        overlay_groupbox_3_titles_wave_layout.addLayout(overlay3_soundwave_start_layout)
         
         # Overlay 3 controls
         overlay3_label = self.settings.value('overlay3_checkbox_label', " Overlay 3 :", type=str)
@@ -3868,7 +3854,7 @@ class SuperCutUI(QWidget):
         self.overlay3_checkbox.stateChanged.connect(lambda _: set_overlay3_enabled(self.overlay3_checkbox.checkState()))
         set_overlay3_enabled(self.overlay3_checkbox.checkState())
         
-        # Overlay 4 layout
+        # Overlay 3 layout
         overlay3_layout = QHBoxLayout()
         overlay3_layout.setSpacing(0)
         overlay3_layout.addWidget(self.overlay3_checkbox)
@@ -3887,6 +3873,19 @@ class SuperCutUI(QWidget):
         overlay3_layout.addWidget(self.overlay3_y_combo)
         overlay3_layout.addStretch()  
         overlay_groupbox_3_titles_wave_layout.addLayout(overlay3_layout)
+
+        # Overlay 3 & Soundwave effect layout
+        overlay3_soundwave_effect_layout = QHBoxLayout()
+        overlay3_soundwave_effect_layout.setSpacing(0)
+        overlay3_soundwave_effect_layout.addSpacing(27)
+        overlay3_soundwave_effect_layout.addWidget(overlay3_soundwave_effect_label)
+        overlay3_soundwave_effect_layout.addSpacing(37)
+        overlay3_soundwave_effect_layout.addWidget(self.overlay3_soundwave_effect_combo)
+        overlay3_soundwave_effect_layout.addSpacing(27)
+        overlay3_soundwave_effect_layout.addWidget(overlay3_soundwave_start_label)
+        overlay3_soundwave_effect_layout.addWidget(self.overlay3_soundwave_start_edit)
+        overlay3_soundwave_effect_layout.addStretch()
+        overlay_groupbox_3_titles_wave_layout.addLayout(overlay3_soundwave_effect_layout)
 
         # --- SONG TITLE OVERLAY CHECKBOX ---
         # Load custom song titles checkbox label from settings
