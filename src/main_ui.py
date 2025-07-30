@@ -1321,7 +1321,7 @@ class SuperCutUI(QWidget):
         nav_widget.setFixedWidth(620)
         nav_widget.setStyleSheet("""
             QWidget {
-                background: #000;
+                background: transparent;
                 border-bottom: none;
                 margin: 0px;
                 padding: 0px;
@@ -1335,31 +1335,32 @@ class SuperCutUI(QWidget):
         # Create navigation buttons
         self.nav_buttons = {}
         nav_sections = {
-            'folder': 'Top Folder',
-            'overlay1_2': 'Overlay 1&2',
-            'overlay6_7': 'Overlay 6&7',
-            'frame_box': 'Frame Box',
-            'mp3_cover': 'MP3 Cover',
-            'overlay9': 'Overlay 9',
-            'final': 'Final Settings'
+            'folder': 'Top',
+            'overlay1_2': 'Section 1',
+            'overlay6_7': 'Section 2',
+            'frame_box': 'Section 3',
+            'mp3_cover': 'Section 4',
+            'overlay9': 'Section 5',
+            'final': 'Last'
         }
         
         for section_id, section_name in nav_sections.items():
             btn = QPushButton(section_name)
-            btn.setFixedHeight(30)
+            btn.setFixedHeight(28)
+            
             btn.setStyleSheet("""
                 QPushButton {
                     background: #ffffff;
                     border: 1px solid #dee2e6;
-                    border-radius: 4px;
+                    border-radius: 6px;
                     padding: 5px 10px;
-                    font-size: 11px;
+                    font-size: 12px;
                     font-weight: normal;
                     color: #495057;
                 }
                 QPushButton:hover {
                     background: #ffffff;
-                    border: 1px solid #47a4ff;
+                    border: 2px solid #e83924;
                 }
                 QPushButton:pressed {
                     background: #ffffff;
@@ -1416,7 +1417,7 @@ class SuperCutUI(QWidget):
         # Create wrapper widget for folder section
         folder_widget = QWidget()
         folder_layout_inner = QVBoxLayout(folder_widget)
-        folder_layout_inner.setContentsMargins(0, 5, 0, 0) 
+        folder_layout_inner.setContentsMargins(0, 5, 0, 5) 
         folder_layout_inner.setSpacing(10)  
         
         folder_row_style = {
@@ -7962,12 +7963,11 @@ class SuperCutUI(QWidget):
         
 
         button_layout = QHBoxLayout()
+        button_layout.setContentsMargins(0, 10, 0, 10)
         button_layout.setSpacing(0)
-        button_layout.addSpacing(0)
         button_layout.addWidget(self.settings_btn)
         button_layout.addSpacing(5)
         button_layout.addWidget(self.layer_manager_btn)
-
         button_layout.addSpacing(10)
         button_layout.addWidget(self.terminal_btn)
         button_layout.addStretch(0)
@@ -8018,7 +8018,7 @@ class SuperCutUI(QWidget):
 
 
         progress_row = QtWidgets.QHBoxLayout()
-        progress_row.setContentsMargins(0, 0, 0, 5)
+        progress_row.setContentsMargins(0, 0, 0, 10)
         progress_row.setSpacing(0)
         progress_row.addStretch(0)
         progress_row.addSpacing(32)         
@@ -10422,7 +10422,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
         # Main layout
         layout = QVBoxLayout(dlg)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        layout.setSpacing(10)
         
         # Custom header with drag area and close button
         class DraggableHeader(QtWidgets.QWidget):
