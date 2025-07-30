@@ -170,11 +170,7 @@ class SettingsDialog(QDialog):
             QGroupBox::title {
                 subcontrol-origin: margin;
                 left: 10px;
-                padding: 2px 8px 2px 8px;
-                background-color: #f5f7fa;
-                border: 1px solid #cccccc;
-                border-radius: 3px;
-                color: #333333;
+                padding: 0 5px 0 5px;
             }
         """)
 
@@ -190,11 +186,7 @@ class SettingsDialog(QDialog):
             QGroupBox::title {
                 subcontrol-origin: margin;
                 left: 10px;
-                padding: 2px 8px 2px 8px;
-                background-color: #f5f7fa;
-                border: 1px solid #cccccc;
-                border-radius: 3px;
-                color: #333333;
+                padding: 0 5px 0 5px;
             }
         """)
 
@@ -210,11 +202,7 @@ class SettingsDialog(QDialog):
             QGroupBox::title {
                 subcontrol-origin: margin;
                 left: 10px;
-                padding: 2px 8px 2px 8px;
-                background-color: #f5f7fa;
-                border: 1px solid #cccccc;
-                border-radius: 3px;
-                color: #333333;
+                padding: 0 5px 0 5px;
             }
         """)
 
