@@ -9674,6 +9674,19 @@ class SuperCutUI(QWidget):
         else:
             overlay1_start_at = f"{self.overlay1_2_start_from}s from end"
             overlay2_start_at = f"{self.overlay1_2_start_from}s from end"
+        # Load custom labels from settings
+        intro_label = self.settings.value('intro_checkbox_label', " Intro :", type=str)
+        overlay1_label = self.settings.value('overlay1_checkbox_label', " Overlay 1 :", type=str)
+        overlay2_label = self.settings.value('overlay2_checkbox_label', " Overlay 2 :", type=str)
+        overlay3_label = self.settings.value('overlay3_checkbox_label', " Overlay 3 :", type=str)
+        overlay4_label = self.settings.value('overlay4_checkbox_label', " Overlay 4 :", type=str)
+        overlay5_label = self.settings.value('overlay5_checkbox_label', " Overlay 5 :", type=str)
+        overlay6_label = self.settings.value('overlay6_checkbox_label', " Overlay 6 :", type=str)
+        overlay7_label = self.settings.value('overlay7_checkbox_label', " Overlay 7 :", type=str)
+        overlay8_label = self.settings.value('overlay8_checkbox_label', " Overlay 8 :", type=str)
+        soundwave_label = self.settings.value('soundwave_checkbox_label', " Soundwave :", type=str)
+        song_titles_label = self.settings.value('song_titles_checkbox_label', " Song Titles :", type=str)
+
         # Compose a string with all settings
         settings_str = f"""
 📄 FFmpeg Settings Preview:
@@ -9693,44 +9706,44 @@ Min MP3 count: {min_mp3_count}
 Media sources: {media_sources}
 Output folder: {folder}
 
---- Intro ---
-Intro: {self.intro_checkbox.isChecked()} | Path: {self.intro_path} 
+--- {intro_label.strip()} ---
+{intro_label.strip()}: {self.intro_checkbox.isChecked()} | Path: {self.intro_path} 
 Size: {self.intro_size_percent}% | X: {self.intro_x_percent}% | Y: {self.intro_y_percent}%
 Effect: {self.intro_effect} | Duration: {self.intro_duration}
 
 --- Overlay & Intro ---
-Overlay 1: {self.overlay_checkbox.isChecked()} | Path: {self.overlay1_path}
+{overlay1_label.strip()}: {self.overlay_checkbox.isChecked()} | Path: {self.overlay1_path}
 Size: {self.overlay1_size_percent}% | X: {self.overlay1_x_percent}% | Y: {self.overlay1_y_percent}%
-            Effect: {self.selected_overlay1_2_effect} | Overlay1 Start at: {overlay1_start_at} 
+            Effect: {self.selected_overlay1_2_effect} | {overlay1_label.strip()} Start at: {overlay1_start_at} 
 
-Overlay 2: {self.overlay2_checkbox.isChecked()} | Path: {self.overlay2_path}
+{overlay2_label.strip()}: {self.overlay2_checkbox.isChecked()} | Path: {self.overlay2_path}
 Size: {self.overlay2_size_percent}% | X: {self.overlay2_x_percent}% | Y: {self.overlay2_y_percent}%
-            Effect: {self.selected_overlay1_2_effect} | Overlay2 Start at: {overlay2_start_at}
+            Effect: {self.selected_overlay1_2_effect} | {overlay2_label.strip()} Start at: {overlay2_start_at}
 
-Overlay 4: {self.overlay4_checkbox.isChecked()} | Path: {self.overlay4_path}
+{overlay4_label.strip()}: {self.overlay4_checkbox.isChecked()} | Path: {self.overlay4_path}
 Size: {self.overlay4_size_percent}% | X: {self.overlay4_x_percent}% | Y: {self.overlay4_y_percent}%
-Overlay4 Effect: {self.selected_overlay4_5_effect} | Start at: {f"{self.overlay4_5_start_at}s from start" if self.overlay4_5_start_at_checkbox.isChecked() else f"{self.overlay4_5_start_from}s from end"}
+{overlay4_label.strip()} Effect: {self.selected_overlay4_5_effect} | Start at: {f"{self.overlay4_5_start_at}s from start" if self.overlay4_5_start_at_checkbox.isChecked() else f"{self.overlay4_5_start_from}s from end"}
 
-Overlay 5: {self.overlay5_checkbox.isChecked()} | Path: {self.overlay5_path}
+{overlay5_label.strip()}: {self.overlay5_checkbox.isChecked()} | Path: {self.overlay5_path}
 Size: {self.overlay5_size_percent}% | X: {self.overlay5_x_percent}% | Y: {self.overlay5_y_percent}%
-Overlay5 Effect: {self.selected_overlay4_5_effect} | Start at: {f"{self.overlay4_5_start_at}s from start" if self.overlay4_5_start_at_checkbox.isChecked() else f"{self.overlay4_5_start_from}s from end"}
+{overlay5_label.strip()} Effect: {self.selected_overlay4_5_effect} | Start at: {f"{self.overlay4_5_start_at}s from start" if self.overlay4_5_start_at_checkbox.isChecked() else f"{self.overlay4_5_start_from}s from end"}
 
-Overlay 6: {self.overlay6_checkbox.isChecked()} | Path: {self.overlay6_path}
+{overlay6_label.strip()}: {self.overlay6_checkbox.isChecked()} | Path: {self.overlay6_path}
 Size: {self.overlay6_size_percent}% | X: {self.overlay6_x_percent}% | Y: {self.overlay6_y_percent}%
-                Overlay6 Effect: {self.selected_overlay6_7_effect} | Start at: {self.overlay6_7_start_at if self.overlay6_7_start_at_checkbox.isChecked() else f"from {self.overlay6_7_start_from}"}
+                {overlay6_label.strip()} Effect: {self.selected_overlay6_7_effect} | Start at: {self.overlay6_7_start_at if self.overlay6_7_start_at_checkbox.isChecked() else f"from {self.overlay6_7_start_from}"}
 
-Overlay 7: {self.overlay7_checkbox.isChecked()} | Path: {self.overlay7_path}
+{overlay7_label.strip()}: {self.overlay7_checkbox.isChecked()} | Path: {self.overlay7_path}
 Size: {self.overlay7_size_percent}% | X: {self.overlay7_x_percent}% | Y: {self.overlay7_y_percent}%
-                Overlay7 Effect: {self.selected_overlay6_7_effect} | Start at: {self.overlay6_7_start_at if self.overlay6_7_start_at_checkbox.isChecked() else f"from {self.overlay6_7_start_from}"}
+                {overlay7_label.strip()} Effect: {self.selected_overlay6_7_effect} | Start at: {self.overlay6_7_start_at if self.overlay6_7_start_at_checkbox.isChecked() else f"from {self.overlay6_7_start_from}"}
 
-Overlay 8: {self.overlay8_checkbox.isChecked()} | Path: {self.overlay8_path}
+{overlay8_label.strip()}: {self.overlay8_checkbox.isChecked()} | Path: {self.overlay8_path}
 Size: {self.overlay8_size_percent}% | X: {self.overlay8_x_percent}% | Y: {self.overlay8_y_percent}%
-                Overlay8 Effect: {self.selected_overlay8_effect} | Start at: {self.overlay8_start_percent}% | Pop up Start at: {self.overlay8_popup_start_at_percent}%
---- Song Title Overlay ---
-Soundwave Overlay: {self.overlay3_checkbox.isChecked()} | Path: {self.overlay3_path}
+                {overlay8_label.strip()} Effect: {self.selected_overlay8_effect} | Start at: {self.overlay8_start_percent}% | Pop up Start at: {self.overlay8_popup_start_at_percent}%
+--- {song_titles_label.strip()} Overlay ---
+{soundwave_label.strip()} Overlay: {self.overlay3_checkbox.isChecked()} | Path: {self.overlay3_path}
 Size: {self.overlay3_size_percent}% | X: {self.overlay3_x_percent}% | Y: {self.overlay3_y_percent}%
-Effect: fadein | Soundwave Start at: {self.song_title_start_at}
-Use Song Title: {self.song_title_checkbox.isChecked()}
+Effect: fadein | {soundwave_label.strip()} Start at: {self.song_title_start_at}
+Use {song_titles_label.strip()}: {self.song_title_checkbox.isChecked()}
 Effect: {self.song_title_effect}
 Font: {self.song_title_font}
 Font Size: {self.song_title_font_size}
