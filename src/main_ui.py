@@ -118,10 +118,10 @@ class SettingsDialog(QDialog):
         # Add Default button below Settings label  
         main_layout.addSpacing(15)      
 
-        # --- Two-column layout ---
+        # --- Three-column layout ---
         columns_layout = QHBoxLayout()
 
-        # Create simple group boxes for left and right forms
+        # Create simple group boxes for left, center, and right forms
         left_group = QtWidgets.QGroupBox("UI Settings")
         left_group.setStyleSheet("""
             QGroupBox {
@@ -138,7 +138,23 @@ class SettingsDialog(QDialog):
             }
         """)
 
-        right_group = QtWidgets.QGroupBox("Video Settings")
+        center_group = QtWidgets.QGroupBox("Video Settings")
+        center_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
+
+        right_group = QtWidgets.QGroupBox("Advanced Settings")
         right_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -154,9 +170,11 @@ class SettingsDialog(QDialog):
             }
         """)
 
-        # Right column: Overlay 1 and 2 (define right_form first so it can be used for intro fields)
+        # Right column: Advanced settings
         right_form = QFormLayout()
-        # Left column: FPS and Intro
+        # Center column: Video settings
+        center_form = QFormLayout()
+        # Left column: UI settings
         left_form = QFormLayout()
 
         window_size_layout = QHBoxLayout()
@@ -293,26 +311,32 @@ class SettingsDialog(QDialog):
         
         # Set forms as layouts for group boxes
         left_group.setLayout(left_form)
+        center_group.setLayout(center_form)
         right_group.setLayout(right_form)
 
         # Add left margin to form contents
         left_form.setContentsMargins(15, 10, 10, 10)  # left, top, right, bottom
-        right_form.setContentsMargins(20, 10, 10, 10)  # left, top, right, bottom
+        center_form.setContentsMargins(15, 10, 10, 10)  # left, top, right, bottom
+        right_form.setContentsMargins(15, 10, 10, 10)  # left, top, right, bottom
 
-        #Set fixed sizes for both groups
-        left_group.setFixedWidth(275)
-        right_group.setFixedWidth(275)
+        #Set fixed sizes for all groups
+        left_group.setFixedWidth(260)
+        center_group.setFixedWidth(260)
+        right_group.setFixedWidth(260)
 
         # Set custom spacing for form layouts
-        left_form.setHorizontalSpacing(10)  # 15px between labels and fields
-        right_form.setHorizontalSpacing(10)  # 15px between labels and fields
+        left_form.setHorizontalSpacing(5)  # 10px between labels and fields
+        center_form.setHorizontalSpacing(10)  # 10px between labels and fields
+        right_form.setHorizontalSpacing(10)  # 10px between labels and fields
 
-        # Add both group boxes to columns_layout
-        columns_layout.addSpacing(20)
+        # Add all group boxes to columns_layout
+        columns_layout.addSpacing(10)
         columns_layout.addWidget(left_group)
         columns_layout.addSpacing(20)  # Spacing between bordered containers
+        columns_layout.addWidget(center_group)
+        columns_layout.addSpacing(20)  # Spacing between bordered containers
         columns_layout.addWidget(right_group)
-        columns_layout.addSpacing(25)
+        columns_layout.addSpacing(20)
         main_layout.addLayout(columns_layout)
         main_layout.addSpacing(15)
 
@@ -330,12 +354,12 @@ class SettingsDialog(QDialog):
 
         button_layout = QHBoxLayout()
         button_layout.setSpacing(0)
-        button_layout.addSpacing(20)
+        button_layout.addSpacing(10)
         button_layout.addWidget(self.reset_btn)
         button_layout.addStretch(0)  
-        button_layout.addSpacing(-95)     
+        button_layout.addSpacing(-85)     
         button_layout.addWidget(self.save_btn)
-        button_layout.addSpacing(15)
+        button_layout.addSpacing(10)
         button_layout.addWidget(self.cancel_btn)
         button_layout.addStretch(0)
         main_layout.addLayout(button_layout)
@@ -344,7 +368,7 @@ class SettingsDialog(QDialog):
         # Make Enter key trigger save button
         self.save_btn.setDefault(True)
         self.save_btn.setAutoDefault(True)
-        self.setFixedSize(640, 640)
+        self.setFixedSize(860, 640)
         
         # Add Ctrl+W shortcut to close dialog
         self.shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
@@ -368,19 +392,20 @@ class SettingsDialog(QDialog):
         left_form.addRow("MP3 # Default:", self.default_mp3_count_enabled_checkbox)
         left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
         left_form.addRow("List Name Default:", self.default_list_name_enabled_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Show Placeholder:", self.show_placeholder_checkbox)
-        left_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
-        left_form.addRow("Filter Complex Alt:", self.filter_complex_alt_checkbox)
 
-        # Add video/encoding settings to right_form
-        right_form.addRow("FPS:", self.fps_combo)
-        right_form.addRow("Resolution:", self.resolution_combo)
-        right_form.addRow("FFmpeg Preset:", self.preset_combo)
-        right_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
-        right_form.addRow("Video Bitrate:", self.video_bitrate_combo)
-        right_form.addRow("Maxrate:", self.maxrate_combo)
-        right_form.addRow("Buffsize:", self.bufsize_combo)
+        # Add video/encoding settings to center_form
+        center_form.addRow("FPS:", self.fps_combo)
+        center_form.addRow("Resolution:", self.resolution_combo)
+        center_form.addRow("FFmpeg Preset:", self.preset_combo)
+        center_form.addRow("Audio Bitrate:", self.audio_bitrate_combo)
+        center_form.addRow("Video Bitrate:", self.video_bitrate_combo)
+        center_form.addRow("Maxrate:", self.maxrate_combo)
+        center_form.addRow("Buffsize:", self.bufsize_combo)
+
+        # Add advanced settings to right_form
+        right_form.addRow("Show Placeholder:", self.show_placeholder_checkbox)
+        right_form.addItem(QtWidgets.QSpacerItem(0, 3, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed))
+        right_form.addRow("Filter Complex Alt:", self.filter_complex_alt_checkbox)
         
 
     def accept(self):
