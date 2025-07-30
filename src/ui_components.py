@@ -64,12 +64,12 @@ class KhmerSupportLineEdit(QLineEdit):
                     text-align: left;
                 }
                 QLineEdit:focus {
-                    border: 2px solid #4a90e2;
+                    border: 1px solid #ccc;
                     background-color: #ffffff;
                 }
                 QLineEdit:hover {
-                    border: 1px solid #a0a0a0;
-                    background-color: #f8f8f8;
+                    border: 2px solid #4a90e2;
+                    background-color: #ffffff;
                 }
             """)
         else:
