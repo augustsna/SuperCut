@@ -3,7 +3,7 @@
   "description": "Template created from current settings",
   "category": "custom",
   "version": "1.0",
-  "created_date": "2025-07-31T15:27:03.795262",
+  "created_date": "2025-07-31T16:06:21.261633",
   "author": "user",
   "thumbnail": "",
   "video_settings": {
@@ -27,13 +27,13 @@
       "enabled": true
     },
     "overlay1": {
-      "enabled": false
+      "enabled": true
     },
     "overlay2": {
       "enabled": false
     },
     "song_titles": {
-      "enabled": false
+      "enabled": true
     },
     "soundwave": {
       "enabled": false
