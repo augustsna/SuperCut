@@ -44,7 +44,7 @@ class TemplateManagerDialog(QDialog):
         """Initialize the user interface"""
         self.setWindowTitle("Template Manager")
         self.setModal(True)
-        self.setMinimumSize(900, 600)
+        self.setFixedSize(810, 660)
         
         # Main layout
         layout = QVBoxLayout(self)
@@ -92,20 +92,28 @@ class TemplateManagerDialog(QDialog):
         
         layout.addLayout(header_layout)
         
-        # Main content area with splitter
-        splitter = QSplitter(Qt.Orientation.Horizontal)
+        # Main content area with three fixed panels
+        main_widget = QWidget()
+        main_layout = QHBoxLayout(main_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
         
-        # Left panel: Template list and filters
+        # Left panel: Template list and filters (270px fixed)
         left_panel = self.create_left_panel()
-        splitter.addWidget(left_panel)
+        left_panel.setFixedWidth(270)
+        main_layout.addWidget(left_panel)
         
-        # Right panel: Template preview and details
+        # Center panel: Template preview and details (270px fixed)
+        center_panel = self.create_center_panel()
+        center_panel.setFixedWidth(270)
+        main_layout.addWidget(center_panel)
+        
+        # Right panel: Additional details (270px fixed)
         right_panel = self.create_right_panel()
-        splitter.addWidget(right_panel)
+        right_panel.setFixedWidth(270)
+        main_layout.addWidget(right_panel)
         
-        # Set splitter proportions (60% left, 40% right)
-        splitter.setSizes([540, 360])
-        layout.addWidget(splitter)
+        layout.addWidget(main_widget)
         
         # Bottom buttons
         button_layout = QHBoxLayout()
@@ -177,6 +185,20 @@ class TemplateManagerDialog(QDialog):
         
         # Category filter
         filter_group = QGroupBox("Filter by Category")
+        filter_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
         filter_layout = QVBoxLayout(filter_group)
         
         self.category_combo = QComboBox()
@@ -196,6 +218,20 @@ class TemplateManagerDialog(QDialog):
         
         # Search and filter box
         search_group = QGroupBox("Search & Filter")
+        search_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
         search_layout = QVBoxLayout(search_group)
         
         # Search box
@@ -233,6 +269,20 @@ class TemplateManagerDialog(QDialog):
         
         # Template list
         list_group = QGroupBox("Templates")
+        list_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
         list_layout = QVBoxLayout(list_group)
         
         self.template_list = QListWidget()
@@ -263,13 +313,27 @@ class TemplateManagerDialog(QDialog):
         
         return left_widget
         
-    def create_right_panel(self):
-        """Create the right panel with template preview and details"""
-        right_widget = QWidget()
-        right_layout = QVBoxLayout(right_widget)
+    def create_center_panel(self):
+        """Create the center panel with template preview and details"""
+        center_widget = QWidget()
+        center_layout = QVBoxLayout(center_widget)
         
         # Template details
         details_group = QGroupBox("Template Details")
+        details_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
         details_layout = QFormLayout(details_group)
         
         self.template_name_label = QLabel("")
@@ -309,10 +373,24 @@ class TemplateManagerDialog(QDialog):
         details_layout.addRow("Usage:", self.template_usage_label)
         details_layout.addRow("Rating:", self.template_rating_label)
         
-        right_layout.addWidget(details_group)
+        center_layout.addWidget(details_group)
         
         # Video settings preview
         settings_group = QGroupBox("Video Settings")
+        settings_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
         settings_layout = QFormLayout(settings_group)
         
         self.resolution_label = QLabel("")
@@ -334,14 +412,37 @@ class TemplateManagerDialog(QDialog):
         settings_layout.addRow("Audio Bitrate:", self.audio_bitrate_label)
         settings_layout.addRow("Video Bitrate:", self.video_bitrate_label)
         
-        right_layout.addWidget(settings_group)
+        center_layout.addWidget(settings_group)
+        
+        center_layout.addStretch()
+        
+        return center_widget
+        
+    def create_right_panel(self):
+        """Create the right panel with layer configuration and additional details"""
+        right_widget = QWidget()
+        right_layout = QVBoxLayout(right_widget)
         
         # Layer configuration preview
         layer_group = QGroupBox("Layer Configuration")
+        layer_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
         layer_layout = QVBoxLayout(layer_group)
         
         self.layer_preview_list = QListWidget()
-        self.layer_preview_list.setMaximumHeight(120)
+        self.layer_preview_list.setMaximumHeight(200)
         self.layer_preview_list.setStyleSheet("""
             QListWidget {
                 border: 1px solid #cccccc;
@@ -357,6 +458,30 @@ class TemplateManagerDialog(QDialog):
         
         layer_layout.addWidget(self.layer_preview_list)
         right_layout.addWidget(layer_group)
+        
+        # Template statistics
+        stats_group = QGroupBox("Template Statistics")
+        stats_group.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #cccccc;
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+        """)
+        stats_layout = QFormLayout(stats_group)
+        
+        self.template_stats_label = QLabel("")
+        self.template_stats_label.setStyleSheet("QLabel { padding: 4px; background-color: #f8f9fa; border-radius: 4px; }")
+        stats_layout.addRow("Stats:", self.template_stats_label)
+        
+        right_layout.addWidget(stats_group)
         
         right_layout.addStretch()
         
