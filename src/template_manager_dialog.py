@@ -116,7 +116,6 @@ class TemplateManagerDialog(QDialog):
         button_layout = QHBoxLayout()
         self.apply_btn = QPushButton("Apply")
         self.edit_btn = QPushButton("Edit Template")
-
         self.delete_btn = QPushButton("Delete Template")
         self.close_btn = QPushButton("Close")
         
@@ -152,6 +151,7 @@ class TemplateManagerDialog(QDialog):
             }
         """)
         
+        button_layout.addSpacing(9)
         button_layout.addWidget(self.delete_btn)
         button_layout.addWidget(self.edit_btn)
         button_layout.addStretch()
