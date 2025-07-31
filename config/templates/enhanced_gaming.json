@@ -60,6 +60,6 @@
     "audio_bitrate": "320k",
     "video_bitrate": "15M",
     "maxrate": "20M",
-    "bufsize": "30M"
+    "buffsize": "30M"
   }
 }

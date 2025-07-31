@@ -311,8 +311,8 @@ def load_layer_order():
 
     return None
 
-# FFmpeg Bufsize Options
-DEFAULT_BUFSIZE_OPTIONS = [
+# FFmpeg Buffsize Options
+DEFAULT_BUFFSIZE_OPTIONS = [
     ("4 Mbps", "4M"),
     ("8 Mbps", "8M"),
     ("12 Mbps", "12M"),
@@ -323,7 +323,7 @@ DEFAULT_BUFSIZE_OPTIONS = [
     ("48 Mbps", "48M"),
     ("64 Mbps", "64M")
 ]
-DEFAULT_BUFSIZE = "24M"
+DEFAULT_BUFFSIZE = "24M"
 
 def check_ffmpeg_installation():
     """Check if FFmpeg is properly installed"""

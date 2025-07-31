@@ -34,7 +34,7 @@ from src.config import (
     DEFAULT_AUDIO_BITRATE_OPTIONS, DEFAULT_AUDIO_BITRATE,
     DEFAULT_VIDEO_BITRATE_OPTIONS, DEFAULT_VIDEO_BITRATE,
     DEFAULT_MAXRATE_OPTIONS, DEFAULT_MAXRATE,
-    DEFAULT_BUFSIZE_OPTIONS, DEFAULT_BUFSIZE
+    DEFAULT_BUFFSIZE_OPTIONS, DEFAULT_BUFFSIZE
 )
 from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
@@ -334,16 +334,16 @@ class SettingsDialog(QDialog):
         self.maxrate_combo.setCurrentIndex(idx)
         
 
-        # --- FFmpeg Bufsize Combo ---
+        # --- FFmpeg Buffsize Combo ---
         self.buffsize_combo = NoWheelComboBox(self)
         self.buffsize_combo.setFixedWidth(120)
-        for label, value in DEFAULT_BUFSIZE_OPTIONS:
+        for label, value in DEFAULT_BUFFSIZE_OPTIONS:
             self.buffsize_combo.addItem(label, value)
         if self.settings is not None:
-            default_bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
+            default_buffsize = self.settings.value('default_ffmpeg_buffsize', DEFAULT_BUFFSIZE, type=str)
         else:
-            default_bufsize = DEFAULT_BUFSIZE
-        idx = next((i for i, (label, value) in enumerate(DEFAULT_BUFSIZE_OPTIONS) if value == default_bufsize), 4)
+            default_buffsize = DEFAULT_BUFFSIZE
+        idx = next((i for i, (label, value) in enumerate(DEFAULT_BUFFSIZE_OPTIONS) if value == default_buffsize), 4)
         self.buffsize_combo.setCurrentIndex(idx)
 
         # --- Add to SettingsDialog: Show Placeholder Controls Checkbox ---
@@ -748,7 +748,7 @@ class SettingsDialog(QDialog):
             print(f"FPS: {self.selected_fps}")            
             print(f"Preset: {self.preset_combo.currentData()}")
             print(f"Maxrate: {self.maxrate_combo.currentData()}")
-            print(f"Bufsize: {self.buffsize_combo.currentData()}")
+            print(f"Buffsize: {self.buffsize_combo.currentData()}")
             print(f"Video bitrate: {self.video_bitrate_combo.currentData()}")
             print(f"Audio bitrate: {self.audio_bitrate_combo.currentData()}")
             print(f"Resolution: {self.resolution_combo.currentData()}")
@@ -758,7 +758,7 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_ffmpeg_audio_bitrate', self.audio_bitrate_combo.currentData())
             self.settings.setValue('default_ffmpeg_video_bitrate', self.video_bitrate_combo.currentData())
             self.settings.setValue('default_ffmpeg_maxrate', self.maxrate_combo.currentData())
-            self.settings.setValue('default_ffmpeg_bufsize', self.buffsize_combo.currentData())
+            self.settings.setValue('default_ffmpeg_buffsize', self.buffsize_combo.currentData())
             self.settings.setValue('show_placeholder_controls', self.show_placeholder_checkbox.isChecked())
             self.settings.setValue('show_intro_settings', self.show_intro_settings_checkbox.isChecked())
             self.settings.setValue('show_overlay1_2_settings', self.show_overlay1_2_settings_checkbox.isChecked())
@@ -828,7 +828,7 @@ class SettingsDialog(QDialog):
         self.video_bitrate_combo.setCurrentIndex(5)  # '12M' is default
         # Maxrate
         self.maxrate_combo.setCurrentIndex(5)  # '16M' is default
-        # Bufsize
+        # Buffsize
         self.buffsize_combo.setCurrentIndex(4)  # '24M' is default
         # List Name
         self.default_list_name_enabled_checkbox.setChecked(True)
@@ -9157,8 +9157,8 @@ class SuperCutUI(QWidget):
         video_bitrate = self.settings.value('default_ffmpeg_video_bitrate', DEFAULT_VIDEO_BITRATE, type=str)
         # Get ffmpeg maxrate from settings
         maxrate = self.settings.value('default_ffmpeg_maxrate', DEFAULT_MAXRATE, type=str)
-        # Get ffmpeg bufsize from settings
-        bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
+        # Get ffmpeg buffsize from settings
+        buffsize = self.settings.value('default_ffmpeg_buffsize', DEFAULT_BUFFSIZE, type=str)
         # Use overlay_start_at as the start time for both overlay 1 and overlay 2
         # The actual start time calculation will be done in the video worker based on checkbox state
         overlay1_start_at = self.overlay_start_at
@@ -9324,7 +9324,7 @@ class SuperCutUI(QWidget):
             audio_bitrate=audio_bitrate,
             video_bitrate=video_bitrate,
             maxrate=maxrate,
-            bufsize=bufsize,
+            buffsize=buffsize,
             use_song_title_overlay=self.song_title_checkbox.isChecked(),
             song_title_effect=self.song_title_effect,
             song_title_font=self.song_title_font,
@@ -10162,7 +10162,7 @@ class SuperCutUI(QWidget):
             'audio_bitrate': '384k',  # Default, could be made configurable
             'video_bitrate': '12M',   # Default, could be made configurable
             'maxrate': '16M',         # Default, could be made configurable
-            'bufsize': '24M',         # Default, could be made configurable
+            'buffsize': '24M',         # Default, could be made configurable
             'layer_order': self.layer_order or [],
             'layer_settings': {
                 'background': {'enabled': hasattr(self, 'bg_layer_checkbox') and self.bg_layer_checkbox.isChecked()},
@@ -10458,7 +10458,7 @@ class SuperCutUI(QWidget):
         audio_bitrate = self.settings.value('default_ffmpeg_audio_bitrate', DEFAULT_AUDIO_BITRATE, type=str)
         video_bitrate = self.settings.value('default_ffmpeg_video_bitrate', DEFAULT_VIDEO_BITRATE, type=str)
         maxrate = self.settings.value('default_ffmpeg_maxrate', DEFAULT_MAXRATE, type=str)
-        bufsize = self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str)
+        buffsize = self.settings.value('default_ffmpeg_buffsize', DEFAULT_BUFFSIZE, type=str)
         # Show overlay1_2 start time information for preview
         if self.overlay1_2_start_at_checkbox.isChecked():
             overlay1_start_at = f"{self.overlay_start_at}s from start"
@@ -10493,7 +10493,7 @@ Preset: {preset}
 Audio bitrate: {audio_bitrate}
 Video bitrate: {video_bitrate}
 Maxrate: {maxrate}
-Buffsize: {bufsize}
+        Buffsize: {buffsize}
 Min MP3 count: {min_mp3_count}
 Media sources: {media_sources}
 Output folder: {folder}
@@ -11021,7 +11021,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                         audio_bitrate = self.params['audio_bitrate']
                         video_bitrate = self.params['video_bitrate']
                         maxrate = self.params['maxrate']
-                        bufsize = self.params['bufsize']
+                        buffsize = self.params['buffsize']
                         use_overlay = self.params['use_overlay']
                         overlay1_path = self.params['overlay1_path']
                         overlay1_size_percent = self.params['overlay1_size_percent']
@@ -11189,7 +11189,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                             use_overlay9, overlay9_path, overlay9_size_percent, overlay9_x_percent, overlay9_y_percent,
                             use_overlay10, overlay10_path, overlay10_size_percent, overlay10_x_percent, overlay10_y_percent,
                             use_intro, intro_path, intro_size_percent, intro_x_percent, intro_y_percent,
-                            effect, effect_time, overlay1_2_duration, overlay1_2_duration_full_checkbox_checked, intro_effect, actual_intro_duration, actual_intro_start_at, intro_duration_full_checkbox_checked, preset, audio_bitrate, video_bitrate, maxrate, bufsize,
+                            effect, effect_time, overlay1_2_duration, overlay1_2_duration_full_checkbox_checked, intro_effect, actual_intro_duration, actual_intro_start_at, intro_duration_full_checkbox_checked, preset, audio_bitrate, video_bitrate, maxrate, buffsize,
                             extra_overlays=extra_overlays,
                             song_title_effect=song_title_effect,
                             song_title_font=song_title_font,
@@ -11247,7 +11247,7 @@ X: {self.song_title_x_percent}% | Y: {self.song_title_y_percent}% | Start: {self
                 audio_bitrate=self.settings.value('default_ffmpeg_audio_bitrate', DEFAULT_AUDIO_BITRATE, type=str),
                 video_bitrate=self.settings.value('default_ffmpeg_video_bitrate', DEFAULT_VIDEO_BITRATE, type=str),
                 maxrate=self.settings.value('default_ffmpeg_maxrate', DEFAULT_MAXRATE, type=str),
-                bufsize=self.settings.value('default_ffmpeg_bufsize', DEFAULT_BUFSIZE, type=str),
+                buffsize=self.settings.value('default_ffmpeg_buffsize', DEFAULT_BUFFSIZE, type=str),
                 use_overlay=self.overlay_checkbox.isChecked(),
                 overlay1_path=self.overlay1_path,
                 overlay1_size_percent=self.overlay1_size_percent,

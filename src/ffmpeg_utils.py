@@ -141,7 +141,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     audio_bitrate: str = "384k",
     video_bitrate: str = "12M",
     maxrate: str = "16M",
-    bufsize: str = "24M",
+    buffsize: str = "24M",
     extra_overlays: Optional[List[dict]] = None,  # List of dicts: {path, start, duration, x_percent, y_percent, size_percent, effect, type}
     song_title_effect: str = "fadeinout",
     song_title_font: str = "default",
@@ -1686,12 +1686,12 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         # Video settings
         video_bitrate_str = str(video_bitrate)
         maxrate_str = str(maxrate)
-        buffer_size_str = str(bufsize)
+        buffer_size_str = str(buffsize)
         audio_bitrate_str = str(audio_bitrate)
         cmd.extend([   
             "-b:v", video_bitrate_str,
             "-maxrate", maxrate_str,
-            "-bufsize", buffer_size_str     
+            "-buffsize", buffer_size_str     
         ])
 
         # Audio settings
@@ -1724,7 +1724,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         audio_duration = get_audio_duration(audio_path)
         total_frames = int(audio_duration * fps)
         
-        process = subprocess.Popen(cmd, stderr=subprocess.PIPE, universal_newlines=True, bufsize=1)
+        process = subprocess.Popen(cmd, stderr=subprocess.PIPE, universal_newlines=True, buffsize=1)
 
         start_time = time.time()
         last_seconds = 0.0

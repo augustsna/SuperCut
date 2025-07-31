@@ -28,7 +28,7 @@ def test_enhanced_template_manager():
         'audio_bitrate': '384k',
         'video_bitrate': '12M',
         'maxrate': '16M',
-        'bufsize': '24M',
+        'buffsize': '24M',
         'layer_order': ['background', 'overlay1', 'song_titles'],
         'layer_settings': {
             'background': {'enabled': True, 'scale_percent': 103},
