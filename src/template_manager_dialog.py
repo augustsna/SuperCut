@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
     QSplitter, QWidget, QScrollArea, QFrame, QSizePolicy
 )
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QKeySequence, QShortcut
 from PyQt6.QtGui import QIcon, QPixmap, QFont
 from typing import Dict, List, Optional, Any
 import os
@@ -175,6 +176,9 @@ class TemplateManagerDialog(QDialog):
         self.delete_btn.clicked.connect(self.delete_selected_template)
         self.close_btn.clicked.connect(self.accept)
         
+        # Add keyboard shortcuts
+        self.add_keyboard_shortcuts()
+        
         # Initial button states
         self.update_button_states()
         
@@ -183,9 +187,9 @@ class TemplateManagerDialog(QDialog):
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
         
-        # Category filter
-        filter_group = QGroupBox("Filter by Category")
-        filter_group.setStyleSheet("""
+        # Combined filters group
+        filters_group = QGroupBox("Filters")
+        filters_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
                 border: 2px solid #cccccc;
@@ -199,9 +203,32 @@ class TemplateManagerDialog(QDialog):
                 padding: 0 5px 0 5px;
             }
         """)
-        filter_layout = QVBoxLayout(filter_group)
+        filters_layout = QVBoxLayout(filters_group)
+        filters_layout.setContentsMargins(10, 15, 10, 10)
+        filters_layout.setSpacing(8)
         
+        # Search box (label and text input on same line)
+        search_layout = QHBoxLayout()
+        search_label = QLabel("Search:")
+        search_label.setFixedWidth(70)
+        search_label.setFixedHeight(30)
+        self.search_edit = QLineEdit()
+        self.search_edit.setFixedWidth(120)
+        self.search_edit.setFixedHeight(30)
+        self.search_edit.setPlaceholderText("Search templates by name, description, or tags...")
+        self.search_edit.textChanged.connect(self.filter_templates)
+        search_layout.addWidget(search_label)
+        search_layout.addWidget(self.search_edit)
+        filters_layout.addLayout(search_layout)
+
+        # Category filter (label and dropdown on same line)
+        category_layout = QHBoxLayout()
+        category_label = QLabel("Category:")
+        category_label.setFixedWidth(70)
+        category_label.setFixedHeight(30)
         self.category_combo = QComboBox()
+        self.category_combo.setFixedWidth(120)
+        self.category_combo.setFixedHeight(30)
         self.category_combo.addItem("All Categories", "all")
         
         # Load categories
@@ -212,60 +239,46 @@ class TemplateManagerDialog(QDialog):
             self.category_combo.addItem(f"{icon} {name}", category_id)
         
         self.category_combo.currentTextChanged.connect(self.filter_templates)
-        filter_layout.addWidget(self.category_combo)
-        
-        left_layout.addWidget(filter_group)
-        
-        # Search and filter box
-        search_group = QGroupBox("Search & Filter")
-        search_group.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 2px solid #cccccc;
-                border-radius: 6px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
-            }
-        """)
-        search_layout = QVBoxLayout(search_group)
-        
-        # Search box
-        self.search_edit = QLineEdit()
-        self.search_edit.setPlaceholderText("Search templates by name, description, or tags...")
-        self.search_edit.textChanged.connect(self.filter_templates)
-        search_layout.addWidget(self.search_edit)
+        category_layout.addWidget(category_label)
+        category_layout.addWidget(self.category_combo)
+        filters_layout.addLayout(category_layout)
         
         # Advanced filters
-        filter_layout = QHBoxLayout()
-        
-        # Resolution filter
+        # Resolution filter (first line)
+        resolution_layout = QHBoxLayout()
+        resolution_label = QLabel("Resolution:")
+        resolution_label.setFixedWidth(70)
+        resolution_label.setFixedHeight(30)
         self.resolution_filter = QComboBox()
+        self.resolution_filter.setFixedWidth(120)
+        self.resolution_filter.setFixedHeight(30)
         self.resolution_filter.addItem("All Resolutions", "")
         self.resolution_filter.addItem("1080p", "1920x1080")
         self.resolution_filter.addItem("720p", "1280x720")
         self.resolution_filter.addItem("4K", "3840x2160")
         self.resolution_filter.currentTextChanged.connect(self.filter_templates)
-        filter_layout.addWidget(QLabel("Resolution:"))
-        filter_layout.addWidget(self.resolution_filter)
+        resolution_layout.addWidget(resolution_label)
+        resolution_layout.addWidget(self.resolution_filter)
+        filters_layout.addLayout(resolution_layout)
         
-        # FPS filter
+        # FPS filter (second line)
+        fps_layout = QHBoxLayout()
+        fps_label = QLabel("FPS:")
+        fps_label.setFixedWidth(70)
+        fps_label.setFixedHeight(30)
         self.fps_filter = QComboBox()
+        self.fps_filter.setFixedWidth(120)
+        self.fps_filter.setFixedHeight(30)
         self.fps_filter.addItem("All FPS", "")
         self.fps_filter.addItem("24 FPS", "24")
         self.fps_filter.addItem("30 FPS", "30")
         self.fps_filter.addItem("60 FPS", "60")
         self.fps_filter.currentTextChanged.connect(self.filter_templates)
-        filter_layout.addWidget(QLabel("FPS:"))
-        filter_layout.addWidget(self.fps_filter)
+        fps_layout.addWidget(fps_label)
+        fps_layout.addWidget(self.fps_filter)
+        #filters_layout.addLayout(fps_layout)
         
-        search_layout.addLayout(filter_layout)
-        
-        left_layout.addWidget(search_group)
+        left_layout.addWidget(filters_group)
         
         # Template list
         list_group = QGroupBox("Templates")
@@ -283,31 +296,98 @@ class TemplateManagerDialog(QDialog):
                 padding: 0 5px 0 5px;
             }
         """)
-        list_layout = QVBoxLayout(list_group)
+        
         
         self.template_list = QListWidget()
+        self.template_list.setFixedWidth(240)
         self.template_list.setMinimumHeight(300)
         self.template_list.itemClicked.connect(self.on_template_selected)
         self.template_list.setStyleSheet("""
             QListWidget {
-                border: 1px solid #cccccc;
-                border-radius: 6px;
-                background-color: white;
+                background-color: #f5f7fa;                
+                padding: 6px;
+                border: none;
+                border-radius: 2px;
+                color: #333;
+                font-family: 'Segoe UI', sans-serif;
                 font-size: 13px;
+                outline: none;
             }
             QListWidget::item {
                 padding: 8px;
-                border-bottom: 1px solid #f0f0f0;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                margin: 2px;
+                background-color: #ffffff;
+                outline: none;
+                color: #333;
+                height: 18px;
             }
-            QListWidget::item:selected {
-                background-color: #4a90e2;
-                color: white;
+            QListWidget::item:first-child {
+                margin-top: 8px;
+            }
+            QListWidget::item:last-child {
+                margin-bottom: 4px;
+                margin-top: 2px;
+            }
+            QListWidget::item:selected {                
+                background-color: #ffffff;
+                border: 2px solid #47a4ff;
+                color: #000000;                
+                outline: none;
             }
             QListWidget::item:hover {
-                background-color: #f5f5f5;
+                background-color: #ffffff;
+                border: 2px solid #47a4ff;
+                color: #000000;
+                outline: none;
+            }
+            QListWidget::item:focus {
+                outline: none;
+            }
+            QListWidget::item:selected:focus {
+                outline: none;
+            }
+            QListWidget::item:selected:active {
+                outline: none;
+            }
+            QListWidget::item:selected:!focus {
+                outline: none;
+            }
+            QListWidget::item:selected:!active {
+                outline: none;
+            }
+            QListWidget::item:selected:!hover {
+                outline: none;
+            }
+            QScrollBar:vertical {
+                background: rgba(240, 240, 240, 0.8);
+                width: 12px;
+                border-radius: 4px;
+                margin-left: 4px;
+                position: absolute;
+                right: 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: rgba(192, 192, 192, 0.8);
+                border-radius: 6px;
+                min-height: 20px;
+                margin: 0px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: rgba(160, 160, 160, 0.9);
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: none;
             }
         """)
         
+        list_layout = QVBoxLayout(list_group)
+        list_layout.setContentsMargins(5, 0, 0, 5)
+        list_layout.setSpacing(0)
         list_layout.addWidget(self.template_list)
         left_layout.addWidget(list_group)
         
@@ -486,6 +566,12 @@ class TemplateManagerDialog(QDialog):
         right_layout.addStretch()
         
         return right_widget
+        
+    def add_keyboard_shortcuts(self):
+        """Add keyboard shortcuts to the dialog"""
+        # Ctrl+W to close the dialog
+        close_shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
+        close_shortcut.activated.connect(self.accept)
         
     def load_templates(self):
         """Load all available templates"""

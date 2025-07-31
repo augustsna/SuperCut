@@ -1,11 +1,56 @@
 {
-  "name": "Business Presentation Template",
-  "description": "Professional template for business presentations and corporate content",
-  "category": "business",
-  "version": "1.0",
-  "created_date": "2024-01-15",
   "author": "SuperCut",
+  "category": "business",
+  "created_date": "2024-01-15",
+  "description": "Professional template for business presentations and corporate content",
+  "layer_order": [
+    "background",
+    "overlay1",
+    "frame_box",
+    "song_titles"
+  ],
+  "layer_settings": {
+    "background": {
+      "enabled": true,
+      "scale_percent": 103,
+      "crop_position": "center"
+    },
+    "frame_box": {
+      "duration": 6,
+      "duration_full_checkbox_checked": true,
+      "effect": "fadein",
+      "enabled": true,
+      "pad_bottom": 12,
+      "pad_left": 12,
+      "pad_right": 12,
+      "pad_top": 12,
+      "path": "templates/assets/business_frame.png",
+      "size_percent": 50,
+      "start_time": 5,
+      "x_percent": 0,
+      "y_percent": 0
+    },
+    "overlay1": {
+      "enabled": true,
+      "size_percent": 100,
+      "x_percent": 0,
+      "y_percent": 75
+    },
+    "song_titles": {
+      "enabled": true,
+      "font_size": 24,
+      "opacity": 0.9
+    }
+  },
+  "name": "Business Presentation",
   "thumbnail": "templates/thumbnails/business_presentation.png",
+  "ui_settings": {
+    "show_intro_settings": false,
+    "show_overlay1_2_settings": true,
+    "show_overlay3_titles_soundwave_settings": true,
+    "show_frame_box_settings": true
+  },
+  "version": "1.0",
   "video_settings": {
     "codec": "h264_nvenc",
     "resolution": "1920x1080",
@@ -15,68 +60,5 @@
     "video_bitrate": "10M",
     "maxrate": "14M",
     "bufsize": "20M"
-  },
-  "layer_order": ["background", "overlay1", "frame_box", "song_titles"],
-  "layer_settings": {
-    "background": {
-      "enabled": true,
-      "scale_percent": 103,
-      "crop_position": "center",
-      "effect": "none",
-      "intensity": 50
-    },
-    "overlay1": {
-      "enabled": true,
-      "path": "templates/assets/company_logo.png",
-      "size_percent": 100,
-      "x_percent": 0,
-      "y_percent": 75,
-      "effect": "fadein",
-      "start_time": 5,
-      "duration": 6
-    },
-    "frame_box": {
-      "enabled": true,
-      "path": "templates/assets/business_frame.png",
-      "size_percent": 50,
-      "x_percent": 0,
-      "y_percent": 0,
-      "effect": "fadein",
-      "start_time": 5,
-      "duration": 6,
-      "duration_full_checkbox_checked": true,
-      "pad_left": 12,
-      "pad_right": 12,
-      "pad_top": 12,
-      "pad_bottom": 12
-    },
-    "song_titles": {
-      "enabled": true,
-      "font_size": 24,
-      "color": [255, 255, 255],
-      "bg": "solid",
-      "bg_color": [0, 0, 0],
-      "opacity": 0.9,
-      "x_percent": 25,
-      "y_percent": 25,
-      "effect": "fadeinout",
-      "scale_percent": 100,
-      "text_effect": "none",
-      "text_effect_color": [0, 0, 0],
-      "text_effect_intensity": 20
-    }
-  },
-  "ui_settings": {
-    "show_intro_settings": false,
-    "show_overlay1_2_settings": true,
-    "show_overlay4_5_settings": false,
-    "show_overlay6_7_settings": false,
-    "show_overlay3_titles_soundwave_settings": true,
-    "show_overlay8_settings": false,
-    "show_overlay9_settings": false,
-    "show_overlay10_settings": false,
-    "show_frame_mp3cover_settings": false,
-    "show_mp3_cover_overlay_settings": false,
-    "show_frame_box_settings": true
   }
-} 
+}
