@@ -152,8 +152,8 @@ class TemplateManagerDialog(QDialog):
         """)
         
         button_layout.addSpacing(9)
-        button_layout.addWidget(self.delete_btn)
         button_layout.addWidget(self.edit_btn)
+        button_layout.addWidget(self.delete_btn)
         button_layout.addStretch()
         button_layout.addWidget(self.apply_btn)
         button_layout.addWidget(self.close_btn)
@@ -784,7 +784,8 @@ class TemplateManagerDialog(QDialog):
             
         # Emit the template data for the parent to handle
         self.template_applied.emit(self.selected_template)
-        QMessageBox.information(self, "Template Applied", f"Template '{self.selected_template.get('name')}' has been applied.")
+        # Close the dialog after applying
+        self.accept()
         
     def edit_selected_template(self):
         """Edit the selected template - temporarily disabled"""

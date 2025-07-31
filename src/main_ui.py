@@ -10145,7 +10145,7 @@ class SuperCutUI(QWidget):
             
             # Create template manager dialog
             self.template_manager_dialog = TemplateManagerDialog(self, current_settings)
-            self.template_manager_dialog.template_applied.connect(self.apply_template)
+            self.template_manager_dialog.template_applied.connect(lambda template_data: self.apply_template(template_data, show_success_dialog=False))
             self.template_manager_dialog.show()
         else:
             # Bring existing dialog to front

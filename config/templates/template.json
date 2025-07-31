@@ -1,0 +1,68 @@
+{
+  "name": "Template",
+  "description": "Template created from current settings",
+  "category": "custom",
+  "version": "1.0",
+  "created_date": "2025-08-01T03:19:46.183984",
+  "author": "user",
+  "thumbnail": "",
+  "video_settings": {
+    "codec": "h264_nvenc",
+    "resolution": "1920x1080",
+    "fps": 24,
+    "preset": "medium",
+    "audio_bitrate": "384k",
+    "video_bitrate": "12M",
+    "maxrate": "16M",
+    "bufsize": "24M"
+  },
+  "layer_order": [
+    "background",
+    "overlay2",
+    "overlay3",
+    "overlay4",
+    "overlay1",
+    "overlay5",
+    "overlay6",
+    "overlay7",
+    "overlay8",
+    "overlay9",
+    "overlay10",
+    "intro",
+    "frame_box",
+    "frame_mp3cover",
+    "mp3_cover_overlay",
+    "song_titles",
+    "soundwave"
+  ],
+  "layer_settings": {
+    "background": {
+      "enabled": true
+    },
+    "overlay1": {
+      "enabled": true
+    },
+    "overlay2": {
+      "enabled": true
+    },
+    "song_titles": {
+      "enabled": true
+    },
+    "soundwave": {
+      "enabled": true
+    }
+  },
+  "ui_settings": {
+    "show_intro_settings": true,
+    "show_overlay1_2_settings": true,
+    "show_overlay4_5_settings": true,
+    "show_overlay6_7_settings": true,
+    "show_overlay3_titles_soundwave_settings": true,
+    "show_overlay8_settings": true,
+    "show_overlay9_settings": true,
+    "show_overlay10_settings": true,
+    "show_frame_mp3cover_settings": true,
+    "show_mp3_cover_overlay_settings": true,
+    "show_frame_box_settings": true
+  }
+}
