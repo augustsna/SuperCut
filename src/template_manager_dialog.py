@@ -117,7 +117,7 @@ class TemplateManagerDialog(QDialog):
         self.apply_btn = QPushButton("Apply")
         self.edit_btn = QPushButton("Edit Template")
 
-        self.delete_btn = QPushButton("Delete")
+        self.delete_btn = QPushButton("Delete Template")
         self.close_btn = QPushButton("Close")
         
         # Style bottom buttons
@@ -139,7 +139,7 @@ class TemplateManagerDialog(QDialog):
         self.close_btn.setStyleSheet(button_style)
         self.delete_btn.setStyleSheet("""
             QPushButton {
-                background-color: #e24a4a;
+                background-color: #ffffff;
                 color: #333333;
                 border: 1px solid #cccccc;
                 border-radius: 6px;
@@ -147,7 +147,8 @@ class TemplateManagerDialog(QDialog):
                 font-weight: 500;
             }
             QPushButton:hover {
-                background-color: #c73e3e;
+                
+                border: 2px solid #e24a4a;
             }
         """)
         
