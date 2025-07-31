@@ -1,27 +1,14 @@
 {
-  "name": "Alpha Template",
-  "description": "Template created from current settings",
-  "category": "custom",
-  "version": "1.0",
-  "created_date": "2025-08-01T02:04:41.802331",
   "author": "user",
-  "thumbnail": "",
-  "video_settings": {
-    "codec": "h264_nvenc",
-    "resolution": "1920x1080",
-    "fps": 24,
-    "preset": "medium",
-    "audio_bitrate": "384k",
-    "video_bitrate": "12M",
-    "maxrate": "16M",
-    "bufsize": "24M"
-  },
+  "category": "custom",
+  "created_date": "2025-08-01T02:58:14.135975",
+  "description": "Template created from current settings",
   "layer_order": [
     "background",
-    "overlay1",
     "overlay2",
     "overlay3",
     "overlay4",
+    "overlay1",
     "overlay5",
     "overlay6",
     "overlay7",
@@ -37,32 +24,45 @@
   ],
   "layer_settings": {
     "background": {
-      "enabled": false
+      "enabled": true,
+      "scale_percent": 103,
+      "crop_position": "center"
     },
     "overlay1": {
-      "enabled": true
+      "enabled": true,
+      "size_percent": 100,
+      "x_percent": 0,
+      "y_percent": 75
     },
     "overlay2": {
       "enabled": true
     },
     "song_titles": {
-      "enabled": true
+      "enabled": true,
+      "font_size": 32,
+      "opacity": 1.0
     },
     "soundwave": {
       "enabled": true
     }
   },
+  "name": "Alpha Template",
+  "thumbnail": "",
   "ui_settings": {
     "show_intro_settings": true,
     "show_overlay1_2_settings": true,
-    "show_overlay4_5_settings": true,
-    "show_overlay6_7_settings": true,
     "show_overlay3_titles_soundwave_settings": true,
-    "show_overlay8_settings": true,
-    "show_overlay9_settings": true,
-    "show_overlay10_settings": true,
-    "show_frame_mp3cover_settings": true,
-    "show_mp3_cover_overlay_settings": true,
     "show_frame_box_settings": true
+  },
+  "version": "1.0",
+  "video_settings": {
+    "codec": "h264_nvenc",
+    "resolution": "1920x1080",
+    "fps": 24,
+    "preset": "ultrafast",
+    "audio_bitrate": "384k",
+    "video_bitrate": "12M",
+    "maxrate": "16M",
+    "bufsize": "24M"
   }
 }
