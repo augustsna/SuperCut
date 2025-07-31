@@ -1,0 +1,87 @@
+{
+  "name": "Social Media Story Template",
+  "description": "Optimized for social media stories with 9:16 aspect ratio and engaging overlays",
+  "category": "social",
+  "version": "1.0",
+  "created_date": "2024-01-15",
+  "author": "SuperCut",
+  "thumbnail": "templates/thumbnails/social_media_story.png",
+  "video_settings": {
+    "codec": "h264_nvenc",
+    "resolution": "1080x1920",
+    "fps": 30,
+    "preset": "fast",
+    "audio_bitrate": "192k",
+    "video_bitrate": "6M",
+    "maxrate": "8M",
+    "bufsize": "12M"
+  },
+  "layer_order": ["background", "overlay1", "overlay2", "song_titles", "soundwave"],
+  "layer_settings": {
+    "background": {
+      "enabled": true,
+      "scale_percent": 103,
+      "crop_position": "center",
+      "effect": "none",
+      "intensity": 50
+    },
+    "overlay1": {
+      "enabled": true,
+      "path": "templates/assets/social_logo.png",
+      "size_percent": 100,
+      "x_percent": 0,
+      "y_percent": 75,
+      "effect": "fadein",
+      "start_time": 5,
+      "duration": 6
+    },
+    "overlay2": {
+      "enabled": true,
+      "path": "templates/assets/social_watermark.png",
+      "size_percent": 10,
+      "x_percent": 75,
+      "y_percent": 0,
+      "effect": "fadein",
+      "start_time": 5,
+      "duration": 6
+    },
+    "song_titles": {
+      "enabled": true,
+      "font_size": 36,
+      "color": [255, 255, 255],
+      "bg": "transparent",
+      "bg_color": [0, 0, 0],
+      "opacity": 1.0,
+      "x_percent": 25,
+      "y_percent": 25,
+      "effect": "fadeinout",
+      "scale_percent": 100,
+      "text_effect": "none",
+      "text_effect_color": [0, 0, 0],
+      "text_effect_intensity": 20
+    },
+    "soundwave": {
+      "enabled": true,
+      "method": "bars",
+      "color": "hue_rotate",
+      "size_percent": 60,
+      "x_percent": 50,
+      "y_percent": 50,
+      "effect": "fadein",
+      "start_time": 5
+    }
+  },
+  "ui_settings": {
+    "show_intro_settings": false,
+    "show_overlay1_2_settings": true,
+    "show_overlay4_5_settings": false,
+    "show_overlay6_7_settings": false,
+    "show_overlay3_titles_soundwave_settings": true,
+    "show_overlay8_settings": false,
+    "show_overlay9_settings": false,
+    "show_overlay10_settings": false,
+    "show_frame_mp3cover_settings": false,
+    "show_mp3_cover_overlay_settings": false,
+    "show_frame_box_settings": false
+  }
+} 

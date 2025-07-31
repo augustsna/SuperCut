@@ -1,0 +1,77 @@
+{
+  "name": "Music Video Template",
+  "description": "Perfect for music videos with song titles and soundwave visualization",
+  "category": "music",
+  "version": "1.0",
+  "created_date": "2024-01-15",
+  "author": "SuperCut",
+  "thumbnail": "templates/thumbnails/music_video.png",
+  "video_settings": {
+    "codec": "h264_nvenc",
+    "resolution": "1920x1080",
+    "fps": 24,
+    "preset": "slow",
+    "audio_bitrate": "384k",
+    "video_bitrate": "12M",
+    "maxrate": "16M",
+    "bufsize": "24M"
+  },
+  "layer_order": ["background", "overlay1", "song_titles", "soundwave"],
+  "layer_settings": {
+    "background": {
+      "enabled": true,
+      "scale_percent": 103,
+      "crop_position": "center",
+      "effect": "none",
+      "intensity": 50
+    },
+    "overlay1": {
+      "enabled": true,
+      "path": "templates/assets/logo.png",
+      "size_percent": 100,
+      "x_percent": 0,
+      "y_percent": 75,
+      "effect": "fadein",
+      "start_time": 5,
+      "duration": 6
+    },
+    "song_titles": {
+      "enabled": true,
+      "font_size": 32,
+      "color": [255, 255, 255],
+      "bg": "transparent",
+      "bg_color": [0, 0, 0],
+      "opacity": 1.0,
+      "x_percent": 25,
+      "y_percent": 25,
+      "effect": "fadeinout",
+      "scale_percent": 100,
+      "text_effect": "none",
+      "text_effect_color": [0, 0, 0],
+      "text_effect_intensity": 20
+    },
+    "soundwave": {
+      "enabled": true,
+      "method": "bars",
+      "color": "hue_rotate",
+      "size_percent": 50,
+      "x_percent": 50,
+      "y_percent": 50,
+      "effect": "fadein",
+      "start_time": 5
+    }
+  },
+  "ui_settings": {
+    "show_intro_settings": false,
+    "show_overlay1_2_settings": true,
+    "show_overlay4_5_settings": false,
+    "show_overlay6_7_settings": false,
+    "show_overlay3_titles_soundwave_settings": true,
+    "show_overlay8_settings": false,
+    "show_overlay9_settings": false,
+    "show_overlay10_settings": false,
+    "show_frame_mp3cover_settings": false,
+    "show_mp3_cover_overlay_settings": false,
+    "show_frame_box_settings": false
+  }
+} 

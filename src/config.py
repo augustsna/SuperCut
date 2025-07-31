@@ -1,6 +1,8 @@
 # This file uses PyQt6
 import os
 import sys
+import json
+from datetime import datetime
 
 # Project root is one level up from this file
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -263,9 +265,6 @@ DEFAULT_MAXRATE_OPTIONS = [
 DEFAULT_MAXRATE = "16M"
 
 # Layer Order Configuration
-import json
-import os
-
 def get_config_file_path():
     """Get the path to the user configuration file"""
     config_dir = os.path.join(PROJECT_ROOT, "config")
@@ -331,3 +330,120 @@ def check_ffmpeg_installation():
     if not os.path.exists(FFMPEG_BINARY):
         return False, f"Could not find {FFMPEG_BINARY}. Please ensure ffmpeg is present in the ffmpeg folder."
     return True, None
+
+def get_templates_dir():
+    """Get the path to the templates directory"""
+    templates_dir = os.path.join(PROJECT_ROOT, "config", "templates")
+    os.makedirs(templates_dir, exist_ok=True)
+    return templates_dir
+
+def save_template(template_data, template_name):
+    """Save template to JSON file"""
+    templates_dir = get_templates_dir()
+    template_file = os.path.join(templates_dir, f"{template_name}.json")
+    
+    try:
+        with open(template_file, 'w', encoding='utf-8') as f:
+            json.dump(template_data, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Error saving template: {e}")
+        return False
+
+def load_template(template_name):
+    """Load template from JSON file"""
+    templates_dir = get_templates_dir()
+    template_file = os.path.join(templates_dir, f"{template_name}.json")
+    
+    try:
+        if os.path.exists(template_file):
+            with open(template_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception as e:
+        print(f"Error loading template {template_name}: {e}")
+    
+    return None
+
+def get_available_templates():
+    """Get list of all available templates"""
+    templates_dir = get_templates_dir()
+    templates = []
+    
+    try:
+        if os.path.exists(templates_dir):
+            for file in os.listdir(templates_dir):
+                if file.endswith('.json'):
+                    template_name = file[:-5]  # Remove .json
+                    template_data = load_template(template_name)
+                    if template_data:
+                        templates.append(template_data)
+    except Exception as e:
+        print(f"Error loading templates: {e}")
+    
+    return templates
+
+def delete_template(template_name):
+    """Delete a template file"""
+    templates_dir = get_templates_dir()
+    template_file = os.path.join(templates_dir, f"{template_name}.json")
+    
+    try:
+        if os.path.exists(template_file):
+            os.remove(template_file)
+            return True
+    except Exception as e:
+        print(f"Error deleting template {template_name}: {e}")
+    
+    return False
+
+def get_template_categories():
+    """Get template categories configuration"""
+    categories_file = os.path.join(PROJECT_ROOT, "config", "template_categories.json")
+    
+    default_categories = {
+        "categories": {
+            "music": {
+                "name": "Music",
+                "description": "Templates for music videos and audio content",
+                "icon": "🎵",
+                "color": "#4a90e2"
+            },
+            "gaming": {
+                "name": "Gaming",
+                "description": "Templates for gaming highlights and streams",
+                "icon": "🎮",
+                "color": "#e24a4a"
+            },
+            "business": {
+                "name": "Business",
+                "description": "Templates for professional presentations",
+                "icon": "💼",
+                "color": "#4ae24a"
+            },
+            "social": {
+                "name": "Social Media",
+                "description": "Templates for social media content",
+                "icon": "📱",
+                "color": "#e24ae2"
+            },
+            "custom": {
+                "name": "Custom",
+                "description": "User-created custom templates",
+                "icon": "⚙️",
+                "color": "#e2e24a"
+            }
+        }
+    }
+    
+    try:
+        if os.path.exists(categories_file):
+            with open(categories_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        else:
+            # Create default categories file
+            with open(categories_file, 'w', encoding='utf-8') as f:
+                json.dump(default_categories, f, indent=2, ensure_ascii=False)
+            return default_categories
+    except Exception as e:
+        print(f"Error loading template categories: {e}")
+        return default_categories

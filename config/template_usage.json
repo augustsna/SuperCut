@@ -1,0 +1,54 @@
+{
+  "templates": {
+    "Music Video Template": {
+      "usage_count": 4,
+      "success_count": 4,
+      "last_used": "2025-07-31T15:43:41.763349",
+      "average_rating": 0.0,
+      "categories": []
+    },
+    "Enhanced Music Video Template": {
+      "usage_count": 4,
+      "success_count": 4,
+      "last_used": "2025-07-31T15:43:48.779093",
+      "average_rating": 0.0,
+      "categories": []
+    },
+    "Business Presentation Template": {
+      "usage_count": 3,
+      "success_count": 3,
+      "last_used": "2025-07-31T15:44:47.962777",
+      "average_rating": 0.0,
+      "categories": []
+    },
+    "Social Media Story Template": {
+      "usage_count": 1,
+      "success_count": 1,
+      "last_used": "2025-07-31T15:42:37.828694",
+      "average_rating": 0.0,
+      "categories": []
+    },
+    "My Template": {
+      "usage_count": 2,
+      "success_count": 2,
+      "last_used": "2025-07-31T15:43:37.912984",
+      "average_rating": 0.0,
+      "categories": []
+    },
+    "1": {
+      "usage_count": 1,
+      "success_count": 1,
+      "last_used": "2025-07-31T15:45:51.889096",
+      "average_rating": 0.0,
+      "categories": []
+    },
+    "Gaming Highlight Template": {
+      "usage_count": 1,
+      "success_count": 1,
+      "last_used": "2025-07-31T15:47:06.675933",
+      "average_rating": 0.0,
+      "categories": []
+    }
+  },
+  "user_preferences": {}
+}

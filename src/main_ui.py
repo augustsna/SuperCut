@@ -45,6 +45,8 @@ from src.video_worker import VideoWorker
 from src.terminal_widget import TerminalWidget
 from src.layer_manager import LayerManagerDialog
 from src.config import save_layer_order, load_layer_order
+from src.template_manager_dialog import TemplateManagerDialog
+from src.template_utils import apply_template_to_settings
 
 import time
 import threading
@@ -1136,6 +1138,7 @@ class SuperCutUI(QWidget):
         self.frame_box_caption_png_path = None
         self.layer_order = load_layer_order()  # Load saved layer order or None for default
         self.layer_manager_dialog = None  # Track layer manager dialog for toggle functionality
+        self.template_manager_dialog = None  # Track template manager dialog for toggle functionality
         
         self.init_ui()
         self.restore_window_position()
@@ -1711,6 +1714,42 @@ class SuperCutUI(QWidget):
         layout.addWidget(core_settings_groupbox)
 
         self.register_section_widget('settings', core_settings_groupbox)
+
+        # --- TEMPLATE CONTROLS ---
+        template_layout = QHBoxLayout()
+        template_layout.setSpacing(0)
+        template_layout.addSpacing(25)
+        
+        # Template label
+        template_label = QLabel("Template:")
+        template_label.setFixedWidth(60)
+        
+        # Template combo box
+        self.template_combo = NoWheelComboBox()
+        self.template_combo.setFixedWidth(150)
+        self.template_combo.setFixedHeight(unified_height)
+        self.template_combo.addItem("No Template", "")
+        self.load_templates_to_combo()
+        
+        # Template manager button
+        self.template_manager_btn = QPushButton("Manage Templates")
+        self.template_manager_btn.setFixedWidth(120)
+        self.template_manager_btn.setFixedHeight(unified_height)
+        self.template_manager_btn.clicked.connect(self.open_template_manager)
+        
+        # Save current as template button
+        self.save_template_btn = QPushButton("Save as Template")
+        self.save_template_btn.setFixedWidth(100)
+        self.save_template_btn.setFixedHeight(unified_height)
+        self.save_template_btn.clicked.connect(self.save_current_as_template)
+        
+        template_layout.addWidget(template_label)
+        template_layout.addWidget(self.template_combo)
+        template_layout.addWidget(self.template_manager_btn)
+        template_layout.addWidget(self.save_template_btn)
+        template_layout.addStretch()
+        
+        layout.addLayout(template_layout)
 
         # --- INTRO OVERLAY CONTROLS ---
         # Load custom intro checkbox label from settings
@@ -10051,6 +10090,169 @@ class SuperCutUI(QWidget):
             if self.layer_manager_dialog is not None:
                 if self.layer_manager_dialog.isVisible():
                     self.layer_manager_dialog.update_layer_labels()
+
+    # --- TEMPLATE METHODS ---
+    def load_templates_to_combo(self):
+        """Load available templates into the combo box"""
+        from src.template_utils import get_available_templates
+        
+        # Clear existing items except "No Template"
+        while self.template_combo.count() > 1:
+            self.template_combo.removeItem(1)
+        
+        # Load templates
+        templates = get_available_templates()
+        for template in templates:
+            self.template_combo.addItem(template.get('name', 'Unknown Template'), template.get('name', ''))
+    
+    def open_template_manager(self):
+        """Open the template manager dialog"""
+        if self.template_manager_dialog is None or not self.template_manager_dialog.isVisible():
+            # Get current settings
+            current_settings = self.get_current_settings()
+            
+            # Create template manager dialog
+            self.template_manager_dialog = TemplateManagerDialog(self, current_settings)
+            self.template_manager_dialog.template_applied.connect(self.apply_template)
+            self.template_manager_dialog.show()
+        else:
+            # Bring existing dialog to front
+            self.template_manager_dialog.raise_()
+            self.template_manager_dialog.activateWindow()
+    
+    def get_current_settings(self):
+        """Get current application settings for template creation"""
+        settings = {
+            'codec': self.codec_combo.currentData(),
+            'resolution': self.resolution_combo.currentData(),
+            'fps': self.fps_combo.currentData(),
+            'preset': self.preset_combo.currentData(),
+            'audio_bitrate': '384k',  # Default, could be made configurable
+            'video_bitrate': '12M',   # Default, could be made configurable
+            'maxrate': '16M',         # Default, could be made configurable
+            'bufsize': '24M',         # Default, could be made configurable
+            'layer_order': self.layer_order or [],
+            'layer_settings': {
+                'background': {'enabled': hasattr(self, 'bg_layer_checkbox') and self.bg_layer_checkbox.isChecked()},
+                'overlay1': {'enabled': hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked()},
+                'overlay2': {'enabled': hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked()},
+                'song_titles': {'enabled': hasattr(self, 'song_title_checkbox') and self.song_title_checkbox.isChecked()},
+                'soundwave': {'enabled': hasattr(self, 'soundwave_checkbox') and self.soundwave_checkbox.isChecked()},
+            },
+            'ui_settings': {
+                'show_intro_settings': self.settings.value('show_intro_settings', False, type=bool),
+                'show_overlay1_2_settings': self.settings.value('show_overlay1_2_settings', False, type=bool),
+                'show_overlay4_5_settings': self.settings.value('show_overlay4_5_settings', False, type=bool),
+                'show_overlay6_7_settings': self.settings.value('show_overlay6_7_settings', False, type=bool),
+                'show_overlay3_titles_soundwave_settings': self.settings.value('show_overlay3_titles_soundwave_settings', False, type=bool),
+                'show_overlay8_settings': self.settings.value('show_overlay8_settings', False, type=bool),
+                'show_overlay9_settings': self.settings.value('show_overlay9_settings', False, type=bool),
+                'show_overlay10_settings': self.settings.value('show_overlay10_settings', False, type=bool),
+                'show_frame_mp3cover_settings': self.settings.value('show_frame_mp3cover_settings', False, type=bool),
+                'show_mp3_cover_overlay_settings': self.settings.value('show_mp3_cover_overlay_settings', False, type=bool),
+                'show_frame_box_settings': self.settings.value('show_frame_box_settings', False, type=bool),
+            }
+        }
+        return settings
+    
+    def apply_template(self, template_data):
+        """Apply a template to current settings"""
+        try:
+            # Apply video settings
+            video_settings = template_data.get('video_settings', {})
+            
+            # Apply codec
+            if 'codec' in video_settings:
+                codec = video_settings['codec']
+                for i in range(self.codec_combo.count()):
+                    if self.codec_combo.itemData(i) == codec:
+                        self.codec_combo.setCurrentIndex(i)
+                        break
+            
+            # Apply resolution
+            if 'resolution' in video_settings:
+                resolution = video_settings['resolution']
+                for i in range(self.resolution_combo.count()):
+                    if self.resolution_combo.itemData(i) == resolution:
+                        self.resolution_combo.setCurrentIndex(i)
+                        break
+            
+            # Apply FPS
+            if 'fps' in video_settings:
+                fps = video_settings['fps']
+                for i in range(self.fps_combo.count()):
+                    if self.fps_combo.itemData(i) == fps:
+                        self.fps_combo.setCurrentIndex(i)
+                        break
+            
+            # Apply preset
+            if 'preset' in video_settings:
+                preset = video_settings['preset']
+                for i in range(self.preset_combo.count()):
+                    if self.preset_combo.itemData(i) == preset:
+                        self.preset_combo.setCurrentIndex(i)
+                        break
+            
+            # Apply layer order
+            if 'layer_order' in template_data:
+                self.layer_order = template_data['layer_order']
+            
+            # Apply layer settings
+            layer_settings = template_data.get('layer_settings', {})
+            if 'background' in layer_settings and hasattr(self, 'bg_layer_checkbox'):
+                self.bg_layer_checkbox.setChecked(layer_settings['background'].get('enabled', False))
+            if 'overlay1' in layer_settings and hasattr(self, 'overlay_checkbox'):
+                self.overlay_checkbox.setChecked(layer_settings['overlay1'].get('enabled', False))
+            if 'overlay2' in layer_settings and hasattr(self, 'overlay2_checkbox'):
+                self.overlay2_checkbox.setChecked(layer_settings['overlay2'].get('enabled', False))
+            if 'song_titles' in layer_settings and hasattr(self, 'song_title_checkbox'):
+                self.song_title_checkbox.setChecked(layer_settings['song_titles'].get('enabled', False))
+            if 'soundwave' in layer_settings and hasattr(self, 'soundwave_checkbox'):
+                self.soundwave_checkbox.setChecked(layer_settings['soundwave'].get('enabled', False))
+            
+            # Apply UI settings
+            ui_settings = template_data.get('ui_settings', {})
+            for setting_name, value in ui_settings.items():
+                self.settings.setValue(setting_name, value)
+            
+            # Update the template combo to show the applied template
+            template_name = template_data.get('name', 'Unknown Template')
+            for i in range(self.template_combo.count()):
+                if self.template_combo.itemText(i) == template_name:
+                    self.template_combo.setCurrentIndex(i)
+                    break
+            
+            # Apply settings to update UI visibility
+            self.apply_settings()
+            
+            QMessageBox.information(self, "Template Applied", f"Template '{template_name}' has been applied successfully!")
+            
+        except Exception as e:
+            QMessageBox.warning(self, "Template Error", f"Error applying template: {str(e)}")
+    
+    def save_current_as_template(self):
+        """Save current settings as a new template"""
+        from src.template_utils import create_template_from_current_settings
+        from src.config import save_template
+        
+        # Get current settings
+        current_settings = self.get_current_settings()
+        
+        # Create template from current settings
+        template_data = create_template_from_current_settings(
+            "My Template",
+            "Template created from current settings",
+            "custom",
+            current_settings
+        )
+        
+        # Save template
+        template_name = "my_template"
+        if save_template(template_data, template_name):
+            QMessageBox.information(self, "Success", "Template saved successfully!")
+            self.load_templates_to_combo()
+        else:
+            QMessageBox.warning(self, "Error", "Failed to save template.")
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""

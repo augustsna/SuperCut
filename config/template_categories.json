@@ -1,0 +1,34 @@
+{
+  "categories": {
+    "music": {
+      "name": "Music",
+      "description": "Templates for music videos and audio content",
+      "icon": "🎵",
+      "color": "#4a90e2"
+    },
+    "gaming": {
+      "name": "Gaming",
+      "description": "Templates for gaming highlights and streams",
+      "icon": "🎮",
+      "color": "#e24a4a"
+    },
+    "business": {
+      "name": "Business",
+      "description": "Templates for professional presentations",
+      "icon": "💼",
+      "color": "#4ae24a"
+    },
+    "social": {
+      "name": "Social Media",
+      "description": "Templates for social media content",
+      "icon": "📱",
+      "color": "#e24ae2"
+    },
+    "custom": {
+      "name": "Custom",
+      "description": "User-created custom templates",
+      "icon": "⚙️",
+      "color": "#e2e24a"
+    }
+  }
+} 

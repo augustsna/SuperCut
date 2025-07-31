@@ -1,0 +1,43 @@
+{
+  "name": "1",
+  "description": "",
+  "category": "music",
+  "version": "1.0",
+  "created_date": "2025-07-31T15:45:59.117961",
+  "author": "user",
+  "thumbnail": "",
+  "video_settings": {
+    "codec": "h264_nvenc",
+    "resolution": "1920x1080",
+    "fps": 24,
+    "preset": "slow",
+    "audio_bitrate": "384k",
+    "video_bitrate": "12M",
+    "maxrate": "16M",
+    "bufsize": "24M"
+  },
+  "layer_order": [
+    "background",
+    "overlay1",
+    "song_titles"
+  ],
+  "layer_settings": {
+    "background": {
+      "enabled": true,
+      "scale_percent": 103
+    },
+    "overlay1": {
+      "enabled": false,
+      "size_percent": 100
+    },
+    "song_titles": {
+      "enabled": true,
+      "font_size": 32
+    }
+  },
+  "ui_settings": {
+    "show_intro_settings": false,
+    "show_overlay1_2_settings": true,
+    "show_overlay3_titles_soundwave_settings": true
+  }
+}

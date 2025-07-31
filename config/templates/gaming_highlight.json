@@ -1,0 +1,92 @@
+{
+  "name": "Gaming Highlight Template",
+  "description": "Perfect for gaming highlights and stream content with frame box and overlays",
+  "category": "gaming",
+  "version": "1.0",
+  "created_date": "2024-01-15",
+  "author": "SuperCut",
+  "thumbnail": "templates/thumbnails/gaming_highlight.png",
+  "video_settings": {
+    "codec": "h264_nvenc",
+    "resolution": "1920x1080",
+    "fps": 30,
+    "preset": "fast",
+    "audio_bitrate": "256k",
+    "video_bitrate": "8M",
+    "maxrate": "12M",
+    "bufsize": "16M"
+  },
+  "layer_order": ["background", "frame_box", "overlay1", "overlay2", "song_titles"],
+  "layer_settings": {
+    "background": {
+      "enabled": true,
+      "scale_percent": 103,
+      "crop_position": "center",
+      "effect": "none",
+      "intensity": 50
+    },
+    "frame_box": {
+      "enabled": true,
+      "path": "templates/assets/gaming_frame.png",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0,
+      "effect": "fadein",
+      "start_time": 5,
+      "duration": 6,
+      "duration_full_checkbox_checked": true,
+      "pad_left": 12,
+      "pad_right": 12,
+      "pad_top": 12,
+      "pad_bottom": 12
+    },
+    "overlay1": {
+      "enabled": true,
+      "path": "templates/assets/gaming_logo.png",
+      "size_percent": 100,
+      "x_percent": 0,
+      "y_percent": 75,
+      "effect": "fadein",
+      "start_time": 5,
+      "duration": 6
+    },
+    "overlay2": {
+      "enabled": true,
+      "path": "templates/assets/gaming_watermark.png",
+      "size_percent": 10,
+      "x_percent": 75,
+      "y_percent": 0,
+      "effect": "fadein",
+      "start_time": 5,
+      "duration": 6
+    },
+    "song_titles": {
+      "enabled": true,
+      "font_size": 28,
+      "color": [255, 255, 255],
+      "bg": "transparent",
+      "bg_color": [0, 0, 0],
+      "opacity": 0.8,
+      "x_percent": 25,
+      "y_percent": 25,
+      "effect": "fadeinout",
+      "scale_percent": 100,
+      "text_effect": "none",
+      "text_effect_color": [0, 0, 0],
+      "text_effect_intensity": 20
+    }
+  },
+  "ui_settings": {
+    "show_intro_settings": false,
+    "show_overlay1_2_settings": true,
+    "show_overlay4_5_settings": false,
+    "show_overlay6_7_settings": false,
+    "show_overlay3_titles_soundwave_settings": true,
+    "show_overlay8_settings": false,
+    "show_overlay9_settings": false,
+    "show_overlay10_settings": false,
+    "show_frame_mp3cover_settings": false,
+    "show_mp3_cover_overlay_settings": false,
+    "show_frame_box_settings": true
+  }
+} 

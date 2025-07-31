@@ -1,0 +1,65 @@
+{
+  "name": "Enhanced Music Video Template",
+  "description": "Professional music video template with modern effects and high-quality settings",
+  "category": "music",
+  "version": "2.0",
+  "created_date": "2024-01-15T10:30:00Z",
+  "author": "SuperCut Team",
+  "thumbnail": "",
+  "tags": ["music", "modern", "professional", "high-quality", "trending"],
+  "rating": 4.5,
+  "usage_count": 127,
+  "favorite": true,
+  "video_settings": {
+    "codec": "h264_nvenc",
+    "resolution": "1920x1080",
+    "fps": 30,
+    "preset": "slow",
+    "audio_bitrate": "384k",
+    "video_bitrate": "12M",
+    "maxrate": "16M",
+    "bufsize": "24M"
+  },
+  "layer_order": [
+    "background",
+    "overlay1",
+    "song_titles",
+    "soundwave"
+  ],
+  "layer_settings": {
+    "background": {
+      "enabled": true,
+      "scale_percent": 105
+    },
+    "overlay1": {
+      "enabled": true,
+      "size_percent": 80,
+      "x_percent": 50,
+      "y_percent": 30
+    },
+    "song_titles": {
+      "enabled": true,
+      "font_size": 36,
+      "font_color": "#ffffff",
+      "shadow_enabled": true
+    },
+    "soundwave": {
+      "enabled": true,
+      "height_percent": 15,
+      "color": "#4a90e2"
+    }
+  },
+  "ui_settings": {
+    "show_intro_settings": false,
+    "show_overlay1_2_settings": true,
+    "show_overlay3_titles_soundwave_settings": true,
+    "show_overlay4_5_settings": false,
+    "show_overlay6_7_settings": false,
+    "show_overlay8_settings": false,
+    "show_overlay9_settings": false,
+    "show_overlay10_settings": false,
+    "show_frame_mp3cover_settings": false,
+    "show_mp3_cover_overlay_settings": false,
+    "show_frame_box_settings": false
+  }
+} 

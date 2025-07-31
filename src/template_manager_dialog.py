@@ -1,0 +1,697 @@
+#!/usr/bin/env python3
+"""
+Template Manager Dialog for SuperCut
+Provides a visual interface for managing video templates
+"""
+
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
+    QListWidget, QListWidgetItem, QGroupBox, QFormLayout,
+    QComboBox, QLineEdit, QTextEdit, QMessageBox, QFileDialog,
+    QSplitter, QWidget, QScrollArea, QFrame, QSizePolicy
+)
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QIcon, QPixmap, QFont
+from typing import Dict, List, Optional, Any
+import os
+
+from src.template_utils import (
+    get_available_templates,
+    get_templates_by_category,
+    get_template_by_name,
+    create_template_from_current_settings,
+    apply_template_to_settings,
+    validate_template,
+    export_template,
+    import_template,
+    get_template_preview_info
+)
+from src.config import get_template_categories, save_template, delete_template
+
+class TemplateManagerDialog(QDialog):
+    """Dialog for managing video templates"""
+    
+    template_applied = pyqtSignal(dict)  # Emits template data when applied
+    
+    def __init__(self, parent=None, current_settings=None):
+        super().__init__(parent)
+        self.current_settings = current_settings or {}
+        self.selected_template = None
+        self.init_ui()
+        self.load_templates()
+        
+    def init_ui(self):
+        """Initialize the user interface"""
+        self.setWindowTitle("Template Manager")
+        self.setModal(True)
+        self.setMinimumSize(900, 600)
+        
+        # Main layout
+        layout = QVBoxLayout(self)
+        
+        # Header with title and buttons
+        header_layout = QHBoxLayout()
+        title_label = QLabel("Template Manager")
+        title_label.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 10px;")
+        
+        self.new_template_btn = QPushButton("New Template")
+        self.import_btn = QPushButton("Import")
+        self.export_btn = QPushButton("Export")
+        self.favorites_btn = QPushButton("⭐ Favorites")
+        self.favorites_btn.setCheckable(True)
+        self.favorites_btn.setChecked(False)
+        
+        # Style buttons
+        button_style = """
+            QPushButton {
+                background-color: #4a90e2;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #357ABD;
+            }
+            QPushButton:disabled {
+                background-color: #cccccc;
+            }
+        """
+        self.new_template_btn.setStyleSheet(button_style)
+        self.import_btn.setStyleSheet(button_style)
+        self.export_btn.setStyleSheet(button_style)
+        self.favorites_btn.setStyleSheet(button_style)
+        
+        header_layout.addWidget(title_label)
+        header_layout.addStretch()
+        header_layout.addWidget(self.new_template_btn)
+        header_layout.addWidget(self.import_btn)
+        header_layout.addWidget(self.export_btn)
+        header_layout.addWidget(self.favorites_btn)
+        
+        layout.addLayout(header_layout)
+        
+        # Main content area with splitter
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        
+        # Left panel: Template list and filters
+        left_panel = self.create_left_panel()
+        splitter.addWidget(left_panel)
+        
+        # Right panel: Template preview and details
+        right_panel = self.create_right_panel()
+        splitter.addWidget(right_panel)
+        
+        # Set splitter proportions (60% left, 40% right)
+        splitter.setSizes([540, 360])
+        layout.addWidget(splitter)
+        
+        # Bottom buttons
+        button_layout = QHBoxLayout()
+        self.apply_btn = QPushButton("Apply Template")
+        self.edit_btn = QPushButton("Edit Template")
+        self.favorite_btn = QPushButton("⭐ Favorite")
+        self.favorite_btn.setCheckable(True)
+        self.delete_btn = QPushButton("Delete Template")
+        self.close_btn = QPushButton("Close")
+        
+        # Style bottom buttons
+        self.apply_btn.setStyleSheet(button_style)
+        self.edit_btn.setStyleSheet(button_style)
+        self.favorite_btn.setStyleSheet(button_style)
+        self.delete_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e24a4a;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #c73e3e;
+            }
+        """)
+        self.close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ffffff;
+                color: #333333;
+                border: 1px solid #cccccc;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #f5f5f5;
+            }
+        """)
+        
+        button_layout.addWidget(self.apply_btn)
+        button_layout.addWidget(self.edit_btn)
+        button_layout.addWidget(self.favorite_btn)
+        button_layout.addStretch()
+        button_layout.addWidget(self.delete_btn)
+        button_layout.addWidget(self.close_btn)
+        
+        layout.addLayout(button_layout)
+        
+        # Connect signals
+        self.new_template_btn.clicked.connect(self.create_new_template)
+        self.import_btn.clicked.connect(self.import_template_file)
+        self.export_btn.clicked.connect(self.export_template_file)
+        self.favorites_btn.clicked.connect(self.filter_templates)
+        self.apply_btn.clicked.connect(self.apply_selected_template)
+        self.edit_btn.clicked.connect(self.edit_selected_template)
+        self.favorite_btn.clicked.connect(self.toggle_favorite)
+        self.delete_btn.clicked.connect(self.delete_selected_template)
+        self.close_btn.clicked.connect(self.accept)
+        
+        # Initial button states
+        self.update_button_states()
+        
+    def create_left_panel(self):
+        """Create the left panel with template list and filters"""
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
+        
+        # Category filter
+        filter_group = QGroupBox("Filter by Category")
+        filter_layout = QVBoxLayout(filter_group)
+        
+        self.category_combo = QComboBox()
+        self.category_combo.addItem("All Categories", "all")
+        
+        # Load categories
+        categories = get_template_categories()
+        for category_id, category_info in categories.get('categories', {}).items():
+            icon = category_info.get('icon', '')
+            name = category_info.get('name', category_id)
+            self.category_combo.addItem(f"{icon} {name}", category_id)
+        
+        self.category_combo.currentTextChanged.connect(self.filter_templates)
+        filter_layout.addWidget(self.category_combo)
+        
+        left_layout.addWidget(filter_group)
+        
+        # Search and filter box
+        search_group = QGroupBox("Search & Filter")
+        search_layout = QVBoxLayout(search_group)
+        
+        # Search box
+        self.search_edit = QLineEdit()
+        self.search_edit.setPlaceholderText("Search templates by name, description, or tags...")
+        self.search_edit.textChanged.connect(self.filter_templates)
+        search_layout.addWidget(self.search_edit)
+        
+        # Advanced filters
+        filter_layout = QHBoxLayout()
+        
+        # Resolution filter
+        self.resolution_filter = QComboBox()
+        self.resolution_filter.addItem("All Resolutions", "")
+        self.resolution_filter.addItem("1080p", "1920x1080")
+        self.resolution_filter.addItem("720p", "1280x720")
+        self.resolution_filter.addItem("4K", "3840x2160")
+        self.resolution_filter.currentTextChanged.connect(self.filter_templates)
+        filter_layout.addWidget(QLabel("Resolution:"))
+        filter_layout.addWidget(self.resolution_filter)
+        
+        # FPS filter
+        self.fps_filter = QComboBox()
+        self.fps_filter.addItem("All FPS", "")
+        self.fps_filter.addItem("24 FPS", "24")
+        self.fps_filter.addItem("30 FPS", "30")
+        self.fps_filter.addItem("60 FPS", "60")
+        self.fps_filter.currentTextChanged.connect(self.filter_templates)
+        filter_layout.addWidget(QLabel("FPS:"))
+        filter_layout.addWidget(self.fps_filter)
+        
+        search_layout.addLayout(filter_layout)
+        
+        left_layout.addWidget(search_group)
+        
+        # Template list
+        list_group = QGroupBox("Templates")
+        list_layout = QVBoxLayout(list_group)
+        
+        self.template_list = QListWidget()
+        self.template_list.setMinimumHeight(300)
+        self.template_list.itemClicked.connect(self.on_template_selected)
+        self.template_list.setStyleSheet("""
+            QListWidget {
+                border: 1px solid #cccccc;
+                border-radius: 6px;
+                background-color: white;
+                font-size: 13px;
+            }
+            QListWidget::item {
+                padding: 8px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            QListWidget::item:selected {
+                background-color: #4a90e2;
+                color: white;
+            }
+            QListWidget::item:hover {
+                background-color: #f5f5f5;
+            }
+        """)
+        
+        list_layout.addWidget(self.template_list)
+        left_layout.addWidget(list_group)
+        
+        return left_widget
+        
+    def create_right_panel(self):
+        """Create the right panel with template preview and details"""
+        right_widget = QWidget()
+        right_layout = QVBoxLayout(right_widget)
+        
+        # Template details
+        details_group = QGroupBox("Template Details")
+        details_layout = QFormLayout(details_group)
+        
+        self.template_name_label = QLabel("")
+        self.template_desc_label = QLabel("")
+        self.template_category_label = QLabel("")
+        self.template_version_label = QLabel("")
+        self.template_author_label = QLabel("")
+        self.template_date_label = QLabel("")
+        
+        # Style labels
+        label_style = "QLabel { padding: 4px; background-color: #f8f9fa; border-radius: 4px; }"
+        self.template_name_label.setStyleSheet(label_style)
+        self.template_desc_label.setStyleSheet(label_style)
+        self.template_category_label.setStyleSheet(label_style)
+        self.template_version_label.setStyleSheet(label_style)
+        self.template_author_label.setStyleSheet(label_style)
+        self.template_date_label.setStyleSheet(label_style)
+        
+        details_layout.addRow("Name:", self.template_name_label)
+        details_layout.addRow("Description:", self.template_desc_label)
+        details_layout.addRow("Category:", self.template_category_label)
+        details_layout.addRow("Version:", self.template_version_label)
+        details_layout.addRow("Author:", self.template_author_label)
+        details_layout.addRow("Created:", self.template_date_label)
+        
+        # Add tags and usage info
+        self.template_tags_label = QLabel("")
+        self.template_usage_label = QLabel("")
+        self.template_rating_label = QLabel("")
+        
+        # Style additional labels
+        self.template_tags_label.setStyleSheet(label_style)
+        self.template_usage_label.setStyleSheet(label_style)
+        self.template_rating_label.setStyleSheet(label_style)
+        
+        details_layout.addRow("Tags:", self.template_tags_label)
+        details_layout.addRow("Usage:", self.template_usage_label)
+        details_layout.addRow("Rating:", self.template_rating_label)
+        
+        right_layout.addWidget(details_group)
+        
+        # Video settings preview
+        settings_group = QGroupBox("Video Settings")
+        settings_layout = QFormLayout(settings_group)
+        
+        self.resolution_label = QLabel("")
+        self.fps_label = QLabel("")
+        self.codec_label = QLabel("")
+        self.preset_label = QLabel("")
+        self.audio_bitrate_label = QLabel("")
+        self.video_bitrate_label = QLabel("")
+        
+        # Style settings labels
+        for label in [self.resolution_label, self.fps_label, self.codec_label, 
+                     self.preset_label, self.audio_bitrate_label, self.video_bitrate_label]:
+            label.setStyleSheet(label_style)
+        
+        settings_layout.addRow("Resolution:", self.resolution_label)
+        settings_layout.addRow("FPS:", self.fps_label)
+        settings_layout.addRow("Codec:", self.codec_label)
+        settings_layout.addRow("Preset:", self.preset_label)
+        settings_layout.addRow("Audio Bitrate:", self.audio_bitrate_label)
+        settings_layout.addRow("Video Bitrate:", self.video_bitrate_label)
+        
+        right_layout.addWidget(settings_group)
+        
+        # Layer configuration preview
+        layer_group = QGroupBox("Layer Configuration")
+        layer_layout = QVBoxLayout(layer_group)
+        
+        self.layer_preview_list = QListWidget()
+        self.layer_preview_list.setMaximumHeight(120)
+        self.layer_preview_list.setStyleSheet("""
+            QListWidget {
+                border: 1px solid #cccccc;
+                border-radius: 6px;
+                background-color: white;
+                font-size: 12px;
+            }
+            QListWidget::item {
+                padding: 4px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+        """)
+        
+        layer_layout.addWidget(self.layer_preview_list)
+        right_layout.addWidget(layer_group)
+        
+        right_layout.addStretch()
+        
+        return right_widget
+        
+    def load_templates(self):
+        """Load all available templates"""
+        self.templates = get_available_templates()
+        self.filter_templates()
+        
+    def filter_templates(self):
+        """Filter templates based on category, search, and advanced filters"""
+        self.template_list.clear()
+        
+        selected_category = self.category_combo.currentData()
+        search_text = self.search_edit.text().lower()
+        selected_resolution = self.resolution_filter.currentData()
+        selected_fps = self.fps_filter.currentData()
+        show_favorites_only = self.favorites_btn.isChecked()
+        
+        for template in self.templates:
+            # Filter by category
+            if selected_category != "all" and template.get('category', '') != selected_category:
+                continue
+                
+            # Filter by search text
+            template_name = template.get('name', '').lower()
+            template_desc = template.get('description', '').lower()
+            template_tags = ' '.join(template.get('tags', [])).lower()
+            if search_text and search_text not in template_name and search_text not in template_desc and search_text not in template_tags:
+                continue
+                
+            # Filter by resolution
+            if selected_resolution:
+                video_settings = template.get('video_settings', {})
+                template_resolution = video_settings.get('resolution', '')
+                if template_resolution != selected_resolution:
+                    continue
+                    
+            # Filter by FPS
+            if selected_fps:
+                video_settings = template.get('video_settings', {})
+                template_fps = str(video_settings.get('fps', ''))
+                if template_fps != selected_fps:
+                    continue
+                    
+            # Filter by favorites
+            if show_favorites_only and not template.get('favorite', False):
+                continue
+                
+            # Add to list
+            item = QListWidgetItem()
+            template_name = template.get('name', 'Unknown Template')
+            
+            # Add favorite star if applicable
+            if template.get('favorite', False):
+                template_name = f"⭐ {template_name}"
+            
+            item.setText(template_name)
+            item.setData(Qt.ItemDataRole.UserRole, template)
+            
+            # Add category icon
+            categories = get_template_categories()
+            category_info = categories.get('categories', {}).get(template.get('category', ''), {})
+            icon = category_info.get('icon', '')
+            if icon:
+                item.setText(f"{icon} {template_name}")
+            
+            self.template_list.addItem(item)
+            
+    def on_template_selected(self, item):
+        """Handle template selection"""
+        template_data = item.data(Qt.ItemDataRole.UserRole)
+        self.selected_template = template_data
+        self.update_template_preview(template_data)
+        self.update_button_states()
+        
+    def update_template_preview(self, template_data):
+        """Update the template preview with selected template data"""
+        if not template_data:
+            return
+            
+        # Update basic info
+        self.template_name_label.setText(template_data.get('name', 'Unknown'))
+        self.template_desc_label.setText(template_data.get('description', 'No description'))
+        
+        # Get category info
+        categories = get_template_categories()
+        category_info = categories.get('categories', {}).get(template_data.get('category', ''), {})
+        category_name = category_info.get('name', template_data.get('category', 'Unknown'))
+        category_icon = category_info.get('icon', '')
+        self.template_category_label.setText(f"{category_icon} {category_name}")
+        
+        self.template_version_label.setText(template_data.get('version', '1.0'))
+        self.template_author_label.setText(template_data.get('author', 'Unknown'))
+        
+        # Format date
+        created_date = template_data.get('created_date', '')
+        if created_date:
+            try:
+                from datetime import datetime
+                date_obj = datetime.fromisoformat(created_date.replace('Z', '+00:00'))
+                formatted_date = date_obj.strftime('%Y-%m-%d %H:%M')
+                self.template_date_label.setText(formatted_date)
+            except:
+                self.template_date_label.setText(created_date)
+        else:
+            self.template_date_label.setText('Unknown')
+        
+        # Update video settings
+        video_settings = template_data.get('video_settings', {})
+        self.resolution_label.setText(video_settings.get('resolution', 'Unknown'))
+        self.fps_label.setText(str(video_settings.get('fps', 'Unknown')))
+        self.codec_label.setText(video_settings.get('codec', 'Unknown'))
+        self.preset_label.setText(video_settings.get('preset', 'Unknown'))
+        self.audio_bitrate_label.setText(video_settings.get('audio_bitrate', 'Unknown'))
+        self.video_bitrate_label.setText(video_settings.get('video_bitrate', 'Unknown'))
+        
+        # Update additional info
+        tags = template_data.get('tags', [])
+        if tags:
+            self.template_tags_label.setText(', '.join(tags))
+        else:
+            self.template_tags_label.setText('No tags')
+        
+        usage_count = template_data.get('usage_count', 0)
+        self.template_usage_label.setText(f"{usage_count} times used")
+        
+        rating = template_data.get('rating', 0)
+        if rating > 0:
+            stars = "⭐" * int(rating) + "☆" * (5 - int(rating))
+            self.template_rating_label.setText(f"{stars} ({rating}/5)")
+        else:
+            self.template_rating_label.setText("No rating")
+        
+        # Update layer preview
+        self.layer_preview_list.clear()
+        layer_order = template_data.get('layer_order', [])
+        layer_settings = template_data.get('layer_settings', {})
+        
+        for layer_id in layer_order:
+            layer_info = layer_settings.get(layer_id, {})
+            enabled = layer_info.get('enabled', False)
+            status = "✅" if enabled else "❌"
+            item = QListWidgetItem(f"{status} {layer_id}")
+            self.layer_preview_list.addItem(item)
+            
+    def update_button_states(self):
+        """Update button enabled states based on selection"""
+        has_selection = self.selected_template is not None
+        self.apply_btn.setEnabled(has_selection)
+        self.edit_btn.setEnabled(has_selection)
+        self.favorite_btn.setEnabled(has_selection)
+        self.delete_btn.setEnabled(has_selection)
+        self.export_btn.setEnabled(has_selection)
+        
+        # Update favorite button state
+        if has_selection and self.selected_template:
+            is_favorite = self.selected_template.get('favorite', False)
+            self.favorite_btn.setChecked(is_favorite)
+            if is_favorite:
+                self.favorite_btn.setText("⭐ Unfavorite")
+            else:
+                self.favorite_btn.setText("⭐ Favorite")
+        
+    def create_new_template(self):
+        """Create a new template from current settings"""
+        if not self.current_settings:
+            QMessageBox.warning(self, "No Settings", "No current settings available to create template from.")
+            return
+            
+        # Create a simple dialog for template details
+        from PyQt6.QtWidgets import QInputDialog, QDialog, QVBoxLayout, QFormLayout, QDialogButtonBox
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Create New Template")
+        dialog.setModal(True)
+        
+        layout = QVBoxLayout(dialog)
+        form_layout = QFormLayout()
+        
+        name_edit = QLineEdit()
+        name_edit.setPlaceholderText("Enter template name")
+        
+        desc_edit = QTextEdit()
+        desc_edit.setMaximumHeight(80)
+        desc_edit.setPlaceholderText("Enter template description")
+        
+        category_combo = QComboBox()
+        categories = get_template_categories()
+        for category_id, category_info in categories.get('categories', {}).items():
+            icon = category_info.get('icon', '')
+            name = category_info.get('name', category_id)
+            category_combo.addItem(f"{icon} {name}", category_id)
+        
+        form_layout.addRow("Name:", name_edit)
+        form_layout.addRow("Description:", desc_edit)
+        form_layout.addRow("Category:", category_combo)
+        
+        layout.addLayout(form_layout)
+        
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        layout.addWidget(button_box)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            name = name_edit.text().strip()
+            description = desc_edit.toPlainText().strip()
+            category = category_combo.currentData()
+            
+            if not name:
+                QMessageBox.warning(self, "Invalid Name", "Template name cannot be empty.")
+                return
+                
+            # Create template
+            template_data = create_template_from_current_settings(name, description, category, self.current_settings)
+            
+            # Save template
+            template_name = name.lower().replace(' ', '_')
+            if save_template(template_data, template_name):
+                QMessageBox.information(self, "Success", f"Template '{name}' created successfully!")
+                self.load_templates()
+            else:
+                QMessageBox.warning(self, "Error", "Failed to create template.")
+                
+    def apply_selected_template(self):
+        """Apply the selected template to current settings"""
+        if not self.selected_template:
+            return
+            
+        # Emit the template data for the parent to handle
+        self.template_applied.emit(self.selected_template)
+        QMessageBox.information(self, "Template Applied", f"Template '{self.selected_template.get('name')}' has been applied.")
+        
+    def edit_selected_template(self):
+        """Edit the selected template"""
+        if not self.selected_template:
+            return
+            
+        QMessageBox.information(self, "Edit Template", "Template editing feature coming soon!")
+    
+    def toggle_favorite(self):
+        """Toggle favorite status of selected template"""
+        if not self.selected_template:
+            return
+            
+        # Toggle favorite status
+        current_favorite = self.selected_template.get('favorite', False)
+        self.selected_template['favorite'] = not current_favorite
+        
+        # Update the template in the list
+        for i in range(self.template_list.count()):
+            item = self.template_list.item(i)
+            if item.data(Qt.ItemDataRole.UserRole) == self.selected_template:
+                template_name = self.selected_template.get('name', 'Unknown Template')
+                if self.selected_template.get('favorite', False):
+                    template_name = f"⭐ {template_name}"
+                
+                # Add category icon
+                categories = get_template_categories()
+                category_info = categories.get('categories', {}).get(self.selected_template.get('category', ''), {})
+                icon = category_info.get('icon', '')
+                if icon:
+                    template_name = f"{icon} {template_name}"
+                
+                item.setText(template_name)
+                break
+        
+        # Update button states
+        self.update_button_states()
+        
+        # Show feedback
+        template_name = self.selected_template.get('name', 'Unknown Template')
+        if self.selected_template.get('favorite', False):
+            QMessageBox.information(self, "Favorite Added", f"'{template_name}' added to favorites!")
+        else:
+            QMessageBox.information(self, "Favorite Removed", f"'{template_name}' removed from favorites!")
+        
+    def delete_selected_template(self):
+        """Delete the selected template"""
+        if not self.selected_template:
+            return
+            
+        template_name = self.selected_template.get('name', 'Unknown')
+        reply = QMessageBox.question(
+            self, 
+            "Delete Template", 
+            f"Are you sure you want to delete template '{template_name}'?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            template_filename = template_name.lower().replace(' ', '_')
+            if delete_template(template_filename):
+                QMessageBox.information(self, "Success", f"Template '{template_name}' deleted successfully!")
+                self.load_templates()
+                self.selected_template = None
+                self.update_template_preview(None)
+                self.update_button_states()
+            else:
+                QMessageBox.warning(self, "Error", "Failed to delete template.")
+                
+    def import_template_file(self):
+        """Import a template from a file"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Import Template", 
+            "", 
+            "JSON Files (*.json);;All Files (*)"
+        )
+        
+        if file_path:
+            success, message = import_template(file_path)
+            if success:
+                QMessageBox.information(self, "Success", message)
+                self.load_templates()
+            else:
+                QMessageBox.warning(self, "Import Error", message)
+                
+    def export_template_file(self):
+        """Export the selected template to a file"""
+        if not self.selected_template:
+            return
+            
+        template_name = self.selected_template.get('name', 'Unknown')
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Export Template", 
+            f"{template_name}.json", 
+            "JSON Files (*.json);;All Files (*)"
+        )
+        
+        if file_path:
+            if export_template(template_name, file_path):
+                QMessageBox.information(self, "Success", f"Template exported to {file_path}")
+            else:
+                QMessageBox.warning(self, "Export Error", "Failed to export template.") 

@@ -1,0 +1,66 @@
+{
+  "name": "Enhanced Gaming Highlight Template",
+  "description": "Fast-paced gaming highlight template with dynamic effects and high FPS",
+  "category": "gaming",
+  "version": "1.5",
+  "created_date": "2024-01-16T14:20:00Z",
+  "author": "Gaming Pro",
+  "thumbnail": "",
+  "tags": ["gaming", "fast-paced", "dynamic", "high-fps", "esports"],
+  "rating": 4.8,
+  "usage_count": 89,
+  "favorite": false,
+  "video_settings": {
+    "codec": "h264_nvenc",
+    "resolution": "1920x1080",
+    "fps": 60,
+    "preset": "fast",
+    "audio_bitrate": "320k",
+    "video_bitrate": "15M",
+    "maxrate": "20M",
+    "bufsize": "30M"
+  },
+  "layer_order": [
+    "background",
+    "overlay1",
+    "overlay2",
+    "song_titles"
+  ],
+  "layer_settings": {
+    "background": {
+      "enabled": true,
+      "scale_percent": 110
+    },
+    "overlay1": {
+      "enabled": true,
+      "size_percent": 90,
+      "x_percent": 50,
+      "y_percent": 40
+    },
+    "overlay2": {
+      "enabled": true,
+      "size_percent": 70,
+      "x_percent": 80,
+      "y_percent": 20
+    },
+    "song_titles": {
+      "enabled": true,
+      "font_size": 28,
+      "font_color": "#ff6b6b",
+      "shadow_enabled": true
+    }
+  },
+  "ui_settings": {
+    "show_intro_settings": true,
+    "show_overlay1_2_settings": true,
+    "show_overlay3_titles_soundwave_settings": false,
+    "show_overlay4_5_settings": false,
+    "show_overlay6_7_settings": false,
+    "show_overlay8_settings": false,
+    "show_overlay9_settings": false,
+    "show_overlay10_settings": false,
+    "show_frame_mp3cover_settings": false,
+    "show_mp3_cover_overlay_settings": false,
+    "show_frame_box_settings": false
+  }
+} 
