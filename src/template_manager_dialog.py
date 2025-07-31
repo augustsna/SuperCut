@@ -159,6 +159,7 @@ class TemplateManagerDialog(QDialog):
         button_layout.addWidget(self.close_btn)
         button_layout.addStretch()
         layout.addLayout(button_layout)
+        layout.addSpacing(5)
         
         # Connect signals
         self.new_template_btn.clicked.connect(self.create_new_template)
@@ -199,8 +200,8 @@ class TemplateManagerDialog(QDialog):
             }
         """)
         filters_layout = QVBoxLayout(filters_group)
-        filters_layout.setContentsMargins(15, 10, 15, 15)
-        filters_layout.setSpacing(8)
+        filters_layout.setContentsMargins(15, 12, 15, 17)
+        filters_layout.setSpacing(10)
         
         # Search box (label and text input on same line)
         search_layout = QHBoxLayout()
@@ -217,7 +218,7 @@ class TemplateManagerDialog(QDialog):
         filters_layout.addLayout(search_layout)
 
         # Add spacing between search and category
-        filters_layout.addSpacing(9)
+        filters_layout.addSpacing(6)
 
         # Category filter (label and dropdown on same line)
         category_layout = QHBoxLayout()
@@ -239,6 +240,7 @@ class TemplateManagerDialog(QDialog):
         self.category_combo.currentTextChanged.connect(self.filter_templates)
         category_layout.addWidget(category_label)
         category_layout.addWidget(self.category_combo)
+        
         filters_layout.addLayout(category_layout)
         
         # Advanced filters
@@ -420,29 +422,29 @@ class TemplateManagerDialog(QDialog):
         self.template_category_label = QLabel("")
         
         # Style labels
-        label_style = "QLabel { padding: 4px; background-color: #ffffff; border-radius: 4px; }"
+        label_style = "QLabel { padding: 4px; background-color: #ffffff; border-radius: 4px; border: 1px solid #cccccc; }"
         self.template_name_label.setStyleSheet(label_style)
         self.template_name_label.setFixedWidth(160)
-        self.template_name_label.setFixedHeight(24)
+        self.template_name_label.setFixedHeight(25)
         self.template_desc_label.setStyleSheet(label_style)
         self.template_desc_label.setFixedWidth(160)
-        self.template_desc_label.setFixedHeight(24)
+        self.template_desc_label.setFixedHeight(25)
         self.template_category_label.setStyleSheet(label_style)
         self.template_category_label.setFixedWidth(160)
-        self.template_category_label.setFixedHeight(24)
+        self.template_category_label.setFixedHeight(25)
         
         # Create individual labels for each field
         name_label = QLabel("Name:")
         name_label.setFixedWidth(90)
-        name_label.setFixedHeight(24)
+        name_label.setFixedHeight(25)
         
         desc_label = QLabel("Description:")
         desc_label.setFixedWidth(90)
-        desc_label.setFixedHeight(24)
+        desc_label.setFixedHeight(25)
         
         category_label = QLabel("Category:")
         category_label.setFixedWidth(90)
-        category_label.setFixedHeight(24)
+        category_label.setFixedHeight(25)
         
         details_layout.addRow(name_label, self.template_name_label)
         details_layout.addRow(desc_label, self.template_desc_label)
@@ -482,32 +484,32 @@ class TemplateManagerDialog(QDialog):
                      self.preset_label, self.audio_bitrate_label, self.video_bitrate_label]:
             label.setStyleSheet(label_style)
             label.setFixedWidth(160)
-            label.setFixedHeight(24)
+            label.setFixedHeight(25)
         
         # Create individual labels for video settings fields
         resolution_name_label = QLabel("Resolution:")
         resolution_name_label.setFixedWidth(90)
-        resolution_name_label.setFixedHeight(24)
+        resolution_name_label.setFixedHeight(25)
         
         fps_name_label = QLabel("FPS:")
         fps_name_label.setFixedWidth(90)
-        fps_name_label.setFixedHeight(24)
+        fps_name_label.setFixedHeight(25)
         
         codec_name_label = QLabel("Codec:")
         codec_name_label.setFixedWidth(90)
-        codec_name_label.setFixedHeight(24)
+        codec_name_label.setFixedHeight(25)
         
         preset_name_label = QLabel("Preset:")
         preset_name_label.setFixedWidth(90)
-        preset_name_label.setFixedHeight(24)
+        preset_name_label.setFixedHeight(25)
         
         audio_bitrate_name_label = QLabel("Audio Bitrate:")
         audio_bitrate_name_label.setFixedWidth(90)
-        audio_bitrate_name_label.setFixedHeight(24)
+        audio_bitrate_name_label.setFixedHeight(25)
         
         video_bitrate_name_label = QLabel("Video Bitrate:")
         video_bitrate_name_label.setFixedWidth(90)
-        video_bitrate_name_label.setFixedHeight(24)
+        video_bitrate_name_label.setFixedHeight(25)
         
         settings_layout.addRow(resolution_name_label, self.resolution_label)
         settings_layout.addRow(fps_name_label, self.fps_label)
@@ -547,45 +549,46 @@ class TemplateManagerDialog(QDialog):
         
         self.layer_preview_list = QListWidget()
         self.layer_preview_list.setMaximumHeight(200)
+        self.layer_preview_list.setSelectionMode(QListWidget.SelectionMode.NoSelection)
+        self.layer_preview_list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.layer_preview_list.setStyleSheet("""
             QListWidget {
-                border: 1px solid #cccccc;
-                border-radius: 6px;
+                border: none;
+                border-radius: 2px;
                 background-color: white;
                 font-size: 12px;
             }
             QListWidget::item {
-                padding: 4px;
-                border-bottom: 1px solid #f0f0f0;
+                border: 1px solid #cccccc;
+                padding: 4px;                
+            }
+            QScrollBar:vertical {
+                background: rgba(240, 240, 240, 0.8);
+                width: 12px;
+                border-radius: 4px;
+                margin-left: 4px;
+                position: absolute;
+                right: 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: rgba(192, 192, 192, 0.8);
+                border-radius: 6px;
+                min-height: 20px;
+                margin: 0px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: rgba(160, 160, 160, 0.9);
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: none;
             }
         """)
         
         layer_layout.addWidget(self.layer_preview_list)
         right_layout.addWidget(layer_group)
-        
-        # Template statistics
-        stats_group = QGroupBox("Template Statistics")
-        stats_group.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 2px solid #cccccc;
-                border-radius: 6px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
-            }
-        """)
-        stats_layout = QFormLayout(stats_group)
-        
-        self.template_stats_label = QLabel("")
-        self.template_stats_label.setStyleSheet("QLabel { padding: 4px; background-color: #f8f9fa; border-radius: 4px; }")
-        stats_layout.addRow("Stats:", self.template_stats_label)
-        
-        right_layout.addWidget(stats_group)
         
         right_layout.addStretch()
         
