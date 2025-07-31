@@ -4,7 +4,7 @@ from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QFileDialog, QMessageBox, QDialog, QComboBox, QDialogButtonBox, QFormLayout,
-    QColorDialog, QScrollArea
+    QColorDialog, QScrollArea, QInputDialog, QTextEdit
 )
 from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize, QTimer, QObject, QEvent
 from PyQt6.QtGui import QIntValidator, QIcon, QPixmap, QMovie, QImage, QShortcut, QKeySequence, QColor
@@ -1488,6 +1488,72 @@ class SuperCutUI(QWidget):
         # Register for navigation
         self.register_section_widget('folder', folder_widget)
 
+        # --- TEMPLATE CONTROLS ---
+        
+        
+        # Template label
+        template_label = QLabel("Template:")
+        template_label.setFixedWidth(80)
+        
+        # Template combo box
+        self.template_combo = NoWheelComboBox()
+        self.template_combo.setFixedWidth(150)
+        self.template_combo.setFixedHeight(30)
+        self.template_combo.addItem("No Template", "")
+        self.load_templates_to_combo()
+        # Connect template selection to apply template
+        self.template_combo.currentTextChanged.connect(self.on_template_selected)
+        
+        # Template manager button (icon only)
+        self.template_manager_btn = QPushButton()
+        self.template_manager_btn.setFixedWidth(45)
+        self.template_manager_btn.setFixedHeight(35)
+        self.template_manager_btn.setToolTip("Manage Templates")
+        self.template_manager_btn.clicked.connect(self.open_template_manager)
+        
+        # Add template icon to the button
+        template_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "template.png")
+        if os.path.exists(template_icon_path):
+            self.template_manager_btn.setIcon(QIcon(template_icon_path))
+            self.template_manager_btn.setIconSize(QSize(31, 31))
+            # Set transparent background
+            self.template_manager_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: transparent;
+                    border: none;
+                    padding: 3px;
+                }
+                QPushButton:hover {
+                    background-color: rgba(74, 144, 226, 0.1);
+                    border-radius: 4px;
+                }
+                QPushButton:pressed {
+                    background-color: rgba(74, 144, 226, 0.2);
+                    border-radius: 4px;
+                }
+            """)
+        
+        # Save current as template button
+        self.save_template_btn = QPushButton("Save")
+        self.save_template_btn.setFixedWidth(60)
+        self.save_template_btn.setFixedHeight(30)
+        self.save_template_btn.clicked.connect(self.save_current_as_template)
+    
+        
+        template_layout = QHBoxLayout()
+        template_layout.setSpacing(0)
+        template_layout.addSpacing(0)
+        template_layout.addWidget(template_label)
+        template_layout.addSpacing(21)
+        template_layout.addWidget(self.template_combo)
+        template_layout.addSpacing(8)
+        template_layout.addWidget(self.save_template_btn)
+        template_layout.addSpacing(8)
+        template_layout.addWidget(self.template_manager_btn)
+        template_layout.addStretch()
+        
+        layout.addLayout(template_layout)
+
     def create_video_settings(self, layout):
         """Create video settings controls"""
         # Combined layout for codec, resolution, and fps
@@ -1715,41 +1781,7 @@ class SuperCutUI(QWidget):
 
         self.register_section_widget('settings', core_settings_groupbox)
 
-        # --- TEMPLATE CONTROLS ---
-        template_layout = QHBoxLayout()
-        template_layout.setSpacing(0)
-        template_layout.addSpacing(25)
         
-        # Template label
-        template_label = QLabel("Template:")
-        template_label.setFixedWidth(60)
-        
-        # Template combo box
-        self.template_combo = NoWheelComboBox()
-        self.template_combo.setFixedWidth(150)
-        self.template_combo.setFixedHeight(unified_height)
-        self.template_combo.addItem("No Template", "")
-        self.load_templates_to_combo()
-        
-        # Template manager button
-        self.template_manager_btn = QPushButton("Manage Templates")
-        self.template_manager_btn.setFixedWidth(120)
-        self.template_manager_btn.setFixedHeight(unified_height)
-        self.template_manager_btn.clicked.connect(self.open_template_manager)
-        
-        # Save current as template button
-        self.save_template_btn = QPushButton("Save as Template")
-        self.save_template_btn.setFixedWidth(100)
-        self.save_template_btn.setFixedHeight(unified_height)
-        self.save_template_btn.clicked.connect(self.save_current_as_template)
-        
-        template_layout.addWidget(template_label)
-        template_layout.addWidget(self.template_combo)
-        template_layout.addWidget(self.template_manager_btn)
-        template_layout.addWidget(self.save_template_btn)
-        template_layout.addStretch()
-        
-        layout.addLayout(template_layout)
 
         # --- INTRO OVERLAY CONTROLS ---
         # Load custom intro checkbox label from settings
@@ -10103,7 +10135,7 @@ class SuperCutUI(QWidget):
         # Load templates
         templates = get_available_templates()
         for template in templates:
-            self.template_combo.addItem(template.get('name', 'Unknown Template'), template.get('name', ''))
+            self.template_combo.addItem(template.get('name', 'Unknown Template'), template)
     
     def open_template_manager(self):
         """Open the template manager dialog"""
@@ -10155,7 +10187,32 @@ class SuperCutUI(QWidget):
         }
         return settings
     
-    def apply_template(self, template_data):
+    def on_template_selected(self, template_name):
+        """Handle template selection from combo box"""
+        if not template_name or template_name == "No Template":
+            return
+            
+        try:
+            # Get template data from combo box item data
+            current_index = self.template_combo.currentIndex()
+            template_data = self.template_combo.itemData(current_index)
+            
+            if template_data and isinstance(template_data, dict):
+                # Apply the template directly
+                self.apply_template(template_data, show_success_dialog=False)
+            else:
+                # Fallback: try to load template by name
+                from src.config import load_template
+                template_data = load_template(template_name.lower().replace(' ', '_'))
+                if template_data:
+                    self.apply_template(template_data, show_success_dialog=False)
+                else:
+                    QMessageBox.warning(self, "Template Error", f"Could not load template '{template_name}'")
+                    
+        except Exception as e:
+            QMessageBox.warning(self, "Template Error", f"Error applying template '{template_name}': {str(e)}")
+    
+    def apply_template(self, template_data, show_success_dialog=True):
         """Apply a template to current settings"""
         try:
             # Apply video settings
@@ -10217,15 +10274,20 @@ class SuperCutUI(QWidget):
             
             # Update the template combo to show the applied template
             template_name = template_data.get('name', 'Unknown Template')
+            # Temporarily disconnect the signal to prevent recursive calls
+            self.template_combo.currentTextChanged.disconnect(self.on_template_selected)
             for i in range(self.template_combo.count()):
                 if self.template_combo.itemText(i) == template_name:
                     self.template_combo.setCurrentIndex(i)
                     break
+            # Reconnect the signal
+            self.template_combo.currentTextChanged.connect(self.on_template_selected)
             
             # Apply settings to update UI visibility
             self.apply_settings()
             
-            QMessageBox.information(self, "Template Applied", f"Template '{template_name}' has been applied successfully!")
+            if show_success_dialog:
+                QMessageBox.information(self, "Template Applied", f"Template '{template_name}' has been applied successfully!")
             
         except Exception as e:
             QMessageBox.warning(self, "Template Error", f"Error applying template: {str(e)}")
@@ -10233,26 +10295,99 @@ class SuperCutUI(QWidget):
     def save_current_as_template(self):
         """Save current settings as a new template"""
         from src.template_utils import create_template_from_current_settings
-        from src.config import save_template
+        from src.config import save_template, load_template
         
-        # Get current settings
-        current_settings = self.get_current_settings()
+        # Create custom dialog for template details
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Save Template")
+        dialog.setFixedWidth(400)
+        dialog.setModal(True)  # Make dialog modal
+        layout = QVBoxLayout()
         
-        # Create template from current settings
-        template_data = create_template_from_current_settings(
-            "My Template",
-            "Template created from current settings",
-            "custom",
-            current_settings
-        )
+        # Template name
+        name_label = QLabel("Template Name:")
+        name_edit = QLineEdit("Template")
+        name_edit.setPlaceholderText("Enter template name...")
         
-        # Save template
-        template_name = "my_template"
-        if save_template(template_data, template_name):
-            QMessageBox.information(self, "Success", "Template saved successfully!")
-            self.load_templates_to_combo()
-        else:
-            QMessageBox.warning(self, "Error", "Failed to save template.")
+        # Template description
+        desc_label = QLabel("Description (optional):")
+        desc_edit = QTextEdit()
+        desc_edit.setMaximumHeight(80)
+        desc_edit.setPlaceholderText("Describe what this template is for...")
+        
+        # Category selection
+        category_label = QLabel("Category:")
+        category_combo = QComboBox()
+        category_combo.addItems(["custom", "gaming", "music", "business", "social_media", "other"])
+        
+        # Buttons
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        
+        # Layout
+        layout.addWidget(name_label)
+        layout.addWidget(name_edit)
+        layout.addWidget(desc_label)
+        layout.addWidget(desc_edit)
+        layout.addWidget(category_label)
+        layout.addWidget(category_combo)
+        layout.addWidget(button_box)
+        dialog.setLayout(layout)
+        
+        # Custom accept handler to check for overwrite
+        def handle_accept():
+            template_name = name_edit.text().strip()
+            description = desc_edit.toPlainText().strip()
+            category = category_combo.currentText()
+            
+            if not template_name:
+                QMessageBox.warning(dialog, "Invalid Name", "Template name cannot be empty.")
+                return
+            
+            sanitized_name = template_name.lower().replace(' ', '_').replace('-', '_')
+            
+            # Check if template already exists
+            existing_template = load_template(sanitized_name)
+            if existing_template:
+                reply = QMessageBox.question(dialog, "Template Exists", 
+                                           f"Template '{template_name}' already exists. Overwrite?",
+                                           QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                if reply == QMessageBox.StandardButton.No:
+                    return  # Stay in dialog, don't close
+            
+            # Get current settings
+            current_settings = self.get_current_settings()
+            
+            # Create template from current settings
+            template_data = create_template_from_current_settings(
+                template_name,
+                description or "Template created from current settings",
+                category,
+                current_settings
+            )
+            
+            # Save template
+            if save_template(template_data, sanitized_name):
+                # Temporarily disconnect the signal to prevent loop
+                self.template_combo.currentTextChanged.disconnect(self.on_template_selected)
+                self.load_templates_to_combo()
+                # Select the newly saved template
+                for i in range(self.template_combo.count()):
+                    if self.template_combo.itemText(i) == template_name:
+                        self.template_combo.setCurrentIndex(i)
+                        break
+                # Reconnect the signal
+                self.template_combo.currentTextChanged.connect(self.on_template_selected)
+                dialog.accept()  # Close dialog only after successful save
+            else:
+                QMessageBox.warning(dialog, "Error", "Failed to save template.")
+        
+        # Replace the default accept behavior
+        button_box.accepted.disconnect()
+        button_box.accepted.connect(handle_accept)
+        
+        dialog.exec()
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""

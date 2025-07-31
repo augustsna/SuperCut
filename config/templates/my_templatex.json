@@ -1,9 +1,9 @@
 {
-  "name": "My Template",
+  "name": "My Templatex",
   "description": "Template created from current settings",
   "category": "custom",
   "version": "1.0",
-  "created_date": "2025-07-31T16:06:21.261633",
+  "created_date": "2025-07-31T19:40:38.445526",
   "author": "user",
   "thumbnail": "",
   "video_settings": {
@@ -19,8 +19,8 @@
   "layer_order": [
     "background",
     "overlay1",
-    "frame_box",
-    "song_titles"
+    "song_titles",
+    "soundwave"
   ],
   "layer_settings": {
     "background": {
@@ -36,7 +36,7 @@
       "enabled": true
     },
     "soundwave": {
-      "enabled": false
+      "enabled": true
     }
   },
   "ui_settings": {
@@ -50,6 +50,6 @@
     "show_overlay10_settings": false,
     "show_frame_mp3cover_settings": false,
     "show_mp3_cover_overlay_settings": false,
-    "show_frame_box_settings": true
+    "show_frame_box_settings": false
   }
 }
