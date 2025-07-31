@@ -1,9 +1,9 @@
 {
-  "name": "q12",
-  "description": "",
-  "category": "music",
+  "name": "My Templatex",
+  "description": "Template created from current settings",
+  "category": "custom",
   "version": "1.0",
-  "created_date": "2025-08-01T00:02:31.233594",
+  "created_date": "2025-07-31T19:40:38.445526",
   "author": "user",
   "thumbnail": "",
   "video_settings": {
@@ -19,37 +19,24 @@
   "layer_order": [
     "background",
     "overlay1",
-    "overlay2",
-    "overlay3",
-    "overlay4",
-    "overlay5",
-    "overlay6",
-    "overlay7",
-    "overlay8",
-    "overlay9",
-    "overlay10",
-    "intro",
-    "frame_box",
-    "frame_mp3cover",
-    "mp3_cover_overlay",
     "song_titles",
     "soundwave"
   ],
   "layer_settings": {
     "background": {
-      "enabled": false
+      "enabled": true
     },
     "overlay1": {
-      "enabled": false
+      "enabled": true
     },
     "overlay2": {
       "enabled": false
     },
     "song_titles": {
-      "enabled": false
+      "enabled": true
     },
     "soundwave": {
-      "enabled": false
+      "enabled": true
     }
   },
   "ui_settings": {
@@ -63,6 +50,6 @@
     "show_overlay10_settings": false,
     "show_frame_mp3cover_settings": false,
     "show_mp3_cover_overlay_settings": false,
-    "show_frame_box_settings": true
+    "show_frame_box_settings": false
   }
 }

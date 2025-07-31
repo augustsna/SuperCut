@@ -45,7 +45,7 @@ class TemplateManagerDialog(QDialog):
         """Initialize the user interface"""
         self.setWindowTitle("Template Manager")
         self.setModal(True)
-        self.setFixedSize(810, 660)
+        self.setFixedSize(850, 660)
         
         # Main layout
         layout = QVBoxLayout(self)
@@ -58,9 +58,7 @@ class TemplateManagerDialog(QDialog):
         self.new_template_btn = QPushButton("New Template")
         self.import_btn = QPushButton("Import")
         self.export_btn = QPushButton("Export")
-        self.favorites_btn = QPushButton("⭐ Favorites")
-        self.favorites_btn.setCheckable(True)
-        self.favorites_btn.setChecked(False)
+
         
         # Style buttons
         button_style = """
@@ -75,21 +73,19 @@ class TemplateManagerDialog(QDialog):
             QPushButton:hover {
                 background-color: #357ABD;
             }
-            QPushButton:disabled {
-                background-color: #cccccc;
-            }
+            
         """
         self.new_template_btn.setStyleSheet(button_style)
         self.import_btn.setStyleSheet(button_style)
         self.export_btn.setStyleSheet(button_style)
-        self.favorites_btn.setStyleSheet(button_style)
+
         
         header_layout.addWidget(title_label)
         header_layout.addStretch()
         header_layout.addWidget(self.new_template_btn)
         header_layout.addWidget(self.import_btn)
         header_layout.addWidget(self.export_btn)
-        header_layout.addWidget(self.favorites_btn)
+
         
         layout.addLayout(header_layout)
         
@@ -101,39 +97,51 @@ class TemplateManagerDialog(QDialog):
         
         # Left panel: Template list and filters (270px fixed)
         left_panel = self.create_left_panel()
-        left_panel.setFixedWidth(270)
+        left_panel.setFixedWidth(260)
         main_layout.addWidget(left_panel)
         
         # Center panel: Template preview and details (270px fixed)
         center_panel = self.create_center_panel()
-        center_panel.setFixedWidth(270)
+        center_panel.setFixedWidth(300)
         main_layout.addWidget(center_panel)
         
         # Right panel: Additional details (270px fixed)
         right_panel = self.create_right_panel()
-        right_panel.setFixedWidth(270)
+        right_panel.setFixedWidth(260)
         main_layout.addWidget(right_panel)
         
         layout.addWidget(main_widget)
         
         # Bottom buttons
         button_layout = QHBoxLayout()
-        self.apply_btn = QPushButton("Apply Template")
+        self.apply_btn = QPushButton("Apply")
         self.edit_btn = QPushButton("Edit Template")
-        self.favorite_btn = QPushButton("⭐ Favorite")
-        self.favorite_btn.setCheckable(True)
-        self.delete_btn = QPushButton("Delete Template")
+
+        self.delete_btn = QPushButton("Delete")
         self.close_btn = QPushButton("Close")
         
         # Style bottom buttons
-        self.apply_btn.setStyleSheet(button_style)
+        self.apply_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #28a745;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #218838;
+            }
+
+        """)
         self.edit_btn.setStyleSheet(button_style)
-        self.favorite_btn.setStyleSheet(button_style)
+        self.close_btn.setStyleSheet(button_style)
         self.delete_btn.setStyleSheet("""
             QPushButton {
                 background-color: #e24a4a;
-                color: white;
-                border: none;
+                color: #333333;
+                border: 1px solid #cccccc;
                 border-radius: 6px;
                 padding: 8px 16px;
                 font-weight: 500;
@@ -142,37 +150,23 @@ class TemplateManagerDialog(QDialog):
                 background-color: #c73e3e;
             }
         """)
-        self.close_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #ffffff;
-                color: #333333;
-                border: 1px solid #cccccc;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-weight: 500;
-            }
-            QPushButton:hover {
-                background-color: #f5f5f5;
-            }
-        """)
         
-        button_layout.addWidget(self.apply_btn)
-        button_layout.addWidget(self.edit_btn)
-        button_layout.addWidget(self.favorite_btn)
-        button_layout.addStretch()
         button_layout.addWidget(self.delete_btn)
+        button_layout.addWidget(self.edit_btn)
+        button_layout.addStretch()
+        button_layout.addWidget(self.apply_btn)
         button_layout.addWidget(self.close_btn)
-        
+        button_layout.addStretch()
         layout.addLayout(button_layout)
         
         # Connect signals
         self.new_template_btn.clicked.connect(self.create_new_template)
         self.import_btn.clicked.connect(self.import_template_file)
         self.export_btn.clicked.connect(self.export_template_file)
-        self.favorites_btn.clicked.connect(self.filter_templates)
+
         self.apply_btn.clicked.connect(self.apply_selected_template)
         self.edit_btn.clicked.connect(self.edit_selected_template)
-        self.favorite_btn.clicked.connect(self.toggle_favorite)
+
         self.delete_btn.clicked.connect(self.delete_selected_template)
         self.close_btn.clicked.connect(self.accept)
         
@@ -204,7 +198,7 @@ class TemplateManagerDialog(QDialog):
             }
         """)
         filters_layout = QVBoxLayout(filters_group)
-        filters_layout.setContentsMargins(10, 15, 10, 10)
+        filters_layout.setContentsMargins(15, 10, 15, 15)
         filters_layout.setSpacing(8)
         
         # Search box (label and text input on same line)
@@ -213,13 +207,16 @@ class TemplateManagerDialog(QDialog):
         search_label.setFixedWidth(70)
         search_label.setFixedHeight(30)
         self.search_edit = QLineEdit()
-        self.search_edit.setFixedWidth(120)
+        self.search_edit.setFixedWidth(125)
         self.search_edit.setFixedHeight(30)
-        self.search_edit.setPlaceholderText("Search templates by name, description, or tags...")
+        self.search_edit.setPlaceholderText("Search templates by name or description...")
         self.search_edit.textChanged.connect(self.filter_templates)
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.search_edit)
         filters_layout.addLayout(search_layout)
+
+        # Add spacing between search and category
+        filters_layout.addSpacing(9)
 
         # Category filter (label and dropdown on same line)
         category_layout = QHBoxLayout()
@@ -227,7 +224,7 @@ class TemplateManagerDialog(QDialog):
         category_label.setFixedWidth(70)
         category_label.setFixedHeight(30)
         self.category_combo = QComboBox()
-        self.category_combo.setFixedWidth(120)
+        self.category_combo.setFixedWidth(125)
         self.category_combo.setFixedHeight(30)
         self.category_combo.addItem("All Categories", "all")
         
@@ -259,7 +256,7 @@ class TemplateManagerDialog(QDialog):
         self.resolution_filter.currentTextChanged.connect(self.filter_templates)
         resolution_layout.addWidget(resolution_label)
         resolution_layout.addWidget(self.resolution_filter)
-        filters_layout.addLayout(resolution_layout)
+        #filters_layout.addLayout(resolution_layout)
         
         # FPS filter (second line)
         fps_layout = QHBoxLayout()
@@ -275,10 +272,11 @@ class TemplateManagerDialog(QDialog):
         self.fps_filter.addItem("60 FPS", "60")
         self.fps_filter.currentTextChanged.connect(self.filter_templates)
         fps_layout.addWidget(fps_label)
-        fps_layout.addWidget(self.fps_filter)
-        #filters_layout.addLayout(fps_layout)
-        
+        fps_layout.addWidget(self.fps_filter)       
         left_layout.addWidget(filters_group)
+        
+        # Add spacing between filters and templates
+        left_layout.addSpacing(10)
         
         # Template list
         list_group = QGroupBox("Templates")
@@ -299,7 +297,7 @@ class TemplateManagerDialog(QDialog):
         
         
         self.template_list = QListWidget()
-        self.template_list.setFixedWidth(240)
+        self.template_list.setFixedWidth(230)
         self.template_list.setMinimumHeight(300)
         self.template_list.itemClicked.connect(self.on_template_selected)
         self.template_list.setStyleSheet("""
@@ -419,41 +417,39 @@ class TemplateManagerDialog(QDialog):
         self.template_name_label = QLabel("")
         self.template_desc_label = QLabel("")
         self.template_category_label = QLabel("")
-        self.template_version_label = QLabel("")
-        self.template_author_label = QLabel("")
-        self.template_date_label = QLabel("")
         
         # Style labels
-        label_style = "QLabel { padding: 4px; background-color: #f8f9fa; border-radius: 4px; }"
+        label_style = "QLabel { padding: 4px; background-color: #ffffff; border-radius: 4px; }"
         self.template_name_label.setStyleSheet(label_style)
+        self.template_name_label.setFixedWidth(160)
+        self.template_name_label.setFixedHeight(24)
         self.template_desc_label.setStyleSheet(label_style)
+        self.template_desc_label.setFixedWidth(160)
+        self.template_desc_label.setFixedHeight(24)
         self.template_category_label.setStyleSheet(label_style)
-        self.template_version_label.setStyleSheet(label_style)
-        self.template_author_label.setStyleSheet(label_style)
-        self.template_date_label.setStyleSheet(label_style)
+        self.template_category_label.setFixedWidth(160)
+        self.template_category_label.setFixedHeight(24)
         
-        details_layout.addRow("Name:", self.template_name_label)
-        details_layout.addRow("Description:", self.template_desc_label)
-        details_layout.addRow("Category:", self.template_category_label)
-        details_layout.addRow("Version:", self.template_version_label)
-        details_layout.addRow("Author:", self.template_author_label)
-        details_layout.addRow("Created:", self.template_date_label)
+        # Create individual labels for each field
+        name_label = QLabel("Name:")
+        name_label.setFixedWidth(90)
+        name_label.setFixedHeight(24)
         
-        # Add tags and usage info
-        self.template_tags_label = QLabel("")
-        self.template_usage_label = QLabel("")
-        self.template_rating_label = QLabel("")
+        desc_label = QLabel("Description:")
+        desc_label.setFixedWidth(90)
+        desc_label.setFixedHeight(24)
         
-        # Style additional labels
-        self.template_tags_label.setStyleSheet(label_style)
-        self.template_usage_label.setStyleSheet(label_style)
-        self.template_rating_label.setStyleSheet(label_style)
+        category_label = QLabel("Category:")
+        category_label.setFixedWidth(90)
+        category_label.setFixedHeight(24)
         
-        details_layout.addRow("Tags:", self.template_tags_label)
-        details_layout.addRow("Usage:", self.template_usage_label)
-        details_layout.addRow("Rating:", self.template_rating_label)
+        details_layout.addRow(name_label, self.template_name_label)
+        details_layout.addRow(desc_label, self.template_desc_label)
+        details_layout.addRow(category_label, self.template_category_label)
         
         center_layout.addWidget(details_group)
+
+        center_layout.addSpacing(10)
         
         # Video settings preview
         settings_group = QGroupBox("Video Settings")
@@ -480,17 +476,44 @@ class TemplateManagerDialog(QDialog):
         self.audio_bitrate_label = QLabel("")
         self.video_bitrate_label = QLabel("")
         
-        # Style settings labels
+        # Style settings labels with same style as template details
         for label in [self.resolution_label, self.fps_label, self.codec_label, 
                      self.preset_label, self.audio_bitrate_label, self.video_bitrate_label]:
             label.setStyleSheet(label_style)
+            label.setFixedWidth(160)
+            label.setFixedHeight(24)
         
-        settings_layout.addRow("Resolution:", self.resolution_label)
-        settings_layout.addRow("FPS:", self.fps_label)
-        settings_layout.addRow("Codec:", self.codec_label)
-        settings_layout.addRow("Preset:", self.preset_label)
-        settings_layout.addRow("Audio Bitrate:", self.audio_bitrate_label)
-        settings_layout.addRow("Video Bitrate:", self.video_bitrate_label)
+        # Create individual labels for video settings fields
+        resolution_name_label = QLabel("Resolution:")
+        resolution_name_label.setFixedWidth(90)
+        resolution_name_label.setFixedHeight(24)
+        
+        fps_name_label = QLabel("FPS:")
+        fps_name_label.setFixedWidth(90)
+        fps_name_label.setFixedHeight(24)
+        
+        codec_name_label = QLabel("Codec:")
+        codec_name_label.setFixedWidth(90)
+        codec_name_label.setFixedHeight(24)
+        
+        preset_name_label = QLabel("Preset:")
+        preset_name_label.setFixedWidth(90)
+        preset_name_label.setFixedHeight(24)
+        
+        audio_bitrate_name_label = QLabel("Audio Bitrate:")
+        audio_bitrate_name_label.setFixedWidth(90)
+        audio_bitrate_name_label.setFixedHeight(24)
+        
+        video_bitrate_name_label = QLabel("Video Bitrate:")
+        video_bitrate_name_label.setFixedWidth(90)
+        video_bitrate_name_label.setFixedHeight(24)
+        
+        settings_layout.addRow(resolution_name_label, self.resolution_label)
+        settings_layout.addRow(fps_name_label, self.fps_label)
+        settings_layout.addRow(codec_name_label, self.codec_label)
+        settings_layout.addRow(preset_name_label, self.preset_label)
+        settings_layout.addRow(audio_bitrate_name_label, self.audio_bitrate_label)
+        settings_layout.addRow(video_bitrate_name_label, self.video_bitrate_label)
         
         center_layout.addWidget(settings_group)
         
@@ -586,7 +609,6 @@ class TemplateManagerDialog(QDialog):
         search_text = self.search_edit.text().lower()
         selected_resolution = self.resolution_filter.currentData()
         selected_fps = self.fps_filter.currentData()
-        show_favorites_only = self.favorites_btn.isChecked()
         
         for template in self.templates:
             # Filter by category
@@ -596,8 +618,7 @@ class TemplateManagerDialog(QDialog):
             # Filter by search text
             template_name = template.get('name', '').lower()
             template_desc = template.get('description', '').lower()
-            template_tags = ' '.join(template.get('tags', [])).lower()
-            if search_text and search_text not in template_name and search_text not in template_desc and search_text not in template_tags:
+            if search_text and search_text not in template_name and search_text not in template_desc:
                 continue
                 
             # Filter by resolution
@@ -614,17 +635,11 @@ class TemplateManagerDialog(QDialog):
                 if template_fps != selected_fps:
                     continue
                     
-            # Filter by favorites
-            if show_favorites_only and not template.get('favorite', False):
-                continue
+
                 
             # Add to list
             item = QListWidgetItem()
             template_name = template.get('name', 'Unknown Template')
-            
-            # Add favorite star if applicable
-            if template.get('favorite', False):
-                template_name = f"⭐ {template_name}"
             
             item.setText(template_name)
             item.setData(Qt.ItemDataRole.UserRole, template)
@@ -661,21 +676,7 @@ class TemplateManagerDialog(QDialog):
         category_icon = category_info.get('icon', '')
         self.template_category_label.setText(f"{category_icon} {category_name}")
         
-        self.template_version_label.setText(template_data.get('version', '1.0'))
-        self.template_author_label.setText(template_data.get('author', 'Unknown'))
-        
-        # Format date
-        created_date = template_data.get('created_date', '')
-        if created_date:
-            try:
-                from datetime import datetime
-                date_obj = datetime.fromisoformat(created_date.replace('Z', '+00:00'))
-                formatted_date = date_obj.strftime('%Y-%m-%d %H:%M')
-                self.template_date_label.setText(formatted_date)
-            except:
-                self.template_date_label.setText(created_date)
-        else:
-            self.template_date_label.setText('Unknown')
+
         
         # Update video settings
         video_settings = template_data.get('video_settings', {})
@@ -686,22 +687,7 @@ class TemplateManagerDialog(QDialog):
         self.audio_bitrate_label.setText(video_settings.get('audio_bitrate', 'Unknown'))
         self.video_bitrate_label.setText(video_settings.get('video_bitrate', 'Unknown'))
         
-        # Update additional info
-        tags = template_data.get('tags', [])
-        if tags:
-            self.template_tags_label.setText(', '.join(tags))
-        else:
-            self.template_tags_label.setText('No tags')
-        
-        usage_count = template_data.get('usage_count', 0)
-        self.template_usage_label.setText(f"{usage_count} times used")
-        
-        rating = template_data.get('rating', 0)
-        if rating > 0:
-            stars = "⭐" * int(rating) + "☆" * (5 - int(rating))
-            self.template_rating_label.setText(f"{stars} ({rating}/5)")
-        else:
-            self.template_rating_label.setText("No rating")
+
         
         # Update layer preview
         self.layer_preview_list.clear()
@@ -720,18 +706,11 @@ class TemplateManagerDialog(QDialog):
         has_selection = self.selected_template is not None
         self.apply_btn.setEnabled(has_selection)
         self.edit_btn.setEnabled(has_selection)
-        self.favorite_btn.setEnabled(has_selection)
+
         self.delete_btn.setEnabled(has_selection)
         self.export_btn.setEnabled(has_selection)
         
-        # Update favorite button state
-        if has_selection and self.selected_template:
-            is_favorite = self.selected_template.get('favorite', False)
-            self.favorite_btn.setChecked(is_favorite)
-            if is_favorite:
-                self.favorite_btn.setText("⭐ Unfavorite")
-            else:
-                self.favorite_btn.setText("⭐ Favorite")
+
         
     def create_new_template(self):
         """Create a new template from current settings"""
@@ -840,14 +819,9 @@ class TemplateManagerDialog(QDialog):
             if category_id == current_category:
                 category_combo.setCurrentIndex(category_combo.count() - 1)
         
-        version_edit = QLineEdit(self.selected_template.get('version', '1.0'))
-        author_edit = QLineEdit(self.selected_template.get('author', ''))
-        
         basic_layout.addRow("Name:", name_edit)
         basic_layout.addRow("Description:", desc_edit)
         basic_layout.addRow("Category:", category_combo)
-        basic_layout.addRow("Version:", version_edit)
-        basic_layout.addRow("Author:", author_edit)
         
         tab_widget.addTab(basic_tab, "Basic Info")
         
@@ -1050,8 +1024,6 @@ class TemplateManagerDialog(QDialog):
             self.selected_template['name'] = name_edit.text().strip()
             self.selected_template['description'] = desc_edit.toPlainText().strip()
             self.selected_template['category'] = category_combo.currentData()
-            self.selected_template['version'] = version_edit.text().strip()
-            self.selected_template['author'] = author_edit.text().strip()
             
             # Update video settings
             self.selected_template['video_settings'] = {
@@ -1102,42 +1074,7 @@ class TemplateManagerDialog(QDialog):
             else:
                 QMessageBox.warning(self, "Error", "Failed to save template changes.")
                 
-    def toggle_favorite(self):
-        """Toggle favorite status of selected template"""
-        if not self.selected_template:
-            return
-            
-        # Toggle favorite status
-        current_favorite = self.selected_template.get('favorite', False)
-        self.selected_template['favorite'] = not current_favorite
-        
-        # Update the template in the list
-        for i in range(self.template_list.count()):
-            item = self.template_list.item(i)
-            if item.data(Qt.ItemDataRole.UserRole) == self.selected_template:
-                template_name = self.selected_template.get('name', 'Unknown Template')
-                if self.selected_template.get('favorite', False):
-                    template_name = f"⭐ {template_name}"
-                
-                # Add category icon
-                categories = get_template_categories()
-                category_info = categories.get('categories', {}).get(self.selected_template.get('category', ''), {})
-                icon = category_info.get('icon', '')
-                if icon:
-                    template_name = f"{icon} {template_name}"
-                
-                item.setText(template_name)
-                break
-        
-        # Update button states
-        self.update_button_states()
-        
-        # Show feedback
-        template_name = self.selected_template.get('name', 'Unknown Template')
-        if self.selected_template.get('favorite', False):
-            QMessageBox.information(self, "Favorite Added", f"'{template_name}' added to favorites!")
-        else:
-            QMessageBox.information(self, "Favorite Removed", f"'{template_name}' removed from favorites!")
+
         
     def delete_selected_template(self):
         """Delete the selected template"""

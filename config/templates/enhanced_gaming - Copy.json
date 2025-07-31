@@ -2,7 +2,7 @@
   "author": "Gaming Pro",
   "category": "gaming",
   "created_date": "2024-01-16T14:20:00Z",
-  "description": "Fast-paced gaming highlight template with dynamic effects and high FPS",
+  "description": "",
   "favorite": false,
   "layer_order": [
     "background",
@@ -34,7 +34,7 @@
       "opacity": 1.0
     }
   },
-  "name": "Enhanced Gaming Highlight",
+  "name": "Enhanced Gaming",
   "rating": 4.8,
   "tags": [
     "gaming",

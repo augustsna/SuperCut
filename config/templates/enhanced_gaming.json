@@ -1,0 +1,65 @@
+{
+  "author": "Gaming Pro",
+  "category": "gaming",
+  "created_date": "2024-01-16T14:20:00Z",
+  "description": "",
+  "favorite": false,
+  "layer_order": [
+    "background",
+    "overlay1",
+    "overlay2",
+    "song_titles"
+  ],
+  "layer_settings": {
+    "background": {
+      "enabled": true,
+      "scale_percent": 110,
+      "crop_position": "center"
+    },
+    "overlay1": {
+      "enabled": true,
+      "size_percent": 90,
+      "x_percent": 50,
+      "y_percent": 40
+    },
+    "overlay2": {
+      "enabled": true,
+      "size_percent": 70,
+      "x_percent": 80,
+      "y_percent": 20
+    },
+    "song_titles": {
+      "enabled": true,
+      "font_size": 28,
+      "opacity": 1.0
+    }
+  },
+  "name": "Enhanced Gaming",
+  "rating": 4.8,
+  "tags": [
+    "gaming",
+    "fast-paced",
+    "dynamic",
+    "high-fps",
+    "esports"
+  ],
+  "thumbnail": "",
+  "ui_settings": {
+    "show_intro_settings": true,
+    "show_overlay1_2_settings": true,
+    "show_overlay3_titles_soundwave_settings": false,
+    "show_frame_box_settings": false
+  },
+  "usage_count": 89,
+  "version": "1.5",
+  "video_settings": {
+    "codec": "h264_nvenc",
+    "resolution": "1920x1080",
+    "fps": 60,
+    "preset": "fast",
+    "audio_bitrate": "320k",
+    "video_bitrate": "15M",
+    "maxrate": "20M",
+    "bufsize": "30M"
+  }
+}
