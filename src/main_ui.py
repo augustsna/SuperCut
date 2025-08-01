@@ -10314,7 +10314,13 @@ class SuperCutUI(QWidget):
             'buffsize': self.settings.value('default_ffmpeg_buffsize', '24M', type=str) if hasattr(self, 'settings') else '24M',
             'layer_order': self.layer_order or [],
             'layer_settings': {
-                'background': {'enabled': hasattr(self, 'bg_layer_checkbox') and self.bg_layer_checkbox.isChecked()},
+                'background': {
+                    'enabled': hasattr(self, 'bg_layer_checkbox') and self.bg_layer_checkbox.isChecked(),
+                    'scale_percent': self.bg_scale_percent if hasattr(self, 'bg_scale_percent') else 100,
+                    'crop_position': self.bg_crop_position if hasattr(self, 'bg_crop_position') else "center",
+                    'effect': self.bg_effect if hasattr(self, 'bg_effect') else "none",
+                    'intensity': self.bg_intensity if hasattr(self, 'bg_intensity') else 50
+                },
                 'overlay1': {
                     'enabled': hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked(),
                     'path': self.overlay1_edit.text().strip() if hasattr(self, 'overlay1_edit') else "",
@@ -10422,10 +10428,75 @@ class SuperCutUI(QWidget):
                     'start_at': self.intro_start_at if hasattr(self, 'intro_start_at') else 0,
                     'start_from': self.intro_start_from if hasattr(self, 'intro_start_from') else 0
                 },
-                'frame_box': {'enabled': hasattr(self, 'frame_box_checkbox') and self.frame_box_checkbox.isChecked()},
-                'frame_mp3cover': {'enabled': hasattr(self, 'frame_mp3cover_checkbox') and self.frame_mp3cover_checkbox.isChecked()},
-                'mp3_cover_overlay': {'enabled': hasattr(self, 'mp3_cover_overlay_checkbox') and self.mp3_cover_overlay_checkbox.isChecked()},
-                'song_titles': {'enabled': hasattr(self, 'song_title_checkbox') and self.song_title_checkbox.isChecked()},
+                'frame_box': {
+                    'enabled': hasattr(self, 'frame_box_checkbox') and self.frame_box_checkbox.isChecked(),
+                    'custom_image_checkbox': hasattr(self, 'frame_box_custom_image_checkbox') and self.frame_box_custom_image_checkbox.isChecked(),
+                    'custom_image_path': self.frame_box_custom_image_path if hasattr(self, 'frame_box_custom_image_path') else None,
+                    'size_percent': self.frame_box_size_percent if hasattr(self, 'frame_box_size_percent') else 50,
+                    'x_percent': self.frame_box_x_percent if hasattr(self, 'frame_box_x_percent') else 0,
+                    'y_percent': self.frame_box_y_percent if hasattr(self, 'frame_box_y_percent') else 0,
+                    'effect': self.selected_frame_box_effect if hasattr(self, 'selected_frame_box_effect') else "fadein",
+                    'duration': self.frame_box_duration if hasattr(self, 'frame_box_duration') else 6,
+                    'duration_full': hasattr(self, 'frame_box_duration_full_checkbox') and self.frame_box_duration_full_checkbox.isChecked(),
+                    'start_time': self.frame_box_start_time if hasattr(self, 'frame_box_start_time') else 5,
+                    'color': self.frame_box_color if hasattr(self, 'frame_box_color') else (255, 255, 255),
+                    'opacity': self.frame_box_opacity if hasattr(self, 'frame_box_opacity') else 1.0,
+                    'pad_left': self.frame_box_pad_left if hasattr(self, 'frame_box_pad_left') else 12,
+                    'pad_right': self.frame_box_pad_right if hasattr(self, 'frame_box_pad_right') else 12,
+                    'pad_top': self.frame_box_pad_top if hasattr(self, 'frame_box_pad_top') else 12,
+                    'pad_bottom': self.frame_box_pad_bottom if hasattr(self, 'frame_box_pad_bottom') else 48,
+                    'caption_checkbox': hasattr(self, 'frame_box_caption_checkbox') and self.frame_box_caption_checkbox.isChecked(),
+                    'caption_position': self.frame_box_caption_position if hasattr(self, 'frame_box_caption_position') else "bottom_center",
+                    'caption_type': self.frame_box_caption_type if hasattr(self, 'frame_box_caption_type') else "text",
+                    'caption_text': self.frame_box_caption_text if hasattr(self, 'frame_box_caption_text') else "Caption",
+                    'caption_png_path': self.frame_box_caption_png_path if hasattr(self, 'frame_box_caption_png_path') else None,
+                    'caption_font': self.frame_box_caption_font if hasattr(self, 'frame_box_caption_font') else "",
+                    'caption_font_size': self.frame_box_caption_font_size if hasattr(self, 'frame_box_caption_font_size') else 72,
+                    'caption_color': self.frame_box_caption_color if hasattr(self, 'frame_box_caption_color') else (255, 255, 255),
+                    'caption_effect': self.frame_box_caption_effect if hasattr(self, 'frame_box_caption_effect') else "none"
+                },
+                'frame_mp3cover': {
+                    'enabled': hasattr(self, 'frame_mp3cover_checkbox') and self.frame_mp3cover_checkbox.isChecked(),
+                    'custom_image_checkbox': hasattr(self, 'frame_mp3cover_custom_image_checkbox') and self.frame_mp3cover_custom_image_checkbox.isChecked(),
+                    'custom_image_path': self.frame_mp3cover_custom_image_path if hasattr(self, 'frame_mp3cover_custom_image_path') else None,
+                    'size_percent': self.frame_mp3cover_size_percent if hasattr(self, 'frame_mp3cover_size_percent') else 50,
+                    'x_percent': self.frame_mp3cover_x_percent if hasattr(self, 'frame_mp3cover_x_percent') else 0,
+                    'y_percent': self.frame_mp3cover_y_percent if hasattr(self, 'frame_mp3cover_y_percent') else 0,
+                    'effect': self.selected_frame_mp3cover_effect if hasattr(self, 'selected_frame_mp3cover_effect') else "fadein",
+                    'duration': self.frame_mp3cover_duration if hasattr(self, 'frame_mp3cover_duration') else 6,
+                    'duration_full': hasattr(self, 'frame_mp3cover_duration_full_checkbox') and self.frame_mp3cover_duration_full_checkbox.isChecked(),
+                    'start_time': self.frame_mp3cover_start_time if hasattr(self, 'frame_mp3cover_start_time') else 5
+                },
+                'mp3_cover_overlay': {
+                    'enabled': hasattr(self, 'mp3_cover_overlay_checkbox') and self.mp3_cover_overlay_checkbox.isChecked(),
+                    'custom_image_checkbox': hasattr(self, 'mp3_cover_custom_image_checkbox') and self.mp3_cover_custom_image_checkbox.isChecked(),
+                    'custom_image_path': self.mp3_cover_custom_image_path if hasattr(self, 'mp3_cover_custom_image_path') else None,
+                    'size_percent': self.mp3_cover_size_percent if hasattr(self, 'mp3_cover_size_percent') else 20,
+                    'x_percent': self.mp3_cover_x_percent if hasattr(self, 'mp3_cover_x_percent') else 75,
+                    'y_percent': self.mp3_cover_y_percent if hasattr(self, 'mp3_cover_y_percent') else 75,
+                    'effect': self.selected_mp3_cover_effect if hasattr(self, 'selected_mp3_cover_effect') else "fadeinout",
+                    'duration': self.mp3_cover_duration if hasattr(self, 'mp3_cover_duration') else 6,
+                    'duration_full': hasattr(self, 'mp3_cover_duration_full_checkbox') and self.mp3_cover_duration_full_checkbox.isChecked(),
+                    'start_at': self.mp3_cover_start_at if hasattr(self, 'mp3_cover_start_at') else 0,
+                    'frame_color': self.mp3_cover_frame_color if hasattr(self, 'mp3_cover_frame_color') else (0, 0, 0),
+                    'frame_size': self.mp3_cover_frame_size if hasattr(self, 'mp3_cover_frame_size') else 10
+                },
+                'song_titles': {
+                    'enabled': hasattr(self, 'song_title_checkbox') and self.song_title_checkbox.isChecked(),
+                    'label': self.song_titles_label_edit.text().strip() if hasattr(self, 'song_titles_label_edit') else " Song Titles :",
+                    'font': self.song_title_font if hasattr(self, 'song_title_font') else "default",
+                    'font_size': self.song_title_font_size if hasattr(self, 'song_title_font_size') else 220,
+                    'scale_percent': self.song_title_scale_percent if hasattr(self, 'song_title_scale_percent') else 50,
+                    'color': self.song_title_color if hasattr(self, 'song_title_color') else (255, 255, 255),
+                    'bg': self.song_title_bg if hasattr(self, 'song_title_bg') else "transparent",
+                    'bg_color': self.song_title_bg_color if hasattr(self, 'song_title_bg_color') else (0, 0, 0),
+                    'opacity': self.song_title_opacity if hasattr(self, 'song_title_opacity') else 0.20,
+                    'x_percent': self.song_title_x_percent if hasattr(self, 'song_title_x_percent') else 50,
+                    'y_percent': self.song_title_y_percent if hasattr(self, 'song_title_y_percent') else 20,
+                    'text_effect': self.song_title_text_effect if hasattr(self, 'song_title_text_effect') else "none",
+                    'text_effect_color': self.song_title_text_effect_color if hasattr(self, 'song_title_text_effect_color') else (0, 0, 0),
+                    'text_effect_intensity': self.song_title_text_effect_intensity if hasattr(self, 'song_title_text_effect_intensity') else 20
+                },
                 'soundwave': {
                     'enabled': hasattr(self, 'soundwave_checkbox') and self.soundwave_checkbox.isChecked(),
                     'method': self.soundwave_method if hasattr(self, 'soundwave_method') else "bars",
@@ -10577,8 +10648,46 @@ class SuperCutUI(QWidget):
             
             # Apply layer settings
             layer_settings = template_data.get('layer_settings', {})
-            if 'background' in layer_settings and hasattr(self, 'bg_layer_checkbox'):
-                self.bg_layer_checkbox.setChecked(layer_settings['background'].get('enabled', False))
+            if 'background' in layer_settings:
+                background_settings = layer_settings['background']
+                if hasattr(self, 'bg_layer_checkbox'):
+                    self.bg_layer_checkbox.setChecked(background_settings.get('enabled', False))
+                if hasattr(self, 'bg_scale_percent'):
+                    self.bg_scale_percent = background_settings.get('scale_percent', 100)
+                if hasattr(self, 'bg_crop_position'):
+                    self.bg_crop_position = background_settings.get('crop_position', 'center')
+                if hasattr(self, 'bg_effect'):
+                    self.bg_effect = background_settings.get('effect', 'none')
+                if hasattr(self, 'bg_intensity'):
+                    self.bg_intensity = background_settings.get('intensity', 50)
+                
+                # Update UI controls to reflect the restored values
+                if hasattr(self, 'bg_scale_combo'):
+                    scale_percent = background_settings.get('scale_percent', 100)
+                    for i in range(self.bg_scale_combo.count()):
+                        if self.bg_scale_combo.itemData(i) == scale_percent:
+                            self.bg_scale_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'bg_crop_position_combo'):
+                    crop_position = background_settings.get('crop_position', 'center')
+                    # Convert from snake_case to Title Case for UI
+                    crop_position_title = crop_position.replace('_', ' ').title()
+                    for i in range(self.bg_crop_position_combo.count()):
+                        if self.bg_crop_position_combo.itemText(i) == crop_position_title:
+                            self.bg_crop_position_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'bg_effect_combo'):
+                    effect = background_settings.get('effect', 'none')
+                    for i in range(self.bg_effect_combo.count()):
+                        if self.bg_effect_combo.itemData(i) == effect:
+                            self.bg_effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'bg_intensity_combo'):
+                    intensity = background_settings.get('intensity', 50)
+                    for i in range(self.bg_intensity_combo.count()):
+                        if self.bg_intensity_combo.itemData(i) == intensity:
+                            self.bg_intensity_combo.setCurrentIndex(i)
+                            break
             if 'overlay1' in layer_settings:
                 overlay1_settings = layer_settings['overlay1']
                 if hasattr(self, 'overlay_checkbox'):
@@ -11096,14 +11205,376 @@ class SuperCutUI(QWidget):
                         if self.intro_y_combo.itemData(i) == y:
                             self.intro_y_combo.setCurrentIndex(i)
                             break
-            if 'frame_box' in layer_settings and hasattr(self, 'frame_box_checkbox'):
-                self.frame_box_checkbox.setChecked(layer_settings['frame_box'].get('enabled', False))
-            if 'frame_mp3cover' in layer_settings and hasattr(self, 'frame_mp3cover_checkbox'):
-                self.frame_mp3cover_checkbox.setChecked(layer_settings['frame_mp3cover'].get('enabled', False))
-            if 'mp3_cover_overlay' in layer_settings and hasattr(self, 'mp3_cover_overlay_checkbox'):
-                self.mp3_cover_overlay_checkbox.setChecked(layer_settings['mp3_cover_overlay'].get('enabled', False))
-            if 'song_titles' in layer_settings and hasattr(self, 'song_title_checkbox'):
-                self.song_title_checkbox.setChecked(layer_settings['song_titles'].get('enabled', False))
+            if 'frame_box' in layer_settings:
+                frame_box_settings = layer_settings['frame_box']
+                if hasattr(self, 'frame_box_checkbox'):
+                    self.frame_box_checkbox.setChecked(frame_box_settings.get('enabled', False))
+                if hasattr(self, 'frame_box_custom_image_checkbox'):
+                    self.frame_box_custom_image_checkbox.setChecked(frame_box_settings.get('custom_image_checkbox', False))
+                if hasattr(self, 'frame_box_custom_image_path'):
+                    self.frame_box_custom_image_path = frame_box_settings.get('custom_image_path', None)
+                if hasattr(self, 'frame_box_custom_image_edit'):
+                    custom_path = frame_box_settings.get('custom_image_path', '')
+                    if custom_path:
+                        self.frame_box_custom_image_edit.setText(custom_path)
+                if hasattr(self, 'frame_box_size_percent'):
+                    self.frame_box_size_percent = frame_box_settings.get('size_percent', 50)
+                if hasattr(self, 'frame_box_x_percent'):
+                    self.frame_box_x_percent = frame_box_settings.get('x_percent', 0)
+                if hasattr(self, 'frame_box_y_percent'):
+                    self.frame_box_y_percent = frame_box_settings.get('y_percent', 0)
+                if hasattr(self, 'selected_frame_box_effect'):
+                    self.selected_frame_box_effect = frame_box_settings.get('effect', 'fadein')
+                if hasattr(self, 'frame_box_duration'):
+                    self.frame_box_duration = frame_box_settings.get('duration', 6)
+                if hasattr(self, 'frame_box_start_time'):
+                    self.frame_box_start_time = frame_box_settings.get('start_time', 5)
+                if hasattr(self, 'frame_box_color'):
+                    self.frame_box_color = frame_box_settings.get('color', (255, 255, 255))
+                if hasattr(self, 'frame_box_opacity'):
+                    self.frame_box_opacity = frame_box_settings.get('opacity', 1.0)
+                if hasattr(self, 'frame_box_pad_left'):
+                    self.frame_box_pad_left = frame_box_settings.get('pad_left', 12)
+                if hasattr(self, 'frame_box_pad_right'):
+                    self.frame_box_pad_right = frame_box_settings.get('pad_right', 12)
+                if hasattr(self, 'frame_box_pad_top'):
+                    self.frame_box_pad_top = frame_box_settings.get('pad_top', 12)
+                if hasattr(self, 'frame_box_pad_bottom'):
+                    self.frame_box_pad_bottom = frame_box_settings.get('pad_bottom', 48)
+                if hasattr(self, 'frame_box_caption_checkbox'):
+                    self.frame_box_caption_checkbox.setChecked(frame_box_settings.get('caption_checkbox', False))
+                if hasattr(self, 'frame_box_caption_position'):
+                    self.frame_box_caption_position = frame_box_settings.get('caption_position', 'bottom_center')
+                if hasattr(self, 'frame_box_caption_type'):
+                    self.frame_box_caption_type = frame_box_settings.get('caption_type', 'text')
+                if hasattr(self, 'frame_box_caption_text'):
+                    self.frame_box_caption_text = frame_box_settings.get('caption_text', 'Caption')
+                if hasattr(self, 'frame_box_caption_png_path'):
+                    self.frame_box_caption_png_path = frame_box_settings.get('caption_png_path', None)
+                if hasattr(self, 'frame_box_caption_font'):
+                    self.frame_box_caption_font = frame_box_settings.get('caption_font', '')
+                if hasattr(self, 'frame_box_caption_font_size'):
+                    self.frame_box_caption_font_size = frame_box_settings.get('caption_font_size', 72)
+                if hasattr(self, 'frame_box_caption_color'):
+                    self.frame_box_caption_color = frame_box_settings.get('caption_color', (255, 255, 255))
+                if hasattr(self, 'frame_box_caption_effect'):
+                    self.frame_box_caption_effect = frame_box_settings.get('caption_effect', 'none')
+                
+                # Update UI controls
+                if hasattr(self, 'frame_box_size_combo'):
+                    size = frame_box_settings.get('size_percent', 50)
+                    for i in range(self.frame_box_size_combo.count()):
+                        if self.frame_box_size_combo.itemData(i) == size:
+                            self.frame_box_size_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_x_combo'):
+                    x = frame_box_settings.get('x_percent', 0)
+                    for i in range(self.frame_box_x_combo.count()):
+                        if self.frame_box_x_combo.itemData(i) == x:
+                            self.frame_box_x_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_y_combo'):
+                    y = frame_box_settings.get('y_percent', 0)
+                    for i in range(self.frame_box_y_combo.count()):
+                        if self.frame_box_y_combo.itemData(i) == y:
+                            self.frame_box_y_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_effect_combo'):
+                    effect = frame_box_settings.get('effect', 'fadein')
+                    for i in range(self.frame_box_effect_combo.count()):
+                        if self.frame_box_effect_combo.itemData(i) == effect:
+                            self.frame_box_effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_duration_edit'):
+                    self.frame_box_duration_edit.setText(str(frame_box_settings.get('duration', 6)))
+                if hasattr(self, 'frame_box_duration_full_checkbox'):
+                    self.frame_box_duration_full_checkbox.setChecked(frame_box_settings.get('duration_full', True))
+                if hasattr(self, 'frame_box_start_edit'):
+                    self.frame_box_start_edit.setText(str(frame_box_settings.get('start_time', 5)))
+                if hasattr(self, 'frame_box_opacity_combo'):
+                    opacity = frame_box_settings.get('opacity', 1.0)
+                    for i in range(self.frame_box_opacity_combo.count()):
+                        if self.frame_box_opacity_combo.itemData(i) == opacity:
+                            self.frame_box_opacity_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_pad_left_combo'):
+                    pad_left = frame_box_settings.get('pad_left', 12)
+                    for i in range(self.frame_box_pad_left_combo.count()):
+                        if self.frame_box_pad_left_combo.itemData(i) == pad_left:
+                            self.frame_box_pad_left_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_pad_right_combo'):
+                    pad_right = frame_box_settings.get('pad_right', 12)
+                    for i in range(self.frame_box_pad_right_combo.count()):
+                        if self.frame_box_pad_right_combo.itemData(i) == pad_right:
+                            self.frame_box_pad_right_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_pad_top_combo'):
+                    pad_top = frame_box_settings.get('pad_top', 12)
+                    for i in range(self.frame_box_pad_top_combo.count()):
+                        if self.frame_box_pad_top_combo.itemData(i) == pad_top:
+                            self.frame_box_pad_top_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_pad_bottom_combo'):
+                    pad_bottom = frame_box_settings.get('pad_bottom', 48)
+                    for i in range(self.frame_box_pad_bottom_combo.count()):
+                        if self.frame_box_pad_bottom_combo.itemData(i) == pad_bottom:
+                            self.frame_box_pad_bottom_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_caption_position_combo'):
+                    caption_position = frame_box_settings.get('caption_position', 'bottom_center')
+                    for i in range(self.frame_box_caption_position_combo.count()):
+                        if self.frame_box_caption_position_combo.itemData(i) == caption_position:
+                            self.frame_box_caption_position_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_caption_text_edit'):
+                    self.frame_box_caption_text_edit.setText(frame_box_settings.get('caption_text', 'Caption'))
+                if hasattr(self, 'frame_box_caption_png_edit'):
+                    png_path = frame_box_settings.get('caption_png_path', '')
+                    if png_path:
+                        self.frame_box_caption_png_edit.setText(png_path)
+                if hasattr(self, 'frame_box_caption_font_combo'):
+                    caption_font = frame_box_settings.get('caption_font', '')
+                    for i in range(self.frame_box_caption_font_combo.count()):
+                        if self.frame_box_caption_font_combo.itemData(i) == caption_font:
+                            self.frame_box_caption_font_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_caption_font_size_combo'):
+                    caption_font_size = frame_box_settings.get('caption_font_size', 72)
+                    for i in range(self.frame_box_caption_font_size_combo.count()):
+                        if self.frame_box_caption_font_size_combo.itemData(i) == caption_font_size:
+                            self.frame_box_caption_font_size_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_box_caption_effect_combo'):
+                    caption_effect = frame_box_settings.get('caption_effect', 'none')
+                    for i in range(self.frame_box_caption_effect_combo.count()):
+                        if self.frame_box_caption_effect_combo.itemData(i) == caption_effect:
+                            self.frame_box_caption_effect_combo.setCurrentIndex(i)
+                            break
+                
+                # Update color buttons
+                if hasattr(self, 'frame_box_color_btn'):
+                    color = frame_box_settings.get('color', (255, 255, 255))
+                    self.frame_box_color_btn.setStyleSheet(f"background-color: rgb{color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                if hasattr(self, 'frame_box_caption_color_btn'):
+                    caption_color = frame_box_settings.get('caption_color', (255, 255, 255))
+                    self.frame_box_caption_color_btn.setStyleSheet(f"background-color: rgb{caption_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+            if 'frame_mp3cover' in layer_settings:
+                frame_mp3cover_settings = layer_settings['frame_mp3cover']
+                if hasattr(self, 'frame_mp3cover_checkbox'):
+                    self.frame_mp3cover_checkbox.setChecked(frame_mp3cover_settings.get('enabled', False))
+                if hasattr(self, 'frame_mp3cover_custom_image_checkbox'):
+                    self.frame_mp3cover_custom_image_checkbox.setChecked(frame_mp3cover_settings.get('custom_image_checkbox', False))
+                if hasattr(self, 'frame_mp3cover_custom_image_path'):
+                    self.frame_mp3cover_custom_image_path = frame_mp3cover_settings.get('custom_image_path', None)
+                if hasattr(self, 'frame_mp3cover_custom_image_edit'):
+                    custom_path = frame_mp3cover_settings.get('custom_image_path', '')
+                    if custom_path:
+                        self.frame_mp3cover_custom_image_edit.setText(custom_path)
+                if hasattr(self, 'frame_mp3cover_size_percent'):
+                    self.frame_mp3cover_size_percent = frame_mp3cover_settings.get('size_percent', 50)
+                if hasattr(self, 'frame_mp3cover_x_percent'):
+                    self.frame_mp3cover_x_percent = frame_mp3cover_settings.get('x_percent', 0)
+                if hasattr(self, 'frame_mp3cover_y_percent'):
+                    self.frame_mp3cover_y_percent = frame_mp3cover_settings.get('y_percent', 0)
+                if hasattr(self, 'selected_frame_mp3cover_effect'):
+                    self.selected_frame_mp3cover_effect = frame_mp3cover_settings.get('effect', 'fadein')
+                if hasattr(self, 'frame_mp3cover_duration'):
+                    self.frame_mp3cover_duration = frame_mp3cover_settings.get('duration', 6)
+                if hasattr(self, 'frame_mp3cover_start_time'):
+                    self.frame_mp3cover_start_time = frame_mp3cover_settings.get('start_time', 5)
+                
+                # Update UI controls to reflect the restored values
+                if hasattr(self, 'frame_mp3cover_size_combo'):
+                    size = frame_mp3cover_settings.get('size_percent', 50)
+                    for i in range(self.frame_mp3cover_size_combo.count()):
+                        if self.frame_mp3cover_size_combo.itemData(i) == size:
+                            self.frame_mp3cover_size_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_mp3cover_x_combo'):
+                    x = frame_mp3cover_settings.get('x_percent', 0)
+                    for i in range(self.frame_mp3cover_x_combo.count()):
+                        if self.frame_mp3cover_x_combo.itemData(i) == x:
+                            self.frame_mp3cover_x_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_mp3cover_y_combo'):
+                    y = frame_mp3cover_settings.get('y_percent', 0)
+                    for i in range(self.frame_mp3cover_y_combo.count()):
+                        if self.frame_mp3cover_y_combo.itemData(i) == y:
+                            self.frame_mp3cover_y_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'frame_mp3cover_duration_edit'):
+                    self.frame_mp3cover_duration_edit.setText(str(frame_mp3cover_settings.get('duration', 6)))
+                if hasattr(self, 'frame_mp3cover_duration_full_checkbox'):
+                    self.frame_mp3cover_duration_full_checkbox.setChecked(frame_mp3cover_settings.get('duration_full', True))
+                if hasattr(self, 'frame_mp3cover_start_edit'):
+                    self.frame_mp3cover_start_edit.setText(str(frame_mp3cover_settings.get('start_time', 5)))
+                if hasattr(self, 'frame_mp3cover_effect_combo'):
+                    effect = frame_mp3cover_settings.get('effect', 'fadein')
+                    for i in range(self.frame_mp3cover_effect_combo.count()):
+                        if self.frame_mp3cover_effect_combo.itemData(i) == effect:
+                            self.frame_mp3cover_effect_combo.setCurrentIndex(i)
+                            break
+            if 'mp3_cover_overlay' in layer_settings:
+                mp3_cover_overlay_settings = layer_settings['mp3_cover_overlay']
+                if hasattr(self, 'mp3_cover_overlay_checkbox'):
+                    self.mp3_cover_overlay_checkbox.setChecked(mp3_cover_overlay_settings.get('enabled', False))
+                if hasattr(self, 'mp3_cover_custom_image_checkbox'):
+                    self.mp3_cover_custom_image_checkbox.setChecked(mp3_cover_overlay_settings.get('custom_image_checkbox', False))
+                if hasattr(self, 'mp3_cover_custom_image_path'):
+                    self.mp3_cover_custom_image_path = mp3_cover_overlay_settings.get('custom_image_path', None)
+                if hasattr(self, 'mp3_cover_custom_image_edit'):
+                    custom_path = mp3_cover_overlay_settings.get('custom_image_path', '')
+                    if custom_path:
+                        self.mp3_cover_custom_image_edit.setText(custom_path)
+                if hasattr(self, 'mp3_cover_size_percent'):
+                    self.mp3_cover_size_percent = mp3_cover_overlay_settings.get('size_percent', 20)
+                if hasattr(self, 'mp3_cover_x_percent'):
+                    self.mp3_cover_x_percent = mp3_cover_overlay_settings.get('x_percent', 75)
+                if hasattr(self, 'mp3_cover_y_percent'):
+                    self.mp3_cover_y_percent = mp3_cover_overlay_settings.get('y_percent', 75)
+                if hasattr(self, 'selected_mp3_cover_effect'):
+                    self.selected_mp3_cover_effect = mp3_cover_overlay_settings.get('effect', 'fadeinout')
+                if hasattr(self, 'mp3_cover_duration'):
+                    self.mp3_cover_duration = mp3_cover_overlay_settings.get('duration', 6)
+                if hasattr(self, 'mp3_cover_start_at'):
+                    self.mp3_cover_start_at = mp3_cover_overlay_settings.get('start_at', 0)
+                if hasattr(self, 'mp3_cover_frame_color'):
+                    self.mp3_cover_frame_color = mp3_cover_overlay_settings.get('frame_color', (0, 0, 0))
+                if hasattr(self, 'mp3_cover_frame_size'):
+                    self.mp3_cover_frame_size = mp3_cover_overlay_settings.get('frame_size', 10)
+                
+                # Update UI controls to reflect the restored values
+                if hasattr(self, 'mp3_cover_size_combo'):
+                    size = mp3_cover_overlay_settings.get('size_percent', 20)
+                    for i in range(self.mp3_cover_size_combo.count()):
+                        if self.mp3_cover_size_combo.itemData(i) == size:
+                            self.mp3_cover_size_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'mp3_cover_x_combo'):
+                    x = mp3_cover_overlay_settings.get('x_percent', 75)
+                    for i in range(self.mp3_cover_x_combo.count()):
+                        if self.mp3_cover_x_combo.itemData(i) == x:
+                            self.mp3_cover_x_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'mp3_cover_y_combo'):
+                    y = mp3_cover_overlay_settings.get('y_percent', 75)
+                    for i in range(self.mp3_cover_y_combo.count()):
+                        if self.mp3_cover_y_combo.itemData(i) == y:
+                            self.mp3_cover_y_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'mp3_cover_duration_edit'):
+                    self.mp3_cover_duration_edit.setText(str(mp3_cover_overlay_settings.get('duration', 6)))
+                if hasattr(self, 'mp3_cover_duration_full_checkbox'):
+                    self.mp3_cover_duration_full_checkbox.setChecked(mp3_cover_overlay_settings.get('duration_full', True))
+                if hasattr(self, 'mp3_cover_start_edit'):
+                    self.mp3_cover_start_edit.setText(str(mp3_cover_overlay_settings.get('start_at', 0)))
+                if hasattr(self, 'mp3_cover_effect_combo'):
+                    effect = mp3_cover_overlay_settings.get('effect', 'fadeinout')
+                    for i in range(self.mp3_cover_effect_combo.count()):
+                        if self.mp3_cover_effect_combo.itemData(i) == effect:
+                            self.mp3_cover_effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'mp3_cover_frame_color_btn'):
+                    frame_color = mp3_cover_overlay_settings.get('frame_color', (0, 0, 0))
+                    self.mp3_cover_frame_color_btn.setStyleSheet(f"background-color: rgb({frame_color[0]}, {frame_color[1]}, {frame_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                if hasattr(self, 'mp3_cover_frame_size_combo'):
+                    frame_size = mp3_cover_overlay_settings.get('frame_size', 10)
+                    for i in range(self.mp3_cover_frame_size_combo.count()):
+                        if self.mp3_cover_frame_size_combo.itemData(i) == frame_size:
+                            self.mp3_cover_frame_size_combo.setCurrentIndex(i)
+                            break
+            if 'song_titles' in layer_settings:
+                song_titles_settings = layer_settings['song_titles']
+                if hasattr(self, 'song_title_checkbox'):
+                    self.song_title_checkbox.setChecked(song_titles_settings.get('enabled', False))
+                if hasattr(self, 'song_titles_label_edit'):
+                    self.song_titles_label_edit.setText(song_titles_settings.get('label', ' Song Titles :'))
+                if hasattr(self, 'song_title_font'):
+                    self.song_title_font = song_titles_settings.get('font', 'default')
+                if hasattr(self, 'song_title_font_size'):
+                    self.song_title_font_size = song_titles_settings.get('font_size', 220)
+                if hasattr(self, 'song_title_scale_percent'):
+                    self.song_title_scale_percent = song_titles_settings.get('scale_percent', 50)
+                if hasattr(self, 'song_title_color'):
+                    self.song_title_color = song_titles_settings.get('color', (255, 255, 255))
+                if hasattr(self, 'song_title_bg'):
+                    self.song_title_bg = song_titles_settings.get('bg', 'transparent')
+                if hasattr(self, 'song_title_bg_color'):
+                    self.song_title_bg_color = song_titles_settings.get('bg_color', (0, 0, 0))
+                if hasattr(self, 'song_title_opacity'):
+                    self.song_title_opacity = song_titles_settings.get('opacity', 0.20)
+                if hasattr(self, 'song_title_x_percent'):
+                    self.song_title_x_percent = song_titles_settings.get('x_percent', 50)
+                if hasattr(self, 'song_title_y_percent'):
+                    self.song_title_y_percent = song_titles_settings.get('y_percent', 20)
+                if hasattr(self, 'song_title_text_effect'):
+                    self.song_title_text_effect = song_titles_settings.get('text_effect', 'none')
+                if hasattr(self, 'song_title_text_effect_color'):
+                    self.song_title_text_effect_color = song_titles_settings.get('text_effect_color', (0, 0, 0))
+                if hasattr(self, 'song_title_text_effect_intensity'):
+                    self.song_title_text_effect_intensity = song_titles_settings.get('text_effect_intensity', 20)
+                
+                # Update UI controls
+                if hasattr(self, 'song_title_font_combo'):
+                    font = song_titles_settings.get('font', 'default')
+                    for i in range(self.song_title_font_combo.count()):
+                        if self.song_title_font_combo.itemData(i) == font:
+                            self.song_title_font_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'song_title_scale_combo'):
+                    scale = song_titles_settings.get('scale_percent', 50)
+                    for i in range(self.song_title_scale_combo.count()):
+                        if self.song_title_scale_combo.itemData(i) == scale:
+                            self.song_title_scale_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'song_title_bg_combo'):
+                    bg = song_titles_settings.get('bg', 'transparent')
+                    for i in range(self.song_title_bg_combo.count()):
+                        if self.song_title_bg_combo.itemData(i) == bg:
+                            self.song_title_bg_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'song_title_opacity_combo'):
+                    opacity = song_titles_settings.get('opacity', 0.20)
+                    for i in range(self.song_title_opacity_combo.count()):
+                        if self.song_title_opacity_combo.itemData(i) == opacity:
+                            self.song_title_opacity_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'song_title_x_combo'):
+                    x = song_titles_settings.get('x_percent', 50)
+                    for i in range(self.song_title_x_combo.count()):
+                        if self.song_title_x_combo.itemData(i) == x:
+                            self.song_title_x_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'song_title_y_combo'):
+                    y = song_titles_settings.get('y_percent', 20)
+                    for i in range(self.song_title_y_combo.count()):
+                        if self.song_title_y_combo.itemData(i) == y:
+                            self.song_title_y_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'song_title_text_effect_combo'):
+                    effect = song_titles_settings.get('text_effect', 'none')
+                    for i in range(self.song_title_text_effect_combo.count()):
+                        if self.song_title_text_effect_combo.itemData(i) == effect:
+                            self.song_title_text_effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'song_title_text_effect_intensity_combo'):
+                    intensity = song_titles_settings.get('text_effect_intensity', 20)
+                    for i in range(self.song_title_text_effect_intensity_combo.count()):
+                        if self.song_title_text_effect_intensity_combo.itemData(i) == intensity:
+                            self.song_title_text_effect_intensity_combo.setCurrentIndex(i)
+                            break
+                
+                # Update color buttons
+                if hasattr(self, 'song_title_color_btn'):
+                    color = song_titles_settings.get('color', (255, 255, 255))
+                    self.song_title_color_btn.setStyleSheet(f"background-color: rgb{color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                if hasattr(self, 'song_title_bg_color_btn'):
+                    bg_color = song_titles_settings.get('bg_color', (0, 0, 0))
+                    self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{bg_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                if hasattr(self, 'song_title_text_effect_color_btn'):
+                    effect_color = song_titles_settings.get('text_effect_color', (0, 0, 0))
+                    self.song_title_text_effect_color_btn.setStyleSheet(f"background-color: rgb{effect_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
             if 'soundwave' in layer_settings:
                 soundwave_settings = layer_settings['soundwave']
                 if hasattr(self, 'soundwave_checkbox'):
