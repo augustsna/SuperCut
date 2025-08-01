@@ -46,7 +46,7 @@ class TemplateManagerDialog(QDialog):
         """Initialize the user interface"""
         self.setWindowTitle("Template Manager")
         self.setModal(True)
-        self.setFixedSize(850, 564)
+        self.setFixedSize(590, 558)
         
         # Main layout
         layout = QVBoxLayout(self)
@@ -56,11 +56,16 @@ class TemplateManagerDialog(QDialog):
         title_label = QLabel("Template Manager")
         title_label.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 10px;")
         
-        self.new_template_btn = QPushButton("New Template")
+        self.new_template_btn = QPushButton("New")
+        self.new_template_btn.setFixedWidth(70)
+        self.new_template_btn.setFixedHeight(30)
         self.import_btn = QPushButton("Import")
+        self.import_btn.setFixedWidth(75)
+        self.import_btn.setFixedHeight(30)
         self.export_btn = QPushButton("Export")
+        self.export_btn.setFixedWidth(70)
+        self.export_btn.setFixedHeight(30)
 
-        
         # Style buttons
         button_style = """
             QPushButton {
@@ -76,9 +81,48 @@ class TemplateManagerDialog(QDialog):
             }
             
         """
-        self.new_template_btn.setStyleSheet(button_style)
-        self.import_btn.setStyleSheet(button_style)
-        self.export_btn.setStyleSheet(button_style)
+        self.new_template_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ffffff;
+                color: #333333;
+                border: 1px solid #cccccc;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                
+                border: 2px solid #47a4ff;
+            }
+        """)
+        self.import_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ffffff;
+                color: #333333;
+                border: 1px solid #cccccc;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                
+                border: 2px solid #47a4ff;
+            }
+        """)
+        self.export_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ffffff;
+                color: #333333;
+                border: 1px solid #cccccc;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                
+                border: 2px solid #47a4ff;
+            }
+        """)
 
         
         header_layout.addWidget(title_label)
@@ -90,35 +134,37 @@ class TemplateManagerDialog(QDialog):
         
         layout.addLayout(header_layout)
         
-        # Main content area with three fixed panels
+        # Main content area with two panels
         main_widget = QWidget()
         main_layout = QHBoxLayout(main_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
-        # Left panel: Template list and filters (270px fixed)
+        # Left panel: Template list and filters
         left_panel = self.create_left_panel()
         left_panel.setFixedWidth(260)
         main_layout.addWidget(left_panel)
         
-        # Center panel: Template preview and details (270px fixed)
+        # Center panel: Template preview and details
         center_panel = self.create_center_panel()
-        center_panel.setFixedWidth(300)
         main_layout.addWidget(center_panel)
-        
-        # Right panel: Additional details (270px fixed)
-        right_panel = self.create_right_panel()
-        right_panel.setFixedWidth(260)
-        main_layout.addWidget(right_panel)
         
         layout.addWidget(main_widget)
         
         # Bottom buttons
         button_layout = QHBoxLayout()
         self.apply_btn = QPushButton("Apply")
-        self.edit_btn = QPushButton("Edit Template")
-        self.delete_btn = QPushButton("Delete Template")
+        self.apply_btn.setFixedWidth(70)
+        self.apply_btn.setFixedHeight(30)
+        self.edit_btn = QPushButton("Edit")
+        self.edit_btn.setFixedWidth(70)
+        self.edit_btn.setFixedHeight(30)
+        self.delete_btn = QPushButton("Delete")
+        self.delete_btn.setFixedWidth(80)
+        self.delete_btn.setFixedHeight(30)
         self.close_btn = QPushButton("Close")
+        self.close_btn.setFixedWidth(70)
+        self.close_btn.setFixedHeight(30)
         
         # Style bottom buttons
         self.apply_btn.setStyleSheet("""
@@ -135,7 +181,20 @@ class TemplateManagerDialog(QDialog):
             }
 
         """)
-        self.edit_btn.setStyleSheet(button_style)
+        self.edit_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ffffff;
+                color: #333333;
+                border: 1px solid #cccccc;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                
+                border: 2px solid #47a4ff;
+            }
+        """)
         self.close_btn.setStyleSheet(button_style)
         self.delete_btn.setStyleSheet("""
             QPushButton {
@@ -538,57 +597,7 @@ class TemplateManagerDialog(QDialog):
         
         return center_widget
         
-    def create_right_panel(self):
-        """Create the right panel with layer preview and visual icons"""
-        right_widget = QWidget()
-        right_layout = QVBoxLayout(right_widget)
-        
-        # Layer Preview with Visual Icons
-        layer_preview_group = QGroupBox("Layer Preview")
-        layer_preview_group.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 2px solid #cccccc;
-                border-radius: 6px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
-            }
-        """)
-        layer_preview_layout = QVBoxLayout(layer_preview_group)
-        
-        # Create layer preview widget
-        self.layer_preview_widget = QWidget()
-        self.layer_preview_widget.setMinimumHeight(300)
-        self.layer_preview_widget.setMaximumHeight(400)
-        
-        # Layer preview layout
-        self.layer_preview_layout = QVBoxLayout(self.layer_preview_widget)
-        self.layer_preview_layout.setSpacing(2)
-        self.layer_preview_layout.setContentsMargins(10, 10, 10, 10)
-        
-        # Add placeholder text
-        self.layer_preview_placeholder = QLabel("Select a template to view layer preview")
-        self.layer_preview_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.layer_preview_placeholder.setStyleSheet("""
-            QLabel {
-                color: #999999;
-                font-style: italic;
-                padding: 20px;
-            }
-        """)
-        self.layer_preview_layout.addWidget(self.layer_preview_placeholder)
-        
-        layer_preview_layout.addWidget(self.layer_preview_widget)
-        right_layout.addWidget(layer_preview_group)
-        
-        right_layout.addStretch()
-        
-        return right_widget
+
         
     def add_keyboard_shortcuts(self):
         """Add keyboard shortcuts to the dialog"""
@@ -691,95 +700,9 @@ class TemplateManagerDialog(QDialog):
         
 
         
-        # Update layer preview with visual icons
-        self.update_layer_preview(template_data)
+
     
-    def update_layer_preview(self, template_data):
-        """Update the layer preview with compact design"""
-        # Clear existing layer preview (but preserve placeholder)
-        for i in reversed(range(self.layer_preview_layout.count())):
-            child = self.layer_preview_layout.itemAt(i).widget()
-            if child and child != self.layer_preview_placeholder:
-                child.deleteLater()
-        
-        # Hide placeholder
-        if hasattr(self, 'layer_preview_placeholder') and self.layer_preview_placeholder:
-            self.layer_preview_placeholder.hide()
-        
-        # Get layer data
-        layer_order = template_data.get('layer_order', [])
-        layer_settings = template_data.get('layer_settings', {})
-        
-        # Create layer preview items
-        for i, layer_id in enumerate(layer_order):
-            # Get layer state
-            layer_config = layer_settings.get(layer_id, {})
-            enabled = layer_config.get('enabled', True)
-            
-            # Create layer item widget
-            layer_item = QWidget()
-            layer_item.setFixedHeight(28)
-            layer_item.setStyleSheet(f"""
-                QWidget {{
-                    background-color: {'#f8fff8' if enabled else '#fff8f8'};
-                    border: 1px solid {'#4CAF50' if enabled else '#f44336'};
-                    border-radius: 3px;
-                    margin: 1px;
-                }}
-            """)
-            
-            # Layer item layout
-            item_layout = QHBoxLayout(layer_item)
-            item_layout.setContentsMargins(6, 2, 6, 2)
-            item_layout.setSpacing(6)
-            
-            # Layer number (smaller)
-            number_label = QLabel(f"{len(layer_order) - i}")
-            number_label.setFixedWidth(18)
-            number_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            number_label.setStyleSheet("""
-                QLabel {
-                    background-color: #555555;
-                    color: white;
-                    border-radius: 9px;
-                    font-weight: bold;
-                    font-size: 9px;
-                }
-            """)
-            
-            # Layer name (compact)
-            name_label = QLabel(layer_id.replace('_', ' ').title())
-            name_label.setStyleSheet(f"""
-                QLabel {{
-                    color: {'#2E7D32' if enabled else '#C62828'};
-                    font-weight: bold;
-                    font-size: 10px;
-                }}
-            """)
-            
-            # Status indicator (smaller)
-            status_label = QLabel("●" if enabled else "○")
-            status_label.setFixedWidth(12)
-            status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            status_label.setStyleSheet(f"""
-                QLabel {{
-                    color: {'#4CAF50' if enabled else '#f44336'};
-                    font-weight: bold;
-                    font-size: 10px;
-                }}
-            """)
-            
-            # Add widgets to layout
-            item_layout.addWidget(number_label)
-            item_layout.addWidget(name_label)
-            item_layout.addStretch()
-            item_layout.addWidget(status_label)
-            
-            # Add layer item to preview
-            self.layer_preview_layout.addWidget(layer_item)
-        
-        # Add stretch to push items to top
-        self.layer_preview_layout.addStretch()
+
             
     def update_button_states(self):
         """Update button enabled states based on selection"""
