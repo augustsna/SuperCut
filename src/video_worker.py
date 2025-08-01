@@ -4,8 +4,8 @@ import random
 import shutil
 from PyQt6.QtCore import QObject, pyqtSignal
 from typing import List, Optional
-from src.ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg, validate_ffmpeg_installation
-from src.utils import set_low_priority, create_temp_file, register_for_cleanup, unregister_from_cleanup, force_garbage_collection
+from src.ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg
+from src.utils import set_low_priority, create_temp_file
 import time
 from src.logger import logger
 
@@ -322,77 +322,10 @@ class VideoWorker(QObject):
         """Stop the video processing"""
         self._stop = True
 
-    def validate_environment(self) -> tuple[bool, str]:
-        """Validate the environment before starting video creation
-        
-        Returns:
-            tuple[bool, str]: (is_valid, error_message)
-        """
-        try:
-            # Validate FFmpeg installation
-            ffmpeg_valid, ffmpeg_error = validate_ffmpeg_installation()
-            if not ffmpeg_valid:
-                return False, f"FFmpeg validation failed: {ffmpeg_error}"
-            
-            # Validate media sources directory
-            if not os.path.exists(self.media_sources):
-                return False, f"Media sources directory does not exist: {self.media_sources}"
-            
-            # Validate output directory
-            if not os.path.exists(self.folder):
-                return False, f"Output directory does not exist: {self.folder}"
-            
-            # Check if output directory is writable
-            try:
-                test_file = os.path.join(self.folder, ".test_write")
-                with open(test_file, 'w') as f:
-                    f.write("test")
-                os.remove(test_file)
-            except (OSError, PermissionError):
-                return False, f"Output directory is not writable: {self.folder}"
-            
-            # Validate overlay files if specified
-            overlay_files = [
-                (self.overlay1_path, "Overlay 1"),
-                (self.overlay2_path, "Overlay 2"),
-                (self.overlay3_path, "Overlay 3"),
-                (self.overlay4_path, "Overlay 4"),
-                (self.overlay5_path, "Overlay 5"),
-                (self.overlay6_path, "Overlay 6"),
-                (self.overlay7_path, "Overlay 7"),
-                (self.overlay8_path, "Overlay 8"),
-                (self.overlay9_path, "Overlay 9"),
-                (self.overlay10_path, "Overlay 10"),
-                (self.intro_path, "Intro"),
-                (self.frame_box_path, "Frame Box"),
-                (self.frame_mp3cover_path, "Frame MP3 Cover"),
-                (self.frame_box_custom_image_path, "Frame Box Custom Image"),
-                (self.mp3_cover_custom_image_path, "MP3 Cover Custom Image"),
-            ]
-            
-            for file_path, name in overlay_files:
-                if file_path and not os.path.exists(file_path):
-                    return False, f"{name} file does not exist: {file_path}"
-            
-            return True, "Environment validation passed"
-            
-        except Exception as e:
-            return False, f"Environment validation error: {e}"
-
     def run(self):
         """Main processing method"""
         # set_low_priority()  # Removed to keep normal priority
-        
-        # Register worker for memory management
-        worker_name = register_for_cleanup(self, f"video_worker_{id(self)}")
-        
         try:
-            # Validate environment before starting
-            is_valid, error_msg = self.validate_environment()
-            if not is_valid:
-                self.error.emit(f"Environment validation failed: {error_msg}")
-                return
-            
             # Get media files
             from src.utils import get_files_by_type
             mp3_files = get_files_by_type(self.media_sources, "audio")
@@ -444,14 +377,6 @@ class VideoWorker(QObject):
             error_msg = f"Error during video creation: {str(e)}"
             print(f"❌ {error_msg}")
             self.error.emit(error_msg)
-        
-        finally:
-            # Perform memory cleanup
-            try:
-                force_garbage_collection()
-                unregister_from_cleanup(worker_name)
-            except Exception as e:
-                logger.warning(f"Error during worker cleanup: {e}")
 
     def _print_export_summary(self, total_batches: int):
         """Print export configuration summary"""
@@ -468,13 +393,8 @@ class VideoWorker(QObject):
                       used_images: set, current_number: int, batch_count: int, total_batches: int) -> tuple[bool, list]:
         """Process a single batch of video creation"""
         batch_start_time = time.time()
-        
-        # Register batch for memory management
-        batch_name = register_for_cleanup(None, f"batch_{current_number}_{id(self)}")
-        
-        try:
-            # Select random MP3s
-            selected_mp3s = random.sample(mp3_files, self.min_mp3_count)
+        # Select random MP3s
+        selected_mp3s = random.sample(mp3_files, self.min_mp3_count)
 
         # --- Song Title Overlays: Extract title and create PNG for each selected MP3 ---
         song_title_pngs = []
@@ -1337,92 +1257,92 @@ class VideoWorker(QObject):
             if 'soundwave_overlay_path' in locals() and soundwave_overlay_path and os.path.exists(soundwave_overlay_path):
                 try:
                     os.remove(soundwave_overlay_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove soundwave overlay file: {e}")
+                except:
+                    pass
             # Clean up processed background image if it was created
             if 'processed_image_path' in locals() and processed_image_path != selected_image and os.path.exists(processed_image_path):
                 try:
                     os.remove(processed_image_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed background image: {e}")
+                except:
+                    pass
             # Clean up processed overlay1 image if it was created
             if 'processed_overlay1_path' in locals() and processed_overlay1_path != self.overlay1_path and os.path.exists(processed_overlay1_path):
                 try:
                     os.remove(processed_overlay1_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed overlay1 image: {e}")
+                except:
+                    pass
             # Clean up processed overlay2 image if it was created
             if 'processed_overlay2_path' in locals() and processed_overlay2_path != self.overlay2_path and os.path.exists(processed_overlay2_path):
                 try:
                     os.remove(processed_overlay2_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed overlay2 image: {e}")
+                except:
+                    pass
             # Clean up processed overlay3 image if it was created
             if 'processed_overlay3_path' in locals() and processed_overlay3_path != self.overlay3_path and os.path.exists(processed_overlay3_path):
                 try:
                     os.remove(processed_overlay3_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed overlay3 image: {e}")
+                except:
+                    pass
             # Clean up processed intro image if it was created
             if 'processed_intro_path' in locals() and processed_intro_path != self.intro_path and os.path.exists(processed_intro_path):
                 try:
                     os.remove(processed_intro_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed intro image: {e}")
+                except:
+                    pass
             # Clean up processed overlay4 image if it was created
             if 'processed_overlay4_path' in locals() and processed_overlay4_path != self.overlay4_path and os.path.exists(processed_overlay4_path):
                 try:
                     os.remove(processed_overlay4_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed overlay4 image: {e}")
+                except:
+                    pass
             # Clean up processed overlay5 image if it was created
             if 'processed_overlay5_path' in locals() and processed_overlay5_path != self.overlay5_path and os.path.exists(processed_overlay5_path):
                 try:
                     os.remove(processed_overlay5_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed overlay5 image: {e}")
+                except:
+                    pass
             # Clean up processed overlay6 image if it was created
             if 'processed_overlay6_path' in locals() and processed_overlay6_path != self.overlay6_path and os.path.exists(processed_overlay6_path):
                 try:
                     os.remove(processed_overlay6_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed overlay6 image: {e}")
+                except:
+                    pass
             # Clean up processed overlay7 image if it was created
             if 'processed_overlay7_path' in locals() and processed_overlay7_path != self.overlay7_path and os.path.exists(processed_overlay7_path):
                 try:
                     os.remove(processed_overlay7_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed overlay7 image: {e}")
+                except:
+                    pass
             # Clean up processed overlay8 image if it was created
             if 'processed_overlay8_path' in locals() and processed_overlay8_path != self.overlay8_path and os.path.exists(processed_overlay8_path):
                 try:
                     os.remove(processed_overlay8_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed overlay8 image: {e}")
+                except:
+                    pass
             # Clean up processed overlay9 image if it was created
             if 'processed_overlay9_path' in locals() and processed_overlay9_path != self.overlay9_path and os.path.exists(processed_overlay9_path):
                 try:
                     os.remove(processed_overlay9_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed overlay9 image: {e}")
+                except:
+                    pass
             # Clean up processed overlay10 image if it was created
             if 'processed_overlay10_path' in locals() and processed_overlay10_path != self.overlay10_path and os.path.exists(processed_overlay10_path):
                 try:
                     os.remove(processed_overlay10_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed overlay10 image: {e}")
+                except:
+                    pass
             # Clean up processed framebox image if it was created
             if 'processed_frame_box_path' in locals() and processed_frame_box_path != self.frame_box_path and os.path.exists(processed_frame_box_path):
                 try:
                     os.remove(processed_frame_box_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed framebox image: {e}")
+                except:
+                    pass
             # Clean up processed frame_mp3cover image if it was created
             if 'processed_frame_mp3cover_path' in locals() and processed_frame_mp3cover_path != self.frame_mp3cover_path and os.path.exists(processed_frame_mp3cover_path):
                 try:
                     os.remove(processed_frame_mp3cover_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove processed frame_mp3cover image: {e}")
+                except:
+                    pass
             
         # Create log and move files
         failed_moves = self._create_log_and_move_files(
@@ -1441,15 +1361,6 @@ class VideoWorker(QObject):
         print(f"✔️ Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str}) \u2713") 
         
         return True, failed_moves
-    finally:
-        # Clean up batch memory
-        try:
-            unregister_from_cleanup(batch_name)
-            # Force garbage collection after each batch
-            if batch_count % 5 == 0:  # Every 5 batches
-                force_garbage_collection()
-        except Exception as e:
-            logger.warning(f"Error during batch cleanup: {e}")
 
     def _cleanup_temp_audio(self, audio_path: str):
         """Clean up temporary audio file"""

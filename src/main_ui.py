@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QFileDialog, QMessageBox, QDialog, QComboBox, QDialogButtonBox, QFormLayout,
     QColorDialog, QScrollArea, QInputDialog, QTextEdit
 )
-from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize, QTimer, QObject, QEvent, QMetaObject
+from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize, QTimer, QObject, QEvent
 from PyQt6.QtGui import QIntValidator, QIcon, QPixmap, QMovie, QImage, QShortcut, QKeySequence, QColor
 from src.logger import logger
 
@@ -38,9 +38,7 @@ from src.config import (
 )
 from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
-    validate_inputs, validate_media_files, clean_file_path, validate_file_path,
-    get_memory_usage, force_garbage_collection, cleanup_large_objects,
-    get_memory_registry_stats, register_for_cleanup, unregister_from_cleanup
+    validate_inputs, validate_media_files, clean_file_path
 )
 from src.ui_components import FolderDropLineEdit, PleaseWaitDialog, StoppedDialog, SuccessDialog, DryRunSuccessDialog, ScrollableErrorDialog, ImageDropLineEdit, NoWheelComboBox, KhmerSupportLineEdit, KhmerSupportPlainTextEdit
 from src.video_worker import VideoWorker
@@ -52,7 +50,6 @@ from src.template_utils import apply_template_to_settings
 
 import time
 import threading
-from PyQt6.QtCore import QMutex, QMutexLocker
 
 # --- SCROLLBAR STYLE FOR CONSISTENCY ---
 SCROLLBAR_STYLE = """
@@ -1142,29 +1139,12 @@ class SuperCutUI(QWidget):
         self.layer_order = load_layer_order()  # Load saved layer order or None for default
         self.layer_manager_dialog = None  # Track layer manager dialog for toggle functionality
         self.template_manager_dialog = None  # Track template manager dialog for toggle functionality
-        self._ui_mutex = QMutex()  # Mutex for thread-safe UI updates
-        
-        # Initialize memory management
-        self._memory_timer = QTimer()
-        self._memory_timer.timeout.connect(self._monitor_memory_usage)
-        self._memory_timer.start(30000)  # Check memory every 30 seconds
-        
-        # Register main UI for cleanup
-        register_for_cleanup(self, "main_ui")
         
         self.init_ui()
         self.restore_window_position()
         self.setup_shortcuts()
         self.update_output_name()
         self.apply_settings()
-
-    def __del__(self):
-        """Destructor to ensure proper cleanup of threads and resources"""
-        try:
-            self.cleanup_all_resources()
-        except Exception as e:
-            # Use print instead of logger in destructor as logger might not be available
-            print(f"Error during cleanup in destructor: {e}")
 
     def init_ui(self):
         """Initialize the user interface"""
@@ -8569,36 +8549,72 @@ class SuperCutUI(QWidget):
     def create_video(self):
         """Start video creation process"""
         # Step 1: Gather and validate inputs
-        
-        # Validate intro file if enabled
+        # Intro validation
         if self.intro_checkbox.isChecked():
             intro_path = self.intro_edit.text().strip()
-            is_valid, error_msg = validate_file_path(intro_path, "overlay")
-            if not is_valid:
-                QMessageBox.warning(self, "⚠️ Intro File Required", f"Please provide a valid overlay file for Intro: {error_msg}", QMessageBox.StandardButton.Ok)
+            if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png','.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Intro.", QMessageBox.StandardButton.Ok)
                 return
-        
-        # Validate overlay files if enabled
-        overlay_validations = [
-            (self.overlay_checkbox, self.overlay1_edit, "Overlay 1"),
-            (getattr(self, 'overlay2_checkbox', None), getattr(self, 'overlay2_edit', None), "Overlay 2"),
-            (getattr(self, 'overlay3_checkbox', None), getattr(self, 'overlay3_edit', None), "Overlay 3"),
-            (getattr(self, 'overlay4_checkbox', None), getattr(self, 'overlay4_edit', None), "Overlay 4"),
-            (getattr(self, 'overlay5_checkbox', None), getattr(self, 'overlay5_edit', None), "Overlay 5"),
-            (getattr(self, 'overlay6_checkbox', None), getattr(self, 'overlay6_edit', None), "Overlay 6"),
-            (getattr(self, 'overlay7_checkbox', None), getattr(self, 'overlay7_edit', None), "Overlay 7"),
-            (getattr(self, 'overlay8_checkbox', None), getattr(self, 'overlay8_edit', None), "Overlay 8"),
-            (getattr(self, 'overlay9_checkbox', None), getattr(self, 'overlay9_edit', None), "Overlay 9"),
-            (getattr(self, 'overlay10_checkbox', None), getattr(self, 'overlay10_edit', None), "Overlay 10"),
-        ]
-        
-        for checkbox, edit_widget, overlay_name in overlay_validations:
-            if checkbox and checkbox.isChecked() and edit_widget:
-                overlay_path = edit_widget.text().strip()
-                is_valid, error_msg = validate_file_path(overlay_path, "overlay")
-                if not is_valid:
-                    QMessageBox.warning(self, f"⚠️ {overlay_name} Required", f"Please provide a valid overlay file for {overlay_name}: {error_msg}", QMessageBox.StandardButton.Ok)
-                    return
+        # Overlay 1 validation
+        if self.overlay_checkbox.isChecked():
+            overlay_path = self.overlay1_edit.text().strip()
+            if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay File Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 1.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 2 validation
+        if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
+            overlay2_path = self.overlay2_edit.text().strip()
+            if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 2.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 3 validation
+        if hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked():
+            overlay3_path = self.overlay3_edit.text().strip()
+            if not overlay3_path or not os.path.isfile(overlay3_path) or os.path.splitext(overlay3_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 3 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 3.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 4 validation
+        if hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked():
+            overlay4_path = self.overlay4_edit.text().strip()
+            if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 4.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 5 validation
+        if hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked():
+            overlay5_path = self.overlay5_edit.text().strip()
+            if not overlay5_path or not os.path.isfile(overlay5_path) or os.path.splitext(overlay5_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv ']:
+                QMessageBox.warning(self, "⚠️ Overlay 5 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 5.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 6 validation
+        if hasattr(self, 'overlay6_checkbox') and self.overlay6_checkbox.isChecked():
+            overlay6_path = self.overlay6_edit.text().strip()
+            if not overlay6_path or not os.path.isfile(overlay6_path) or os.path.splitext(overlay6_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 6 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 6.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 7 validation
+        if hasattr(self, 'overlay7_checkbox') and self.overlay7_checkbox.isChecked():
+            overlay7_path = self.overlay7_edit.text().strip()
+            if not overlay7_path or not os.path.isfile(overlay7_path) or os.path.splitext(overlay7_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 7 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 7.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 8 validation
+        if hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked():
+            overlay8_path = self.overlay8_edit.text().strip()
+            if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 8.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 9 validation
+        if hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked():
+            overlay9_path = self.overlay9_edit.text().strip()
+            if not overlay9_path or not os.path.isfile(overlay9_path) or os.path.splitext(overlay9_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 9 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 9.", QMessageBox.StandardButton.Ok)
+                return
+        # Overlay 10 validation
+        if hasattr(self, 'overlay10_checkbox') and self.overlay10_checkbox.isChecked():
+            overlay10_path = self.overlay10_edit.text().strip()
+            if not overlay10_path or not os.path.isfile(overlay10_path) or os.path.splitext(overlay10_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
+                QMessageBox.warning(self, "⚠️ Overlay 10 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 10.", QMessageBox.StandardButton.Ok)
+                return
         
         # --- Frame Box Caption validation ---
         if hasattr(self, 'frame_box_checkbox') and self.frame_box_checkbox.isChecked():
@@ -8607,9 +8623,8 @@ class SuperCutUI(QWidget):
                 if hasattr(self, 'frame_box_caption_png_checkbox') and self.frame_box_caption_png_checkbox.isChecked():
                     # PNG mode validation
                     if hasattr(self, 'frame_box_caption_png_path') and self.frame_box_caption_png_path:
-                        is_valid, error_msg = validate_file_path(self.frame_box_caption_png_path, "image")
-                        if not is_valid or not self.frame_box_caption_png_path.lower().endswith('.png'):
-                            QMessageBox.warning(self, "⚠️ Frame Box Caption PNG Required", f"Please provide a valid PNG file for Frame Box Caption: {error_msg}", QMessageBox.StandardButton.Ok)
+                        if not os.path.isfile(self.frame_box_caption_png_path) or os.path.splitext(self.frame_box_caption_png_path)[1].lower() != '.png':
+                            QMessageBox.warning(self, "⚠️ Frame Box Caption PNG Required", "Please provide a valid PNG file (*.png) for Frame Box Caption.", QMessageBox.StandardButton.Ok)
                             return
                     else:
                         QMessageBox.warning(self, "⚠️ Frame Box Caption PNG Required", "Please select a PNG file for Frame Box Caption.", QMessageBox.StandardButton.Ok)
@@ -8621,10 +8636,6 @@ class SuperCutUI(QWidget):
                         if not caption_text:
                             QMessageBox.warning(self, "⚠️ Frame Box Caption Text Required", "Please enter text for Frame Box Caption.", QMessageBox.StandardButton.Ok)
                             return
-                        # Validate text length
-                        if len(caption_text) > 500:
-                            QMessageBox.warning(self, "⚠️ Frame Box Caption Text Too Long", "Caption text must be 500 characters or less.", QMessageBox.StandardButton.Ok)
-                            return
                     else:
                         QMessageBox.warning(self, "⚠️ Frame Box Caption Text Required", "Please enter text for Frame Box Caption.", QMessageBox.StandardButton.Ok)
                         return
@@ -8634,23 +8645,6 @@ class SuperCutUI(QWidget):
         if use_name_list:
             if not self.name_list:
                 QMessageBox.warning(self, "⚠️ Name List Required", "Please enter a name list (one name per line) before processing.", QMessageBox.StandardButton.Ok)
-                return
-            
-            # Validate each name in the list
-            invalid_names = []
-            for i, name in enumerate(self.name_list, 1):
-                if not name or not name.strip():
-                    invalid_names.append(f"Line {i}: Empty name")
-                elif len(name.strip()) > 100:
-                    invalid_names.append(f"Line {i}: Name too long (max 100 characters)")
-                elif any(char in name for char in ['<', '>', ':', '"', '/', '\\', '|', '?', '*']):
-                    invalid_names.append(f"Line {i}: Name contains invalid characters")
-            
-            if invalid_names:
-                error_msg = "Invalid names found:\n" + "\n".join(invalid_names[:10])  # Show first 10 errors
-                if len(invalid_names) > 10:
-                    error_msg += f"\n... and {len(invalid_names) - 10} more errors"
-                QMessageBox.warning(self, "⚠️ Invalid Names", error_msg, QMessageBox.StandardButton.Ok)
                 return
         inputs = self._gather_and_validate_inputs()
         if not inputs:
@@ -8697,14 +8691,6 @@ class SuperCutUI(QWidget):
                 min_mp3_count = DEFAULT_MIN_MP3_COUNT
         else:
             min_mp3_count = DEFAULT_MIN_MP3_COUNT
-        
-        # Validate numeric inputs
-        numeric_errors = self._validate_numeric_inputs()
-        if numeric_errors:
-            error_msg = "Numeric input validation errors:\n" + "\n".join(numeric_errors)
-            QMessageBox.warning(self, "⚠️ Numeric Input Error", error_msg, QMessageBox.StandardButton.Ok)
-            return None
-        
         if not use_name_list:
             is_valid, error_msg = validate_inputs(media_sources, export_name or "", number)
             if not is_valid:
@@ -8715,164 +8701,15 @@ class SuperCutUI(QWidget):
             QMessageBox.critical(self, "❌ Error", error_msg)
             return None
         return (media_sources, export_name, number, folder, codec, resolution, fps, set(mp3_files), set(image_files), min_mp3_count)
-    
-    def _validate_numeric_inputs(self):
-        """Validate all numeric inputs in the UI. Return list of error messages."""
-        errors = []
-        
-        # Import the validation function
-        from src.utils import validate_numeric_input
-        
-        # Validate MP3 count if enabled
-        if self.mp3_count_checkbox.isChecked():
-            count_text = self.mp3_count_edit.text().strip()
-            is_valid, error_msg, _ = validate_numeric_input(count_text, min_val=1, max_val=1000)
-            if not is_valid:
-                errors.append(f"MP3 count: {error_msg}")
-        
-        # Validate intro duration if enabled
-        if hasattr(self, 'intro_duration_checkbox') and self.intro_duration_checkbox.isChecked():
-            if hasattr(self, 'intro_duration_input'):
-                duration_text = self.intro_duration_input.text().strip()
-                is_valid, error_msg, _ = validate_numeric_input(duration_text, min_val=1, max_val=3600)
-                if not is_valid:
-                    errors.append(f"Intro duration: {error_msg}")
-        
-        # Validate intro start at if enabled
-        if hasattr(self, 'intro_start_at_checkbox') and self.intro_start_at_checkbox.isChecked():
-            if hasattr(self, 'intro_start_at_input'):
-                start_text = self.intro_start_at_input.text().strip()
-                is_valid, error_msg, _ = validate_numeric_input(start_text, min_val=0, max_val=3600)
-                if not is_valid:
-                    errors.append(f"Intro start at: {error_msg}")
-        
-        # Validate overlay duration and start inputs
-        overlay_inputs = [
-            ('overlay1_duration_input', 'overlay1_duration_checkbox', 'Overlay 1 duration'),
-            ('overlay2_duration_input', 'overlay2_duration_checkbox', 'Overlay 2 duration'),
-            ('overlay3_duration_input', 'overlay3_duration_checkbox', 'Overlay 3 duration'),
-            ('overlay4_duration_input', 'overlay4_duration_checkbox', 'Overlay 4 duration'),
-            ('overlay5_duration_input', 'overlay5_duration_checkbox', 'Overlay 5 duration'),
-            ('overlay6_duration_input', 'overlay6_duration_checkbox', 'Overlay 6 duration'),
-            ('overlay7_duration_input', 'overlay7_duration_checkbox', 'Overlay 7 duration'),
-            ('overlay8_duration_input', 'overlay8_duration_checkbox', 'Overlay 8 duration'),
-            ('overlay9_duration_input', 'overlay9_duration_checkbox', 'Overlay 9 duration'),
-            ('overlay10_duration_input', 'overlay10_duration_checkbox', 'Overlay 10 duration'),
-        ]
-        
-        for input_attr, checkbox_attr, label in overlay_inputs:
-            if hasattr(self, checkbox_attr) and getattr(self, checkbox_attr).isChecked():
-                if hasattr(self, input_attr):
-                    input_widget = getattr(self, input_attr)
-                    if hasattr(input_widget, 'text'):
-                        text = input_widget.text().strip()
-                        is_valid, error_msg, _ = validate_numeric_input(text, min_val=1, max_val=3600)
-                        if not is_valid:
-                            errors.append(f"{label}: {error_msg}")
-        
-        return errors
-    
-    def _monitor_memory_usage(self):
-        """Monitor memory usage and perform cleanup if needed"""
-        try:
-            memory_stats = get_memory_usage()
-            
-            # Log memory usage periodically
-            if hasattr(self, '_memory_log_counter'):
-                self._memory_log_counter += 1
-            else:
-                self._memory_log_counter = 0
-            
-            if self._memory_log_counter % 4 == 0:  # Log every 2 minutes (4 * 30 seconds)
-                logger.info(f"Memory usage: {memory_stats.get('rss_mb', 0):.1f}MB RSS, "
-                          f"{memory_stats.get('percent', 0):.1f}% of system")
-            
-            # Check if memory usage is high
-            rss_mb = memory_stats.get('rss_mb', 0)
-            if rss_mb > 500:  # 500MB threshold
-                logger.warning(f"High memory usage detected: {rss_mb:.1f}MB")
-                
-                # Perform cleanup
-                cleanup_stats = cleanup_large_objects()
-                if cleanup_stats.get('large_objects_cleaned', 0) > 0:
-                    logger.info(f"Cleaned {cleanup_stats['large_objects_cleaned']} large objects, "
-                              f"freed {cleanup_stats.get('freed_mb', 0):.1f}MB")
-                
-                # Force garbage collection
-                gc_stats = force_garbage_collection()
-                if gc_stats.get('collected_objects', 0) > 0:
-                    logger.info(f"Garbage collection freed {gc_stats.get('freed_mb', 0):.1f}MB")
-            
-            # Check registry stats periodically
-            if self._memory_log_counter % 8 == 0:  # Every 4 minutes
-                registry_stats = get_memory_registry_stats()
-                if registry_stats.get('total_objects', 0) > 100:
-                    logger.info(f"Memory registry: {registry_stats['total_objects']} objects, "
-                              f"{registry_stats.get('total_size_mb', 0):.1f}MB")
-        
-        except Exception as e:
-            logger.warning(f"Error in memory monitoring: {e}")
-    
-    def _cleanup_memory(self):
-        """Manual memory cleanup method"""
-        try:
-            logger.info("Performing manual memory cleanup...")
-            
-            # Clean up large objects
-            cleanup_stats = cleanup_large_objects()
-            logger.info(f"Large object cleanup: {cleanup_stats.get('large_objects_cleaned', 0)} objects cleaned")
-            
-            # Force garbage collection
-            gc_stats = force_garbage_collection()
-            logger.info(f"Garbage collection: {gc_stats.get('collected_objects', 0)} objects collected")
-            
-            # Get final memory stats
-            memory_stats = get_memory_usage()
-            logger.info(f"Final memory usage: {memory_stats.get('rss_mb', 0):.1f}MB")
-            
-            return {
-                'cleanup_stats': cleanup_stats,
-                'gc_stats': gc_stats,
-                'final_memory': memory_stats
-            }
-        
-        except Exception as e:
-            logger.error(f"Error during manual memory cleanup: {e}")
-            return {'error': str(e)}
-    def _safe_ui_update(self, func, *args, **kwargs):
-        """Safely update UI elements from any thread"""
-        try:
-            # Use mutex to prevent race conditions
-            with QMutexLocker(self._ui_mutex):
-                # Ensure we're on the main thread
-                if hasattr(self, 'thread') and self.thread() != QThread.currentThread():
-                    # Use QMetaObject.invokeMethod for thread-safe UI updates
-                    QMetaObject.invokeMethod(self, lambda: func(*args, **kwargs), Qt.ConnectionType.QueuedConnection)
-                else:
-                    # We're already on the main thread, call directly
-                    func(*args, **kwargs)
-        except Exception as e:
-            logger.warning(f"Error in safe UI update: {e}")
-
-    def _prevent_ui_updates(self):
-        """Prevent UI updates during critical operations"""
-        self._ui_mutex.lock()
-
-    def _allow_ui_updates(self):
-        """Allow UI updates after critical operations"""
-        self._ui_mutex.unlock()
-
     def _set_ui_processing_state(self, processing, total_batches=0):
         """Enable/disable UI controls for processing state."""
-        # Use thread-safe UI update
-        def update_ui_state():
-            # --- No window resize - use opacity instead to prevent black flash ---
-            # Progress controls are always present but transparent when not processing
+        # --- No window resize - use opacity instead to prevent black flash ---
+        # Progress controls are always present but transparent when not processing
 
-            # --- Update progress controls with opacity instead of visibility ---
-            self.progress_bar.setMaximum(total_batches)
-            self.progress_bar.setValue(0)        
-            self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
+        # --- Update progress controls with opacity instead of visibility ---
+        self.progress_bar.setMaximum(total_batches)
+        self.progress_bar.setValue(0)        
+        self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
         
         # Use opacity instead of visibility to prevent black flash
         if processing:
@@ -9854,48 +9691,34 @@ class SuperCutUI(QWidget):
         """Handle worker progress updates"""
         if not self.isVisible():
             return
-        
-        # Use thread-safe UI update
-        def update_progress():
-            try:
-                self.progress_bar.setMaximum(total_batches)
-                self.progress_bar.setValue(batch_count)
-                self.progress_bar.setFormat(f"Batch: {batch_count}/{total_batches}")
-                self._completed_batches = batch_count  # Track completed batches
-            except Exception as e:
-                logger.warning(f"Error updating progress: {e}")
-        
-        self._safe_ui_update(update_progress)
+        self.progress_bar.setMaximum(total_batches)
+        self.progress_bar.setValue(batch_count)
+        self.progress_bar.setFormat(f"Batch: {batch_count}/{total_batches}")
+        self._completed_batches = batch_count  # Track completed batches
+        QtWidgets.QApplication.processEvents()
 
     def on_worker_error(self, message):
         """Handle worker errors"""
         if not self.isVisible():
             return
         
-        # Use thread-safe UI update
-        def handle_error():
-            try:
-                # Use centralized UI state management to re-enable all controls
-                self._set_ui_processing_state(False)
-                
-                dlg = ScrollableErrorDialog(self, title="❌ Error", message=message)
-                dlg.exec()
-                self.cleanup_worker_and_thread()
-                self._worker = None
-                self._thread = None
-                
-                if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
-                    self._auto_close_on_stop = False
-                    if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
-                        self._stopping_msgbox.close()
-                        self._stopping_msgbox.hide()
-                        QtWidgets.QApplication.processEvents()
-                        self._stopping_msgbox = None
-                    self.close()
-            except Exception as e:
-                logger.warning(f"Error handling worker error: {e}")
+        # Use centralized UI state management to re-enable all controls
+        self._set_ui_processing_state(False)
         
-        self._safe_ui_update(handle_error)
+        dlg = ScrollableErrorDialog(self, title="❌ Error", message=message)
+        dlg.exec()
+        self.cleanup_worker_and_thread()
+        self._worker = None
+        self._thread = None
+        
+        if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
+            self._auto_close_on_stop = False
+            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                self._stopping_msgbox.close()
+                self._stopping_msgbox.hide()
+                QtWidgets.QApplication.processEvents()
+                self._stopping_msgbox = None
+            self.close()
 
     def stop_video_creation(self):
         """Stop video creation process"""
@@ -9921,99 +9744,89 @@ class SuperCutUI(QWidget):
         """Handle worker completion with leftover files"""
         if not self.isVisible():
             return
-        
-        # Use thread-safe UI update
-        def handle_finished():
+        self._set_ui_processing_state(False)
+        # Calculate leftover images using used_images
+        leftover_images = list(set(original_image_files) - set(used_images))
+        # Get min_mp3_count from input
+        if self.mp3_count_checkbox.isChecked():
             try:
-                self._set_ui_processing_state(False)
-                
-                # Calculate leftover images using used_images
-                leftover_images = list(set(original_image_files) - set(used_images))
-                
-                # Get min_mp3_count from input
-                if self.mp3_count_checkbox.isChecked():
-                    try:
-                        min_mp3_count = int(self.mp3_count_edit.text())
-                        if min_mp3_count < 1:
-                            min_mp3_count = DEFAULT_MIN_MP3_COUNT
-                    except Exception:
-                        min_mp3_count = DEFAULT_MIN_MP3_COUNT
-                else:
+                min_mp3_count = int(self.mp3_count_edit.text())
+                if min_mp3_count < 1:
                     min_mp3_count = DEFAULT_MIN_MP3_COUNT
+            except Exception:
+                min_mp3_count = DEFAULT_MIN_MP3_COUNT
+        else:
+            min_mp3_count = DEFAULT_MIN_MP3_COUNT
+        # Show appropriate dialog
+        if hasattr(self, '_stopped_by_user') and self._stopped_by_user:
+            self._stopped_by_user = False  # reset for next run
+            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                self._stopping_msgbox.close()
+                self._stopping_msgbox.hide()
+                QtWidgets.QApplication.processEvents()
+                self._stopping_msgbox = None
+            batch_count = self._completed_batches
+            total_batches = self.progress_bar.maximum() if hasattr(self, 'progress_bar') else 0
+            if total_batches == 0:
+                total_batches = self._intended_total_batches
+            dlg = StoppedDialog(self, batch_count=batch_count, total_batches=total_batches)
+            dlg.exec()
+        else:
+            # Only show leftover files that still exist
+            import os
+            real_leftover_mp3s = [f for f in leftover_mp3s if os.path.exists(f)] if leftover_mp3s else []
+            real_leftover_images = [f for f in leftover_images if os.path.exists(f)] if leftover_images else []
+            # Determine completed batch count for success dialog
+            batch_count = self._intended_total_batches
+            # Debug prints for leftovers
+            # print("[DEBUG] leftover_mp3s:", leftover_mp3s)
+            # print("[DEBUG] used_images:", used_images)
+            # print("[DEBUG] original_image_files:", original_image_files)
+            # print("[DEBUG] real_leftover_mp3s:", real_leftover_mp3s)
+            # print("[DEBUG] real_leftover_images:", real_leftover_images)
+            if real_leftover_mp3s or real_leftover_images:
+                # Show dialog indicating process is incomplete due to leftovers
+                # Play notification sound
+                try:
+                    QtWidgets.QApplication.beep()
+                except RuntimeError as e:
+                    logger.warning(f"Failed to play notification sound: {e}")
                 
-                # Show appropriate dialog
-                if hasattr(self, '_stopped_by_user') and self._stopped_by_user:
-                    self._stopped_by_user = False  # reset for next run
-                    if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
-                        self._stopping_msgbox.close()
-                        self._stopping_msgbox.hide()
-                        QtWidgets.QApplication.processEvents()
-                        self._stopping_msgbox = None
-                    batch_count = self._completed_batches
-                    total_batches = self.progress_bar.maximum() if hasattr(self, 'progress_bar') else 0
-                    if total_batches == 0:
-                        total_batches = self._intended_total_batches
-                    dlg = StoppedDialog(self, batch_count=batch_count, total_batches=total_batches)
-                    dlg.exec()
-                else:
-                    # Only show leftover files that still exist
-                    import os
-                    real_leftover_mp3s = [f for f in leftover_mp3s if os.path.exists(f)] if leftover_mp3s else []
-                    real_leftover_images = [f for f in leftover_images if os.path.exists(f)] if leftover_images else []
-                    # Determine completed batch count for success dialog
-                    batch_count = self._intended_total_batches
-                    
-                    if real_leftover_mp3s or real_leftover_images:
-                        # Show dialog indicating process is incomplete due to leftovers
-                        # Play notification sound
-                        try:
-                            QtWidgets.QApplication.beep()
-                        except RuntimeError as e:
-                            logger.warning(f"Failed to play notification sound: {e}")
-                        
-                        dlg = SuccessWithLeftoverDialog(
-                            self,
-                            open_folder=self.open_result_folder,
-                            leftover_mp3s=real_leftover_mp3s,
-                            leftover_images=real_leftover_images,
-                            min_mp3_count=min_mp3_count
-                        )
-                        # Auto-close after 2 seconds if pending close is set
-                        if hasattr(self, '_pending_close') and self._pending_close:
-                            timer = QTimer(self)
-                            timer.singleShot(2000, dlg.close)
-                        dlg.exec()               
-                    else:
-                        self.show_success_options(batch_count=batch_count, min_mp3_count=min_mp3_count)
-                
-                # Show warning if any files failed to move (only if they still exist and were used)
-                if failed_moves:
-                    import os
-                    # Only warn for files that are both failed to move and were actually used
-                    used_files = set((used_images or []) + (leftover_mp3s or []))
-                    still_failed = [f for f in failed_moves if os.path.exists(f) and f in used_files]
-                    if still_failed:
-                        QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(still_failed))
-                
-                self.clear_inputs()
-                self.cleanup_worker_and_thread()
-                self._worker = None
-                self._thread = None
-                
-                # --- Handle pending close after worker finishes ---
+                dlg = SuccessWithLeftoverDialog(
+                    self,
+                    open_folder=self.open_result_folder,
+                    leftover_mp3s=real_leftover_mp3s,
+                    leftover_images=real_leftover_images,
+                    min_mp3_count=min_mp3_count
+                )
+                # Auto-close after 2 seconds if pending close is set
                 if hasattr(self, '_pending_close') and self._pending_close:
-                    self._pending_close = False
-                    if hasattr(self, '_waiting_dialog_on_close') and self._waiting_dialog_on_close is not None:
-                        self._waiting_dialog_on_close.close()
-                        self._waiting_dialog_on_close.hide()
-                        self._waiting_dialog_on_close = None
-                    QtWidgets.QApplication.processEvents()
-                    self.close()
-                    
-            except Exception as e:
-                logger.warning(f"Error handling worker finished: {e}")
-        
-        self._safe_ui_update(handle_finished)
+                    timer = QTimer(self)
+                    timer.singleShot(2000, dlg.close)
+                dlg.exec()               
+            else:
+                self.show_success_options(batch_count=batch_count, min_mp3_count=min_mp3_count)
+        # Show warning if any files failed to move (only if they still exist and were used)
+        if failed_moves:
+            import os
+            # Only warn for files that are both failed to move and were actually used
+            used_files = set((used_images or []) + (leftover_mp3s or []))
+            still_failed = [f for f in failed_moves if os.path.exists(f) and f in used_files]
+            if still_failed:
+                QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(still_failed))
+        self.clear_inputs()
+        self.cleanup_worker_and_thread()
+        self._worker = None
+        self._thread = None
+        # --- Handle pending close after worker finishes ---
+        if hasattr(self, '_pending_close') and self._pending_close:
+            self._pending_close = False
+            if hasattr(self, '_waiting_dialog_on_close') and self._waiting_dialog_on_close is not None:
+                self._waiting_dialog_on_close.close()
+                self._waiting_dialog_on_close.hide()
+                self._waiting_dialog_on_close = None
+            QtWidgets.QApplication.processEvents()
+            self.close()
         if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
             self._auto_close_on_stop = False
             if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
@@ -10119,9 +9932,6 @@ class SuperCutUI(QWidget):
             self.quit_dialog.show()
             event.ignore()
             return
-        # Clean up all resources before closing
-        self.cleanup_all_resources()
-        
         # Save window position and close as normal
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
@@ -10146,7 +9956,8 @@ class SuperCutUI(QWidget):
             
             # Stop dry run if running
             if hasattr(self, "_dry_run_thread") and self._dry_run_thread is not None:
-                self.cleanup_dry_run_thread()
+                self._dry_run_thread.quit()
+                self._dry_run_thread = None
                 # Show waiting dialog for dry run
                 self._stopping_msgbox = PleaseWaitDialog(self)
                 self._stopping_msgbox.show()
@@ -12217,10 +12028,8 @@ class SuperCutUI(QWidget):
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""
-        # Clean up worker
         if hasattr(self, '_worker') and self._worker is not None:
             try:
-                # Disconnect all signals from worker
                 self._worker.progress.disconnect(self.on_worker_progress)
             except (TypeError, RuntimeError):
                 pass
@@ -12229,273 +12038,14 @@ class SuperCutUI(QWidget):
             except (TypeError, RuntimeError):
                 pass
             try:
-                # Disconnect all finished signal connections
                 self._worker.finished.disconnect()
             except (TypeError, RuntimeError):
                 pass
-            
-            # Stop the worker if it has a stop method
-            try:
-                if hasattr(self._worker, 'stop') and callable(self._worker.stop):
-                    self._worker.stop()
-            except Exception as e:
-                logger.warning(f"Error stopping worker: {e}")
-            
-            # Delete the worker
-            try:
-                self._worker.deleteLater()
-            except Exception as e:
-                logger.warning(f"Error deleting worker: {e}")
-            
-            self._worker = None
-        
-        # Clean up thread
         if hasattr(self, '_thread') and self._thread is not None:
             try:
-                # Disconnect all signals from thread
                 self._thread.started.disconnect()
             except (TypeError, RuntimeError):
                 pass
-            try:
-                self._thread.finished.disconnect()
-            except (TypeError, RuntimeError):
-                pass
-            
-            # Stop the thread if it's running
-            if self._thread.isRunning():
-                try:
-                    self._thread.quit()
-                    if not self._thread.wait(5000):  # Wait up to 5 seconds
-                        logger.warning("Thread did not stop gracefully, forcing termination")
-                        self._thread.terminate()
-                        self._thread.wait(2000)  # Wait additional 2 seconds
-                except Exception as e:
-                    logger.warning(f"Error stopping thread: {e}")
-            
-            # Delete the thread
-            try:
-                self._thread.deleteLater()
-            except Exception as e:
-                logger.warning(f"Error deleting thread: {e}")
-            
-            self._thread = None
-
-    def disconnect_all_signals(self):
-        """Disconnect all signal connections to prevent memory leaks"""
-        try:
-            # Disconnect text change signals
-            if hasattr(self, 'media_sources_edit') and self.media_sources_edit is not None:
-                try:
-                    self.media_sources_edit.textChanged.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            if hasattr(self, 'folder_edit') and self.folder_edit is not None:
-                try:
-                    self.folder_edit.textChanged.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            # Disconnect combo box signals
-            if hasattr(self, 'template_combo') and self.template_combo is not None:
-                try:
-                    self.template_combo.currentTextChanged.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            # Disconnect checkbox signals
-            if hasattr(self, 'name_list_checkbox') and self.name_list_checkbox is not None:
-                try:
-                    self.name_list_checkbox.stateChanged.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            if hasattr(self, 'mp3_count_checkbox') and self.mp3_count_checkbox is not None:
-                try:
-                    self.mp3_count_checkbox.stateChanged.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            # Disconnect button signals
-            if hasattr(self, 'template_manager_btn') and self.template_manager_btn is not None:
-                try:
-                    self.template_manager_btn.clicked.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            if hasattr(self, 'save_template_btn') and self.save_template_btn is not None:
-                try:
-                    self.save_template_btn.clicked.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            # Disconnect navigation button signals
-            if hasattr(self, 'nav_buttons'):
-                for btn in self.nav_buttons.values():
-                    if btn is not None:
-                        try:
-                            btn.clicked.disconnect()
-                        except (TypeError, RuntimeError):
-                            pass
-            
-            # Disconnect shortcut signals
-            if hasattr(self, 'shortcut') and self.shortcut is not None:
-                try:
-                    self.shortcut.activated.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            # Disconnect progress bar signals
-            if hasattr(self, 'progress_bar') and self.progress_bar is not None:
-                try:
-                    self.progress_bar.valueChanged.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            # Disconnect action button signals
-            if hasattr(self, 'create_btn') and self.create_btn is not None:
-                try:
-                    self.create_btn.clicked.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            if hasattr(self, 'stop_btn') and self.stop_btn is not None:
-                try:
-                    self.stop_btn.clicked.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            if hasattr(self, 'preview_btn') and self.preview_btn is not None:
-                try:
-                    self.preview_btn.clicked.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            # Disconnect settings signals
-            if hasattr(self, 'settings_btn') and self.settings_btn is not None:
-                try:
-                    self.settings_btn.clicked.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            # Disconnect layer manager signals
-            if hasattr(self, 'layer_manager_btn') and self.layer_manager_btn is not None:
-                try:
-                    self.layer_manager_btn.clicked.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-            
-            # Disconnect terminal signals
-            if hasattr(self, 'terminal_btn') and self.terminal_btn is not None:
-                try:
-                    self.terminal_btn.clicked.disconnect()
-                except (TypeError, RuntimeError):
-                    pass
-                    
-        except Exception as e:
-            logger.warning(f"Error disconnecting signals: {e}")
-
-    def cleanup_dry_run_thread(self):
-        """Clean up dry run thread safely."""
-        if hasattr(self, '_dry_run_thread') and self._dry_run_thread is not None:
-            try:
-                # Stop the thread if it's running
-                if self._dry_run_thread.isRunning():
-                    self._dry_run_thread.quit()
-                    if not self._dry_run_thread.wait(3000):  # Wait up to 3 seconds
-                        logger.warning("Dry run thread did not stop gracefully, forcing termination")
-                        self._dry_run_thread.terminate()
-                        self._dry_run_thread.wait(1000)  # Wait additional 1 second
-            except Exception as e:
-                logger.warning(f"Error stopping dry run thread: {e}")
-            
-            try:
-                # Delete the thread
-                self._dry_run_thread.deleteLater()
-            except Exception as e:
-                logger.warning(f"Error deleting dry run thread: {e}")
-            
-            self._dry_run_thread = None
-
-    def cleanup_all_resources(self):
-        """Clean up all threads, timers, and resources safely."""
-        try:
-            # Stop memory monitoring
-            if hasattr(self, '_memory_timer'):
-                self._memory_timer.stop()
-                self._memory_timer.deleteLater()
-            
-            # Disconnect all signals first
-            self.disconnect_all_signals()
-            
-            # Clean up worker and thread
-            self.cleanup_worker_and_thread()
-            
-            # Clean up dry run thread
-            self.cleanup_dry_run_thread()
-            
-            # Clean up any remaining timers
-            if hasattr(self, 'update_timer') and self.update_timer is not None:
-                try:
-                    self.update_timer.stop()
-                    self.update_timer.deleteLater()
-                except Exception as e:
-                    logger.warning(f"Error cleaning up update timer: {e}")
-                self.update_timer = None
-            
-            # Clean up dialogs
-            if hasattr(self, 'terminal_widget') and self.terminal_widget is not None:
-                try:
-                    self.terminal_widget.close()
-                except Exception as e:
-                    logger.warning(f"Error closing terminal widget: {e}")
-                self.terminal_widget = None
-            
-            if hasattr(self, '_preview_dialog') and self._preview_dialog is not None:
-                try:
-                    self._preview_dialog.close()
-                except Exception as e:
-                    logger.warning(f"Error closing preview dialog: {e}")
-                self._preview_dialog = None
-            
-            if hasattr(self, 'layer_manager_dialog') and self.layer_manager_dialog is not None:
-                try:
-                    self.layer_manager_dialog.close()
-                except Exception as e:
-                    logger.warning(f"Error closing layer manager dialog: {e}")
-                self.layer_manager_dialog = None
-            
-            if hasattr(self, 'template_manager_dialog') and self.template_manager_dialog is not None:
-                try:
-                    self.template_manager_dialog.close()
-                except Exception as e:
-                    logger.warning(f"Error closing template manager dialog: {e}")
-                self.template_manager_dialog = None
-            
-            # Clean up quit dialog
-            if hasattr(self, 'quit_dialog') and self.quit_dialog is not None:
-                try:
-                    self.quit_dialog.close()
-                except Exception as e:
-                    logger.warning(f"Error closing quit dialog: {e}")
-                self.quit_dialog = None
-            
-            # Clean up stopping message box
-            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
-                try:
-                    self._stopping_msgbox.close()
-                except Exception as e:
-                    logger.warning(f"Error closing stopping message box: {e}")
-                self._stopping_msgbox = None
-            
-            # Perform final memory cleanup
-            self._cleanup_memory()
-            
-            # Unregister from memory management
-            unregister_from_cleanup("main_ui")
-                
-        except Exception as e:
-            logger.error(f"Error during comprehensive cleanup: {e}")
 
     def _gather_preview_inputs(self):
         """Gather inputs for preview without validation checks for media folder and output folder."""

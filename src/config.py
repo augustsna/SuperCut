@@ -391,12 +391,6 @@ def delete_template(template_name):
         if os.path.exists(template_file):
             os.remove(template_file)
             return True
-    except FileNotFoundError:
-        print(f"Template file {template_name} not found for deletion.")
-    except PermissionError:
-        print(f"No permission to delete template {template_name}.")
-    except OSError as e:
-        print(f"OS error deleting template {template_name}: {e}")
     except Exception as e:
         print(f"Error deleting template {template_name}: {e}")
     

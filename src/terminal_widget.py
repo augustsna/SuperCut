@@ -405,21 +405,6 @@ class TerminalWidget(QWidget):
             
     def closeEvent(self, event):
         """Handle close event"""
-        # Disconnect all signals first
-        try:
-            if hasattr(self, 'update_timer') and self.update_timer is not None:
-                self.update_timer.timeout.disconnect()
-            if hasattr(self, 'shortcut') and self.shortcut is not None:
-                self.shortcut.activated.disconnect()
-            if hasattr(self, 'exit_btn') and self.exit_btn is not None:
-                self.exit_btn.clicked.disconnect()
-            if hasattr(self, 'clear_btn') and self.clear_btn is not None:
-                self.clear_btn.clicked.disconnect()
-            if hasattr(self, 'auto_scroll_btn') and self.auto_scroll_btn is not None:
-                self.auto_scroll_btn.clicked.disconnect()
-        except (TypeError, RuntimeError):
-            pass
-        
         self.stop_capture()
         self.update_timer.stop()
         self.closed.emit()

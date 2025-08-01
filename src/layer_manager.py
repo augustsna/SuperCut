@@ -967,21 +967,6 @@ class LayerManagerDialog(QWidget):
     
     def closeEvent(self, event):
         """Clean up timer when dialog is closed"""
-        # Disconnect all signals first
-        try:
-            if hasattr(self, 'update_timer') and self.update_timer is not None:
-                self.update_timer.timeout.disconnect()
-            if hasattr(self, 'shortcut') and self.shortcut is not None:
-                self.shortcut.activated.disconnect()
-            if hasattr(self, 'save_btn') and self.save_btn is not None:
-                self.save_btn.clicked.disconnect()
-            if hasattr(self, 'cancel_btn') and self.cancel_btn is not None:
-                self.cancel_btn.clicked.disconnect()
-            if hasattr(self, 'layer_manager') and self.layer_manager is not None:
-                self.layer_manager.layer_order_changed.disconnect()
-        except (TypeError, RuntimeError):
-            pass
-        
         if self.update_timer:
             self.update_timer.stop()
         super().closeEvent(event)

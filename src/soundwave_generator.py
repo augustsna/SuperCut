@@ -158,8 +158,8 @@ class SoundwaveGenerator:
             if 'wav_path' in locals() and wav_path and os.path.exists(wav_path):
                 try:
                     os.unlink(wav_path)
-                except (OSError, PermissionError) as e:
-                    logger.warning(f"Failed to remove temporary WAV file: {e}")
+                except:
+                    pass
     
     def create_soundwave_overlay(self, 
                                 audio_path: str, 

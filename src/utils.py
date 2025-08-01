@@ -4,10 +4,7 @@ import re
 import ctypes
 import tempfile
 import atexit
-import gc
-import weakref
-import io
-from typing import Set, Dict, Any, Optional
+from typing import Set
 from src.logger import logger
 import shutil
 from mutagen.easyid3 import EasyID3
@@ -16,181 +13,14 @@ from mutagen.id3 import ID3
 from mutagen.id3._frames import APIC
 from PIL import Image, ImageDraw, ImageFont
 
-# Try to import psutil for memory monitoring (optional)
-try:
-    import psutil
-    PSUTIL_AVAILABLE = True
-except ImportError:
-    PSUTIL_AVAILABLE = False
-    psutil = None
-
 # Global set to track temporary files
 TEMP_FILES: Set[str] = set()
 
-# Global registry for memory management
-MEMORY_REGISTRY: Dict[str, Any] = {}
-WEAK_REFERENCES: Dict[str, weakref.ref] = {}
-
 MIN_FREE_SPACE_BYTES = 100 * 1024 * 1024  # 100MB
 
-def get_memory_usage() -> Dict[str, float]:
-    """Get current memory usage statistics in MB"""
-    if not PSUTIL_AVAILABLE:
-        return {"error": "psutil not available"}
-    
-    try:
-        process = psutil.Process()
-        memory_info = process.memory_info()
-        return {
-            "rss_mb": memory_info.rss / 1024 / 1024,  # Resident Set Size
-            "vms_mb": memory_info.vms / 1024 / 1024,  # Virtual Memory Size
-            "percent": process.memory_percent(),
-            "available_mb": psutil.virtual_memory().available / 1024 / 1024
-        }
-    except Exception as e:
-        logger.warning(f"Error getting memory usage: {e}")
-        return {"error": str(e)}
-
-def register_for_cleanup(obj: Any, name: str = None) -> str:
-    """Register an object for automatic cleanup"""
-    if name is None:
-        name = f"obj_{id(obj)}"
-    
-    MEMORY_REGISTRY[name] = obj
-    
-    # Only create weak reference if the object supports it
-    try:
-        WEAK_REFERENCES[name] = weakref.ref(obj, lambda ref, name=name: _cleanup_callback(name))
-    except TypeError:
-        # Object doesn't support weak references (like dict, list, etc.)
-        logger.debug(f"Object '{name}' doesn't support weak references, skipping")
-    
-    logger.debug(f"Registered object '{name}' for cleanup")
-    return name
-
-def unregister_from_cleanup(name: str) -> bool:
-    """Unregister an object from cleanup"""
-    if name in MEMORY_REGISTRY:
-        del MEMORY_REGISTRY[name]
-        if name in WEAK_REFERENCES:
-            del WEAK_REFERENCES[name]
-        logger.debug(f"Unregistered object '{name}' from cleanup")
-        return True
-    return False
-
-def _cleanup_callback(name: str):
-    """Callback when a registered object is garbage collected"""
-    if name in MEMORY_REGISTRY:
-        del MEMORY_REGISTRY[name]
-    logger.debug(f"Object '{name}' was garbage collected")
-
-def force_garbage_collection() -> Dict[str, Any]:
-    """Force garbage collection and return statistics"""
-    try:
-        # Get memory usage before GC
-        before_stats = get_memory_usage()
-        
-        # Force garbage collection
-        collected = gc.collect()
-        
-        # Get memory usage after GC
-        after_stats = get_memory_usage()
-        
-        return {
-            "collected_objects": collected,
-            "before": before_stats,
-            "after": after_stats,
-            "freed_mb": before_stats.get("rss_mb", 0) - after_stats.get("rss_mb", 0)
-        }
-    except Exception as e:
-        logger.warning(f"Error during garbage collection: {e}")
-        return {"error": str(e)}
-
-def cleanup_large_objects() -> Dict[str, Any]:
-    """Clean up large objects and return statistics"""
-    try:
-        # Get memory usage before cleanup
-        before_stats = get_memory_usage()
-        
-        # Clear large objects from registry
-        large_objects = []
-        for name, obj in list(MEMORY_REGISTRY.items()):
-            if hasattr(obj, '__sizeof__'):
-                size = obj.__sizeof__()
-                if size > 1024 * 1024:  # 1MB threshold
-                    large_objects.append((name, size))
-                    unregister_from_cleanup(name)
-        
-        # Force garbage collection
-        collected = gc.collect()
-        
-        # Get memory usage after cleanup
-        after_stats = get_memory_usage()
-        
-        return {
-            "large_objects_cleaned": len(large_objects),
-            "large_objects_details": large_objects,
-            "collected_objects": collected,
-            "before": before_stats,
-            "after": after_stats,
-            "freed_mb": before_stats.get("rss_mb", 0) - after_stats.get("rss_mb", 0)
-        }
-    except Exception as e:
-        logger.warning(f"Error during large object cleanup: {e}")
-        return {"error": str(e)}
-
-def get_memory_registry_stats() -> Dict[str, Any]:
-    """Get statistics about registered objects"""
-    try:
-        total_size = 0
-        object_types = {}
-        
-        for name, obj in MEMORY_REGISTRY.items():
-            obj_type = type(obj).__name__
-            object_types[obj_type] = object_types.get(obj_type, 0) + 1
-            
-            if hasattr(obj, '__sizeof__'):
-                total_size += obj.__sizeof__()
-        
-        return {
-            "total_objects": len(MEMORY_REGISTRY),
-            "total_size_bytes": total_size,
-            "total_size_mb": total_size / 1024 / 1024,
-            "object_types": object_types
-        }
-    except Exception as e:
-        logger.warning(f"Error getting memory registry stats: {e}")
-        return {"error": str(e)}
-
 def sanitize_filename(name: str) -> str:
-    """Remove invalid filename characters: <>:"/\\|?* and normalize"""
-    if not name:
-        return "untitled"
-    
-    # Remove invalid characters
-    sanitized = re.sub(r'[<>:"/\\|?*]', '_', name)
-    
-    # Replace spaces with underscores
-    sanitized = sanitized.replace(' ', '_')
-    
-    # Remove leading/trailing spaces and dots
-    sanitized = sanitized.strip(' .')
-    
-    # Remove consecutive underscores
-    sanitized = re.sub(r'_+', '_', sanitized)
-    
-    # Remove leading/trailing underscores
-    sanitized = sanitized.strip('_')
-    
-    # Ensure it's not empty after sanitization
-    if not sanitized:
-        return "untitled"
-    
-    # Limit length to prevent filesystem issues
-    if len(sanitized) > 200:
-        sanitized = sanitized[:200]
-    
-    return sanitized
+    """Remove invalid filename characters: <>:"/\\|?*"""
+    return re.sub(r'[<>:"/\\|?*]', '_', name)
 
 def clean_file_path(path: str) -> str:
     """Clean file path by removing file:/// prefix and normalizing the path"""
@@ -219,57 +49,11 @@ def clean_file_path(path: str) -> str:
         # This looks like a Windows path, ensure proper format
         drive_part, rest = path.split(':', 1)
         if rest.startswith('/'):
-            # Convert C:/path to C:/path (keep forward slashes for consistency)
-            path = drive_part + ':' + rest
-    
-    # Convert backslashes to forward slashes for consistency
-    path = path.replace('\\', '/')
+            # Convert C:/path to C:\path
+            path = drive_part + ':' + rest.replace('/', '\\')
     
     # Normalize the path
     return os.path.normpath(path)
-
-def validate_file_path(path: str, file_type: str = None) -> tuple[bool, str]:
-    """Validate file path and return (is_valid, error_message)"""
-    if not path:
-        return False, "File path is empty."
-    
-    # Clean the path first
-    cleaned_path = clean_file_path(path)
-    
-    # Check if file exists
-    if not os.path.exists(cleaned_path):
-        return False, f"File not found: {cleaned_path}"
-    
-    # Check if it's actually a file (not a directory)
-    if not os.path.isfile(cleaned_path):
-        return False, f"Path is a directory: {cleaned_path}"
-    
-    # Check if file is readable
-    if not os.access(cleaned_path, os.R_OK):
-        return False, f"No permission to read file: {cleaned_path}"
-    
-    # Check file size (prevent processing empty or extremely large files)
-    try:
-        file_size = os.path.getsize(cleaned_path)
-        if file_size == 0:
-            return False, f"File is empty: {cleaned_path}"
-        if file_size > 1024 * 1024 * 1024:  # 1GB limit
-            return False, f"File is too large (>1GB): {cleaned_path}"
-    except OSError:
-        return False, f"Cannot access file size: {cleaned_path}"
-    
-    # Validate file type if specified
-    if file_type:
-        if file_type == "audio" and not is_audio_file(cleaned_path):
-            return False, f"File is not a valid audio file: {cleaned_path}"
-        elif file_type == "image" and not is_image_file(cleaned_path):
-            return False, f"File is not a valid image file: {cleaned_path}"
-        elif file_type == "video" and not is_video_file(cleaned_path):
-            return False, f"File is not a valid video file: {cleaned_path}"
-        elif file_type == "overlay" and not is_overlay_file(cleaned_path):
-            return False, f"File is not a valid overlay file: {cleaned_path}"
-    
-    return True, ""
 
 def get_desktop_folder() -> str:
     """Get the desktop folder path"""
@@ -302,8 +86,7 @@ def has_enough_disk_space(path: str, required_bytes: int) -> bool:
 
 def create_temp_file(suffix: str = "", prefix: str = "") -> str:
     """Create a temporary file and track it for cleanup. Checks for minimum free disk space."""
-    # Use provided prefix or default to "supercut_"
-    unique_prefix = prefix if prefix else "supercut_"
+    unique_prefix = "supercut_"
     temp_dir = tempfile.gettempdir()
     if not has_enough_disk_space(temp_dir, MIN_FREE_SPACE_BYTES):
         logger.error(f"Not enough disk space to create temp file in {temp_dir}. At least {MIN_FREE_SPACE_BYTES // (1024*1024)}MB required.")
@@ -349,18 +132,18 @@ def get_file_extension(filename: str) -> str:
 
 def is_audio_file(filename: str) -> bool:
     """Check if a file is an audio file"""
-    audio_extensions = {'.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a', '.wma'}
-    return get_file_extension(filename).lower() in audio_extensions
+    from src.config import AUDIO_EXTENSIONS
+    return get_file_extension(filename) in AUDIO_EXTENSIONS
 
 def is_image_file(filename: str) -> bool:
     """Check if a file is an image file"""
-    image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'}
-    return get_file_extension(filename).lower() in image_extensions
+    from src.config import IMAGE_EXTENSIONS
+    return get_file_extension(filename) in IMAGE_EXTENSIONS
 
 def is_video_file(filename: str) -> bool:
     """Check if a file is a video file"""
-    video_extensions = {'.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv', '.webm'}
-    return get_file_extension(filename).lower() in video_extensions
+    from src.config import VIDEO_EXTENSIONS
+    return get_file_extension(filename) in VIDEO_EXTENSIONS
 
 def is_overlay_file(filename: str) -> bool:
     """Check if a file is a valid overlay file (image or video)"""
@@ -394,90 +177,31 @@ def get_files_by_type(folder_path: str, file_type: str) -> list:
 
 def format_time(seconds: int) -> str:
     """Format seconds into HH:MM:SS format"""
-    if seconds < 0:
-        return "--:--:--"
-    
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    secs = seconds % 60
-    
-    if hours > 0:
-        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
-    else:
-        return f"{minutes:02d}:{secs:02d}"
-
-def validate_numeric_input(value: str, min_val: int = None, max_val: int = None, 
-                          allow_float: bool = False) -> tuple[bool, str, float]:
-    """Validate numeric input and return (is_valid, error_message, numeric_value)"""
-    if not value:
-        return False, "Value is empty.", 0
-    
-    try:
-        if allow_float:
-            num_val = float(value)
-        else:
-            num_val = int(value)
-    except ValueError:
-        return False, f"Value '{value}' is not a valid number.", 0
-    
-    # Check bounds if specified
-    if min_val is not None and max_val is not None and (num_val < min_val or num_val > max_val):
-        return False, f"Value must be between {min_val} and {max_val}.", 0
-    elif min_val is not None and num_val < min_val:
-        return False, f"Value must be at least {min_val}.", 0
-    elif max_val is not None and num_val > max_val:
-        return False, f"Value must be at most {max_val}.", 0
-    
-    return True, "", num_val
+    import time
+    return time.strftime('%H:%M:%S', time.gmtime(seconds)) if seconds > 0 else "--:--:--"
 
 def validate_inputs(media_sources: str, export_name: str, number: str) -> tuple[bool, str]:
     """Validate user inputs and return (is_valid, error_message)"""
     import os
-    
     # Check media_sources is not empty and is a valid directory
     if not media_sources:
         return False, "Please select the media folder."
-    
     if not os.path.isdir(media_sources):
         return False, f"Media folder does not exist: {media_sources}"
-    
-    # Check if directory is readable
-    if not os.access(media_sources, os.R_OK):
-        return False, f"No permission to read media folder: {media_sources}"
-    
-    # Check export_name is not empty and is a valid filename
+    # Check export_name is not empty and is a valid filename (no path separators)
     if not export_name:
         return False, "Please enter an export name."
-    
-    # Sanitize and validate export name
-    sanitized_name = sanitize_filename(export_name)
-    if sanitized_name == "untitled" and export_name.strip():
-        return False, "Export name contains only invalid characters."
-    
-    # Check for path separators
     if any(sep in export_name for sep in (os.sep, os.altsep) if sep):
         return False, "Export name cannot contain path separators."
-    
-    # Check for reserved filenames (Windows)
-    reserved_names = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 
-                     'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 
-                     'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9']
-    if sanitized_name.upper() in reserved_names:
-        return False, f"Export name '{sanitized_name}' is a reserved system name."
-    
-    # Check number is a positive integer with reasonable bounds
+    # Check number is a positive integer
     if not number:
         return False, "Please enter a number."
-    
     try:
         num = int(number)
         if num <= 0:
             return False, "Number must be a positive integer."
-        if num > 999999:
-            return False, "Number must be less than 1,000,000."
     except ValueError:
         return False, "Number must be a valid integer."
-    
     return True, ""
 
 def is_image_valid(path):
@@ -497,64 +221,15 @@ def is_mp3_valid(path):
 
 def validate_media_files(media_sources: str, min_mp3_count: int = 3) -> tuple[bool, str, list, list]:
     """Validate media files and return (is_valid, error_message, mp3_files, image_files)"""
-    import os
-    
-    # Validate media sources directory
-    if not os.path.exists(media_sources):
-        return False, f"Media sources directory not found: {media_sources}", [], []
-    
-    if not os.path.isdir(media_sources):
-        return False, f"Media sources path is not a directory: {media_sources}", [], []
-    
-    if not os.access(media_sources, os.R_OK):
-        return False, f"No permission to read media sources directory: {media_sources}", [], []
-    
-    # Get files by type
     mp3_files = get_files_by_type(media_sources, "audio")
     image_files = get_files_by_type(media_sources, "image")
-    
-    # Validate minimum count
-    if min_mp3_count < 1:
-        return False, "Minimum MP3 count must be at least 1.", [], []
-    
-    # Filter out corrupt files and validate each file
-    valid_mp3s = []
-    invalid_mp3s = []
-    
-    for mp3_file in mp3_files:
-        is_valid, error_msg = validate_file_path(mp3_file, "audio")
-        if is_valid and is_mp3_valid(mp3_file):
-            valid_mp3s.append(mp3_file)
-        else:
-            invalid_mp3s.append(mp3_file)
-    
-    valid_images = []
-    invalid_images = []
-    
-    for image_file in image_files:
-        is_valid, error_msg = validate_file_path(image_file, "image")
-        if is_valid and is_image_valid(image_file):
-            valid_images.append(image_file)
-        else:
-            invalid_images.append(image_file)
-    
-    # Check for valid images
+    # Filter out corrupt files
+    valid_mp3s = [f for f in mp3_files if is_mp3_valid(f)]
+    valid_images = [f for f in image_files if is_image_valid(f)]
     if not valid_images:
-        if invalid_images:
-            return False, f"No valid image files found. {len(invalid_images)} invalid/corrupt image files detected.", [], []
-        else:
-            return False, "No image files found in the media folder.", [], []
-    
-    # Check for valid MP3s
-    if not valid_mp3s:
-        if invalid_mp3s:
-            return False, f"No valid MP3 files found. {len(invalid_mp3s)} invalid/corrupt MP3 files detected.", [], []
-        else:
-            return False, "No MP3 files found in the media folder.", [], []
-    
-    if len(valid_mp3s) < min_mp3_count:
-        return False, f"Not enough valid MP3 files in folder (need at least {min_mp3_count}, found {len(valid_mp3s)})", [], []
-    
+        return False, "No valid (non-corrupt) image files found in the media folder.", [], []
+    if not valid_mp3s or len(valid_mp3s) < min_mp3_count:
+        return False, f"Not enough valid (non-corrupt) mp3 files in folder (need at least {min_mp3_count})", [], []
     return True, "", valid_mp3s, valid_images
 
 def extract_mp3_title(mp3_path):
@@ -595,120 +270,98 @@ def create_song_title_png(title, output_path, width=400, height=40, font_size=12
         bottom_padding (int): Extra transparent pixels to add at the bottom.
     """
     from src.config import PROJECT_ROOT
-    
-    # Register for memory management
-    img_name = register_for_cleanup(None, f"song_title_img_{id(title)}")
-    
-    try:
-        total_height = height + bottom_padding
-        # Create image with background
-        if bg == "transparent":
-            img = Image.new('RGBA', (width, total_height), (0, 0, 0, 0))
-        elif bg == "black":
-            img = Image.new('RGBA', (width, total_height), (0, 0, 0, int(255 * opacity)))
-        elif bg == "white":
-            img = Image.new('RGBA', (width, total_height), (255, 255, 255, int(255 * opacity)))
-        elif bg == "custom":
-            img = Image.new('RGBA', (width, total_height), (*bg_color, int(255 * opacity)))
-        else:
-            img = Image.new('RGBA', (width, total_height), (0, 0, 0, 0))
-        
-        # Register the image for cleanup
-        register_for_cleanup(img, img_name)
-        
-        draw = ImageDraw.Draw(img)
-        font = None
-        if font_name != "default":
-            try:
-                font_path = os.path.join(PROJECT_ROOT, "src", "sources", "font", font_name)
-                if os.path.exists(font_path):
-                    font = ImageFont.truetype(font_path, font_size)
-                else:
-                    logger.warning(f"Font file not found: {font_path}")
-            except Exception as e:
-                logger.warning(f"Failed to load custom font {font_name}: {e}")
-        if font is None:
-            try:
-                # Try to use KantumruyPro as fallback for better Khmer support
-                fallback_font_path = os.path.join(PROJECT_ROOT, "src", "sources", "font", "KantumruyPro-VariableFont_wght.ttf")
-                if os.path.exists(fallback_font_path):
-                    font = ImageFont.truetype(fallback_font_path, font_size)
-                else:
-                    font = ImageFont.truetype("arial.ttf", font_size)
-            except Exception:
-                font = ImageFont.load_default()
-        # Calculate text position (centered in the original area, not including padding)
+    total_height = height + bottom_padding
+    # Create image with background
+    if bg == "transparent":
+        img = Image.new('RGBA', (width, total_height), (0, 0, 0, 0))
+    elif bg == "black":
+        img = Image.new('RGBA', (width, total_height), (0, 0, 0, int(255 * opacity)))
+    elif bg == "white":
+        img = Image.new('RGBA', (width, total_height), (255, 255, 255, int(255 * opacity)))
+    elif bg == "custom":
+        img = Image.new('RGBA', (width, total_height), (*bg_color, int(255 * opacity)))
+    else:
+        img = Image.new('RGBA', (width, total_height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    font = None
+    if font_name != "default":
         try:
-            text_x, text_y = width // 2, height // 2
-            anchor = 'mm'
-        except TypeError:
-            text_bbox = draw.textbbox((0, 0), title, font=font)
-            text_width = text_bbox[2] - text_bbox[0]
-            text_height = text_bbox[3] - text_bbox[1]
-            text_x = (width - text_width) // 2
-            text_y = (height - text_height) // 2
-            anchor = None
-        # Apply text effects
-        if text_effect != "none":
-            effect_intensity = max(1, text_effect_intensity // 10)
-            if text_effect == "outline":
-                for dx in range(-effect_intensity, effect_intensity + 1):
-                    for dy in range(-effect_intensity, effect_intensity + 1):
-                        if dx != 0 or dy != 0:
-                            if anchor:
-                                draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255), anchor=anchor)
-                            else:
-                                draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255))
-            elif text_effect == "outward_stroke":
-                for dx in range(-effect_intensity * 2, effect_intensity * 2 + 1):
-                    for dy in range(-effect_intensity * 2, effect_intensity * 2 + 1):
+            font_path = os.path.join(PROJECT_ROOT, "src", "sources", "font", font_name)
+            if os.path.exists(font_path):
+                font = ImageFont.truetype(font_path, font_size)
+            else:
+                logger.warning(f"Font file not found: {font_path}")
+        except Exception as e:
+            logger.warning(f"Failed to load custom font {font_name}: {e}")
+    if font is None:
+        try:
+            # Try to use KantumruyPro as fallback for better Khmer support
+            fallback_font_path = os.path.join(PROJECT_ROOT, "src", "sources", "font", "KantumruyPro-VariableFont_wght.ttf")
+            if os.path.exists(fallback_font_path):
+                font = ImageFont.truetype(fallback_font_path, font_size)
+            else:
+                font = ImageFont.truetype("arial.ttf", font_size)
+        except Exception:
+            font = ImageFont.load_default()
+    # Calculate text position (centered in the original area, not including padding)
+    try:
+        text_x, text_y = width // 2, height // 2
+        anchor = 'mm'
+    except TypeError:
+        text_bbox = draw.textbbox((0, 0), title, font=font)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_height = text_bbox[3] - text_bbox[1]
+        text_x = (width - text_width) // 2
+        text_y = (height - text_height) // 2
+        anchor = None
+    # Apply text effects
+    if text_effect != "none":
+        effect_intensity = max(1, text_effect_intensity // 10)
+        if text_effect == "outline":
+            for dx in range(-effect_intensity, effect_intensity + 1):
+                for dy in range(-effect_intensity, effect_intensity + 1):
+                    if dx != 0 or dy != 0:
                         if anchor:
                             draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255), anchor=anchor)
                         else:
                             draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255))
-            elif text_effect == "inward_stroke":
-                for dx in range(-effect_intensity // 2, effect_intensity // 2 + 1):
-                    for dy in range(-effect_intensity // 2, effect_intensity // 2 + 1):
+        elif text_effect == "outward_stroke":
+            for dx in range(-effect_intensity * 2, effect_intensity * 2 + 1):
+                for dy in range(-effect_intensity * 2, effect_intensity * 2 + 1):
+                    if anchor:
+                        draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255), anchor=anchor)
+                    else:
+                        draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255))
+        elif text_effect == "inward_stroke":
+            for dx in range(-effect_intensity // 2, effect_intensity // 2 + 1):
+                for dy in range(-effect_intensity // 2, effect_intensity // 2 + 1):
+                    if anchor:
+                        draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255), anchor=anchor)
+                    else:
+                        draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255))
+        elif text_effect == "shadow":
+            shadow_x = text_x + effect_intensity
+            shadow_y = text_y + effect_intensity
+            if anchor:
+                draw.text((shadow_x, shadow_y), title, font=font, fill=(*text_effect_color, 128), anchor=anchor)
+            else:
+                draw.text((shadow_x, shadow_y), title, font=font, fill=(*text_effect_color, 128))
+        elif text_effect == "glow":
+            for i in range(effect_intensity, 0, -1):
+                opacity_factor = 255 // (effect_intensity + 1) * i
+                glow_color = (*text_effect_color, opacity_factor)
+                for dx in range(-i, i + 1):
+                    for dy in range(-i, i + 1):
                         if anchor:
-                            draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255), anchor=anchor)
+                            draw.text((text_x + dx, text_y + dy), title, font=font, fill=glow_color, anchor=anchor)
                         else:
-                            draw.text((text_x + dx, text_y + dy), title, font=font, fill=(*text_effect_color, 255))
-            elif text_effect == "shadow":
-                shadow_x = text_x + effect_intensity
-                shadow_y = text_y + effect_intensity
-                if anchor:
-                    draw.text((shadow_x, shadow_y), title, font=font, fill=(*text_effect_color, 128), anchor=anchor)
-                else:
-                    draw.text((shadow_x, shadow_y), title, font=font, fill=(*text_effect_color, 128))
-            elif text_effect == "glow":
-                for i in range(effect_intensity, 0, -1):
-                    opacity_factor = 255 // (effect_intensity + 1) * i
-                    glow_color = (*text_effect_color, opacity_factor)
-                    for dx in range(-i, i + 1):
-                        for dy in range(-i, i + 1):
-                            if anchor:
-                                draw.text((text_x + dx, text_y + dy), title, font=font, fill=glow_color, anchor=anchor)
-                            else:
-                                draw.text((text_x + dx, text_y + dy), title, font=font, fill=glow_color)
-        # Draw main text
-        if anchor:
-            draw.text((text_x, text_y), title, font=font, fill=(*color, 255), anchor=anchor)
-        else:
-            draw.text((text_x, text_y), title, font=font, fill=(*color, 255))
-        
-        # Convert to bytes
-        img_bytes = io.BytesIO()
-        img.save(img_bytes, format='PNG')
-        img_bytes.seek(0)
-        
-        return img_bytes.getvalue()
-        
-    except Exception as e:
-        logger.error(f"Error creating song title image: {e}")
-        raise
-    finally:
-        # Ensure cleanup
-        unregister_from_cleanup(img_name)
+                            draw.text((text_x + dx, text_y + dy), title, font=font, fill=glow_color)
+    # Draw main text
+    if anchor:
+        draw.text((text_x, text_y), title, font=font, fill=(*color, 255), anchor=anchor)
+    else:
+        draw.text((text_x, text_y), title, font=font, fill=(*color, 255))
+    img.save(output_path, 'PNG')
 
 # Register cleanup function to run at exit
 atexit.register(cleanup_temp_files)
@@ -878,8 +531,8 @@ def extract_mp3_cover_image(mp3_path):
         if temp_cover_path and os.path.exists(temp_cover_path):
             try:
                 os.unlink(temp_cover_path)
-            except (OSError, PermissionError) as e:
-                logger.warning(f"Failed to remove temporary cover file: {e}")
+            except:
+                pass  # File might already be cleaned up
 
 def create_framed_cover_image(cover_data_or_path, output_path, frame_width=10, frame_color=(255, 255, 255)):
     """
@@ -893,32 +546,24 @@ def create_framed_cover_image(cover_data_or_path, output_path, frame_width=10, f
         frame_color: RGB tuple for frame color (default white)
     """
     try:
-        # Load the image using context manager
+        # Load the image
         if isinstance(cover_data_or_path, bytes):
             # Cover image from MP3 metadata
             from io import BytesIO
-            with Image.open(BytesIO(cover_data_or_path)) as img:
-                # Convert to RGBA if needed
-                if img.mode != 'RGBA':
-                    img = img.convert('RGBA')
-                
-                # Keep original size - frame will overlay on top
-                original_width, original_height = img.size
-                
-                # Create a copy of the original image to work with
-                framed_img = img.copy()
+            img = Image.open(BytesIO(cover_data_or_path))
         else:
             # Default cover image from file path
-            with Image.open(cover_data_or_path) as img:
-                # Convert to RGBA if needed
-                if img.mode != 'RGBA':
-                    img = img.convert('RGBA')
-                
-                # Keep original size - frame will overlay on top
-                original_width, original_height = img.size
-                
-                # Create a copy of the original image to work with
-                framed_img = img.copy()
+            img = Image.open(cover_data_or_path)
+        
+        # Convert to RGBA if needed
+        if img.mode != 'RGBA':
+            img = img.convert('RGBA')
+        
+        # Keep original size - frame will overlay on top
+        original_width, original_height = img.size
+        
+        # Create a copy of the original image to work with
+        framed_img = img.copy()
         
         # Create a drawing context to draw the frame overlay
         draw = ImageDraw.Draw(framed_img)

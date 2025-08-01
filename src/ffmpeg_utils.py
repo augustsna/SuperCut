@@ -11,73 +11,9 @@ from src.config import FFMPEG_BINARY, FFPROBE_BINARY, VIDEO_SETTINGS
 from src.logger import logger
 from src.utils import has_enough_disk_space, create_temp_file
 
-def validate_ffmpeg_installation() -> Tuple[bool, str]:
-    """Validate that FFmpeg is properly installed and accessible"""
-    try:
-        # Check if FFmpeg binary exists
-        if not os.path.exists(FFMPEG_BINARY):
-            return False, f"FFmpeg binary not found at: {FFMPEG_BINARY}"
-        
-        # Test FFmpeg version to ensure it's working
-        result = subprocess.run(
-            [FFMPEG_BINARY, "-version"],
-            capture_output=True,
-            text=True,
-            timeout=30
-        )
-        
-        if result.returncode != 0:
-            return False, f"FFmpeg version check failed with return code {result.returncode}"
-        
-        if "ffmpeg version" not in result.stdout.lower():
-            return False, "FFmpeg version output is invalid"
-        
-        return True, "FFmpeg is properly installed"
-        
-    except subprocess.TimeoutExpired:
-        return False, "FFmpeg version check timed out"
-    except FileNotFoundError:
-        return False, f"FFmpeg binary not found: {FFMPEG_BINARY}"
-    except Exception as e:
-        return False, f"Error validating FFmpeg installation: {e}"
-
-def safe_subprocess_run(cmd: List[str], timeout: int = 300, **kwargs) -> Tuple[bool, Optional[str], Optional[str]]:
-    """Safely run a subprocess with proper error handling
-    
-    Returns:
-        Tuple[bool, Optional[str], Optional[str]]: (success, stdout, stderr)
-    """
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            **kwargs
-        )
-        
-        if result.returncode != 0:
-            return False, result.stdout, result.stderr
-        
-        return True, result.stdout, result.stderr
-        
-    except subprocess.TimeoutExpired:
-        return False, None, f"Process timed out after {timeout} seconds"
-    except FileNotFoundError:
-        return False, None, f"Command not found: {cmd[0]}"
-    except subprocess.CalledProcessError as e:
-        return False, e.stdout, e.stderr
-    except Exception as e:
-        return False, None, str(e)
-
 def get_audio_duration(file_path: str) -> float:
     """Get audio duration using ffprobe"""
     try:
-        # Validate input file exists
-        if not os.path.exists(file_path):
-            logger.error(f"Audio file not found: {file_path}")
-            return 0.0
-        
         cmd = [
             FFPROBE_BINARY,
             "-v", "quiet",
@@ -86,41 +22,19 @@ def get_audio_duration(file_path: str) -> float:
             file_path
         ]
         
-        success, stdout, stderr = safe_subprocess_run(cmd, timeout=60)
-        
-        if not success:
-            logger.error(f"FFprobe failed for {file_path}: {stderr}")
-            return 0.0
-        
-        try:
-            data = json.loads(stdout)
-            duration = float(data['format']['duration'])
-            return duration
-        except (json.JSONDecodeError, KeyError, ValueError) as e:
-            logger.error(f"Error parsing FFprobe output for {file_path}: {e}")
-            return 0.0
-            
-    except Exception as e:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        data = json.loads(result.stdout)
+        return float(data['format']['duration'])
+    except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError, ValueError) as e:
         logger.error(f"Error getting duration for {file_path}: {e}")
         return 0.0
 
 def merge_mp3s_with_ffmpeg(input_files: list, output_file: str) -> bool:
     """Merge multiple MP3 files using ffmpeg and convert to AAC/M4A format"""
-    file_list_path = None
     try:
-        # Validate input files
-        if not input_files:
-            logger.error("No input files provided for merging")
-            return False
-        
-        for file_path in input_files:
-            if not os.path.exists(file_path):
-                logger.error(f"Input file does not exist: {file_path}")
-                return False
-        
         # Create a file list for ffmpeg
         file_list_path = create_temp_file(suffix='.txt')
-        with open(file_list_path, 'w', encoding='utf-8') as f:
+        with open(file_list_path, 'w') as f:
             for file_path in input_files:
                 f.write(f"file '{file_path}'\n")
         
@@ -136,39 +50,8 @@ def merge_mp3s_with_ffmpeg(input_files: list, output_file: str) -> bool:
             "-y"  # Overwrite output file
         ]
         
-        # Add timeout and better error handling
-        try:
-            result = subprocess.run(
-                cmd, 
-                check=True, 
-                capture_output=True, 
-                text=True,
-                timeout=300  # 5 minute timeout
-            )
-        except subprocess.TimeoutExpired:
-            logger.error("FFmpeg merge operation timed out after 5 minutes")
-            return False
-        except subprocess.CalledProcessError as e:
-            logger.error(f"FFmpeg merge failed with return code {e.returncode}")
-            if e.stderr:
-                logger.error(f"FFmpeg stderr: {e.stderr}")
-            if e.stdout:
-                logger.error(f"FFmpeg stdout: {e.stdout}")
-            return False
-        except FileNotFoundError:
-            logger.error(f"FFmpeg binary not found: {FFMPEG_BINARY}")
-            return False
+        subprocess.run(cmd, check=True, capture_output=True)
         
-        # Verify output file was created
-        if not os.path.exists(output_file):
-            logger.error(f"Output file was not created: {output_file}")
-            return False
-        
-        return True
-    except (OSError, ValueError) as e:
-        logger.error(f"Error in merge_mp3s_with_ffmpeg: {e}")
-        return False
-    finally:
         # Clean up file list
         if file_list_path and os.path.exists(file_list_path):
             try:
@@ -179,6 +62,10 @@ def merge_mp3s_with_ffmpeg(input_files: list, output_file: str) -> bool:
                 logger.warning(f"No permission to remove temp file list {file_list_path}.")
             except OSError as e:
                 logger.warning(f"OS error removing temp file list {file_list_path}: {e}")
+        return True
+    except (subprocess.CalledProcessError, OSError, ValueError) as e:
+        logger.error(f"Error merging MP3s: {e}")
+        return False
 
 def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
     image_path: str, 
@@ -1837,23 +1724,6 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         audio_duration = get_audio_duration(audio_path)
         total_frames = int(audio_duration * fps)
         
-        # Validate FFmpeg binary exists
-        if not os.path.exists(FFMPEG_BINARY):
-            msg = f"FFmpeg binary not found: {FFMPEG_BINARY}"
-            logger.error(msg)
-            return False, msg
-        
-        # Validate input files exist
-        if not os.path.exists(image_path):
-            msg = f"Image file not found: {image_path}"
-            logger.error(msg)
-            return False, msg
-        
-        if not os.path.exists(audio_path):
-            msg = f"Audio file not found: {audio_path}"
-            logger.error(msg)
-            return False, msg
-        
         process = subprocess.Popen(cmd, stderr=subprocess.PIPE, universal_newlines=True, bufsize=1)
 
         start_time = time.time()
@@ -1872,7 +1742,6 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
                 f"\r  {percent:5.1f}% | Frame: {current_frame}/{total_frames} | ETA: {eta_str} | it/s: {current_its} 🚀 "
             )
             sys.stdout.flush()
-        
         try:
             if process.stderr is not None:
                 for line in process.stderr:
@@ -1908,51 +1777,20 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         except Exception as e:
             msg = f"Error reading ffmpeg output: {e}"
             logger.error(msg)
-            # Try to terminate the process if it's still running
-            try:
-                if process.poll() is None:
-                    process.terminate()
-                    process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                process.kill()
             return False, msg
         finally:
             if process.stderr is not None:
                 process.stderr.close()
-            
-            # Wait for process with timeout
-            try:
-                process.wait(timeout=600)  # 10 minute timeout
-            except subprocess.TimeoutExpired:
-                logger.error("FFmpeg process timed out, terminating...")
-                process.terminate()
-                try:
-                    process.wait(timeout=30)
-                except subprocess.TimeoutExpired:
-                    process.kill()
-                    process.wait()
-                msg = "FFmpeg process timed out after 10 minutes"
-                logger.error(msg)
-                return False, msg
-            
+            process.wait()
             sys.stdout.flush()
-        
         sys.stdout.write(
             f"\r  100.0% | Frame: {total_frames}/{total_frames} | ETA: 00:00:00 | it/s: {current_its} 🚀\n"
         )
         sys.stdout.flush()
-        
         if process.returncode != 0:
             msg = f"FFmpeg failed with return code {process.returncode}."
             logger.error(msg)
             return False, msg
-        
-        # Verify output file was created
-        if not os.path.exists(output_path):
-            msg = f"Output video file was not created: {output_path}"
-            logger.error(msg)
-            return False, msg
-        
         return True, None
     except (OSError, ValueError, subprocess.CalledProcessError) as e:
         msg = f"Error creating video: {e}"
