@@ -54,6 +54,8 @@ def create_template_from_current_settings(
         "name": name,
         "description": description,
         "category": category,
+        "resources": "https://iconsna.xyz/",
+        "reference": "https://youtube.com/",
         "video_settings": {
             "codec": current_settings.get('codec', 'h264_nvenc'),
             "resolution": current_settings.get('resolution', '1920x1080'),
@@ -119,6 +121,13 @@ def apply_template_to_settings(template_data: Dict[str, Any]) -> Dict[str, Any]:
     # Apply background_layer_settings
     if 'background_layer_settings' in template_data:
         settings['background_layer_settings'] = template_data['background_layer_settings']
+    
+    # Apply resources and reference (for informational purposes)
+    if 'resources' in template_data:
+        settings['resources'] = template_data['resources']
+    
+    if 'reference' in template_data:
+        settings['reference'] = template_data['reference']
     
     return settings
 

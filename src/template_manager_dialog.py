@@ -10,8 +10,8 @@ from PyQt6.QtWidgets import (
     QComboBox, QLineEdit, QTextEdit, QMessageBox, QFileDialog,
     QSplitter, QWidget, QScrollArea, QFrame, QSizePolicy
 )
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QKeySequence, QShortcut
+from PyQt6.QtCore import Qt, pyqtSignal, QUrl
+from PyQt6.QtGui import QKeySequence, QShortcut, QDesktopServices
 from PyQt6.QtGui import QIcon, QPixmap, QFont
 from typing import Dict, List, Optional, Any
 import os
@@ -46,7 +46,7 @@ class TemplateManagerDialog(QDialog):
         """Initialize the user interface"""
         self.setWindowTitle("Template Manager")
         self.setModal(True)
-        self.setFixedSize(590, 558)
+        self.setFixedSize(590, 610)
         
         # Main layout
         layout = QVBoxLayout(self)
@@ -540,6 +540,8 @@ class TemplateManagerDialog(QDialog):
         self.video_bitrate_label = QLabel("")
         self.maxrate_label = QLabel("")
         self.bufsize_label = QLabel("")
+        self.template_resources_btn = QPushButton("")
+        self.template_reference_btn = QPushButton("")
         
         # Style settings labels with same style as template details
         for label in [self.resolution_label, self.fps_label, self.codec_label, 
@@ -548,6 +550,30 @@ class TemplateManagerDialog(QDialog):
             label.setStyleSheet(label_style)
             label.setFixedWidth(160)
             label.setFixedHeight(26)
+        
+        # Style buttons
+        button_style = """
+            QPushButton {
+                background-color: #ffffff;
+                color: #333333;
+                border: 1px solid #cccccc;
+                border-radius: 4px;
+                padding: 4px;
+                font-weight: 500;
+                text-align: left;
+            }
+            QPushButton:hover {
+                background-color: rgba(71, 164, 255, 0.2);
+                border: 1px solid #47a4ff;
+                color: #000;
+            }
+        """
+        self.template_resources_btn.setStyleSheet(button_style)
+        self.template_resources_btn.setFixedWidth(160)
+        self.template_resources_btn.setFixedHeight(26)
+        self.template_reference_btn.setStyleSheet(button_style)
+        self.template_reference_btn.setFixedWidth(160)
+        self.template_reference_btn.setFixedHeight(26)
         
         # Create individual labels for video settings fields
         resolution_name_label = QLabel("Resolution:")
@@ -582,6 +608,14 @@ class TemplateManagerDialog(QDialog):
         bufsize_name_label.setFixedWidth(90)
         bufsize_name_label.setFixedHeight(25)
         
+        resources_name_label = QLabel("Resources:")
+        resources_name_label.setFixedWidth(90)
+        resources_name_label.setFixedHeight(25)
+        
+        reference_name_label = QLabel("Reference:")
+        reference_name_label.setFixedWidth(90)
+        reference_name_label.setFixedHeight(25)
+        
         settings_layout.addRow(resolution_name_label, self.resolution_label)
         settings_layout.addRow(fps_name_label, self.fps_label)
         settings_layout.addRow(codec_name_label, self.codec_label)
@@ -590,6 +624,8 @@ class TemplateManagerDialog(QDialog):
         settings_layout.addRow(video_bitrate_name_label, self.video_bitrate_label)
         settings_layout.addRow(maxrate_name_label, self.maxrate_label)
         settings_layout.addRow(bufsize_name_label, self.bufsize_label)
+        settings_layout.addRow(resources_name_label, self.template_resources_btn)
+        settings_layout.addRow(reference_name_label, self.template_reference_btn)
         
         center_layout.addWidget(settings_group)
         
@@ -685,6 +721,20 @@ class TemplateManagerDialog(QDialog):
         category_icon = category_info.get('icon', '')
         self.template_category_label.setText(f"{category_icon} {category_name}")
         
+        # Update resources and reference buttons
+        resources_url = template_data.get('resources', 'https://iconsna.xyz/')
+        reference_url = template_data.get('reference', 'https://youtube.com/')
+        
+        self.template_resources_btn.setText(resources_url)
+        self.template_reference_btn.setText(reference_url)
+        
+        # Connect button clicks to open URLs
+        self.template_resources_btn.clicked.disconnect() if self.template_resources_btn.receivers(self.template_resources_btn.clicked) > 0 else None
+        self.template_reference_btn.clicked.disconnect() if self.template_reference_btn.receivers(self.template_reference_btn.clicked) > 0 else None
+        
+        self.template_resources_btn.clicked.connect(lambda: self.open_url(resources_url))
+        self.template_reference_btn.clicked.connect(lambda: self.open_url(reference_url))
+        
 
         
         # Update video settings
@@ -698,11 +748,12 @@ class TemplateManagerDialog(QDialog):
         self.maxrate_label.setText(video_settings.get('maxrate', 'Unknown'))
         self.bufsize_label.setText(video_settings.get('bufsize', 'Unknown'))
         
-
-        
-
-    
-
+    def open_url(self, url: str):
+        """Open URL in default browser"""
+        try:
+            QDesktopServices.openUrl(QUrl(url))
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Could not open URL: {url}\nError: {str(e)}")
             
     def update_button_states(self):
         """Update button enabled states based on selection"""

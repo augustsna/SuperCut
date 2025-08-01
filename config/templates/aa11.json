@@ -1,0 +1,322 @@
+{
+  "name": "AA11",
+  "description": "Template created from current settings",
+  "category": "custom",
+  "resources": "https://iconsna1.xyz/",
+  "reference": "https://youtube2.com/",
+  "video_settings": {
+    "codec": "h264_nvenc",
+    "resolution": "1920x1080",
+    "fps": 24,
+    "preset": "medium",
+    "audio_bitrate": "384k",
+    "video_bitrate": "12M",
+    "maxrate": "16M",
+    "bufsize": "24M"
+  },
+  "layer_order": [
+    "background",
+    "overlay1",
+    "overlay2",
+    "overlay3",
+    "overlay4",
+    "overlay5",
+    "overlay6",
+    "overlay7",
+    "overlay8",
+    "overlay9",
+    "overlay10",
+    "intro",
+    "frame_box",
+    "frame_mp3cover",
+    "mp3_cover_overlay",
+    "song_titles",
+    "soundwave"
+  ],
+  "layer_settings": {
+    "overlay1": {
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
+    },
+    "overlay2": {
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
+    },
+    "overlay3": {
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
+    },
+    "overlay4": {
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
+    },
+    "overlay5": {
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
+    },
+    "overlay6": {
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
+    },
+    "overlay7": {
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
+    },
+    "overlay8": {
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0,
+      "effect": "fadein",
+      "duration_full": true,
+      "duration": 6,
+      "start_checkbox": true,
+      "start_at": 5,
+      "start_from": 1,
+      "popup_checkbox": false,
+      "popup_start_at": 5,
+      "popup_num": 1
+    },
+    "overlay9": {
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0,
+      "effect": "fadein",
+      "duration_full": true,
+      "duration": 6,
+      "start_checkbox": true,
+      "start_at": 5,
+      "start_from": 1,
+      "popup_checkbox": false,
+      "popup_start_at": 5,
+      "popup_num": 1
+    },
+    "overlay10": {
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0,
+      "effect": "fadein",
+      "duration": 6,
+      "start_time": 5,
+      "start_time_percent": 0,
+      "song_start_end_checked": false,
+      "start_end_value": "start"
+    },
+    "intro": {
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 50,
+      "y_percent": 50,
+      "effect": "fadeinout",
+      "duration_full": false,
+      "duration": 6,
+      "start_checkbox": true,
+      "start_at": 0,
+      "start_from": 0
+    },
+    "frame_box": {
+      "enabled": false,
+      "custom_image_checkbox": false,
+      "custom_image_path": null,
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0,
+      "path": "",
+      "effect": "fadein",
+      "duration": 6,
+      "duration_full": true,
+      "start_time": 5,
+      "color": [
+        255,
+        255,
+        255
+      ],
+      "opacity": 1.0,
+      "pad_left": 12,
+      "pad_right": 12,
+      "pad_top": 12,
+      "pad_bottom": 48,
+      "caption_checkbox": false,
+      "caption_position": "bottom_center",
+      "caption_type": "text",
+      "caption_text": "Caption",
+      "caption_png_path": null,
+      "caption_font": "",
+      "caption_font_size": 72,
+      "caption_color": [
+        255,
+        255,
+        255
+      ],
+      "caption_effect": "none",
+      "caption_effect_color": [
+        255,
+        255,
+        255
+      ],
+      "caption_effect_intensity": 5
+    },
+    "frame_mp3cover": {
+      "enabled": false,
+      "custom_image_checkbox": false,
+      "custom_image_path": null,
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0,
+      "effect": "fadein",
+      "duration": 6,
+      "duration_full": true,
+      "start_time": 5
+    },
+    "mp3_cover_overlay": {
+      "enabled": false,
+      "custom_image_checkbox": false,
+      "custom_image_path": null,
+      "size_percent": 20,
+      "x_percent": 75,
+      "y_percent": 75,
+      "effect": "fadeinout",
+      "duration": 6,
+      "duration_full": true,
+      "start_at": 0,
+      "frame_color": [
+        0,
+        0,
+        0
+      ],
+      "frame_size": 10
+    },
+    "song_titles": {
+      "enabled": false,
+      "label": " Song Titles :",
+      "effect": "fadeinout",
+      "font": "default",
+      "font_size": 220,
+      "scale_percent": 50,
+      "color": [
+        255,
+        255,
+        255
+      ],
+      "bg": "transparent",
+      "bg_color": [
+        0,
+        0,
+        0
+      ],
+      "opacity": 0.2,
+      "x_percent": 50,
+      "y_percent": 20,
+      "start_at": 5,
+      "text_effect": "none",
+      "text_effect_color": [
+        0,
+        0,
+        0
+      ],
+      "text_effect_intensity": 20
+    },
+    "soundwave": {
+      "enabled": false,
+      "method": "bars",
+      "color": "hue_rotate",
+      "size_percent": 50,
+      "x_percent": 50,
+      "y_percent": 50
+    }
+  },
+  "ui_settings": {
+    "show_intro_settings": true,
+    "show_overlay1_2_settings": true,
+    "show_overlay4_5_settings": true,
+    "show_overlay6_7_settings": true,
+    "show_overlay3_titles_soundwave_settings": true,
+    "show_overlay8_settings": true,
+    "show_overlay9_settings": true,
+    "show_overlay10_settings": true,
+    "show_frame_mp3cover_settings": true,
+    "show_mp3_cover_overlay_settings": true,
+    "show_frame_box_settings": true
+  },
+  "checkbox_labels": {
+    "intro_checkbox_label": "Intro",
+    "background_checkbox_label": "BG Layer",
+    "overlay1_checkbox_label": "Overlay 1",
+    "overlay2_checkbox_label": "Overlay 2",
+    "overlay3_checkbox_label": "Overlay 3",
+    "overlay4_checkbox_label": "Overlay 4",
+    "overlay5_checkbox_label": "Overlay 5",
+    "overlay6_checkbox_label": "Overlay 6",
+    "overlay7_checkbox_label": "Overlay 7",
+    "overlay8_checkbox_label": "Overlay 8",
+    "overlay9_checkbox_label": "Overlay 9",
+    "overlay10_checkbox_label": "Overlay 10",
+    "frame_box_checkbox_label": "Frame Box",
+    "frame_mp3cover_checkbox_label": "Frame MP3",
+    "mp3_cover_overlay_checkbox_label": "MP3 Cover",
+    "song_titles_checkbox_label": "Song Titles",
+    "soundwave_checkbox_label": "Soundwave"
+  },
+  "overlay1_2_effect_settings": {
+    "effect": "fadein",
+    "duration_full": true,
+    "duration": 6,
+    "start_at_checkbox": true,
+    "start_at": 5,
+    "start_from": 0
+  },
+  "overlay4_5_effect_settings": {
+    "effect": "fadein",
+    "duration_full": true,
+    "duration": 6,
+    "start_at_checkbox": true,
+    "start_at": 5,
+    "start_from": 0
+  },
+  "overlay6_7_effect_settings": {
+    "effect": "fadein",
+    "duration_full": true,
+    "duration": 6,
+    "start_at_checkbox": true,
+    "start_at": 5,
+    "start_from": 0
+  },
+  "overlay3_soundwave_effect_settings": {
+    "effect": "fadein",
+    "start_time": 5
+  },
+  "background_layer_settings": {
+    "enabled": false,
+    "scale_percent": 100,
+    "crop_position": "center",
+    "effect": "none",
+    "intensity": 50
+  }
+}
