@@ -54,10 +54,6 @@ def create_template_from_current_settings(
         "name": name,
         "description": description,
         "category": category,
-        "version": "1.0",
-        "created_date": datetime.now().isoformat(),
-        "author": "user",
-        "thumbnail": "",
         "video_settings": {
             "codec": current_settings.get('codec', 'h264_nvenc'),
             "resolution": current_settings.get('resolution', '1920x1080'),
@@ -66,7 +62,7 @@ def create_template_from_current_settings(
             "audio_bitrate": current_settings.get('audio_bitrate', '384k'),
             "video_bitrate": current_settings.get('video_bitrate', '12M'),
             "maxrate": current_settings.get('maxrate', '16M'),
-            "buffsize": current_settings.get('buffsize', '24M')
+            "bufsize": current_settings.get('bufsize', '24M')
         },
         "layer_order": current_settings.get('layer_order', []),
         "layer_settings": current_settings.get('layer_settings', {}),
