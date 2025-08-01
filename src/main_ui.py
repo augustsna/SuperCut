@@ -10435,7 +10435,8 @@ class SuperCutUI(QWidget):
                     'size_percent': self.frame_box_size_percent if hasattr(self, 'frame_box_size_percent') else 50,
                     'x_percent': self.frame_box_x_percent if hasattr(self, 'frame_box_x_percent') else 0,
                     'y_percent': self.frame_box_y_percent if hasattr(self, 'frame_box_y_percent') else 0,
-                    'effect': self.selected_frame_box_effect if hasattr(self, 'selected_frame_box_effect') else "fadein",
+                    'path': self.frame_box_path if hasattr(self, 'frame_box_path') else "",
+                    'effect': self.frame_box_effect if hasattr(self, 'frame_box_effect') else "fadein",
                     'duration': self.frame_box_duration if hasattr(self, 'frame_box_duration') else 6,
                     'duration_full': hasattr(self, 'frame_box_duration_full_checkbox') and self.frame_box_duration_full_checkbox.isChecked(),
                     'start_time': self.frame_box_start_time if hasattr(self, 'frame_box_start_time') else 5,
@@ -10453,7 +10454,9 @@ class SuperCutUI(QWidget):
                     'caption_font': self.frame_box_caption_font if hasattr(self, 'frame_box_caption_font') else "",
                     'caption_font_size': self.frame_box_caption_font_size if hasattr(self, 'frame_box_caption_font_size') else 72,
                     'caption_color': self.frame_box_caption_color if hasattr(self, 'frame_box_caption_color') else (255, 255, 255),
-                    'caption_effect': self.frame_box_caption_effect if hasattr(self, 'frame_box_caption_effect') else "none"
+                    'caption_effect': self.frame_box_caption_effect if hasattr(self, 'frame_box_caption_effect') else "none",
+                    'caption_effect_color': self.frame_box_caption_effect_color if hasattr(self, 'frame_box_caption_effect_color') else (255, 255, 255),
+                    'caption_effect_intensity': self.frame_box_caption_effect_intensity if hasattr(self, 'frame_box_caption_effect_intensity') else 5
                 },
                 'frame_mp3cover': {
                     'enabled': hasattr(self, 'frame_mp3cover_checkbox') and self.frame_mp3cover_checkbox.isChecked(),
@@ -11223,8 +11226,10 @@ class SuperCutUI(QWidget):
                     self.frame_box_x_percent = frame_box_settings.get('x_percent', 0)
                 if hasattr(self, 'frame_box_y_percent'):
                     self.frame_box_y_percent = frame_box_settings.get('y_percent', 0)
-                if hasattr(self, 'selected_frame_box_effect'):
-                    self.selected_frame_box_effect = frame_box_settings.get('effect', 'fadein')
+                if hasattr(self, 'frame_box_path'):
+                    self.frame_box_path = frame_box_settings.get('path', '')
+                if hasattr(self, 'frame_box_effect'):
+                    self.frame_box_effect = frame_box_settings.get('effect', 'fadein')
                 if hasattr(self, 'frame_box_duration'):
                     self.frame_box_duration = frame_box_settings.get('duration', 6)
                 if hasattr(self, 'frame_box_start_time'):
@@ -11259,6 +11264,10 @@ class SuperCutUI(QWidget):
                     self.frame_box_caption_color = frame_box_settings.get('caption_color', (255, 255, 255))
                 if hasattr(self, 'frame_box_caption_effect'):
                     self.frame_box_caption_effect = frame_box_settings.get('caption_effect', 'none')
+                if hasattr(self, 'frame_box_caption_effect_color'):
+                    self.frame_box_caption_effect_color = frame_box_settings.get('caption_effect_color', (255, 255, 255))
+                if hasattr(self, 'frame_box_caption_effect_intensity'):
+                    self.frame_box_caption_effect_intensity = frame_box_settings.get('caption_effect_intensity', 5)
                 
                 # Update UI controls
                 if hasattr(self, 'frame_box_size_combo'):
@@ -11351,6 +11360,12 @@ class SuperCutUI(QWidget):
                         if self.frame_box_caption_effect_combo.itemData(i) == caption_effect:
                             self.frame_box_caption_effect_combo.setCurrentIndex(i)
                             break
+                if hasattr(self, 'frame_box_caption_effect_intensity_combo'):
+                    caption_effect_intensity = frame_box_settings.get('caption_effect_intensity', 5)
+                    for i in range(self.frame_box_caption_effect_intensity_combo.count()):
+                        if self.frame_box_caption_effect_intensity_combo.itemData(i) == caption_effect_intensity:
+                            self.frame_box_caption_effect_intensity_combo.setCurrentIndex(i)
+                            break
                 
                 # Update color buttons
                 if hasattr(self, 'frame_box_color_btn'):
@@ -11359,6 +11374,9 @@ class SuperCutUI(QWidget):
                 if hasattr(self, 'frame_box_caption_color_btn'):
                     caption_color = frame_box_settings.get('caption_color', (255, 255, 255))
                     self.frame_box_caption_color_btn.setStyleSheet(f"background-color: rgb{caption_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                if hasattr(self, 'frame_box_caption_effect_color_btn'):
+                    caption_effect_color = frame_box_settings.get('caption_effect_color', (255, 255, 255))
+                    self.frame_box_caption_effect_color_btn.setStyleSheet(f"background-color: rgb{caption_effect_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
             if 'frame_mp3cover' in layer_settings:
                 frame_mp3cover_settings = layer_settings['frame_mp3cover']
                 if hasattr(self, 'frame_mp3cover_checkbox'):
