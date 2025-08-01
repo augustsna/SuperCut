@@ -8194,6 +8194,28 @@ class SuperCutUI(QWidget):
         self.reset_btn.enterEvent = lambda event: self.reset_btn.setIconSize(QSize(33, 33))
         self.reset_btn.leaveEvent = lambda event: self.reset_btn.setIconSize(QSize(30, 30))
 
+        # Add about button next to reset button
+        self.about_btn = QPushButton("")
+        self.about_btn.setFixedHeight(38)
+        self.about_btn.setFixedWidth(38)
+        about_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "about.png")
+        self.about_btn.setIcon(QIcon(about_icon_path))
+        self.about_btn.setIconSize(QSize(30, 30))
+        self.about_btn.setToolTip("About SuperCut")
+        self.about_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                padding: 3px;
+            }
+        """)
+        self.about_btn.clicked.connect(self.show_about_dialog)
+        
+        # Enable hover events for icon size feedback
+        self.about_btn.setMouseTracking(True)
+        self.about_btn.enterEvent = lambda event: self.about_btn.setIconSize(QSize(33, 33))
+        self.about_btn.leaveEvent = lambda event: self.about_btn.setIconSize(QSize(30, 30))
+
         # Add version text after reset button
         self.version_label = QLabel("v2025.1")
         self.version_label.setStyleSheet("color: #666; font-size: 12px; font-weight: normal;")
@@ -8266,6 +8288,8 @@ class SuperCutUI(QWidget):
         progress_row.setContentsMargins(0, 0, 0, 10)
         progress_row.addSpacing(8)
         progress_row.addWidget(self.reset_btn)
+        progress_row.addSpacing(5)
+        progress_row.addWidget(self.about_btn)
         progress_row.setSpacing(0)
         progress_row.addStretch(0)
         progress_row.addSpacing(32)         
@@ -10040,6 +10064,31 @@ class SuperCutUI(QWidget):
         self.layer_manager_dialog = LayerManagerDialog(self, self.layer_order)
         self.layer_manager_dialog.update_layer_states(layer_states)
         self.layer_manager_dialog.show()
+
+    def show_about_dialog(self):
+        """Show about dialog with application information"""
+        about_text = """
+        <h2>SuperCut</h2>
+        <p><b>Version:</b> 2025.1</p>
+        <p><b>Description:</b> A powerful video creation tool for batch processing MP3 files with customizable overlays and effects.</p>
+        <p><b>Features:</b></p>
+        <ul>
+            <li>Batch video creation from MP3 files</li>
+            <li>Customizable overlays and backgrounds</li>
+            <li>Template management system</li>
+            <li>Layer management and ordering</li>
+            <li>Real-time preview functionality</li>
+            <li>Advanced settings and customization</li>
+        </ul>
+        <p><b>Built with:</b> Python, PyQt6, FFmpeg</p>
+        """
+        
+        msg = QMessageBox(self)
+        msg.setWindowTitle("About SuperCut")
+        msg.setTextFormat(Qt.TextFormat.RichText)
+        msg.setText(about_text)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
 
     def apply_settings(self):
         # Apply window size settings only if window is already shown (i.e., settings were changed)
