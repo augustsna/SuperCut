@@ -5,7 +5,7 @@ import shutil
 from PyQt6.QtCore import QObject, pyqtSignal
 from typing import List, Optional
 from src.ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg, validate_ffmpeg_installation
-from src.utils import set_low_priority, create_temp_file
+from src.utils import set_low_priority, create_temp_file, register_for_cleanup, unregister_from_cleanup, force_garbage_collection
 import time
 from src.logger import logger
 
@@ -382,6 +382,10 @@ class VideoWorker(QObject):
     def run(self):
         """Main processing method"""
         # set_low_priority()  # Removed to keep normal priority
+        
+        # Register worker for memory management
+        worker_name = register_for_cleanup(self, f"video_worker_{id(self)}")
+        
         try:
             # Validate environment before starting
             is_valid, error_msg = self.validate_environment()
@@ -440,6 +444,14 @@ class VideoWorker(QObject):
             error_msg = f"Error during video creation: {str(e)}"
             print(f"❌ {error_msg}")
             self.error.emit(error_msg)
+        
+        finally:
+            # Perform memory cleanup
+            try:
+                force_garbage_collection()
+                unregister_from_cleanup(worker_name)
+            except Exception as e:
+                logger.warning(f"Error during worker cleanup: {e}")
 
     def _print_export_summary(self, total_batches: int):
         """Print export configuration summary"""
@@ -456,8 +468,13 @@ class VideoWorker(QObject):
                       used_images: set, current_number: int, batch_count: int, total_batches: int) -> tuple[bool, list]:
         """Process a single batch of video creation"""
         batch_start_time = time.time()
-        # Select random MP3s
-        selected_mp3s = random.sample(mp3_files, self.min_mp3_count)
+        
+        # Register batch for memory management
+        batch_name = register_for_cleanup(None, f"batch_{current_number}_{id(self)}")
+        
+        try:
+            # Select random MP3s
+            selected_mp3s = random.sample(mp3_files, self.min_mp3_count)
 
         # --- Song Title Overlays: Extract title and create PNG for each selected MP3 ---
         song_title_pngs = []
@@ -1424,6 +1441,16 @@ class VideoWorker(QObject):
         print(f"✔️ Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str}) \u2713") 
         
         return True, failed_moves
+        
+        finally:
+            # Clean up batch memory
+            try:
+                unregister_from_cleanup(batch_name)
+                # Force garbage collection after each batch
+                if batch_count % 5 == 0:  # Every 5 batches
+                    force_garbage_collection()
+            except Exception as e:
+                logger.warning(f"Error during batch cleanup: {e}")
 
     def _cleanup_temp_audio(self, audio_path: str):
         """Clean up temporary audio file"""

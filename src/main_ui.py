@@ -38,7 +38,9 @@ from src.config import (
 )
 from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
-    validate_inputs, validate_media_files, clean_file_path, validate_file_path
+    validate_inputs, validate_media_files, clean_file_path, validate_file_path,
+    get_memory_usage, force_garbage_collection, cleanup_large_objects,
+    get_memory_registry_stats, register_for_cleanup, unregister_from_cleanup
 )
 from src.ui_components import FolderDropLineEdit, PleaseWaitDialog, StoppedDialog, SuccessDialog, DryRunSuccessDialog, ScrollableErrorDialog, ImageDropLineEdit, NoWheelComboBox, KhmerSupportLineEdit, KhmerSupportPlainTextEdit
 from src.video_worker import VideoWorker
@@ -1141,6 +1143,14 @@ class SuperCutUI(QWidget):
         self.layer_manager_dialog = None  # Track layer manager dialog for toggle functionality
         self.template_manager_dialog = None  # Track template manager dialog for toggle functionality
         self._ui_mutex = QMutex()  # Mutex for thread-safe UI updates
+        
+        # Initialize memory management
+        self._memory_timer = QTimer()
+        self._memory_timer.timeout.connect(self._monitor_memory_usage)
+        self._memory_timer.start(30000)  # Check memory every 30 seconds
+        
+        # Register main UI for cleanup
+        register_for_cleanup(self, "main_ui")
         
         self.init_ui()
         self.restore_window_position()
@@ -8761,6 +8771,74 @@ class SuperCutUI(QWidget):
                             errors.append(f"{label}: {error_msg}")
         
         return errors
+    
+    def _monitor_memory_usage(self):
+        """Monitor memory usage and perform cleanup if needed"""
+        try:
+            memory_stats = get_memory_usage()
+            
+            # Log memory usage periodically
+            if hasattr(self, '_memory_log_counter'):
+                self._memory_log_counter += 1
+            else:
+                self._memory_log_counter = 0
+            
+            if self._memory_log_counter % 4 == 0:  # Log every 2 minutes (4 * 30 seconds)
+                logger.info(f"Memory usage: {memory_stats.get('rss_mb', 0):.1f}MB RSS, "
+                          f"{memory_stats.get('percent', 0):.1f}% of system")
+            
+            # Check if memory usage is high
+            rss_mb = memory_stats.get('rss_mb', 0)
+            if rss_mb > 500:  # 500MB threshold
+                logger.warning(f"High memory usage detected: {rss_mb:.1f}MB")
+                
+                # Perform cleanup
+                cleanup_stats = cleanup_large_objects()
+                if cleanup_stats.get('large_objects_cleaned', 0) > 0:
+                    logger.info(f"Cleaned {cleanup_stats['large_objects_cleaned']} large objects, "
+                              f"freed {cleanup_stats.get('freed_mb', 0):.1f}MB")
+                
+                # Force garbage collection
+                gc_stats = force_garbage_collection()
+                if gc_stats.get('collected_objects', 0) > 0:
+                    logger.info(f"Garbage collection freed {gc_stats.get('freed_mb', 0):.1f}MB")
+            
+            # Check registry stats periodically
+            if self._memory_log_counter % 8 == 0:  # Every 4 minutes
+                registry_stats = get_memory_registry_stats()
+                if registry_stats.get('total_objects', 0) > 100:
+                    logger.info(f"Memory registry: {registry_stats['total_objects']} objects, "
+                              f"{registry_stats.get('total_size_mb', 0):.1f}MB")
+        
+        except Exception as e:
+            logger.warning(f"Error in memory monitoring: {e}")
+    
+    def _cleanup_memory(self):
+        """Manual memory cleanup method"""
+        try:
+            logger.info("Performing manual memory cleanup...")
+            
+            # Clean up large objects
+            cleanup_stats = cleanup_large_objects()
+            logger.info(f"Large object cleanup: {cleanup_stats.get('large_objects_cleaned', 0)} objects cleaned")
+            
+            # Force garbage collection
+            gc_stats = force_garbage_collection()
+            logger.info(f"Garbage collection: {gc_stats.get('collected_objects', 0)} objects collected")
+            
+            # Get final memory stats
+            memory_stats = get_memory_usage()
+            logger.info(f"Final memory usage: {memory_stats.get('rss_mb', 0):.1f}MB")
+            
+            return {
+                'cleanup_stats': cleanup_stats,
+                'gc_stats': gc_stats,
+                'final_memory': memory_stats
+            }
+        
+        except Exception as e:
+            logger.error(f"Error during manual memory cleanup: {e}")
+            return {'error': str(e)}
     def _safe_ui_update(self, func, *args, **kwargs):
         """Safely update UI elements from any thread"""
         try:
@@ -12342,6 +12420,11 @@ class SuperCutUI(QWidget):
     def cleanup_all_resources(self):
         """Clean up all threads, timers, and resources safely."""
         try:
+            # Stop memory monitoring
+            if hasattr(self, '_memory_timer'):
+                self._memory_timer.stop()
+                self._memory_timer.deleteLater()
+            
             # Disconnect all signals first
             self.disconnect_all_signals()
             
@@ -12404,6 +12487,12 @@ class SuperCutUI(QWidget):
                 except Exception as e:
                     logger.warning(f"Error closing stopping message box: {e}")
                 self._stopping_msgbox = None
+            
+            # Perform final memory cleanup
+            self._cleanup_memory()
+            
+            # Unregister from memory management
+            unregister_from_cleanup("main_ui")
                 
         except Exception as e:
             logger.error(f"Error during comprehensive cleanup: {e}")
