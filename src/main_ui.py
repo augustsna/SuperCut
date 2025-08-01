@@ -10396,13 +10396,6 @@ class SuperCutUI(QWidget):
             'bufsize': self.settings.value('default_ffmpeg_bufsize', '24M', type=str) if hasattr(self, 'settings') else '24M',
             'layer_order': self.layer_order or [],
             'layer_settings': {
-                'background': {
-                    'enabled': hasattr(self, 'bg_layer_checkbox') and self.bg_layer_checkbox.isChecked(),
-                    'scale_percent': self.bg_scale_percent if hasattr(self, 'bg_scale_percent') else 100,
-                    'crop_position': self.bg_crop_position if hasattr(self, 'bg_crop_position') else "center",
-                    'effect': self.bg_effect if hasattr(self, 'bg_effect') else "none",
-                    'intensity': self.bg_intensity if hasattr(self, 'bg_intensity') else 50
-                },
                 'overlay1': {
                     'enabled': hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked(),
                     'path': self.overlay1_edit.text().strip() if hasattr(self, 'overlay1_edit') else "",
@@ -10652,6 +10645,13 @@ class SuperCutUI(QWidget):
             'overlay3_soundwave_effect_settings': {
                 'effect': self.selected_overlay3_soundwave_effect if hasattr(self, 'selected_overlay3_soundwave_effect') else "fadein",
                 'start_time': self.overlay3_soundwave_start_time if hasattr(self, 'overlay3_soundwave_start_time') else 5
+            },
+            'background_layer_settings': {
+                'enabled': hasattr(self, 'bg_layer_checkbox') and self.bg_layer_checkbox.isChecked(),
+                'scale_percent': self.bg_scale_percent if hasattr(self, 'bg_scale_percent') else 100,
+                'crop_position': self.bg_crop_position if hasattr(self, 'bg_crop_position') else "center",
+                'effect': self.bg_effect if hasattr(self, 'bg_effect') else "none",
+                'intensity': self.bg_intensity if hasattr(self, 'bg_intensity') else 50
             }
         }
         return settings
@@ -10735,46 +10735,6 @@ class SuperCutUI(QWidget):
             
             # Apply layer settings
             layer_settings = template_data.get('layer_settings', {})
-            if 'background' in layer_settings:
-                background_settings = layer_settings['background']
-                if hasattr(self, 'bg_layer_checkbox'):
-                    self.bg_layer_checkbox.setChecked(background_settings.get('enabled', False))
-                if hasattr(self, 'bg_scale_percent'):
-                    self.bg_scale_percent = background_settings.get('scale_percent', 100)
-                if hasattr(self, 'bg_crop_position'):
-                    self.bg_crop_position = background_settings.get('crop_position', 'center')
-                if hasattr(self, 'bg_effect'):
-                    self.bg_effect = background_settings.get('effect', 'none')
-                if hasattr(self, 'bg_intensity'):
-                    self.bg_intensity = background_settings.get('intensity', 50)
-                
-                # Update UI controls to reflect the restored values
-                if hasattr(self, 'bg_scale_combo'):
-                    scale_percent = background_settings.get('scale_percent', 100)
-                    for i in range(self.bg_scale_combo.count()):
-                        if self.bg_scale_combo.itemData(i) == scale_percent:
-                            self.bg_scale_combo.setCurrentIndex(i)
-                            break
-                if hasattr(self, 'bg_crop_position_combo'):
-                    crop_position = background_settings.get('crop_position', 'center')
-                    # Convert from snake_case to Title Case for UI
-                    crop_position_title = crop_position.replace('_', ' ').title()
-                    for i in range(self.bg_crop_position_combo.count()):
-                        if self.bg_crop_position_combo.itemText(i) == crop_position_title:
-                            self.bg_crop_position_combo.setCurrentIndex(i)
-                            break
-                if hasattr(self, 'bg_effect_combo'):
-                    effect = background_settings.get('effect', 'none')
-                    for i in range(self.bg_effect_combo.count()):
-                        if self.bg_effect_combo.itemData(i) == effect:
-                            self.bg_effect_combo.setCurrentIndex(i)
-                            break
-                if hasattr(self, 'bg_intensity_combo'):
-                    intensity = background_settings.get('intensity', 50)
-                    for i in range(self.bg_intensity_combo.count()):
-                        if self.bg_intensity_combo.itemData(i) == intensity:
-                            self.bg_intensity_combo.setCurrentIndex(i)
-                            break
             if 'overlay1' in layer_settings:
                 overlay1_settings = layer_settings['overlay1']
                 if hasattr(self, 'overlay_checkbox'):
@@ -11870,6 +11830,52 @@ class SuperCutUI(QWidget):
                             break
                 if hasattr(self, 'overlay3_soundwave_start_edit'):
                     self.overlay3_soundwave_start_edit.setText(str(overlay3_soundwave_effect_settings.get('start_time', 5)))
+            
+            # Apply background_layer_settings
+            if 'background_layer_settings' in template_data:
+                background_layer_settings = template_data['background_layer_settings']
+                
+                # Update variables
+                if hasattr(self, 'bg_scale_percent'):
+                    self.bg_scale_percent = background_layer_settings.get('scale_percent', 100)
+                if hasattr(self, 'bg_crop_position'):
+                    self.bg_crop_position = background_layer_settings.get('crop_position', 'center')
+                if hasattr(self, 'bg_effect'):
+                    self.bg_effect = background_layer_settings.get('effect', 'none')
+                if hasattr(self, 'bg_intensity'):
+                    self.bg_intensity = background_layer_settings.get('intensity', 50)
+                
+                # Update checkboxes
+                if hasattr(self, 'bg_layer_checkbox'):
+                    self.bg_layer_checkbox.setChecked(background_layer_settings.get('enabled', False))
+                
+                # Update UI controls
+                if hasattr(self, 'bg_scale_combo'):
+                    scale_percent = background_layer_settings.get('scale_percent', 100)
+                    for i in range(self.bg_scale_combo.count()):
+                        if self.bg_scale_combo.itemData(i) == scale_percent:
+                            self.bg_scale_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'bg_crop_position_combo'):
+                    crop_position = background_layer_settings.get('crop_position', 'center')
+                    # Convert from snake_case to Title Case for UI
+                    crop_position_title = crop_position.replace('_', ' ').title()
+                    for i in range(self.bg_crop_position_combo.count()):
+                        if self.bg_crop_position_combo.itemText(i) == crop_position_title:
+                            self.bg_crop_position_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'bg_effect_combo'):
+                    effect = background_layer_settings.get('effect', 'none')
+                    for i in range(self.bg_effect_combo.count()):
+                        if self.bg_effect_combo.itemData(i) == effect:
+                            self.bg_effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'bg_intensity_combo'):
+                    intensity = background_layer_settings.get('intensity', 50)
+                    for i in range(self.bg_intensity_combo.count()):
+                        if self.bg_intensity_combo.itemData(i) == intensity:
+                            self.bg_intensity_combo.setCurrentIndex(i)
+                            break
             
             # Apply UI settings
             ui_settings = template_data.get('ui_settings', {})

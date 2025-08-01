@@ -71,7 +71,8 @@ def create_template_from_current_settings(
         "overlay1_2_effect_settings": current_settings.get('overlay1_2_effect_settings', {}),
         "overlay4_5_effect_settings": current_settings.get('overlay4_5_effect_settings', {}),
         "overlay6_7_effect_settings": current_settings.get('overlay6_7_effect_settings', {}),
-        "overlay3_soundwave_effect_settings": current_settings.get('overlay3_soundwave_effect_settings', {})
+        "overlay3_soundwave_effect_settings": current_settings.get('overlay3_soundwave_effect_settings', {}),
+        "background_layer_settings": current_settings.get('background_layer_settings', {})
     }
     return template
 
@@ -114,6 +115,10 @@ def apply_template_to_settings(template_data: Dict[str, Any]) -> Dict[str, Any]:
     # Apply overlay3_soundwave_effect_settings
     if 'overlay3_soundwave_effect_settings' in template_data:
         settings['overlay3_soundwave_effect_settings'] = template_data['overlay3_soundwave_effect_settings']
+    
+    # Apply background_layer_settings
+    if 'background_layer_settings' in template_data:
+        settings['background_layer_settings'] = template_data['background_layer_settings']
     
     return settings
 
