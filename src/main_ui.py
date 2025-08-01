@@ -10168,6 +10168,18 @@ class SuperCutUI(QWidget):
                 'background': {'enabled': hasattr(self, 'bg_layer_checkbox') and self.bg_layer_checkbox.isChecked()},
                 'overlay1': {'enabled': hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked()},
                 'overlay2': {'enabled': hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked()},
+                'overlay3': {'enabled': hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked()},
+                'overlay4': {'enabled': hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked()},
+                'overlay5': {'enabled': hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked()},
+                'overlay6': {'enabled': hasattr(self, 'overlay6_checkbox') and self.overlay6_checkbox.isChecked()},
+                'overlay7': {'enabled': hasattr(self, 'overlay7_checkbox') and self.overlay7_checkbox.isChecked()},
+                'overlay8': {'enabled': hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked()},
+                'overlay9': {'enabled': hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked()},
+                'overlay10': {'enabled': hasattr(self, 'overlay10_checkbox') and self.overlay10_checkbox.isChecked()},
+                'intro': {'enabled': hasattr(self, 'intro_checkbox') and self.intro_checkbox.isChecked()},
+                'frame_box': {'enabled': hasattr(self, 'frame_box_checkbox') and self.frame_box_checkbox.isChecked()},
+                'frame_mp3cover': {'enabled': hasattr(self, 'frame_mp3cover_checkbox') and self.frame_mp3cover_checkbox.isChecked()},
+                'mp3_cover_overlay': {'enabled': hasattr(self, 'mp3_cover_overlay_checkbox') and self.mp3_cover_overlay_checkbox.isChecked()},
                 'song_titles': {'enabled': hasattr(self, 'song_title_checkbox') and self.song_title_checkbox.isChecked()},
                 'soundwave': {'enabled': hasattr(self, 'soundwave_checkbox') and self.soundwave_checkbox.isChecked()},
             },
@@ -10262,6 +10274,30 @@ class SuperCutUI(QWidget):
                 self.overlay_checkbox.setChecked(layer_settings['overlay1'].get('enabled', False))
             if 'overlay2' in layer_settings and hasattr(self, 'overlay2_checkbox'):
                 self.overlay2_checkbox.setChecked(layer_settings['overlay2'].get('enabled', False))
+            if 'overlay3' in layer_settings and hasattr(self, 'overlay3_checkbox'):
+                self.overlay3_checkbox.setChecked(layer_settings['overlay3'].get('enabled', False))
+            if 'overlay4' in layer_settings and hasattr(self, 'overlay4_checkbox'):
+                self.overlay4_checkbox.setChecked(layer_settings['overlay4'].get('enabled', False))
+            if 'overlay5' in layer_settings and hasattr(self, 'overlay5_checkbox'):
+                self.overlay5_checkbox.setChecked(layer_settings['overlay5'].get('enabled', False))
+            if 'overlay6' in layer_settings and hasattr(self, 'overlay6_checkbox'):
+                self.overlay6_checkbox.setChecked(layer_settings['overlay6'].get('enabled', False))
+            if 'overlay7' in layer_settings and hasattr(self, 'overlay7_checkbox'):
+                self.overlay7_checkbox.setChecked(layer_settings['overlay7'].get('enabled', False))
+            if 'overlay8' in layer_settings and hasattr(self, 'overlay8_checkbox'):
+                self.overlay8_checkbox.setChecked(layer_settings['overlay8'].get('enabled', False))
+            if 'overlay9' in layer_settings and hasattr(self, 'overlay9_checkbox'):
+                self.overlay9_checkbox.setChecked(layer_settings['overlay9'].get('enabled', False))
+            if 'overlay10' in layer_settings and hasattr(self, 'overlay10_checkbox'):
+                self.overlay10_checkbox.setChecked(layer_settings['overlay10'].get('enabled', False))
+            if 'intro' in layer_settings and hasattr(self, 'intro_checkbox'):
+                self.intro_checkbox.setChecked(layer_settings['intro'].get('enabled', False))
+            if 'frame_box' in layer_settings and hasattr(self, 'frame_box_checkbox'):
+                self.frame_box_checkbox.setChecked(layer_settings['frame_box'].get('enabled', False))
+            if 'frame_mp3cover' in layer_settings and hasattr(self, 'frame_mp3cover_checkbox'):
+                self.frame_mp3cover_checkbox.setChecked(layer_settings['frame_mp3cover'].get('enabled', False))
+            if 'mp3_cover_overlay' in layer_settings and hasattr(self, 'mp3_cover_overlay_checkbox'):
+                self.mp3_cover_overlay_checkbox.setChecked(layer_settings['mp3_cover_overlay'].get('enabled', False))
             if 'song_titles' in layer_settings and hasattr(self, 'song_title_checkbox'):
                 self.song_title_checkbox.setChecked(layer_settings['song_titles'].get('enabled', False))
             if 'soundwave' in layer_settings and hasattr(self, 'soundwave_checkbox'):

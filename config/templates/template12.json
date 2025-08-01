@@ -1,11 +1,7 @@
 {
-  "name": "test",
-  "description": "",
-  "category": "music",
-  "version": "1.0",
-  "created_date": "2025-08-01T02:55:30.895478",
-  "author": "user",
-  "thumbnail": "",
+  "name": "Template12",
+  "description": "Template created from current settings",
+  "category": "custom",
   "video_settings": {
     "codec": "h264_nvenc",
     "resolution": "1920x1080",
@@ -40,9 +36,45 @@
       "enabled": false
     },
     "overlay1": {
-      "enabled": false
+      "enabled": true
     },
     "overlay2": {
+      "enabled": true
+    },
+    "overlay3": {
+      "enabled": false
+    },
+    "overlay4": {
+      "enabled": false
+    },
+    "overlay5": {
+      "enabled": false
+    },
+    "overlay6": {
+      "enabled": false
+    },
+    "overlay7": {
+      "enabled": false
+    },
+    "overlay8": {
+      "enabled": false
+    },
+    "overlay9": {
+      "enabled": false
+    },
+    "overlay10": {
+      "enabled": false
+    },
+    "intro": {
+      "enabled": true
+    },
+    "frame_box": {
+      "enabled": false
+    },
+    "frame_mp3cover": {
+      "enabled": false
+    },
+    "mp3_cover_overlay": {
       "enabled": false
     },
     "song_titles": {
