@@ -4143,7 +4143,7 @@ class SuperCutUI(QWidget):
             color = QColorDialog.getColor(QColor(*self.song_title_color), self, "Select Song Title Color")
             if color.isValid():
                 self.song_title_color = (color.red(), color.green(), color.blue())
-                self.song_title_color_btn.setStyleSheet(f"background-color: rgb{self.song_title_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                self.song_title_color_btn.setStyleSheet(f"background-color: rgb({self.song_title_color[0]}, {self.song_title_color[1]}, {self.song_title_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
         self.song_title_color_btn.clicked.connect(on_song_title_color_clicked)
         
         # Background control
@@ -11414,13 +11414,13 @@ class SuperCutUI(QWidget):
                 # Update color buttons
                 if hasattr(self, 'frame_box_color_btn'):
                     color = frame_box_settings.get('color', (255, 255, 255))
-                    self.frame_box_color_btn.setStyleSheet(f"background-color: rgb{color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                    self.frame_box_color_btn.setStyleSheet(f"background-color: rgb({color[0]}, {color[1]}, {color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 if hasattr(self, 'frame_box_caption_color_btn'):
                     caption_color = frame_box_settings.get('caption_color', (255, 255, 255))
-                    self.frame_box_caption_color_btn.setStyleSheet(f"background-color: rgb{caption_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                    self.frame_box_caption_color_btn.setStyleSheet(f"background-color: rgb({caption_color[0]}, {caption_color[1]}, {caption_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 if hasattr(self, 'frame_box_caption_effect_color_btn'):
                     caption_effect_color = frame_box_settings.get('caption_effect_color', (255, 255, 255))
-                    self.frame_box_caption_effect_color_btn.setStyleSheet(f"background-color: rgb{caption_effect_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                    self.frame_box_caption_effect_color_btn.setStyleSheet(f"background-color: rgb({caption_effect_color[0]}, {caption_effect_color[1]}, {caption_effect_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
             if 'frame_mp3cover' in layer_settings:
                 frame_mp3cover_settings = layer_settings['frame_mp3cover']
                 if hasattr(self, 'frame_mp3cover_checkbox'):
@@ -11642,13 +11642,13 @@ class SuperCutUI(QWidget):
                 # Update color buttons
                 if hasattr(self, 'song_title_color_btn'):
                     color = song_titles_settings.get('color', (255, 255, 255))
-                    self.song_title_color_btn.setStyleSheet(f"background-color: rgb{color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                    self.song_title_color_btn.setStyleSheet(f"background-color: rgb({color[0]}, {color[1]}, {color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 if hasattr(self, 'song_title_bg_color_btn'):
                     bg_color = song_titles_settings.get('bg_color', (0, 0, 0))
-                    self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb{bg_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                    self.song_title_bg_color_btn.setStyleSheet(f"background-color: rgb({bg_color[0]}, {bg_color[1]}, {bg_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
                 if hasattr(self, 'song_title_text_effect_color_btn'):
                     effect_color = song_titles_settings.get('text_effect_color', (0, 0, 0))
-                    self.song_title_text_effect_color_btn.setStyleSheet(f"background-color: rgb{effect_color}; border: 1px solid #ccc; padding: 0px; margin: 0px;")
+                    self.song_title_text_effect_color_btn.setStyleSheet(f"background-color: rgb({effect_color[0]}, {effect_color[1]}, {effect_color[2]}); border: 1px solid #ccc; padding: 0px; margin: 0px;")
             if 'soundwave' in layer_settings:
                 soundwave_settings = layer_settings['soundwave']
                 if hasattr(self, 'soundwave_checkbox'):
@@ -12017,6 +12017,7 @@ class SuperCutUI(QWidget):
             
             # Save template
             if save_template(template_data, sanitized_name):
+                print(f"🔖 Template saved: {template_name}")
                 # Temporarily disconnect the signal to prevent loop
                 self.template_combo.currentTextChanged.disconnect(self.on_template_selected)
                 self.load_templates_to_combo()
