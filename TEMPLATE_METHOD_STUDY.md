@@ -51,7 +51,7 @@ Templates are stored as JSON files in `config/templates/` with the following str
     "audio_bitrate": "384k",
     "video_bitrate": "12M",
     "maxrate": "16M",
-    "buffsize": "24M"
+    "bufsize": "24M"
   },
   "layer_order": ["background", "overlay1", "song_titles", "soundwave"],
   "layer_settings": {

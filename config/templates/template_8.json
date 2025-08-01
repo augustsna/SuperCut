@@ -10,7 +10,7 @@
     "audio_bitrate": "128k",
     "video_bitrate": "6M",
     "maxrate": "12M",
-    "buffsize": "16M"
+    "bufsize": "16M"
   },
   "layer_order": [
     "background",

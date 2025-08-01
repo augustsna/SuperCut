@@ -30,7 +30,7 @@ class VideoWorker(QObject):
                  audio_bitrate: str = "384k",
                  video_bitrate: str = "12M",
                  maxrate: str = "16M",
-                 buffsize: str = "24M",
+                 bufsize: str = "24M",
                  use_song_title_overlay: bool = True,
                  song_title_effect: str = "fadeinout",
                  song_title_font: str = "default",
@@ -164,7 +164,7 @@ class VideoWorker(QObject):
         self.audio_bitrate = audio_bitrate
         self.video_bitrate = video_bitrate
         self.maxrate = maxrate
-        self.buffsize = buffsize
+        self.bufsize = bufsize
         self._stop = False
         self._used_images = set()
         self.use_song_title_overlay = use_song_title_overlay
@@ -1156,7 +1156,7 @@ class VideoWorker(QObject):
                 audio_bitrate=self.audio_bitrate,
                 video_bitrate=self.video_bitrate,
                 maxrate=self.maxrate,
-                buffsize=self.buffsize,
+                bufsize=self.bufsize,
                 extra_overlays=extra_overlays,
                 song_title_effect=self.song_title_effect,
                 song_title_font=self.song_title_font,

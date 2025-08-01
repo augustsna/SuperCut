@@ -70,6 +70,6 @@
     "audio_bitrate": "256k",
     "video_bitrate": "8M",
     "maxrate": "12M",
-    "buffsize": "16M"
+    "bufsize": "16M"
   }
 }

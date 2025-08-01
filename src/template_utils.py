@@ -62,7 +62,7 @@ def create_template_from_current_settings(
             "audio_bitrate": current_settings.get('audio_bitrate', '384k'),
             "video_bitrate": current_settings.get('video_bitrate', '12M'),
             "maxrate": current_settings.get('maxrate', '16M'),
-            "buffsize": current_settings.get('buffsize', '24M')
+            "bufsize": current_settings.get('bufsize', '24M')
         },
         "layer_order": current_settings.get('layer_order', []),
         "layer_settings": current_settings.get('layer_settings', {}),
