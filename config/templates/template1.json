@@ -7,10 +7,10 @@
     "resolution": "1920x1080",
     "fps": 24,
     "preset": "medium",
-    "audio_bitrate": "384k",
-    "video_bitrate": "12M",
-    "maxrate": "16M",
-    "buffsize": "24M"
+    "audio_bitrate": "128k",
+    "video_bitrate": "6M",
+    "maxrate": "12M",
+    "buffsize": "16M"
   },
   "layer_order": [
     "background",
@@ -49,27 +49,40 @@
       "x_percent": 0,
       "y_percent": 0
     },
-    "overlay1_2_effect": {
-      "effect": "fadein",
-      "duration": 6,
-      "duration_full": true,
-      "start_at_checkbox": true,
-      "start_from": 0
-    },
     "overlay3": {
-      "enabled": false
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
     },
     "overlay4": {
-      "enabled": false
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
     },
     "overlay5": {
-      "enabled": false
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
     },
     "overlay6": {
-      "enabled": false
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
     },
     "overlay7": {
-      "enabled": false
+      "enabled": false,
+      "path": "",
+      "size_percent": 50,
+      "x_percent": 0,
+      "y_percent": 0
     },
     "overlay8": {
       "enabled": false
@@ -140,5 +153,13 @@
     "mp3_cover_overlay_checkbox_label": "MP3 Cover",
     "song_titles_checkbox_label": "Song Titles",
     "soundwave_checkbox_label": "Soundwave"
+  },
+  "overlay1_2_effect_settings": {
+    "effect": "fadein",
+    "duration_full": true,
+    "duration": 6,
+    "start_at_checkbox": true,
+    "start_at": 5,
+    "start_from": 0
   }
 }

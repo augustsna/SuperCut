@@ -10417,6 +10417,34 @@ class SuperCutUI(QWidget):
                 'mp3_cover_overlay_checkbox_label': self.settings.value('mp3_cover_overlay_checkbox_label', " MP3 Cover Overlay :", type=str),
                 'song_titles_checkbox_label': self.settings.value('song_titles_checkbox_label', " Song Titles :", type=str),
                 'soundwave_checkbox_label': self.settings.value('soundwave_checkbox_label', " Soundwave :", type=str),
+            },
+            'overlay1_2_effect_settings': {
+                'effect': self.selected_overlay1_2_effect if hasattr(self, 'selected_overlay1_2_effect') else "fadein",
+                'duration_full': hasattr(self, 'overlay1_2_duration_full_checkbox') and self.overlay1_2_duration_full_checkbox.isChecked(),
+                'duration': self.overlay1_2_duration if hasattr(self, 'overlay1_2_duration') else 6,
+                'start_at_checkbox': hasattr(self, 'overlay1_2_start_at_checkbox') and self.overlay1_2_start_at_checkbox.isChecked(),
+                'start_at': self.overlay_start_at if hasattr(self, 'overlay_start_at') else 5,
+                'start_from': self.overlay1_2_start_from if hasattr(self, 'overlay1_2_start_from') else 0
+            },
+            'overlay4_5_effect_settings': {
+                'effect': self.selected_overlay4_5_effect if hasattr(self, 'selected_overlay4_5_effect') else "fadein",
+                'duration_full': hasattr(self, 'overlay4_5_duration_full_checkbox') and self.overlay4_5_duration_full_checkbox.isChecked(),
+                'duration': self.overlay4_5_duration if hasattr(self, 'overlay4_5_duration') else 6,
+                'start_at_checkbox': hasattr(self, 'overlay4_5_start_at_checkbox') and self.overlay4_5_start_at_checkbox.isChecked(),
+                'start_at': self.overlay4_5_start_at if hasattr(self, 'overlay4_5_start_at') else 5,
+                'start_from': self.overlay4_5_start_from if hasattr(self, 'overlay4_5_start_from') else 0
+            },
+            'overlay6_7_effect_settings': {
+                'effect': self.selected_overlay6_7_effect if hasattr(self, 'selected_overlay6_7_effect') else "fadein",
+                'duration_full': hasattr(self, 'overlay6_7_duration_full_checkbox') and self.overlay6_7_duration_full_checkbox.isChecked(),
+                'duration': self.overlay6_7_duration if hasattr(self, 'overlay6_7_duration') else 6,
+                'start_at_checkbox': hasattr(self, 'overlay6_7_start_at_checkbox') and self.overlay6_7_start_at_checkbox.isChecked(),
+                'start_at': self.overlay6_7_start_at if hasattr(self, 'overlay6_7_start_at') else 5,
+                'start_from': self.overlay6_7_start_from if hasattr(self, 'overlay6_7_start_from') else 0
+            },
+            'overlay3_soundwave_effect_settings': {
+                'effect': self.selected_overlay3_soundwave_effect if hasattr(self, 'selected_overlay3_soundwave_effect') else "fadein",
+                'start_time': self.overlay3_soundwave_start_time if hasattr(self, 'overlay3_soundwave_start_time') else 5
             }
         }
         return settings
@@ -10799,6 +10827,128 @@ class SuperCutUI(QWidget):
                 self.song_title_checkbox.setChecked(layer_settings['song_titles'].get('enabled', False))
             if 'soundwave' in layer_settings and hasattr(self, 'soundwave_checkbox'):
                 self.soundwave_checkbox.setChecked(layer_settings['soundwave'].get('enabled', False))
+            
+            # Apply overlay1_2_effect_settings
+            if 'overlay1_2_effect_settings' in template_data:
+                overlay1_2_effect_settings = template_data['overlay1_2_effect_settings']
+                
+                # Update variables
+                if hasattr(self, 'selected_overlay1_2_effect'):
+                    self.selected_overlay1_2_effect = overlay1_2_effect_settings.get('effect', 'fadein')
+                if hasattr(self, 'overlay1_2_duration'):
+                    self.overlay1_2_duration = overlay1_2_effect_settings.get('duration', 6)
+                if hasattr(self, 'overlay_start_at'):
+                    self.overlay_start_at = overlay1_2_effect_settings.get('start_at', 5)
+                if hasattr(self, 'overlay1_2_start_from'):
+                    self.overlay1_2_start_from = overlay1_2_effect_settings.get('start_from', 0)
+                
+                # Update checkboxes
+                if hasattr(self, 'overlay1_2_duration_full_checkbox'):
+                    self.overlay1_2_duration_full_checkbox.setChecked(overlay1_2_effect_settings.get('duration_full', True))
+                if hasattr(self, 'overlay1_2_start_at_checkbox'):
+                    self.overlay1_2_start_at_checkbox.setChecked(overlay1_2_effect_settings.get('start_at_checkbox', True))
+                
+                # Update UI controls
+                if hasattr(self, 'effect_combo'):
+                    effect = overlay1_2_effect_settings.get('effect', 'fadein')
+                    for i in range(self.effect_combo.count()):
+                        if self.effect_combo.itemData(i) == effect:
+                            self.effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay1_2_duration_edit'):
+                    self.overlay1_2_duration_edit.setText(str(overlay1_2_effect_settings.get('duration', 6)))
+                if hasattr(self, 'overlay1_2_start_at_edit'):
+                    self.overlay1_2_start_at_edit.setText(str(overlay1_2_effect_settings.get('start_at', 5)))
+                if hasattr(self, 'overlay1_2_start_from_edit'):
+                    self.overlay1_2_start_from_edit.setText(str(overlay1_2_effect_settings.get('start_from', 0)))
+            
+            # Apply overlay4_5_effect_settings
+            if 'overlay4_5_effect_settings' in template_data:
+                overlay4_5_effect_settings = template_data['overlay4_5_effect_settings']
+                
+                # Update variables
+                if hasattr(self, 'selected_overlay4_5_effect'):
+                    self.selected_overlay4_5_effect = overlay4_5_effect_settings.get('effect', 'fadein')
+                if hasattr(self, 'overlay4_5_duration'):
+                    self.overlay4_5_duration = overlay4_5_effect_settings.get('duration', 6)
+                if hasattr(self, 'overlay4_5_start_at'):
+                    self.overlay4_5_start_at = overlay4_5_effect_settings.get('start_at', 5)
+                if hasattr(self, 'overlay4_5_start_from'):
+                    self.overlay4_5_start_from = overlay4_5_effect_settings.get('start_from', 0)
+                
+                # Update checkboxes
+                if hasattr(self, 'overlay4_5_duration_full_checkbox'):
+                    self.overlay4_5_duration_full_checkbox.setChecked(overlay4_5_effect_settings.get('duration_full', True))
+                if hasattr(self, 'overlay4_5_start_at_checkbox'):
+                    self.overlay4_5_start_at_checkbox.setChecked(overlay4_5_effect_settings.get('start_at_checkbox', True))
+                
+                # Update UI controls
+                if hasattr(self, 'overlay4_5_effect_combo'):
+                    effect = overlay4_5_effect_settings.get('effect', 'fadein')
+                    for i in range(self.overlay4_5_effect_combo.count()):
+                        if self.overlay4_5_effect_combo.itemData(i) == effect:
+                            self.overlay4_5_effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay4_5_duration_edit'):
+                    self.overlay4_5_duration_edit.setText(str(overlay4_5_effect_settings.get('duration', 6)))
+                if hasattr(self, 'overlay4_5_start_edit'):
+                    self.overlay4_5_start_edit.setText(str(overlay4_5_effect_settings.get('start_at', 5)))
+                if hasattr(self, 'overlay4_5_start_from_edit'):
+                    self.overlay4_5_start_from_edit.setText(str(overlay4_5_effect_settings.get('start_from', 0)))
+            
+            # Apply overlay6_7_effect_settings
+            if 'overlay6_7_effect_settings' in template_data:
+                overlay6_7_effect_settings = template_data['overlay6_7_effect_settings']
+                
+                # Update variables
+                if hasattr(self, 'selected_overlay6_7_effect'):
+                    self.selected_overlay6_7_effect = overlay6_7_effect_settings.get('effect', 'fadein')
+                if hasattr(self, 'overlay6_7_duration'):
+                    self.overlay6_7_duration = overlay6_7_effect_settings.get('duration', 6)
+                if hasattr(self, 'overlay6_7_start_at'):
+                    self.overlay6_7_start_at = overlay6_7_effect_settings.get('start_at', 5)
+                if hasattr(self, 'overlay6_7_start_from'):
+                    self.overlay6_7_start_from = overlay6_7_effect_settings.get('start_from', 0)
+                
+                # Update checkboxes
+                if hasattr(self, 'overlay6_7_duration_full_checkbox'):
+                    self.overlay6_7_duration_full_checkbox.setChecked(overlay6_7_effect_settings.get('duration_full', True))
+                if hasattr(self, 'overlay6_7_start_at_checkbox'):
+                    self.overlay6_7_start_at_checkbox.setChecked(overlay6_7_effect_settings.get('start_at_checkbox', True))
+                
+                # Update UI controls
+                if hasattr(self, 'overlay6_7_effect_combo'):
+                    effect = overlay6_7_effect_settings.get('effect', 'fadein')
+                    for i in range(self.overlay6_7_effect_combo.count()):
+                        if self.overlay6_7_effect_combo.itemData(i) == effect:
+                            self.overlay6_7_effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay6_7_duration_edit'):
+                    self.overlay6_7_duration_edit.setText(str(overlay6_7_effect_settings.get('duration', 6)))
+                if hasattr(self, 'overlay6_7_start_edit'):
+                    self.overlay6_7_start_edit.setText(str(overlay6_7_effect_settings.get('start_at', 5)))
+                if hasattr(self, 'overlay6_7_start_from_edit'):
+                    self.overlay6_7_start_from_edit.setText(str(overlay6_7_effect_settings.get('start_from', 0)))
+            
+            # Apply overlay3_soundwave_effect_settings
+            if 'overlay3_soundwave_effect_settings' in template_data:
+                overlay3_soundwave_effect_settings = template_data['overlay3_soundwave_effect_settings']
+                
+                # Update variables
+                if hasattr(self, 'selected_overlay3_soundwave_effect'):
+                    self.selected_overlay3_soundwave_effect = overlay3_soundwave_effect_settings.get('effect', 'fadein')
+                if hasattr(self, 'overlay3_soundwave_start_time'):
+                    self.overlay3_soundwave_start_time = overlay3_soundwave_effect_settings.get('start_time', 5)
+                
+                # Update UI controls
+                if hasattr(self, 'overlay3_soundwave_effect_combo'):
+                    effect = overlay3_soundwave_effect_settings.get('effect', 'fadein')
+                    for i in range(self.overlay3_soundwave_effect_combo.count()):
+                        if self.overlay3_soundwave_effect_combo.itemData(i) == effect:
+                            self.overlay3_soundwave_effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay3_soundwave_start_edit'):
+                    self.overlay3_soundwave_start_edit.setText(str(overlay3_soundwave_effect_settings.get('start_time', 5)))
             
             # Apply UI settings
             ui_settings = template_data.get('ui_settings', {})

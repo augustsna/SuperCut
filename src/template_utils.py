@@ -67,7 +67,11 @@ def create_template_from_current_settings(
         "layer_order": current_settings.get('layer_order', []),
         "layer_settings": current_settings.get('layer_settings', {}),
         "ui_settings": current_settings.get('ui_settings', {}),
-        "checkbox_labels": current_settings.get('checkbox_labels', {})
+        "checkbox_labels": current_settings.get('checkbox_labels', {}),
+        "overlay1_2_effect_settings": current_settings.get('overlay1_2_effect_settings', {}),
+        "overlay4_5_effect_settings": current_settings.get('overlay4_5_effect_settings', {}),
+        "overlay6_7_effect_settings": current_settings.get('overlay6_7_effect_settings', {}),
+        "overlay3_soundwave_effect_settings": current_settings.get('overlay3_soundwave_effect_settings', {})
     }
     return template
 
@@ -94,6 +98,22 @@ def apply_template_to_settings(template_data: Dict[str, Any]) -> Dict[str, Any]:
     # Apply checkbox labels
     if 'checkbox_labels' in template_data:
         settings['checkbox_labels'] = template_data['checkbox_labels']
+    
+    # Apply overlay1_2_effect_settings
+    if 'overlay1_2_effect_settings' in template_data:
+        settings['overlay1_2_effect_settings'] = template_data['overlay1_2_effect_settings']
+    
+    # Apply overlay4_5_effect_settings
+    if 'overlay4_5_effect_settings' in template_data:
+        settings['overlay4_5_effect_settings'] = template_data['overlay4_5_effect_settings']
+    
+    # Apply overlay6_7_effect_settings
+    if 'overlay6_7_effect_settings' in template_data:
+        settings['overlay6_7_effect_settings'] = template_data['overlay6_7_effect_settings']
+    
+    # Apply overlay3_soundwave_effect_settings
+    if 'overlay3_soundwave_effect_settings' in template_data:
+        settings['overlay3_soundwave_effect_settings'] = template_data['overlay3_soundwave_effect_settings']
     
     return settings
 
