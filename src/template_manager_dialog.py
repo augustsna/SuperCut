@@ -27,7 +27,7 @@ from src.template_utils import (
     import_template,
     get_template_preview_info
 )
-from src.config import get_template_categories, save_template, delete_template
+from src.config import get_template_categories, save_template, delete_template, load_template
 from src.layer_manager import LayerManagerWidget
 
 class TemplateManagerDialog(QDialog):
@@ -91,7 +91,6 @@ class TemplateManagerDialog(QDialog):
                 font-weight: 500;
             }
             QPushButton:hover {
-                
                 border: 2px solid #47a4ff;
             }
         """)
@@ -105,7 +104,6 @@ class TemplateManagerDialog(QDialog):
                 font-weight: 500;
             }
             QPushButton:hover {
-                
                 border: 2px solid #47a4ff;
             }
         """)
@@ -119,7 +117,6 @@ class TemplateManagerDialog(QDialog):
                 font-weight: 500;
             }
             QPushButton:hover {
-                
                 border: 2px solid #47a4ff;
             }
         """)
@@ -191,7 +188,6 @@ class TemplateManagerDialog(QDialog):
                 font-weight: 500;
             }
             QPushButton:hover {
-                
                 border: 2px solid #47a4ff;
             }
         """)
@@ -206,7 +202,6 @@ class TemplateManagerDialog(QDialog):
                 font-weight: 500;
             }
             QPushButton:hover {
-                
                 border: 2px solid #e24a4a;
             }
         """)
@@ -838,19 +833,30 @@ class TemplateManagerDialog(QDialog):
         self.accept()
         
     def edit_selected_template(self):
-        """Edit the selected template - temporarily disabled"""
+        """Edit the selected template JSON file"""
         if not self.selected_template:
             return
             
-        # Temporary: Show message that edit dialog is disabled
-        QMessageBox.information(
-            self, 
-            "Edit Template", 
-            f"Edit dialog for template '{self.selected_template.get('name', 'Unknown')}' is temporarily disabled.\n\n"
-            "The edit functionality will be restored in a future update."
-        )
-                
-
+        template_name = self.selected_template.get('name', 'Unknown')
+        template_filename = template_name.lower().replace(' ', '_')
+        
+        # Load the current template data
+        from src.config import load_template
+        template_data = load_template(template_filename)
+        
+        if not template_data:
+            QMessageBox.warning(self, "Error", f"Could not load template '{template_name}'")
+            return
+        
+        # Create edit dialog
+        edit_dialog = TemplateEditDialog(self, template_data, template_filename)
+        if edit_dialog.exec() == QDialog.DialogCode.Accepted:
+            # Reload templates to reflect changes
+            self.load_templates()
+            # Update preview if this template is still selected
+            if self.selected_template and self.selected_template.get('name') == template_name:
+                self.selected_template = template_data
+                self.update_template_preview(template_data)
         
     def delete_selected_template(self):
         """Delete the selected template"""
@@ -868,7 +874,6 @@ class TemplateManagerDialog(QDialog):
         if reply == QMessageBox.StandardButton.Yes:
             template_filename = template_name.lower().replace(' ', '_')
             if delete_template(template_filename):
-                QMessageBox.information(self, "Success", f"Template '{template_name}' deleted successfully!")
                 self.load_templates()
                 self.selected_template = None
                 self.update_template_preview(None)
@@ -888,7 +893,6 @@ class TemplateManagerDialog(QDialog):
         if file_path:
             success, message = import_template(file_path)
             if success:
-                QMessageBox.information(self, "Success", message)
                 self.load_templates()
             else:
                 QMessageBox.warning(self, "Import Error", message)
@@ -908,6 +912,167 @@ class TemplateManagerDialog(QDialog):
         
         if file_path:
             if export_template(template_name, file_path):
-                QMessageBox.information(self, "Success", f"Template exported to {file_path}")
+                pass  # Success - no dialog needed
             else:
-                QMessageBox.warning(self, "Export Error", "Failed to export template.") 
+                QMessageBox.warning(self, "Export Error", "Failed to export template.")
+
+
+class TemplateEditDialog(QDialog):
+    """Dialog for editing template JSON files"""
+    
+    def __init__(self, parent=None, template_data=None, template_filename=None):
+        super().__init__(parent)
+        self.template_data = template_data or {}
+        self.template_filename = template_filename
+        self.original_data = template_data.copy() if template_data else {}
+        self.init_ui()
+        
+    def init_ui(self):
+        """Initialize the user interface"""
+        self.setWindowTitle(f"Edit Template: {self.template_data.get('name', 'Unknown')}")
+        self.setModal(True)
+        self.setFixedSize(700, 600)
+        
+        layout = QVBoxLayout(self)
+        
+        # Title
+        title_label = QLabel(f"Edit Template: {self.template_data.get('name', 'Unknown')}")
+        title_label.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 10px;")
+        layout.addWidget(title_label)
+        
+        # JSON Editor
+        self.json_editor = QTextEdit()
+        self.json_editor.setFont(QFont("Consolas", 10))
+        self.json_editor.setStyleSheet("""
+            QTextEdit {
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                padding: 8px;
+                font-family: 'Consolas', 'Monaco', monospace;
+            }
+        """)
+        
+        # Load current JSON data
+        import json
+        try:
+            json_text = json.dumps(self.template_data, indent=2, ensure_ascii=False)
+            self.json_editor.setPlainText(json_text)
+        except Exception as e:
+            self.json_editor.setPlainText(f"Error formatting JSON: {e}")
+        
+        layout.addWidget(self.json_editor)
+        
+        # Buttons
+        button_layout = QHBoxLayout()
+        
+        self.save_btn = QPushButton("Save")
+        self.save_btn.setFixedWidth(80)
+        self.save_btn.setFixedHeight(30)
+        self.save_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4a90e2;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #357ABD;
+            }
+        """)
+        
+        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn.setFixedWidth(80)
+        self.cancel_btn.setFixedHeight(30)
+        self.cancel_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4a90e2;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background-color: #357ABD;
+            }
+        """)
+        
+        self.reset_btn = QPushButton("Reset")
+        self.reset_btn.setFixedWidth(80)
+        self.reset_btn.setFixedHeight(30)
+        self.reset_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ffffff;
+                color: #333333;
+                border: 1px solid #cccccc;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                border: 2px solid #47a4ff;
+            }
+        """)
+        
+        button_layout.addWidget(self.reset_btn)
+        button_layout.addStretch()
+        button_layout.addWidget(self.save_btn)
+        button_layout.addWidget(self.cancel_btn)
+        button_layout.addStretch()
+        button_layout.addSpacing(60)
+        layout.addLayout(button_layout)
+        
+        # Connect signals
+        self.save_btn.clicked.connect(self.save_template)
+        self.cancel_btn.clicked.connect(self.reject)
+        self.reset_btn.clicked.connect(self.reset_to_original)
+        
+        # Add keyboard shortcuts
+        self.add_keyboard_shortcuts()
+        
+    def save_template(self):
+        """Save the edited template"""
+        try:
+            # Parse JSON from editor
+            json_text = self.json_editor.toPlainText()
+            import json
+            new_template_data = json.loads(json_text)
+            
+            # Validate the JSON structure
+            if not isinstance(new_template_data, dict):
+                QMessageBox.warning(self, "Invalid JSON", "Template data must be a JSON object.")
+                return
+                
+            if 'name' not in new_template_data:
+                QMessageBox.warning(self, "Invalid Template", "Template must have a 'name' field.")
+                return
+            
+            # Save the template
+            if save_template(new_template_data, self.template_filename):
+                self.template_data = new_template_data
+                self.accept()
+            else:
+                QMessageBox.warning(self, "Save Error", "Failed to save template.")
+                
+        except json.JSONDecodeError as e:
+            QMessageBox.warning(self, "Invalid JSON", f"JSON syntax error: {e}")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Error saving template: {e}")
+    
+    def reset_to_original(self):
+        """Reset the editor to the original template data"""
+        import json
+        try:
+            json_text = json.dumps(self.original_data, indent=2, ensure_ascii=False)
+            self.json_editor.setPlainText(json_text)
+        except Exception as e:
+            QMessageBox.warning(self, "Reset Error", f"Error resetting to original: {e}")
+    
+    def add_keyboard_shortcuts(self):
+        """Add keyboard shortcuts to the dialog"""
+        # Ctrl+W to close dialog
+        close_shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
+        close_shortcut.activated.connect(self.reject) 

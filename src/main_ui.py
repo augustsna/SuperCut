@@ -12017,7 +12017,7 @@ class SuperCutUI(QWidget):
             
             # Save template
             if save_template(template_data, sanitized_name):
-                print(f"🔖 Template saved: {template_name}")
+                print(f"\n🔖 Template saved and applied: {template_name}\n")
                 # Temporarily disconnect the signal to prevent loop
                 self.template_combo.currentTextChanged.disconnect(self.on_template_selected)
                 self.load_templates_to_combo()
