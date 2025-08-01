@@ -10050,7 +10050,7 @@ class SuperCutUI(QWidget):
             self.layer_manager_dialog = None
             return
         layer_states = {
-            'background': True,  # Always enabled
+            'background': True,  # Always enabled - template checkbox state doesn't affect layer manager
             'overlay1': hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked(),
             'overlay2': hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked(),
             'overlay3': hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked(),
@@ -11845,7 +11845,7 @@ class SuperCutUI(QWidget):
                 if hasattr(self, 'bg_intensity'):
                     self.bg_intensity = background_layer_settings.get('intensity', 50)
                 
-                # Update checkboxes
+                # Update checkboxes - but don't let background layer checkbox affect layer manager
                 if hasattr(self, 'bg_layer_checkbox'):
                     self.bg_layer_checkbox.setChecked(background_layer_settings.get('enabled', False))
                 
@@ -11909,9 +11909,14 @@ class SuperCutUI(QWidget):
             # Print enabled layers (those with 'enabled': True in layer_settings)
             enabled_layers = []
             layer_settings = template_data.get('layer_settings', {})
+            background_layer_settings = template_data.get('background_layer_settings', {})
+            
             for lname in self.layer_order:
                 key = lname.lower().replace(' ', '_')
-                if key in layer_settings and layer_settings[key].get('enabled'):
+                if key == 'background':
+                    # Background layer is always enabled in layer manager
+                    enabled_layers.append(lname)
+                elif key in layer_settings and layer_settings[key].get('enabled'):
                     enabled_layers.append(lname)
             print(f"🔖 Enabled layers: {enabled_layers}")
             
