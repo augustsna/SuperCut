@@ -1506,8 +1506,8 @@ class SuperCutUI(QWidget):
         
         # Template manager button (icon only)
         self.template_manager_btn = QPushButton()
-        self.template_manager_btn.setFixedWidth(45)
-        self.template_manager_btn.setFixedHeight(35)
+        self.template_manager_btn.setFixedWidth(38)
+        self.template_manager_btn.setFixedHeight(38)
         self.template_manager_btn.setToolTip("Manage Templates")
         self.template_manager_btn.clicked.connect(self.open_template_manager)
         
@@ -1515,7 +1515,7 @@ class SuperCutUI(QWidget):
         template_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "template.png")
         if os.path.exists(template_icon_path):
             self.template_manager_btn.setIcon(QIcon(template_icon_path))
-            self.template_manager_btn.setIconSize(QSize(31, 31))
+            self.template_manager_btn.setIconSize(QSize(32, 32))
             # Set transparent background
             self.template_manager_btn.setStyleSheet("""
                 QPushButton {
@@ -1528,13 +1528,13 @@ class SuperCutUI(QWidget):
             
             # Enable hover events for icon size feedback
             self.template_manager_btn.setMouseTracking(True)
-            self.template_manager_btn.enterEvent = lambda event: self.template_manager_btn.setIconSize(QSize(34, 34))
-            self.template_manager_btn.leaveEvent = lambda event: self.template_manager_btn.setIconSize(QSize(31, 31))
+            self.template_manager_btn.enterEvent = lambda event: self.template_manager_btn.setIconSize(QSize(35, 35))
+            self.template_manager_btn.leaveEvent = lambda event: self.template_manager_btn.setIconSize(QSize(32, 32))
         
         # Save current as template button
         self.save_template_btn = QPushButton("Save")
-        self.save_template_btn.setFixedWidth(38)
-        self.save_template_btn.setFixedHeight(38)
+        self.save_template_btn.setFixedWidth(60)
+        self.save_template_btn.setFixedHeight(30)
         self.save_template_btn.clicked.connect(self.save_current_as_template)
     
         
