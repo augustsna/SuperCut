@@ -11807,7 +11807,7 @@ class SuperCutUI(QWidget):
             self.apply_settings()
             
             # Print current FFmpeg settings after template application
-            print("\n📹 Template Applied for Video Creation:")
+            print("\n🔖 Template Applied for Video Creation:")
             print(f"FPS: {self.fps_combo.currentData() if hasattr(self, 'fps_combo') else 'N/A'}")
             print(f"Preset: {self.preset_combo.currentData() if hasattr(self, 'preset_combo') else 'N/A'}")
             print(f"Maxrate: {self.settings.value('default_ffmpeg_maxrate', '16M', type=str)}")
@@ -11816,6 +11816,16 @@ class SuperCutUI(QWidget):
             print(f"Audio bitrate: {self.settings.value('default_ffmpeg_audio_bitrate', '384k', type=str)}")
             print(f"Resolution: {self.resolution_combo.currentData() if hasattr(self, 'resolution_combo') else 'N/A'}")
             print()
+
+            print(f"🔖 Updated layer order: {self.layer_order}")
+            # Print enabled layers (those with 'enabled': True in layer_settings)
+            enabled_layers = []
+            layer_settings = template_data.get('layer_settings', {})
+            for lname in self.layer_order:
+                key = lname.lower().replace(' ', '_')
+                if key in layer_settings and layer_settings[key].get('enabled'):
+                    enabled_layers.append(lname)
+            print(f"🔖 Enabled layers: {enabled_layers}")
             
             # Update the template combo to show the applied template
             template_name = template_data.get('name', 'Unknown Template')
