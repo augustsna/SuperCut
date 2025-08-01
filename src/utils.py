@@ -19,8 +19,25 @@ TEMP_FILES: Set[str] = set()
 MIN_FREE_SPACE_BYTES = 100 * 1024 * 1024  # 100MB
 
 def sanitize_filename(name: str) -> str:
-    """Remove invalid filename characters: <>:"/\\|?*"""
-    return re.sub(r'[<>:"/\\|?*]', '_', name)
+    """Remove invalid filename characters: <>:"/\\|?* and normalize"""
+    if not name:
+        return "untitled"
+    
+    # Remove invalid characters
+    sanitized = re.sub(r'[<>:"/\\|?*]', '_', name)
+    
+    # Remove leading/trailing spaces and dots
+    sanitized = sanitized.strip(' .')
+    
+    # Ensure it's not empty after sanitization
+    if not sanitized:
+        return "untitled"
+    
+    # Limit length to prevent filesystem issues
+    if len(sanitized) > 200:
+        sanitized = sanitized[:200]
+    
+    return sanitized
 
 def clean_file_path(path: str) -> str:
     """Clean file path by removing file:/// prefix and normalizing the path"""
@@ -54,6 +71,49 @@ def clean_file_path(path: str) -> str:
     
     # Normalize the path
     return os.path.normpath(path)
+
+def validate_file_path(path: str, file_type: str = None) -> tuple[bool, str]:
+    """Validate file path and return (is_valid, error_message)"""
+    if not path:
+        return False, "File path is empty."
+    
+    # Clean the path first
+    cleaned_path = clean_file_path(path)
+    
+    # Check if file exists
+    if not os.path.exists(cleaned_path):
+        return False, f"File does not exist: {cleaned_path}"
+    
+    # Check if it's actually a file (not a directory)
+    if not os.path.isfile(cleaned_path):
+        return False, f"Path is not a file: {cleaned_path}"
+    
+    # Check if file is readable
+    if not os.access(cleaned_path, os.R_OK):
+        return False, f"No permission to read file: {cleaned_path}"
+    
+    # Check file size (prevent processing empty or extremely large files)
+    try:
+        file_size = os.path.getsize(cleaned_path)
+        if file_size == 0:
+            return False, f"File is empty: {cleaned_path}"
+        if file_size > 1024 * 1024 * 1024:  # 1GB limit
+            return False, f"File is too large (>1GB): {cleaned_path}"
+    except OSError:
+        return False, f"Cannot access file size: {cleaned_path}"
+    
+    # Validate file type if specified
+    if file_type:
+        if file_type == "audio" and not is_audio_file(cleaned_path):
+            return False, f"File is not a valid audio file: {cleaned_path}"
+        elif file_type == "image" and not is_image_file(cleaned_path):
+            return False, f"File is not a valid image file: {cleaned_path}"
+        elif file_type == "video" and not is_video_file(cleaned_path):
+            return False, f"File is not a valid video file: {cleaned_path}"
+        elif file_type == "overlay" and not is_overlay_file(cleaned_path):
+            return False, f"File is not a valid overlay file: {cleaned_path}"
+    
+    return True, ""
 
 def get_desktop_folder() -> str:
     """Get the desktop folder path"""
@@ -180,28 +240,77 @@ def format_time(seconds: int) -> str:
     import time
     return time.strftime('%H:%M:%S', time.gmtime(seconds)) if seconds > 0 else "--:--:--"
 
+def validate_numeric_input(value: str, min_val: int = None, max_val: int = None, 
+                          allow_float: bool = False) -> tuple[bool, str, float]:
+    """Validate numeric input and return (is_valid, error_message, numeric_value)"""
+    if not value:
+        return False, "Value is empty.", 0
+    
+    try:
+        if allow_float:
+            num_val = float(value)
+        else:
+            num_val = int(value)
+    except ValueError:
+        return False, f"Value '{value}' is not a valid number.", 0
+    
+    # Check bounds if specified
+    if min_val is not None and num_val < min_val:
+        return False, f"Value must be at least {min_val}.", 0
+    
+    if max_val is not None and num_val > max_val:
+        return False, f"Value must be at most {max_val}.", 0
+    
+    return True, "", num_val
+
 def validate_inputs(media_sources: str, export_name: str, number: str) -> tuple[bool, str]:
     """Validate user inputs and return (is_valid, error_message)"""
     import os
+    
     # Check media_sources is not empty and is a valid directory
     if not media_sources:
         return False, "Please select the media folder."
+    
     if not os.path.isdir(media_sources):
         return False, f"Media folder does not exist: {media_sources}"
-    # Check export_name is not empty and is a valid filename (no path separators)
+    
+    # Check if directory is readable
+    if not os.access(media_sources, os.R_OK):
+        return False, f"No permission to read media folder: {media_sources}"
+    
+    # Check export_name is not empty and is a valid filename
     if not export_name:
         return False, "Please enter an export name."
+    
+    # Sanitize and validate export name
+    sanitized_name = sanitize_filename(export_name)
+    if sanitized_name == "untitled" and export_name.strip():
+        return False, "Export name contains only invalid characters."
+    
+    # Check for path separators
     if any(sep in export_name for sep in (os.sep, os.altsep) if sep):
         return False, "Export name cannot contain path separators."
-    # Check number is a positive integer
+    
+    # Check for reserved filenames (Windows)
+    reserved_names = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 
+                     'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 
+                     'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9']
+    if sanitized_name.upper() in reserved_names:
+        return False, f"Export name '{sanitized_name}' is a reserved system name."
+    
+    # Check number is a positive integer with reasonable bounds
     if not number:
         return False, "Please enter a number."
+    
     try:
         num = int(number)
         if num <= 0:
             return False, "Number must be a positive integer."
+        if num > 999999:
+            return False, "Number must be less than 1,000,000."
     except ValueError:
         return False, "Number must be a valid integer."
+    
     return True, ""
 
 def is_image_valid(path):
@@ -221,15 +330,64 @@ def is_mp3_valid(path):
 
 def validate_media_files(media_sources: str, min_mp3_count: int = 3) -> tuple[bool, str, list, list]:
     """Validate media files and return (is_valid, error_message, mp3_files, image_files)"""
+    import os
+    
+    # Validate media sources directory
+    if not os.path.exists(media_sources):
+        return False, f"Media sources directory does not exist: {media_sources}", [], []
+    
+    if not os.path.isdir(media_sources):
+        return False, f"Media sources path is not a directory: {media_sources}", [], []
+    
+    if not os.access(media_sources, os.R_OK):
+        return False, f"No permission to read media sources directory: {media_sources}", [], []
+    
+    # Get files by type
     mp3_files = get_files_by_type(media_sources, "audio")
     image_files = get_files_by_type(media_sources, "image")
-    # Filter out corrupt files
-    valid_mp3s = [f for f in mp3_files if is_mp3_valid(f)]
-    valid_images = [f for f in image_files if is_image_valid(f)]
+    
+    # Validate minimum count
+    if min_mp3_count < 1:
+        return False, "Minimum MP3 count must be at least 1.", [], []
+    
+    # Filter out corrupt files and validate each file
+    valid_mp3s = []
+    invalid_mp3s = []
+    
+    for mp3_file in mp3_files:
+        is_valid, error_msg = validate_file_path(mp3_file, "audio")
+        if is_valid and is_mp3_valid(mp3_file):
+            valid_mp3s.append(mp3_file)
+        else:
+            invalid_mp3s.append(mp3_file)
+    
+    valid_images = []
+    invalid_images = []
+    
+    for image_file in image_files:
+        is_valid, error_msg = validate_file_path(image_file, "image")
+        if is_valid and is_image_valid(image_file):
+            valid_images.append(image_file)
+        else:
+            invalid_images.append(image_file)
+    
+    # Check for valid images
     if not valid_images:
-        return False, "No valid (non-corrupt) image files found in the media folder.", [], []
-    if not valid_mp3s or len(valid_mp3s) < min_mp3_count:
-        return False, f"Not enough valid (non-corrupt) mp3 files in folder (need at least {min_mp3_count})", [], []
+        if invalid_images:
+            return False, f"No valid image files found. {len(invalid_images)} invalid/corrupt image files detected.", [], []
+        else:
+            return False, "No image files found in the media folder.", [], []
+    
+    # Check for valid MP3s
+    if not valid_mp3s:
+        if invalid_mp3s:
+            return False, f"No valid MP3 files found. {len(invalid_mp3s)} invalid/corrupt MP3 files detected.", [], []
+        else:
+            return False, "No MP3 files found in the media folder.", [], []
+    
+    if len(valid_mp3s) < min_mp3_count:
+        return False, f"Not enough valid MP3 files in folder (need at least {min_mp3_count}, found {len(valid_mp3s)})", [], []
+    
     return True, "", valid_mp3s, valid_images
 
 def extract_mp3_title(mp3_path):

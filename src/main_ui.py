@@ -38,7 +38,7 @@ from src.config import (
 )
 from src.utils import (
     sanitize_filename, get_desktop_folder, open_folder_in_explorer,
-    validate_inputs, validate_media_files, clean_file_path
+    validate_inputs, validate_media_files, clean_file_path, validate_file_path
 )
 from src.ui_components import FolderDropLineEdit, PleaseWaitDialog, StoppedDialog, SuccessDialog, DryRunSuccessDialog, ScrollableErrorDialog, ImageDropLineEdit, NoWheelComboBox, KhmerSupportLineEdit, KhmerSupportPlainTextEdit
 from src.video_worker import VideoWorker
@@ -8559,72 +8559,36 @@ class SuperCutUI(QWidget):
     def create_video(self):
         """Start video creation process"""
         # Step 1: Gather and validate inputs
-        # Intro validation
+        
+        # Validate intro file if enabled
         if self.intro_checkbox.isChecked():
             intro_path = self.intro_edit.text().strip()
-            if not intro_path or not os.path.isfile(intro_path) or os.path.splitext(intro_path)[1].lower() not in ['.gif', '.png','.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
-                QMessageBox.warning(self, "⚠️ Intro Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Intro.", QMessageBox.StandardButton.Ok)
+            is_valid, error_msg = validate_file_path(intro_path, "overlay")
+            if not is_valid:
+                QMessageBox.warning(self, "⚠️ Intro File Required", f"Please provide a valid overlay file for Intro: {error_msg}", QMessageBox.StandardButton.Ok)
                 return
-        # Overlay 1 validation
-        if self.overlay_checkbox.isChecked():
-            overlay_path = self.overlay1_edit.text().strip()
-            if not overlay_path or not os.path.isfile(overlay_path) or os.path.splitext(overlay_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
-                QMessageBox.warning(self, "⚠️ Overlay File Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 1.", QMessageBox.StandardButton.Ok)
-                return
-        # Overlay 2 validation
-        if hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked():
-            overlay2_path = self.overlay2_edit.text().strip()
-            if not overlay2_path or not os.path.isfile(overlay2_path) or os.path.splitext(overlay2_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
-                QMessageBox.warning(self, "⚠️ Overlay 2 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 2.", QMessageBox.StandardButton.Ok)
-                return
-        # Overlay 3 validation
-        if hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked():
-            overlay3_path = self.overlay3_edit.text().strip()
-            if not overlay3_path or not os.path.isfile(overlay3_path) or os.path.splitext(overlay3_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
-                QMessageBox.warning(self, "⚠️ Overlay 3 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 3.", QMessageBox.StandardButton.Ok)
-                return
-        # Overlay 4 validation
-        if hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked():
-            overlay4_path = self.overlay4_edit.text().strip()
-            if not overlay4_path or not os.path.isfile(overlay4_path) or os.path.splitext(overlay4_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
-                QMessageBox.warning(self, "⚠️ Overlay 4 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 4.", QMessageBox.StandardButton.Ok)
-                return
-        # Overlay 5 validation
-        if hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked():
-            overlay5_path = self.overlay5_edit.text().strip()
-            if not overlay5_path or not os.path.isfile(overlay5_path) or os.path.splitext(overlay5_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv ']:
-                QMessageBox.warning(self, "⚠️ Overlay 5 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 5.", QMessageBox.StandardButton.Ok)
-                return
-        # Overlay 6 validation
-        if hasattr(self, 'overlay6_checkbox') and self.overlay6_checkbox.isChecked():
-            overlay6_path = self.overlay6_edit.text().strip()
-            if not overlay6_path or not os.path.isfile(overlay6_path) or os.path.splitext(overlay6_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
-                QMessageBox.warning(self, "⚠️ Overlay 6 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 6.", QMessageBox.StandardButton.Ok)
-                return
-        # Overlay 7 validation
-        if hasattr(self, 'overlay7_checkbox') and self.overlay7_checkbox.isChecked():
-            overlay7_path = self.overlay7_edit.text().strip()
-            if not overlay7_path or not os.path.isfile(overlay7_path) or os.path.splitext(overlay7_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
-                QMessageBox.warning(self, "⚠️ Overlay 7 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 7.", QMessageBox.StandardButton.Ok)
-                return
-        # Overlay 8 validation
-        if hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked():
-            overlay8_path = self.overlay8_edit.text().strip()
-            if not overlay8_path or not os.path.isfile(overlay8_path) or os.path.splitext(overlay8_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
-                QMessageBox.warning(self, "⚠️ Overlay 8 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 8.", QMessageBox.StandardButton.Ok)
-                return
-        # Overlay 9 validation
-        if hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked():
-            overlay9_path = self.overlay9_edit.text().strip()
-            if not overlay9_path or not os.path.isfile(overlay9_path) or os.path.splitext(overlay9_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
-                QMessageBox.warning(self, "⚠️ Overlay 9 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 9.", QMessageBox.StandardButton.Ok)
-                return
-        # Overlay 10 validation
-        if hasattr(self, 'overlay10_checkbox') and self.overlay10_checkbox.isChecked():
-            overlay10_path = self.overlay10_edit.text().strip()
-            if not overlay10_path or not os.path.isfile(overlay10_path) or os.path.splitext(overlay10_path)[1].lower() not in ['.gif', '.png', '.jpg', '.jpeg', '.mp4', '.mov', '.mkv']:
-                QMessageBox.warning(self, "⚠️ Overlay 10 Image Required", "Please provide a valid GIF, PNG, JPG, JPEG, MP4, MOV, or MKV file (*.gif, *.png, *.jpg, *.jpeg, *.mp4, *.mov, *.mkv) for Overlay 10.", QMessageBox.StandardButton.Ok)
-                return
+        
+        # Validate overlay files if enabled
+        overlay_validations = [
+            (self.overlay_checkbox, self.overlay1_edit, "Overlay 1"),
+            (getattr(self, 'overlay2_checkbox', None), getattr(self, 'overlay2_edit', None), "Overlay 2"),
+            (getattr(self, 'overlay3_checkbox', None), getattr(self, 'overlay3_edit', None), "Overlay 3"),
+            (getattr(self, 'overlay4_checkbox', None), getattr(self, 'overlay4_edit', None), "Overlay 4"),
+            (getattr(self, 'overlay5_checkbox', None), getattr(self, 'overlay5_edit', None), "Overlay 5"),
+            (getattr(self, 'overlay6_checkbox', None), getattr(self, 'overlay6_edit', None), "Overlay 6"),
+            (getattr(self, 'overlay7_checkbox', None), getattr(self, 'overlay7_edit', None), "Overlay 7"),
+            (getattr(self, 'overlay8_checkbox', None), getattr(self, 'overlay8_edit', None), "Overlay 8"),
+            (getattr(self, 'overlay9_checkbox', None), getattr(self, 'overlay9_edit', None), "Overlay 9"),
+            (getattr(self, 'overlay10_checkbox', None), getattr(self, 'overlay10_edit', None), "Overlay 10"),
+        ]
+        
+        for checkbox, edit_widget, overlay_name in overlay_validations:
+            if checkbox and checkbox.isChecked() and edit_widget:
+                overlay_path = edit_widget.text().strip()
+                is_valid, error_msg = validate_file_path(overlay_path, "overlay")
+                if not is_valid:
+                    QMessageBox.warning(self, f"⚠️ {overlay_name} Required", f"Please provide a valid overlay file for {overlay_name}: {error_msg}", QMessageBox.StandardButton.Ok)
+                    return
         
         # --- Frame Box Caption validation ---
         if hasattr(self, 'frame_box_checkbox') and self.frame_box_checkbox.isChecked():
@@ -8633,8 +8597,9 @@ class SuperCutUI(QWidget):
                 if hasattr(self, 'frame_box_caption_png_checkbox') and self.frame_box_caption_png_checkbox.isChecked():
                     # PNG mode validation
                     if hasattr(self, 'frame_box_caption_png_path') and self.frame_box_caption_png_path:
-                        if not os.path.isfile(self.frame_box_caption_png_path) or os.path.splitext(self.frame_box_caption_png_path)[1].lower() != '.png':
-                            QMessageBox.warning(self, "⚠️ Frame Box Caption PNG Required", "Please provide a valid PNG file (*.png) for Frame Box Caption.", QMessageBox.StandardButton.Ok)
+                        is_valid, error_msg = validate_file_path(self.frame_box_caption_png_path, "image")
+                        if not is_valid or not self.frame_box_caption_png_path.lower().endswith('.png'):
+                            QMessageBox.warning(self, "⚠️ Frame Box Caption PNG Required", f"Please provide a valid PNG file for Frame Box Caption: {error_msg}", QMessageBox.StandardButton.Ok)
                             return
                     else:
                         QMessageBox.warning(self, "⚠️ Frame Box Caption PNG Required", "Please select a PNG file for Frame Box Caption.", QMessageBox.StandardButton.Ok)
@@ -8646,6 +8611,10 @@ class SuperCutUI(QWidget):
                         if not caption_text:
                             QMessageBox.warning(self, "⚠️ Frame Box Caption Text Required", "Please enter text for Frame Box Caption.", QMessageBox.StandardButton.Ok)
                             return
+                        # Validate text length
+                        if len(caption_text) > 500:
+                            QMessageBox.warning(self, "⚠️ Frame Box Caption Text Too Long", "Caption text must be 500 characters or less.", QMessageBox.StandardButton.Ok)
+                            return
                     else:
                         QMessageBox.warning(self, "⚠️ Frame Box Caption Text Required", "Please enter text for Frame Box Caption.", QMessageBox.StandardButton.Ok)
                         return
@@ -8655,6 +8624,23 @@ class SuperCutUI(QWidget):
         if use_name_list:
             if not self.name_list:
                 QMessageBox.warning(self, "⚠️ Name List Required", "Please enter a name list (one name per line) before processing.", QMessageBox.StandardButton.Ok)
+                return
+            
+            # Validate each name in the list
+            invalid_names = []
+            for i, name in enumerate(self.name_list, 1):
+                if not name or not name.strip():
+                    invalid_names.append(f"Line {i}: Empty name")
+                elif len(name.strip()) > 100:
+                    invalid_names.append(f"Line {i}: Name too long (max 100 characters)")
+                elif any(char in name for char in ['<', '>', ':', '"', '/', '\\', '|', '?', '*']):
+                    invalid_names.append(f"Line {i}: Name contains invalid characters")
+            
+            if invalid_names:
+                error_msg = "Invalid names found:\n" + "\n".join(invalid_names[:10])  # Show first 10 errors
+                if len(invalid_names) > 10:
+                    error_msg += f"\n... and {len(invalid_names) - 10} more errors"
+                QMessageBox.warning(self, "⚠️ Invalid Names", error_msg, QMessageBox.StandardButton.Ok)
                 return
         inputs = self._gather_and_validate_inputs()
         if not inputs:
@@ -8701,6 +8687,14 @@ class SuperCutUI(QWidget):
                 min_mp3_count = DEFAULT_MIN_MP3_COUNT
         else:
             min_mp3_count = DEFAULT_MIN_MP3_COUNT
+        
+        # Validate numeric inputs
+        numeric_errors = self._validate_numeric_inputs()
+        if numeric_errors:
+            error_msg = "Numeric input validation errors:\n" + "\n".join(numeric_errors)
+            QMessageBox.warning(self, "⚠️ Numeric Input Error", error_msg, QMessageBox.StandardButton.Ok)
+            return None
+        
         if not use_name_list:
             is_valid, error_msg = validate_inputs(media_sources, export_name or "", number)
             if not is_valid:
@@ -8711,6 +8705,62 @@ class SuperCutUI(QWidget):
             QMessageBox.critical(self, "❌ Error", error_msg)
             return None
         return (media_sources, export_name, number, folder, codec, resolution, fps, set(mp3_files), set(image_files), min_mp3_count)
+    
+    def _validate_numeric_inputs(self):
+        """Validate all numeric inputs in the UI. Return list of error messages."""
+        errors = []
+        
+        # Import the validation function
+        from src.utils import validate_numeric_input
+        
+        # Validate MP3 count if enabled
+        if self.mp3_count_checkbox.isChecked():
+            count_text = self.mp3_count_edit.text().strip()
+            is_valid, error_msg, _ = validate_numeric_input(count_text, min_val=1, max_val=1000)
+            if not is_valid:
+                errors.append(f"MP3 count: {error_msg}")
+        
+        # Validate intro duration if enabled
+        if hasattr(self, 'intro_duration_checkbox') and self.intro_duration_checkbox.isChecked():
+            if hasattr(self, 'intro_duration_input'):
+                duration_text = self.intro_duration_input.text().strip()
+                is_valid, error_msg, _ = validate_numeric_input(duration_text, min_val=1, max_val=3600)
+                if not is_valid:
+                    errors.append(f"Intro duration: {error_msg}")
+        
+        # Validate intro start at if enabled
+        if hasattr(self, 'intro_start_at_checkbox') and self.intro_start_at_checkbox.isChecked():
+            if hasattr(self, 'intro_start_at_input'):
+                start_text = self.intro_start_at_input.text().strip()
+                is_valid, error_msg, _ = validate_numeric_input(start_text, min_val=0, max_val=3600)
+                if not is_valid:
+                    errors.append(f"Intro start at: {error_msg}")
+        
+        # Validate overlay duration and start inputs
+        overlay_inputs = [
+            ('overlay1_duration_input', 'overlay1_duration_checkbox', 'Overlay 1 duration'),
+            ('overlay2_duration_input', 'overlay2_duration_checkbox', 'Overlay 2 duration'),
+            ('overlay3_duration_input', 'overlay3_duration_checkbox', 'Overlay 3 duration'),
+            ('overlay4_duration_input', 'overlay4_duration_checkbox', 'Overlay 4 duration'),
+            ('overlay5_duration_input', 'overlay5_duration_checkbox', 'Overlay 5 duration'),
+            ('overlay6_duration_input', 'overlay6_duration_checkbox', 'Overlay 6 duration'),
+            ('overlay7_duration_input', 'overlay7_duration_checkbox', 'Overlay 7 duration'),
+            ('overlay8_duration_input', 'overlay8_duration_checkbox', 'Overlay 8 duration'),
+            ('overlay9_duration_input', 'overlay9_duration_checkbox', 'Overlay 9 duration'),
+            ('overlay10_duration_input', 'overlay10_duration_checkbox', 'Overlay 10 duration'),
+        ]
+        
+        for input_attr, checkbox_attr, label in overlay_inputs:
+            if hasattr(self, checkbox_attr) and getattr(self, checkbox_attr).isChecked():
+                if hasattr(self, input_attr):
+                    input_widget = getattr(self, input_attr)
+                    if hasattr(input_widget, 'text'):
+                        text = input_widget.text().strip()
+                        is_valid, error_msg, _ = validate_numeric_input(text, min_val=1, max_val=3600)
+                        if not is_valid:
+                            errors.append(f"{label}: {error_msg}")
+        
+        return errors
     def _safe_ui_update(self, func, *args, **kwargs):
         """Safely update UI elements from any thread"""
         try:
