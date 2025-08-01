@@ -8173,26 +8173,18 @@ class SuperCutUI(QWidget):
         
 
         # Add reset button after placeholder button
-        self.reset_btn = QPushButton("Reset")
-        self.reset_btn.setFixedHeight(30)
-        self.reset_btn.setFixedWidth(80)
+        self.reset_btn = QPushButton("")
+        self.reset_btn.setFixedHeight(38)
+        self.reset_btn.setFixedWidth(38)
+        reset_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "reset.png")
+        self.reset_btn.setIcon(QIcon(reset_icon_path))
+        self.reset_btn.setIconSize(QSize(30, 30))
         self.reset_btn.setToolTip("Reset all form fields to default values")
         self.reset_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 4px;
-                color: #495057;
-                font-weight: 500;
-                padding: 8px 16px;
-            }
-            QPushButton:hover {
-                background-color: #e9ecef;
-                border-color: #adb5bd;
-            }
-            QPushButton:pressed {
-                background-color: #dee2e6;
-                border-color: #6c757d;
+                background-color: transparent;
+                border: none;
+                padding: 3px;
             }
         """)
         self.reset_btn.clicked.connect(self.reset_main_form)
@@ -8239,7 +8231,12 @@ class SuperCutUI(QWidget):
         self.stop_btn.setIcon(QIcon(stop_icon_path))
         self.stop_btn.setIconSize(QSize(22, 22))
         self.stop_btn.setStyleSheet("QPushButton { background: transparent; border: none; opacity: 0.6; } QPushButton:pressed { background: transparent; }")
-        self.stop_btn.clicked.connect(self.stop_video_creation)        
+        self.stop_btn.clicked.connect(self.stop_video_creation)
+        
+        # Enable hover events for icon size feedback
+        self.stop_btn.setMouseTracking(True)
+        self.stop_btn.enterEvent = lambda event: self.stop_btn.setIconSize(QSize(23, 23))
+        self.stop_btn.leaveEvent = lambda event: self.stop_btn.setIconSize(QSize(22, 22))        
         self.progress_bar = QtWidgets.QProgressBar()
         self.progress_bar.setFixedWidth(340)   
         self.progress_bar.setMinimum(0)
