@@ -546,24 +546,32 @@ def create_framed_cover_image(cover_data_or_path, output_path, frame_width=10, f
         frame_color: RGB tuple for frame color (default white)
     """
     try:
-        # Load the image
+        # Load the image using context manager
         if isinstance(cover_data_or_path, bytes):
             # Cover image from MP3 metadata
             from io import BytesIO
-            img = Image.open(BytesIO(cover_data_or_path))
+            with Image.open(BytesIO(cover_data_or_path)) as img:
+                # Convert to RGBA if needed
+                if img.mode != 'RGBA':
+                    img = img.convert('RGBA')
+                
+                # Keep original size - frame will overlay on top
+                original_width, original_height = img.size
+                
+                # Create a copy of the original image to work with
+                framed_img = img.copy()
         else:
             # Default cover image from file path
-            img = Image.open(cover_data_or_path)
-        
-        # Convert to RGBA if needed
-        if img.mode != 'RGBA':
-            img = img.convert('RGBA')
-        
-        # Keep original size - frame will overlay on top
-        original_width, original_height = img.size
-        
-        # Create a copy of the original image to work with
-        framed_img = img.copy()
+            with Image.open(cover_data_or_path) as img:
+                # Convert to RGBA if needed
+                if img.mode != 'RGBA':
+                    img = img.convert('RGBA')
+                
+                # Keep original size - frame will overlay on top
+                original_width, original_height = img.size
+                
+                # Create a copy of the original image to work with
+                framed_img = img.copy()
         
         # Create a drawing context to draw the frame overlay
         draw = ImageDraw.Draw(framed_img)
