@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QFileDialog, QMessageBox, QDialog, QComboBox, QDialogButtonBox, QFormLayout,
     QColorDialog, QScrollArea, QInputDialog, QTextEdit
 )
-from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize, QTimer, QObject, QEvent
+from PyQt6.QtCore import Qt, QSettings, QThread, QPoint, QSize, QTimer, QObject, QEvent, QMetaObject
 from PyQt6.QtGui import QIntValidator, QIcon, QPixmap, QMovie, QImage, QShortcut, QKeySequence, QColor
 from src.logger import logger
 
@@ -50,6 +50,7 @@ from src.template_utils import apply_template_to_settings
 
 import time
 import threading
+from PyQt6.QtCore import QMutex, QMutexLocker
 
 # --- SCROLLBAR STYLE FOR CONSISTENCY ---
 SCROLLBAR_STYLE = """
@@ -1139,6 +1140,7 @@ class SuperCutUI(QWidget):
         self.layer_order = load_layer_order()  # Load saved layer order or None for default
         self.layer_manager_dialog = None  # Track layer manager dialog for toggle functionality
         self.template_manager_dialog = None  # Track template manager dialog for toggle functionality
+        self._ui_mutex = QMutex()  # Mutex for thread-safe UI updates
         
         self.init_ui()
         self.restore_window_position()
@@ -8709,15 +8711,40 @@ class SuperCutUI(QWidget):
             QMessageBox.critical(self, "❌ Error", error_msg)
             return None
         return (media_sources, export_name, number, folder, codec, resolution, fps, set(mp3_files), set(image_files), min_mp3_count)
+    def _safe_ui_update(self, func, *args, **kwargs):
+        """Safely update UI elements from any thread"""
+        try:
+            # Use mutex to prevent race conditions
+            with QMutexLocker(self._ui_mutex):
+                # Ensure we're on the main thread
+                if hasattr(self, 'thread') and self.thread() != QThread.currentThread():
+                    # Use QMetaObject.invokeMethod for thread-safe UI updates
+                    QMetaObject.invokeMethod(self, lambda: func(*args, **kwargs), Qt.ConnectionType.QueuedConnection)
+                else:
+                    # We're already on the main thread, call directly
+                    func(*args, **kwargs)
+        except Exception as e:
+            logger.warning(f"Error in safe UI update: {e}")
+
+    def _prevent_ui_updates(self):
+        """Prevent UI updates during critical operations"""
+        self._ui_mutex.lock()
+
+    def _allow_ui_updates(self):
+        """Allow UI updates after critical operations"""
+        self._ui_mutex.unlock()
+
     def _set_ui_processing_state(self, processing, total_batches=0):
         """Enable/disable UI controls for processing state."""
-        # --- No window resize - use opacity instead to prevent black flash ---
-        # Progress controls are always present but transparent when not processing
+        # Use thread-safe UI update
+        def update_ui_state():
+            # --- No window resize - use opacity instead to prevent black flash ---
+            # Progress controls are always present but transparent when not processing
 
-        # --- Update progress controls with opacity instead of visibility ---
-        self.progress_bar.setMaximum(total_batches)
-        self.progress_bar.setValue(0)        
-        self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
+            # --- Update progress controls with opacity instead of visibility ---
+            self.progress_bar.setMaximum(total_batches)
+            self.progress_bar.setValue(0)        
+            self.progress_bar.setFormat(f"Batch: 0/{total_batches}")
         
         # Use opacity instead of visibility to prevent black flash
         if processing:
@@ -9699,34 +9726,48 @@ class SuperCutUI(QWidget):
         """Handle worker progress updates"""
         if not self.isVisible():
             return
-        self.progress_bar.setMaximum(total_batches)
-        self.progress_bar.setValue(batch_count)
-        self.progress_bar.setFormat(f"Batch: {batch_count}/{total_batches}")
-        self._completed_batches = batch_count  # Track completed batches
-        QtWidgets.QApplication.processEvents()
+        
+        # Use thread-safe UI update
+        def update_progress():
+            try:
+                self.progress_bar.setMaximum(total_batches)
+                self.progress_bar.setValue(batch_count)
+                self.progress_bar.setFormat(f"Batch: {batch_count}/{total_batches}")
+                self._completed_batches = batch_count  # Track completed batches
+            except Exception as e:
+                logger.warning(f"Error updating progress: {e}")
+        
+        self._safe_ui_update(update_progress)
 
     def on_worker_error(self, message):
         """Handle worker errors"""
         if not self.isVisible():
             return
         
-        # Use centralized UI state management to re-enable all controls
-        self._set_ui_processing_state(False)
+        # Use thread-safe UI update
+        def handle_error():
+            try:
+                # Use centralized UI state management to re-enable all controls
+                self._set_ui_processing_state(False)
+                
+                dlg = ScrollableErrorDialog(self, title="❌ Error", message=message)
+                dlg.exec()
+                self.cleanup_worker_and_thread()
+                self._worker = None
+                self._thread = None
+                
+                if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
+                    self._auto_close_on_stop = False
+                    if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                        self._stopping_msgbox.close()
+                        self._stopping_msgbox.hide()
+                        QtWidgets.QApplication.processEvents()
+                        self._stopping_msgbox = None
+                    self.close()
+            except Exception as e:
+                logger.warning(f"Error handling worker error: {e}")
         
-        dlg = ScrollableErrorDialog(self, title="❌ Error", message=message)
-        dlg.exec()
-        self.cleanup_worker_and_thread()
-        self._worker = None
-        self._thread = None
-        
-        if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
-            self._auto_close_on_stop = False
-            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
-                self._stopping_msgbox.close()
-                self._stopping_msgbox.hide()
-                QtWidgets.QApplication.processEvents()
-                self._stopping_msgbox = None
-            self.close()
+        self._safe_ui_update(handle_error)
 
     def stop_video_creation(self):
         """Stop video creation process"""
@@ -9752,89 +9793,99 @@ class SuperCutUI(QWidget):
         """Handle worker completion with leftover files"""
         if not self.isVisible():
             return
-        self._set_ui_processing_state(False)
-        # Calculate leftover images using used_images
-        leftover_images = list(set(original_image_files) - set(used_images))
-        # Get min_mp3_count from input
-        if self.mp3_count_checkbox.isChecked():
+        
+        # Use thread-safe UI update
+        def handle_finished():
             try:
-                min_mp3_count = int(self.mp3_count_edit.text())
-                if min_mp3_count < 1:
-                    min_mp3_count = DEFAULT_MIN_MP3_COUNT
-            except Exception:
-                min_mp3_count = DEFAULT_MIN_MP3_COUNT
-        else:
-            min_mp3_count = DEFAULT_MIN_MP3_COUNT
-        # Show appropriate dialog
-        if hasattr(self, '_stopped_by_user') and self._stopped_by_user:
-            self._stopped_by_user = False  # reset for next run
-            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
-                self._stopping_msgbox.close()
-                self._stopping_msgbox.hide()
-                QtWidgets.QApplication.processEvents()
-                self._stopping_msgbox = None
-            batch_count = self._completed_batches
-            total_batches = self.progress_bar.maximum() if hasattr(self, 'progress_bar') else 0
-            if total_batches == 0:
-                total_batches = self._intended_total_batches
-            dlg = StoppedDialog(self, batch_count=batch_count, total_batches=total_batches)
-            dlg.exec()
-        else:
-            # Only show leftover files that still exist
-            import os
-            real_leftover_mp3s = [f for f in leftover_mp3s if os.path.exists(f)] if leftover_mp3s else []
-            real_leftover_images = [f for f in leftover_images if os.path.exists(f)] if leftover_images else []
-            # Determine completed batch count for success dialog
-            batch_count = self._intended_total_batches
-            # Debug prints for leftovers
-            # print("[DEBUG] leftover_mp3s:", leftover_mp3s)
-            # print("[DEBUG] used_images:", used_images)
-            # print("[DEBUG] original_image_files:", original_image_files)
-            # print("[DEBUG] real_leftover_mp3s:", real_leftover_mp3s)
-            # print("[DEBUG] real_leftover_images:", real_leftover_images)
-            if real_leftover_mp3s or real_leftover_images:
-                # Show dialog indicating process is incomplete due to leftovers
-                # Play notification sound
-                try:
-                    QtWidgets.QApplication.beep()
-                except RuntimeError as e:
-                    logger.warning(f"Failed to play notification sound: {e}")
+                self._set_ui_processing_state(False)
                 
-                dlg = SuccessWithLeftoverDialog(
-                    self,
-                    open_folder=self.open_result_folder,
-                    leftover_mp3s=real_leftover_mp3s,
-                    leftover_images=real_leftover_images,
-                    min_mp3_count=min_mp3_count
-                )
-                # Auto-close after 2 seconds if pending close is set
+                # Calculate leftover images using used_images
+                leftover_images = list(set(original_image_files) - set(used_images))
+                
+                # Get min_mp3_count from input
+                if self.mp3_count_checkbox.isChecked():
+                    try:
+                        min_mp3_count = int(self.mp3_count_edit.text())
+                        if min_mp3_count < 1:
+                            min_mp3_count = DEFAULT_MIN_MP3_COUNT
+                    except Exception:
+                        min_mp3_count = DEFAULT_MIN_MP3_COUNT
+                else:
+                    min_mp3_count = DEFAULT_MIN_MP3_COUNT
+                
+                # Show appropriate dialog
+                if hasattr(self, '_stopped_by_user') and self._stopped_by_user:
+                    self._stopped_by_user = False  # reset for next run
+                    if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                        self._stopping_msgbox.close()
+                        self._stopping_msgbox.hide()
+                        QtWidgets.QApplication.processEvents()
+                        self._stopping_msgbox = None
+                    batch_count = self._completed_batches
+                    total_batches = self.progress_bar.maximum() if hasattr(self, 'progress_bar') else 0
+                    if total_batches == 0:
+                        total_batches = self._intended_total_batches
+                    dlg = StoppedDialog(self, batch_count=batch_count, total_batches=total_batches)
+                    dlg.exec()
+                else:
+                    # Only show leftover files that still exist
+                    import os
+                    real_leftover_mp3s = [f for f in leftover_mp3s if os.path.exists(f)] if leftover_mp3s else []
+                    real_leftover_images = [f for f in leftover_images if os.path.exists(f)] if leftover_images else []
+                    # Determine completed batch count for success dialog
+                    batch_count = self._intended_total_batches
+                    
+                    if real_leftover_mp3s or real_leftover_images:
+                        # Show dialog indicating process is incomplete due to leftovers
+                        # Play notification sound
+                        try:
+                            QtWidgets.QApplication.beep()
+                        except RuntimeError as e:
+                            logger.warning(f"Failed to play notification sound: {e}")
+                        
+                        dlg = SuccessWithLeftoverDialog(
+                            self,
+                            open_folder=self.open_result_folder,
+                            leftover_mp3s=real_leftover_mp3s,
+                            leftover_images=real_leftover_images,
+                            min_mp3_count=min_mp3_count
+                        )
+                        # Auto-close after 2 seconds if pending close is set
+                        if hasattr(self, '_pending_close') and self._pending_close:
+                            timer = QTimer(self)
+                            timer.singleShot(2000, dlg.close)
+                        dlg.exec()               
+                    else:
+                        self.show_success_options(batch_count=batch_count, min_mp3_count=min_mp3_count)
+                
+                # Show warning if any files failed to move (only if they still exist and were used)
+                if failed_moves:
+                    import os
+                    # Only warn for files that are both failed to move and were actually used
+                    used_files = set((used_images or []) + (leftover_mp3s or []))
+                    still_failed = [f for f in failed_moves if os.path.exists(f) and f in used_files]
+                    if still_failed:
+                        QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(still_failed))
+                
+                self.clear_inputs()
+                self.cleanup_worker_and_thread()
+                self._worker = None
+                self._thread = None
+                
+                # --- Handle pending close after worker finishes ---
                 if hasattr(self, '_pending_close') and self._pending_close:
-                    timer = QTimer(self)
-                    timer.singleShot(2000, dlg.close)
-                dlg.exec()               
-            else:
-                self.show_success_options(batch_count=batch_count, min_mp3_count=min_mp3_count)
-        # Show warning if any files failed to move (only if they still exist and were used)
-        if failed_moves:
-            import os
-            # Only warn for files that are both failed to move and were actually used
-            used_files = set((used_images or []) + (leftover_mp3s or []))
-            still_failed = [f for f in failed_moves if os.path.exists(f) and f in used_files]
-            if still_failed:
-                QMessageBox.warning(self, "Warning: File Move Failed", f"Some files could not be moved to the bin folder:\n\n" + '\n'.join(still_failed))
-        self.clear_inputs()
-        self.cleanup_worker_and_thread()
-        self._worker = None
-        self._thread = None
-        # --- Handle pending close after worker finishes ---
-        if hasattr(self, '_pending_close') and self._pending_close:
-            self._pending_close = False
-            if hasattr(self, '_waiting_dialog_on_close') and self._waiting_dialog_on_close is not None:
-                self._waiting_dialog_on_close.close()
-                self._waiting_dialog_on_close.hide()
-                self._waiting_dialog_on_close = None
-            QtWidgets.QApplication.processEvents()
-            self.close()
+                    self._pending_close = False
+                    if hasattr(self, '_waiting_dialog_on_close') and self._waiting_dialog_on_close is not None:
+                        self._waiting_dialog_on_close.close()
+                        self._waiting_dialog_on_close.hide()
+                        self._waiting_dialog_on_close = None
+                    QtWidgets.QApplication.processEvents()
+                    self.close()
+                    
+            except Exception as e:
+                logger.warning(f"Error handling worker finished: {e}")
+        
+        self._safe_ui_update(handle_finished)
         if hasattr(self, '_auto_close_on_stop') and self._auto_close_on_stop:
             self._auto_close_on_stop = False
             if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
