@@ -1716,7 +1716,7 @@ def create_video_with_ffmpeg( # pyright: ignore[reportGeneralTypeIssues]
         cmd.append(output_path)
 
         # Display raw FFmpeg command for debugging performance bottlenecks
-        print(f"✏️ RAW FFMPEG COMMAND (for performance analysis):")
+        print(f"✏️  RAW FFMPEG COMMAND (for performance analysis):")
         raw_cmd = " ".join(cmd)
         print(raw_cmd)
         print()

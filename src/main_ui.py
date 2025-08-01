@@ -11921,7 +11921,7 @@ class SuperCutUI(QWidget):
                     enabled_layers.append(lname)
                 elif key in layer_settings and layer_settings[key].get('enabled'):
                     enabled_layers.append(lname)
-            print(f"✅ Enabled layers: {enabled_layers}")
+            print(f"✔️  Enabled layers: {enabled_layers}")
             # Temporarily disconnect the signal to prevent recursive calls
             self.template_combo.currentTextChanged.disconnect(self.on_template_selected)
             for i in range(self.template_combo.count()):

@@ -1358,7 +1358,7 @@ class VideoWorker(QObject):
             time_str = f"{mins}m {secs}s"
         else:
             time_str = f"{int(batch_time_spent)}s"
-        print(f"✔️ Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str}) \u2713") 
+        print(f"✔️  Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str}) \u2713") 
         
         return True, failed_moves
 
