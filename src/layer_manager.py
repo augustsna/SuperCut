@@ -414,12 +414,7 @@ class LayerManagerWidget(QWidget):
         # This matches the logic in get_layer_order() to maintain consistent ordering
         for i in range(self.layer_list.count() - 1, -1, -1):
             item = self.layer_list.item(i)
-            if isinstance(item, LayerItem):
-                # Background layer should always be enabled
-                if item.layer_id == 'background':
-                    enabled.append(item.layer_id)
-                # Other layers are enabled only if checked
-                elif item.checkState() == Qt.CheckState.Checked:
+            if isinstance(item, LayerItem) and item.checkState() == Qt.CheckState.Checked:
                     enabled.append(item.layer_id)
         return enabled
     
