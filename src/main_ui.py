@@ -10384,7 +10384,14 @@ class SuperCutUI(QWidget):
                 'frame_mp3cover': {'enabled': hasattr(self, 'frame_mp3cover_checkbox') and self.frame_mp3cover_checkbox.isChecked()},
                 'mp3_cover_overlay': {'enabled': hasattr(self, 'mp3_cover_overlay_checkbox') and self.mp3_cover_overlay_checkbox.isChecked()},
                 'song_titles': {'enabled': hasattr(self, 'song_title_checkbox') and self.song_title_checkbox.isChecked()},
-                'soundwave': {'enabled': hasattr(self, 'soundwave_checkbox') and self.soundwave_checkbox.isChecked()},
+                'soundwave': {
+                    'enabled': hasattr(self, 'soundwave_checkbox') and self.soundwave_checkbox.isChecked(),
+                    'method': self.soundwave_method if hasattr(self, 'soundwave_method') else "bars",
+                    'color': self.soundwave_color if hasattr(self, 'soundwave_color') else "hue_rotate",
+                    'size_percent': self.soundwave_size_percent if hasattr(self, 'soundwave_size_percent') else 50,
+                    'x_percent': self.soundwave_x_percent if hasattr(self, 'soundwave_x_percent') else 50,
+                    'y_percent': self.soundwave_y_percent if hasattr(self, 'soundwave_y_percent') else 50
+                },
             },
             'ui_settings': {
                 'show_intro_settings': self.settings.value('show_intro_settings', False, type=bool),
@@ -10825,8 +10832,50 @@ class SuperCutUI(QWidget):
                 self.mp3_cover_overlay_checkbox.setChecked(layer_settings['mp3_cover_overlay'].get('enabled', False))
             if 'song_titles' in layer_settings and hasattr(self, 'song_title_checkbox'):
                 self.song_title_checkbox.setChecked(layer_settings['song_titles'].get('enabled', False))
-            if 'soundwave' in layer_settings and hasattr(self, 'soundwave_checkbox'):
-                self.soundwave_checkbox.setChecked(layer_settings['soundwave'].get('enabled', False))
+            if 'soundwave' in layer_settings:
+                soundwave_settings = layer_settings['soundwave']
+                if hasattr(self, 'soundwave_checkbox'):
+                    self.soundwave_checkbox.setChecked(soundwave_settings.get('enabled', False))
+                
+                # Update soundwave method
+                if hasattr(self, 'soundwave_method_combo'):
+                    method = soundwave_settings.get('method', 'bars')
+                    for i in range(self.soundwave_method_combo.count()):
+                        if self.soundwave_method_combo.itemData(i) == method:
+                            self.soundwave_method_combo.setCurrentIndex(i)
+                            break
+                
+                # Update soundwave color
+                if hasattr(self, 'soundwave_color_combo'):
+                    color = soundwave_settings.get('color', 'hue_rotate')
+                    for i in range(self.soundwave_color_combo.count()):
+                        if self.soundwave_color_combo.itemData(i) == color:
+                            self.soundwave_color_combo.setCurrentIndex(i)
+                            break
+                
+                # Update soundwave size
+                if hasattr(self, 'soundwave_size_combo'):
+                    size = soundwave_settings.get('size_percent', 50)
+                    for i in range(self.soundwave_size_combo.count()):
+                        if self.soundwave_size_combo.itemData(i) == size:
+                            self.soundwave_size_combo.setCurrentIndex(i)
+                            break
+                
+                # Update soundwave X position
+                if hasattr(self, 'soundwave_x_combo'):
+                    x = soundwave_settings.get('x_percent', 50)
+                    for i in range(self.soundwave_x_combo.count()):
+                        if self.soundwave_x_combo.itemData(i) == x:
+                            self.soundwave_x_combo.setCurrentIndex(i)
+                            break
+                
+                # Update soundwave Y position
+                if hasattr(self, 'soundwave_y_combo'):
+                    y = soundwave_settings.get('y_percent', 50)
+                    for i in range(self.soundwave_y_combo.count()):
+                        if self.soundwave_y_combo.itemData(i) == y:
+                            self.soundwave_y_combo.setCurrentIndex(i)
+                            break
             
             # Apply overlay1_2_effect_settings
             if 'overlay1_2_effect_settings' in template_data:
