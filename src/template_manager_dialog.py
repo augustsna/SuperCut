@@ -28,6 +28,7 @@ from src.template_utils import (
     get_template_preview_info
 )
 from src.config import get_template_categories, save_template, delete_template
+from src.layer_manager import LayerManagerWidget
 
 class TemplateManagerDialog(QDialog):
     """Dialog for managing video templates"""
@@ -45,7 +46,7 @@ class TemplateManagerDialog(QDialog):
         """Initialize the user interface"""
         self.setWindowTitle("Template Manager")
         self.setModal(True)
-        self.setFixedSize(850, 660)
+        self.setFixedSize(850, 564)
         
         # Main layout
         layout = QVBoxLayout(self)
@@ -301,7 +302,7 @@ class TemplateManagerDialog(QDialog):
         
         self.template_list = QListWidget()
         self.template_list.setFixedWidth(230)
-        self.template_list.setMinimumHeight(300)
+        self.template_list.setMaximumHeight(250)
         self.template_list.itemClicked.connect(self.on_template_selected)
         self.template_list.setStyleSheet("""
             QListWidget {
@@ -316,16 +317,16 @@ class TemplateManagerDialog(QDialog):
             }
             QListWidget::item {
                 padding: 8px;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
+                border: 1px solid #cccccc;
+                border-radius: 4px;
                 margin: 2px;
                 background-color: #ffffff;
                 outline: none;
                 color: #333;
-                height: 18px;
+                height: 10px;
             }
             QListWidget::item:first-child {
-                margin-top: 8px;
+                margin-top: 4px;
             }
             QListWidget::item:last-child {
                 margin-bottom: 4px;
@@ -387,7 +388,7 @@ class TemplateManagerDialog(QDialog):
         """)
         
         list_layout = QVBoxLayout(list_group)
-        list_layout.setContentsMargins(5, 0, 0, 5)
+        list_layout.setContentsMargins(5, 0, 0, 0)
         list_layout.setSpacing(0)
         list_layout.addWidget(self.template_list)
         left_layout.addWidget(list_group)
@@ -487,7 +488,7 @@ class TemplateManagerDialog(QDialog):
                      self.maxrate_label, self.bufsize_label]:
             label.setStyleSheet(label_style)
             label.setFixedWidth(160)
-            label.setFixedHeight(25)
+            label.setFixedHeight(26)
         
         # Create individual labels for video settings fields
         resolution_name_label = QLabel("Resolution:")
@@ -538,71 +539,11 @@ class TemplateManagerDialog(QDialog):
         return center_widget
         
     def create_right_panel(self):
-        """Create the right panel with layer order and additional details"""
+        """Create the right panel (empty for now)"""
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
         
-        # Layer order preview
-        layer_group = QGroupBox("Layer Order")
-        layer_group.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 2px solid #cccccc;
-                border-radius: 6px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
-            }
-        """)
-        layer_layout = QVBoxLayout(layer_group)
-        
-        self.layer_preview_list = QListWidget()
-        self.layer_preview_list.setMaximumHeight(200)
-        self.layer_preview_list.setSelectionMode(QListWidget.SelectionMode.NoSelection)
-        self.layer_preview_list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.layer_preview_list.setStyleSheet("""
-            QListWidget {
-                border: none;
-                border-radius: 2px;
-                background-color: white;
-                font-size: 12px;
-            }
-            QListWidget::item {
-                border: 1px solid #cccccc;
-                padding: 4px;                
-            }
-            QScrollBar:vertical {
-                background: rgba(240, 240, 240, 0.8);
-                width: 12px;
-                border-radius: 4px;
-                margin-left: 4px;
-                position: absolute;
-                right: 0px;
-            }
-            QScrollBar::handle:vertical {
-                background: rgba(192, 192, 192, 0.8);
-                border-radius: 6px;
-                min-height: 20px;
-                margin: 0px;
-            }
-            QScrollBar::handle:vertical:hover {
-                background: rgba(160, 160, 160, 0.9);
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-                height: 0px;
-            }
-            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
-                background: none;
-            }
-        """)
-        
-        layer_layout.addWidget(self.layer_preview_list)
-        right_layout.addWidget(layer_group)
-        
+        # Empty panel for now
         right_layout.addStretch()
         
         return right_widget
@@ -708,13 +649,7 @@ class TemplateManagerDialog(QDialog):
         
 
         
-        # Update layer order preview
-        self.layer_preview_list.clear()
-        layer_order = template_data.get('layer_order', [])
-        
-        for i, layer_id in enumerate(layer_order, 1):
-            item = QListWidgetItem(f"{i}. {layer_id}")
-            self.layer_preview_list.addItem(item)
+        # Layer manager preview removed - right panel is now empty
             
     def update_button_states(self):
         """Update button enabled states based on selection"""
