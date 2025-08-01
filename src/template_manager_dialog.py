@@ -478,10 +478,13 @@ class TemplateManagerDialog(QDialog):
         self.preset_label = QLabel("")
         self.audio_bitrate_label = QLabel("")
         self.video_bitrate_label = QLabel("")
+        self.maxrate_label = QLabel("")
+        self.bufsize_label = QLabel("")
         
         # Style settings labels with same style as template details
         for label in [self.resolution_label, self.fps_label, self.codec_label, 
-                     self.preset_label, self.audio_bitrate_label, self.video_bitrate_label]:
+                     self.preset_label, self.audio_bitrate_label, self.video_bitrate_label,
+                     self.maxrate_label, self.bufsize_label]:
             label.setStyleSheet(label_style)
             label.setFixedWidth(160)
             label.setFixedHeight(25)
@@ -511,12 +514,22 @@ class TemplateManagerDialog(QDialog):
         video_bitrate_name_label.setFixedWidth(90)
         video_bitrate_name_label.setFixedHeight(25)
         
+        maxrate_name_label = QLabel("Maxrate:")
+        maxrate_name_label.setFixedWidth(90)
+        maxrate_name_label.setFixedHeight(25)
+        
+        bufsize_name_label = QLabel("Bufsize:")
+        bufsize_name_label.setFixedWidth(90)
+        bufsize_name_label.setFixedHeight(25)
+        
         settings_layout.addRow(resolution_name_label, self.resolution_label)
         settings_layout.addRow(fps_name_label, self.fps_label)
         settings_layout.addRow(codec_name_label, self.codec_label)
         settings_layout.addRow(preset_name_label, self.preset_label)
         settings_layout.addRow(audio_bitrate_name_label, self.audio_bitrate_label)
         settings_layout.addRow(video_bitrate_name_label, self.video_bitrate_label)
+        settings_layout.addRow(maxrate_name_label, self.maxrate_label)
+        settings_layout.addRow(bufsize_name_label, self.bufsize_label)
         
         center_layout.addWidget(settings_group)
         
@@ -525,12 +538,12 @@ class TemplateManagerDialog(QDialog):
         return center_widget
         
     def create_right_panel(self):
-        """Create the right panel with layer configuration and additional details"""
+        """Create the right panel with layer order and additional details"""
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
         
-        # Layer configuration preview
-        layer_group = QGroupBox("Layer Configuration")
+        # Layer order preview
+        layer_group = QGroupBox("Layer Order")
         layer_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -690,19 +703,17 @@ class TemplateManagerDialog(QDialog):
         self.preset_label.setText(video_settings.get('preset', 'Unknown'))
         self.audio_bitrate_label.setText(video_settings.get('audio_bitrate', 'Unknown'))
         self.video_bitrate_label.setText(video_settings.get('video_bitrate', 'Unknown'))
+        self.maxrate_label.setText(video_settings.get('maxrate', 'Unknown'))
+        self.bufsize_label.setText(video_settings.get('bufsize', 'Unknown'))
         
 
         
-        # Update layer preview
+        # Update layer order preview
         self.layer_preview_list.clear()
         layer_order = template_data.get('layer_order', [])
-        layer_settings = template_data.get('layer_settings', {})
         
-        for layer_id in layer_order:
-            layer_info = layer_settings.get(layer_id, {})
-            enabled = layer_info.get('enabled', False)
-            status = "✅" if enabled else "❌"
-            item = QListWidgetItem(f"{status} {layer_id}")
+        for i, layer_id in enumerate(layer_order, 1):
+            item = QListWidgetItem(f"{i}. {layer_id}")
             self.layer_preview_list.addItem(item)
             
     def update_button_states(self):
