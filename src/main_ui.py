@@ -1422,7 +1422,7 @@ class SuperCutUI(QWidget):
         folder_layout_inner = QVBoxLayout(folder_widget)
         folder_layout_inner.setContentsMargins(0, 5, 0, 5) 
         folder_layout_inner.setSpacing(10)  
-        
+
         folder_row_style = {
             "label_width": 90,
             "edit_min_width": 220,
@@ -1450,7 +1450,11 @@ class SuperCutUI(QWidget):
         media_sources_btn.setFixedWidth(folder_row_style["btn_width"])
         media_sources_btn.clicked.connect(self.select_media_sources_folder)
         self.media_sources_select_btn = media_sources_btn
+
+        folder_layout_inner.addSpacing(5)
+        media_sources_layout.addSpacing(2)
         media_sources_layout.addWidget(label_media)
+        media_sources_layout.addSpacing(-2)
         media_sources_layout.addWidget(self.media_sources_edit)
         media_sources_layout.addWidget(media_sources_btn)
         folder_layout_inner.addLayout(media_sources_layout)
@@ -1488,17 +1492,20 @@ class SuperCutUI(QWidget):
         # Register for navigation
         self.register_section_widget('folder', folder_widget)
 
+        # Add spacing between output folder and template
+        layout.addSpacing(-5)
+
         # --- TEMPLATE CONTROLS ---
-        
         
         # Template label
         template_label = QLabel("Template:")
-        template_label.setFixedWidth(80)
+        template_label.setFixedWidth(65)
+        template_label.setFixedHeight(31)
         
         # Template combo box
         self.template_combo = NoWheelComboBox()
         self.template_combo.setFixedWidth(150)
-        self.template_combo.setFixedHeight(30)
+        self.template_combo.setFixedHeight(31)
         self.template_combo.addItem("No Template", "")
         self.load_templates_to_combo()
         # Connect template selection to apply template
@@ -1540,9 +1547,9 @@ class SuperCutUI(QWidget):
         
         template_layout = QHBoxLayout()
         template_layout.setSpacing(0)
-        template_layout.addSpacing(0)
+        template_layout.addSpacing(16)
         template_layout.addWidget(template_label)
-        template_layout.addSpacing(21)
+        template_layout.addSpacing(20)
         template_layout.addWidget(self.template_combo)
         template_layout.addSpacing(8)
         template_layout.addWidget(self.save_template_btn)
