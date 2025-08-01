@@ -113,7 +113,7 @@ if os.path.exists(ACTIVATION_FILENAME):
         # Use a timer to ensure UI is fully initialized
         def print_ffmpeg_settings():
             try:
-                print("\n📹 Current FFmpeg Settings for Video Creation:")
+                print("\n🎬 Current FFmpeg Settings for Video Creation:")
                 print(f"FPS: {window.fps_combo.currentData() if hasattr(window, 'fps_combo') else 'N/A'}")
                 print(f"Preset: {window.preset_combo.currentData() if hasattr(window, 'preset_combo') else 'N/A'}")
                 print(f"Maxrate: {window.settings.value('default_ffmpeg_maxrate', '16M', type=str)}")

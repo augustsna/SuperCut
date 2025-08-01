@@ -744,7 +744,7 @@ class SettingsDialog(QDialog):
             self.settings.setValue('default_list_name_enabled', self.default_list_name_enabled_checkbox.isChecked())
             self.settings.setValue('default_mp3_count_enabled', self.default_mp3_count_enabled_checkbox.isChecked())
             # Debug prints for video settings when saving
-            print(f"📹 Saved FFmpeg Settings for Video Creation:")
+            print(f"🎬 Saved FFmpeg Settings for Video Creation:")
             print(f"FPS: {self.selected_fps}")            
             print(f"Preset: {self.preset_combo.currentData()}")
             print(f"Maxrate: {self.maxrate_combo.currentData()}")
@@ -11894,8 +11894,11 @@ class SuperCutUI(QWidget):
             # Apply settings to update UI visibility and checkbox labels
             self.apply_settings()
             
+            # Update the template combo to show the applied template
+            template_name = template_data.get('name', 'Unknown Template')
+            
             # Print current FFmpeg settings after template application
-            print("\n🔖 Template Applied for Video Creation:")
+            print(f"\n🔖 {template_name} is applied. Video Creation Settings:")
             print(f"FPS: {self.fps_combo.currentData() if hasattr(self, 'fps_combo') else 'N/A'}")
             print(f"Preset: {self.preset_combo.currentData() if hasattr(self, 'preset_combo') else 'N/A'}")
             print(f"Maxrate: {self.settings.value('default_ffmpeg_maxrate', '16M', type=str)}")
@@ -11918,10 +11921,7 @@ class SuperCutUI(QWidget):
                     enabled_layers.append(lname)
                 elif key in layer_settings and layer_settings[key].get('enabled'):
                     enabled_layers.append(lname)
-            print(f"🔖 Enabled layers: {enabled_layers}")
-            
-            # Update the template combo to show the applied template
-            template_name = template_data.get('name', 'Unknown Template')
+            print(f"✅ Enabled layers: {enabled_layers}")
             # Temporarily disconnect the signal to prevent recursive calls
             self.template_combo.currentTextChanged.disconnect(self.on_template_selected)
             for i in range(self.template_combo.count()):
