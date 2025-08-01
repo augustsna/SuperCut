@@ -10308,10 +10308,10 @@ class SuperCutUI(QWidget):
             'resolution': self.resolution_combo.currentData(),
             'fps': self.fps_combo.currentData(),
             'preset': self.preset_combo.currentData(),
-            'audio_bitrate': self.audio_bitrate_combo.currentData() if hasattr(self, 'audio_bitrate_combo') else '384k',
-            'video_bitrate': self.video_bitrate_combo.currentData() if hasattr(self, 'video_bitrate_combo') else '12M',
-            'maxrate': self.maxrate_combo.currentData() if hasattr(self, 'maxrate_combo') else '16M',
-            'buffsize': self.buffsize_combo.currentData() if hasattr(self, 'buffsize_combo') else '24M',
+            'audio_bitrate': self.settings.value('default_ffmpeg_audio_bitrate', '384k', type=str) if hasattr(self, 'settings') else '384k',
+            'video_bitrate': self.settings.value('default_ffmpeg_video_bitrate', '12M', type=str) if hasattr(self, 'settings') else '12M',
+            'maxrate': self.settings.value('default_ffmpeg_maxrate', '16M', type=str) if hasattr(self, 'settings') else '16M',
+            'buffsize': self.settings.value('default_ffmpeg_buffsize', '24M', type=str) if hasattr(self, 'settings') else '24M',
             'layer_order': self.layer_order or [],
             'layer_settings': {
                 'background': {'enabled': hasattr(self, 'bg_layer_checkbox') and self.bg_layer_checkbox.isChecked()},
@@ -10460,6 +10460,16 @@ class SuperCutUI(QWidget):
                     if self.preset_combo.itemData(i) == preset:
                         self.preset_combo.setCurrentIndex(i)
                         break
+            
+            # Apply bitrate settings to application settings
+            if 'audio_bitrate' in video_settings:
+                self.settings.setValue('default_ffmpeg_audio_bitrate', video_settings['audio_bitrate'])
+            if 'video_bitrate' in video_settings:
+                self.settings.setValue('default_ffmpeg_video_bitrate', video_settings['video_bitrate'])
+            if 'maxrate' in video_settings:
+                self.settings.setValue('default_ffmpeg_maxrate', video_settings['maxrate'])
+            if 'buffsize' in video_settings:
+                self.settings.setValue('default_ffmpeg_buffsize', video_settings['buffsize'])
             
             # Apply layer order
             if 'layer_order' in template_data:
@@ -10656,6 +10666,17 @@ class SuperCutUI(QWidget):
             
             # Apply settings to update UI visibility and checkbox labels
             self.apply_settings()
+            
+            # Print current FFmpeg settings after template application
+            print("\n📹 Current FFmpeg Settings for Video Creation:")
+            print(f"FPS: {self.fps_combo.currentData() if hasattr(self, 'fps_combo') else 'N/A'}")
+            print(f"Preset: {self.preset_combo.currentData() if hasattr(self, 'preset_combo') else 'N/A'}")
+            print(f"Maxrate: {self.settings.value('default_ffmpeg_maxrate', '16M', type=str)}")
+            print(f"Buffsize: {self.settings.value('default_ffmpeg_buffsize', '24M', type=str)}")
+            print(f"Video bitrate: {self.settings.value('default_ffmpeg_video_bitrate', '12M', type=str)}")
+            print(f"Audio bitrate: {self.settings.value('default_ffmpeg_audio_bitrate', '384k', type=str)}")
+            print(f"Resolution: {self.resolution_combo.currentData() if hasattr(self, 'resolution_combo') else 'N/A'}")
+            print()
             
             # Update the template combo to show the applied template
             template_name = template_data.get('name', 'Unknown Template')
