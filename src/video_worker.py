@@ -4,7 +4,7 @@ import random
 import shutil
 from PyQt6.QtCore import QObject, pyqtSignal
 from typing import List, Optional
-from src.ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg
+from src.ffmpeg_utils import merge_random_mp3s, create_video_with_ffmpeg, validate_ffmpeg_installation
 from src.utils import set_low_priority, create_temp_file
 import time
 from src.logger import logger
@@ -322,10 +322,73 @@ class VideoWorker(QObject):
         """Stop the video processing"""
         self._stop = True
 
+    def validate_environment(self) -> tuple[bool, str]:
+        """Validate the environment before starting video creation
+        
+        Returns:
+            tuple[bool, str]: (is_valid, error_message)
+        """
+        try:
+            # Validate FFmpeg installation
+            ffmpeg_valid, ffmpeg_error = validate_ffmpeg_installation()
+            if not ffmpeg_valid:
+                return False, f"FFmpeg validation failed: {ffmpeg_error}"
+            
+            # Validate media sources directory
+            if not os.path.exists(self.media_sources):
+                return False, f"Media sources directory does not exist: {self.media_sources}"
+            
+            # Validate output directory
+            if not os.path.exists(self.folder):
+                return False, f"Output directory does not exist: {self.folder}"
+            
+            # Check if output directory is writable
+            try:
+                test_file = os.path.join(self.folder, ".test_write")
+                with open(test_file, 'w') as f:
+                    f.write("test")
+                os.remove(test_file)
+            except (OSError, PermissionError):
+                return False, f"Output directory is not writable: {self.folder}"
+            
+            # Validate overlay files if specified
+            overlay_files = [
+                (self.overlay1_path, "Overlay 1"),
+                (self.overlay2_path, "Overlay 2"),
+                (self.overlay3_path, "Overlay 3"),
+                (self.overlay4_path, "Overlay 4"),
+                (self.overlay5_path, "Overlay 5"),
+                (self.overlay6_path, "Overlay 6"),
+                (self.overlay7_path, "Overlay 7"),
+                (self.overlay8_path, "Overlay 8"),
+                (self.overlay9_path, "Overlay 9"),
+                (self.overlay10_path, "Overlay 10"),
+                (self.intro_path, "Intro"),
+                (self.frame_box_path, "Frame Box"),
+                (self.frame_mp3cover_path, "Frame MP3 Cover"),
+                (self.frame_box_custom_image_path, "Frame Box Custom Image"),
+                (self.mp3_cover_custom_image_path, "MP3 Cover Custom Image"),
+            ]
+            
+            for file_path, name in overlay_files:
+                if file_path and not os.path.exists(file_path):
+                    return False, f"{name} file does not exist: {file_path}"
+            
+            return True, "Environment validation passed"
+            
+        except Exception as e:
+            return False, f"Environment validation error: {e}"
+
     def run(self):
         """Main processing method"""
         # set_low_priority()  # Removed to keep normal priority
         try:
+            # Validate environment before starting
+            is_valid, error_msg = self.validate_environment()
+            if not is_valid:
+                self.error.emit(f"Environment validation failed: {error_msg}")
+                return
+            
             # Get media files
             from src.utils import get_files_by_type
             mp3_files = get_files_by_type(self.media_sources, "audio")
