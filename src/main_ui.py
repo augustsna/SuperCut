@@ -10317,7 +10317,7 @@ class SuperCutUI(QWidget):
                 'background': {'enabled': hasattr(self, 'bg_layer_checkbox') and self.bg_layer_checkbox.isChecked()},
                 'overlay1': {
                     'enabled': hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked(),
-                    'path': self.overlay_edit.text().strip() if hasattr(self, 'overlay_edit') else "",
+                    'path': self.overlay1_edit.text().strip() if hasattr(self, 'overlay1_edit') else "",
                     'size_percent': self.overlay1_size_percent if hasattr(self, 'overlay1_size_percent') else 50,
                     'x_percent': self.overlay1_x_percent if hasattr(self, 'overlay1_x_percent') else 0,
                     'y_percent': self.overlay1_y_percent if hasattr(self, 'overlay1_y_percent') else 75
@@ -10541,8 +10541,8 @@ class SuperCutUI(QWidget):
                 overlay1_settings = layer_settings['overlay1']
                 if hasattr(self, 'overlay_checkbox'):
                     self.overlay_checkbox.setChecked(overlay1_settings.get('enabled', False))
-                if hasattr(self, 'overlay_edit'):
-                    self.overlay_edit.setText(overlay1_settings.get('path', ''))
+                if hasattr(self, 'overlay1_edit'):
+                    self.overlay1_edit.setText(overlay1_settings.get('path', ''))
                 if hasattr(self, 'overlay1_size_percent'):
                     self.overlay1_size_percent = overlay1_settings.get('size_percent', 50)
                 if hasattr(self, 'overlay1_x_percent'):
@@ -10551,23 +10551,23 @@ class SuperCutUI(QWidget):
                     self.overlay1_y_percent = overlay1_settings.get('y_percent', 75)
                 
                 # Update UI controls to reflect the restored values
-                if hasattr(self, 'overlay_size_combo'):
+                if hasattr(self, 'overlay1_size_combo'):
                     size = overlay1_settings.get('size_percent', 50)
-                    for i in range(self.overlay_size_combo.count()):
-                        if self.overlay_size_combo.itemData(i) == size:
-                            self.overlay_size_combo.setCurrentIndex(i)
+                    for i in range(self.overlay1_size_combo.count()):
+                        if self.overlay1_size_combo.itemData(i) == size:
+                            self.overlay1_size_combo.setCurrentIndex(i)
                             break
-                if hasattr(self, 'overlay_x_combo'):
+                if hasattr(self, 'overlay1_x_combo'):
                     x = overlay1_settings.get('x_percent', 0)
-                    for i in range(self.overlay_x_combo.count()):
-                        if self.overlay_x_combo.itemData(i) == x:
-                            self.overlay_x_combo.setCurrentIndex(i)
+                    for i in range(self.overlay1_x_combo.count()):
+                        if self.overlay1_x_combo.itemData(i) == x:
+                            self.overlay1_x_combo.setCurrentIndex(i)
                             break
-                if hasattr(self, 'overlay_y_combo'):
+                if hasattr(self, 'overlay1_y_combo'):
                     y = overlay1_settings.get('y_percent', 75)
-                    for i in range(self.overlay_y_combo.count()):
-                        if self.overlay_y_combo.itemData(i) == y:
-                            self.overlay_y_combo.setCurrentIndex(i)
+                    for i in range(self.overlay1_y_combo.count()):
+                        if self.overlay1_y_combo.itemData(i) == y:
+                            self.overlay1_y_combo.setCurrentIndex(i)
                             break
             if 'overlay2' in layer_settings:
                 overlay2_settings = layer_settings['overlay2']
@@ -10844,6 +10844,9 @@ class SuperCutUI(QWidget):
                         if self.soundwave_method_combo.itemData(i) == method:
                             self.soundwave_method_combo.setCurrentIndex(i)
                             break
+                    # Update instance variable
+                    if hasattr(self, 'soundwave_method'):
+                        self.soundwave_method = method
                 
                 # Update soundwave color
                 if hasattr(self, 'soundwave_color_combo'):
@@ -10852,6 +10855,9 @@ class SuperCutUI(QWidget):
                         if self.soundwave_color_combo.itemData(i) == color:
                             self.soundwave_color_combo.setCurrentIndex(i)
                             break
+                    # Update instance variable
+                    if hasattr(self, 'soundwave_color'):
+                        self.soundwave_color = color
                 
                 # Update soundwave size
                 if hasattr(self, 'soundwave_size_combo'):
@@ -10860,6 +10866,9 @@ class SuperCutUI(QWidget):
                         if self.soundwave_size_combo.itemData(i) == size:
                             self.soundwave_size_combo.setCurrentIndex(i)
                             break
+                    # Update instance variable
+                    if hasattr(self, 'soundwave_size_percent'):
+                        self.soundwave_size_percent = size
                 
                 # Update soundwave X position
                 if hasattr(self, 'soundwave_x_combo'):
@@ -10868,6 +10877,9 @@ class SuperCutUI(QWidget):
                         if self.soundwave_x_combo.itemData(i) == x:
                             self.soundwave_x_combo.setCurrentIndex(i)
                             break
+                    # Update instance variable
+                    if hasattr(self, 'soundwave_x_percent'):
+                        self.soundwave_x_percent = x
                 
                 # Update soundwave Y position
                 if hasattr(self, 'soundwave_y_combo'):
@@ -10876,6 +10888,9 @@ class SuperCutUI(QWidget):
                         if self.soundwave_y_combo.itemData(i) == y:
                             self.soundwave_y_combo.setCurrentIndex(i)
                             break
+                    # Update instance variable
+                    if hasattr(self, 'soundwave_y_percent'):
+                        self.soundwave_y_percent = y
             
             # Apply overlay1_2_effect_settings
             if 'overlay1_2_effect_settings' in template_data:

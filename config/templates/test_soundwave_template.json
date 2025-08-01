@@ -1,0 +1,29 @@
+{
+  "name": "Test Soundwave Template",
+  "description": "Template for testing soundwave functionality",
+  "category": "test",
+  "video_settings": {
+    "codec": "h264_nvenc",
+    "resolution": "1920x1080",
+    "fps": 24,
+    "preset": "slow",
+    "audio_bitrate": "384k",
+    "video_bitrate": "12M",
+    "maxrate": "16M",
+    "buffsize": "24M"
+  },
+  "layer_settings": {
+    "soundwave": {
+      "enabled": true,
+      "method": "bars",
+      "color": "hue_rotate",
+      "size_percent": 75,
+      "x_percent": 25,
+      "y_percent": 80
+    }
+  },
+  "overlay3_soundwave_effect_settings": {
+    "effect": "fadein",
+    "start_time": 10
+  }
+}
