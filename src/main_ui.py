@@ -1146,6 +1146,14 @@ class SuperCutUI(QWidget):
         self.update_output_name()
         self.apply_settings()
 
+    def __del__(self):
+        """Destructor to ensure proper cleanup of threads and resources"""
+        try:
+            self.cleanup_all_resources()
+        except Exception as e:
+            # Use print instead of logger in destructor as logger might not be available
+            print(f"Error during cleanup in destructor: {e}")
+
     def init_ui(self):
         """Initialize the user interface"""
         # Set window properties
@@ -9932,6 +9940,9 @@ class SuperCutUI(QWidget):
             self.quit_dialog.show()
             event.ignore()
             return
+        # Clean up all resources before closing
+        self.cleanup_all_resources()
+        
         # Save window position and close as normal
         settings = QSettings('SuperCut', 'SuperCutUI')
         settings.setValue('window_position', self.pos())
@@ -9956,8 +9967,7 @@ class SuperCutUI(QWidget):
             
             # Stop dry run if running
             if hasattr(self, "_dry_run_thread") and self._dry_run_thread is not None:
-                self._dry_run_thread.quit()
-                self._dry_run_thread = None
+                self.cleanup_dry_run_thread()
                 # Show waiting dialog for dry run
                 self._stopping_msgbox = PleaseWaitDialog(self)
                 self._stopping_msgbox.show()
@@ -12028,8 +12038,10 @@ class SuperCutUI(QWidget):
 
     def cleanup_worker_and_thread(self):
         """Disconnect all signals and clean up worker and thread objects safely."""
+        # Clean up worker
         if hasattr(self, '_worker') and self._worker is not None:
             try:
+                # Disconnect all signals from worker
                 self._worker.progress.disconnect(self.on_worker_progress)
             except (TypeError, RuntimeError):
                 pass
@@ -12041,11 +12053,136 @@ class SuperCutUI(QWidget):
                 self._worker.finished.disconnect()
             except (TypeError, RuntimeError):
                 pass
+            
+            # Stop the worker if it has a stop method
+            try:
+                if hasattr(self._worker, 'stop') and callable(self._worker.stop):
+                    self._worker.stop()
+            except Exception as e:
+                logger.warning(f"Error stopping worker: {e}")
+            
+            # Delete the worker
+            try:
+                self._worker.deleteLater()
+            except Exception as e:
+                logger.warning(f"Error deleting worker: {e}")
+            
+            self._worker = None
+        
+        # Clean up thread
         if hasattr(self, '_thread') and self._thread is not None:
             try:
+                # Disconnect all signals from thread
                 self._thread.started.disconnect()
             except (TypeError, RuntimeError):
                 pass
+            
+            # Stop the thread if it's running
+            if self._thread.isRunning():
+                try:
+                    self._thread.quit()
+                    if not self._thread.wait(5000):  # Wait up to 5 seconds
+                        logger.warning("Thread did not stop gracefully, forcing termination")
+                        self._thread.terminate()
+                        self._thread.wait(2000)  # Wait additional 2 seconds
+                except Exception as e:
+                    logger.warning(f"Error stopping thread: {e}")
+            
+            # Delete the thread
+            try:
+                self._thread.deleteLater()
+            except Exception as e:
+                logger.warning(f"Error deleting thread: {e}")
+            
+            self._thread = None
+
+    def cleanup_dry_run_thread(self):
+        """Clean up dry run thread safely."""
+        if hasattr(self, '_dry_run_thread') and self._dry_run_thread is not None:
+            try:
+                # Stop the thread if it's running
+                if self._dry_run_thread.isRunning():
+                    self._dry_run_thread.quit()
+                    if not self._dry_run_thread.wait(3000):  # Wait up to 3 seconds
+                        logger.warning("Dry run thread did not stop gracefully, forcing termination")
+                        self._dry_run_thread.terminate()
+                        self._dry_run_thread.wait(1000)  # Wait additional 1 second
+            except Exception as e:
+                logger.warning(f"Error stopping dry run thread: {e}")
+            
+            try:
+                # Delete the thread
+                self._dry_run_thread.deleteLater()
+            except Exception as e:
+                logger.warning(f"Error deleting dry run thread: {e}")
+            
+            self._dry_run_thread = None
+
+    def cleanup_all_resources(self):
+        """Clean up all threads, timers, and resources safely."""
+        try:
+            # Clean up worker and thread
+            self.cleanup_worker_and_thread()
+            
+            # Clean up dry run thread
+            self.cleanup_dry_run_thread()
+            
+            # Clean up any remaining timers
+            if hasattr(self, 'update_timer') and self.update_timer is not None:
+                try:
+                    self.update_timer.stop()
+                    self.update_timer.deleteLater()
+                except Exception as e:
+                    logger.warning(f"Error cleaning up update timer: {e}")
+                self.update_timer = None
+            
+            # Clean up dialogs
+            if hasattr(self, 'terminal_widget') and self.terminal_widget is not None:
+                try:
+                    self.terminal_widget.close()
+                except Exception as e:
+                    logger.warning(f"Error closing terminal widget: {e}")
+                self.terminal_widget = None
+            
+            if hasattr(self, '_preview_dialog') and self._preview_dialog is not None:
+                try:
+                    self._preview_dialog.close()
+                except Exception as e:
+                    logger.warning(f"Error closing preview dialog: {e}")
+                self._preview_dialog = None
+            
+            if hasattr(self, 'layer_manager_dialog') and self.layer_manager_dialog is not None:
+                try:
+                    self.layer_manager_dialog.close()
+                except Exception as e:
+                    logger.warning(f"Error closing layer manager dialog: {e}")
+                self.layer_manager_dialog = None
+            
+            if hasattr(self, 'template_manager_dialog') and self.template_manager_dialog is not None:
+                try:
+                    self.template_manager_dialog.close()
+                except Exception as e:
+                    logger.warning(f"Error closing template manager dialog: {e}")
+                self.template_manager_dialog = None
+            
+            # Clean up quit dialog
+            if hasattr(self, 'quit_dialog') and self.quit_dialog is not None:
+                try:
+                    self.quit_dialog.close()
+                except Exception as e:
+                    logger.warning(f"Error closing quit dialog: {e}")
+                self.quit_dialog = None
+            
+            # Clean up stopping message box
+            if hasattr(self, '_stopping_msgbox') and self._stopping_msgbox is not None:
+                try:
+                    self._stopping_msgbox.close()
+                except Exception as e:
+                    logger.warning(f"Error closing stopping message box: {e}")
+                self._stopping_msgbox = None
+                
+        except Exception as e:
+            logger.error(f"Error during comprehensive cleanup: {e}")
 
     def _gather_preview_inputs(self):
         """Gather inputs for preview without validation checks for media folder and output folder."""
