@@ -1523,20 +1523,18 @@ class SuperCutUI(QWidget):
                     border: none;
                     padding: 3px;
                 }
-                QPushButton:hover {
-                    background-color: rgba(74, 144, 226, 0.1);
-                    border-radius: 4px;
-                }
-                QPushButton:pressed {
-                    background-color: rgba(74, 144, 226, 0.2);
-                    border-radius: 4px;
-                }
+                
             """)
+            
+            # Enable hover events for icon size feedback
+            self.template_manager_btn.setMouseTracking(True)
+            self.template_manager_btn.enterEvent = lambda event: self.template_manager_btn.setIconSize(QSize(34, 34))
+            self.template_manager_btn.leaveEvent = lambda event: self.template_manager_btn.setIconSize(QSize(31, 31))
         
         # Save current as template button
         self.save_template_btn = QPushButton("Save")
-        self.save_template_btn.setFixedWidth(60)
-        self.save_template_btn.setFixedHeight(30)
+        self.save_template_btn.setFixedWidth(38)
+        self.save_template_btn.setFixedHeight(38)
         self.save_template_btn.clicked.connect(self.save_current_as_template)
     
         
@@ -8089,9 +8087,14 @@ class SuperCutUI(QWidget):
         self.settings_btn.setIconSize(QSize(32, 32))
         self.settings_btn.setFixedHeight(38)
         self.settings_btn.setFixedWidth(38)        
-        self.settings_btn.setToolTip("Settings")
+        
         self.settings_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         self.settings_btn.clicked.connect(self.show_settings_dialog)
+        
+        # Enable hover events for icon size feedback
+        self.settings_btn.setMouseTracking(True)
+        self.settings_btn.enterEvent = lambda event: self.settings_btn.setIconSize(QSize(35, 35))
+        self.settings_btn.leaveEvent = lambda event: self.settings_btn.setIconSize(QSize(32, 32))
         
 
         # Add layer manager button
@@ -8105,6 +8108,11 @@ class SuperCutUI(QWidget):
         self.layer_manager_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         self.layer_manager_btn.clicked.connect(self.show_layer_manager)
         
+        # Enable hover events for icon size feedback
+        self.layer_manager_btn.setMouseTracking(True)
+        self.layer_manager_btn.enterEvent = lambda event: self.layer_manager_btn.setIconSize(QSize(36, 36))
+        self.layer_manager_btn.leaveEvent = lambda event: self.layer_manager_btn.setIconSize(QSize(33, 33))
+        
 
         # Add terminal button next
         self.terminal_btn = QPushButton()
@@ -8116,6 +8124,11 @@ class SuperCutUI(QWidget):
         self.terminal_btn.setFixedWidth(38)
         self.terminal_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         self.terminal_btn.clicked.connect(self.show_terminal)
+        
+        # Enable hover events for icon size feedback
+        self.terminal_btn.setMouseTracking(True)
+        self.terminal_btn.enterEvent = lambda event: self.terminal_btn.setIconSize(QSize(33, 33))
+        self.terminal_btn.leaveEvent = lambda event: self.terminal_btn.setIconSize(QSize(30, 30))
         
 
         # Then add create video button
@@ -8129,24 +8142,34 @@ class SuperCutUI(QWidget):
         self.preview_btn = QPushButton()
         preview_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "preview.png")
         self.preview_btn.setIcon(QIcon(preview_icon_path))
-        self.preview_btn.setIconSize(QSize(31, 31))
+        self.preview_btn.setIconSize(QSize(32, 32))
         self.preview_btn.setFixedHeight(38)
         self.preview_btn.setFixedWidth(38)
         self.preview_btn.setToolTip("Preview")
         self.preview_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         self.preview_btn.clicked.connect(self.show_preview_dialog)
         
+        # Enable hover events for icon size feedback
+        self.preview_btn.setMouseTracking(True)
+        self.preview_btn.enterEvent = lambda event: self.preview_btn.setIconSize(QSize(35, 35))
+        self.preview_btn.leaveEvent = lambda event: self.preview_btn.setIconSize(QSize(32, 32))
+        
 
         # Add placeholder button after create video button
         self.placeholder_btn = QPushButton()
         rocket_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "rocket.png")
         self.placeholder_btn.setIcon(QIcon(rocket_icon_path))
-        self.placeholder_btn.setIconSize(QSize(29, 29))
+        self.placeholder_btn.setIconSize(QSize(30, 30))
         self.placeholder_btn.setFixedHeight(38)
         self.placeholder_btn.setFixedWidth(38)
         self.placeholder_btn.setStyleSheet("QPushButton { background: transparent; border: none; padding: 0px; margin: 0px; } QPushButton:pressed { background: transparent; }")
         # self.placeholder_btn.setVisible(self.static_icon.isVisible())  # Ensure always visible
         self.placeholder_btn.clicked.connect(self.open_iconsna_website)
+        
+        # Enable hover events for icon size feedback
+        self.placeholder_btn.setMouseTracking(True)
+        self.placeholder_btn.enterEvent = lambda event: self.placeholder_btn.setIconSize(QSize(33, 33))
+        self.placeholder_btn.leaveEvent = lambda event: self.placeholder_btn.setIconSize(QSize(30, 30))
         
 
         # Add reset button after placeholder button
@@ -8173,6 +8196,11 @@ class SuperCutUI(QWidget):
             }
         """)
         self.reset_btn.clicked.connect(self.reset_main_form)
+        
+        # Enable hover events for icon size feedback
+        self.reset_btn.setMouseTracking(True)
+        self.reset_btn.enterEvent = lambda event: self.reset_btn.setIconSize(QSize(33, 33))
+        self.reset_btn.leaveEvent = lambda event: self.reset_btn.setIconSize(QSize(30, 30))
 
         # Add version text after reset button
         self.version_label = QLabel("v2025.1")
