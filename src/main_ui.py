@@ -10364,7 +10364,22 @@ class SuperCutUI(QWidget):
                     'x_percent': self.overlay7_x_percent if hasattr(self, 'overlay7_x_percent') else 75,
                     'y_percent': self.overlay7_y_percent if hasattr(self, 'overlay7_y_percent') else 0
                 },
-                'overlay8': {'enabled': hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked()},
+                'overlay8': {
+                    'enabled': hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked(),
+                    'path': self.overlay8_path if hasattr(self, 'overlay8_path') else "",
+                    'size_percent': self.overlay8_size_percent if hasattr(self, 'overlay8_size_percent') else 50,
+                    'x_percent': self.overlay8_x_percent if hasattr(self, 'overlay8_x_percent') else 0,
+                    'y_percent': self.overlay8_y_percent if hasattr(self, 'overlay8_y_percent') else 0,
+                    'effect': self.selected_overlay8_effect if hasattr(self, 'selected_overlay8_effect') else "fadein",
+                    'duration_full': hasattr(self, 'overlay8_duration_full_checkbox') and self.overlay8_duration_full_checkbox.isChecked(),
+                    'duration': self.overlay8_duration if hasattr(self, 'overlay8_duration') else 6,
+                    'start_checkbox': hasattr(self, 'overlay8_start_at_checkbox') and self.overlay8_start_at_checkbox.isChecked(),
+                    'start_at': self.overlay8_start_percent if hasattr(self, 'overlay8_start_percent') else 5,
+                    'start_from': self.overlay8_start_from_percent if hasattr(self, 'overlay8_start_from_percent') else 0,
+                    'popup_checkbox': hasattr(self, 'overlay8_popup_checkbox') and self.overlay8_popup_checkbox.isChecked(),
+                    'popup_start_at': self.overlay8_popup_start_at_percent if hasattr(self, 'overlay8_popup_start_at_percent') else 5,
+                    'popup_num': self.overlay8_popup_num if hasattr(self, 'overlay8_popup_num') else 1
+                },
                 'overlay9': {'enabled': hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked()},
                 'overlay10': {'enabled': hasattr(self, 'overlay10_checkbox') and self.overlay10_checkbox.isChecked()},
                 'intro': {
@@ -10762,8 +10777,90 @@ class SuperCutUI(QWidget):
                         if self.overlay7_y_combo.itemData(i) == y:
                             self.overlay7_y_combo.setCurrentIndex(i)
                             break
-            if 'overlay8' in layer_settings and hasattr(self, 'overlay8_checkbox'):
-                self.overlay8_checkbox.setChecked(layer_settings['overlay8'].get('enabled', False))
+            if 'overlay8' in layer_settings:
+                overlay8_settings = layer_settings['overlay8']
+                if hasattr(self, 'overlay8_checkbox'):
+                    self.overlay8_checkbox.setChecked(overlay8_settings.get('enabled', False))
+                if hasattr(self, 'overlay8_edit'):
+                    self.overlay8_edit.setText(overlay8_settings.get('path', ''))
+                if hasattr(self, 'overlay8_path'):
+                    self.overlay8_path = overlay8_settings.get('path', '')
+                if hasattr(self, 'overlay8_size_percent'):
+                    self.overlay8_size_percent = overlay8_settings.get('size_percent', 50)
+                if hasattr(self, 'overlay8_x_percent'):
+                    self.overlay8_x_percent = overlay8_settings.get('x_percent', 0)
+                if hasattr(self, 'overlay8_y_percent'):
+                    self.overlay8_y_percent = overlay8_settings.get('y_percent', 0)
+                if hasattr(self, 'selected_overlay8_effect'):
+                    self.selected_overlay8_effect = overlay8_settings.get('effect', 'fadein')
+                if hasattr(self, 'overlay8_duration'):
+                    self.overlay8_duration = overlay8_settings.get('duration', 6)
+                if hasattr(self, 'overlay8_start_percent'):
+                    self.overlay8_start_percent = overlay8_settings.get('start_at', 5)
+                if hasattr(self, 'overlay8_start_from_percent'):
+                    self.overlay8_start_from_percent = overlay8_settings.get('start_from', 0)
+                if hasattr(self, 'overlay8_popup_start_at_percent'):
+                    self.overlay8_popup_start_at_percent = overlay8_settings.get('popup_start_at', 5)
+                if hasattr(self, 'overlay8_popup_num'):
+                    self.overlay8_popup_num = overlay8_settings.get('popup_num', 1)
+                
+                # Update UI controls to reflect the restored values
+                if hasattr(self, 'overlay8_size_combo'):
+                    size = overlay8_settings.get('size_percent', 50)
+                    for i in range(self.overlay8_size_combo.count()):
+                        if self.overlay8_size_combo.itemData(i) == size:
+                            self.overlay8_size_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay8_x_combo'):
+                    x = overlay8_settings.get('x_percent', 0)
+                    for i in range(self.overlay8_x_combo.count()):
+                        if self.overlay8_x_combo.itemData(i) == x:
+                            self.overlay8_x_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay8_y_combo'):
+                    y = overlay8_settings.get('y_percent', 0)
+                    for i in range(self.overlay8_y_combo.count()):
+                        if self.overlay8_y_combo.itemData(i) == y:
+                            self.overlay8_y_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay8_duration_edit'):
+                    self.overlay8_duration_edit.setText(str(overlay8_settings.get('duration', 6)))
+                if hasattr(self, 'overlay8_duration_full_checkbox'):
+                    self.overlay8_duration_full_checkbox.setChecked(overlay8_settings.get('duration_full', True))
+                if hasattr(self, 'overlay8_start_at_checkbox'):
+                    self.overlay8_start_at_checkbox.setChecked(overlay8_settings.get('start_checkbox', True))
+                if hasattr(self, 'overlay8_popup_checkbox'):
+                    self.overlay8_popup_checkbox.setChecked(overlay8_settings.get('popup_checkbox', False))
+                if hasattr(self, 'overlay8_popup_start_at_combo'):
+                    popup_start_at = overlay8_settings.get('popup_start_at', 5)
+                    for i in range(self.overlay8_popup_start_at_combo.count()):
+                        if self.overlay8_popup_start_at_combo.itemData(i) == popup_start_at:
+                            self.overlay8_popup_start_at_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay8_popup_num_combo'):
+                    popup_num = overlay8_settings.get('popup_num', 1)
+                    for i in range(self.overlay8_popup_num_combo.count()):
+                        if self.overlay8_popup_num_combo.itemData(i) == popup_num:
+                            self.overlay8_popup_num_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay8_start_combo'):
+                    start_at = overlay8_settings.get('start_at', 5)
+                    for i in range(self.overlay8_start_combo.count()):
+                        if self.overlay8_start_combo.itemData(i) == start_at:
+                            self.overlay8_start_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay8_start_from_combo'):
+                    start_from = overlay8_settings.get('start_from', 0)
+                    for i in range(self.overlay8_start_from_combo.count()):
+                        if self.overlay8_start_from_combo.itemData(i) == start_from:
+                            self.overlay8_start_from_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay8_effect_combo'):
+                    effect = overlay8_settings.get('effect', 'fadein')
+                    for i in range(self.overlay8_effect_combo.count()):
+                        if self.overlay8_effect_combo.itemData(i) == effect:
+                            self.overlay8_effect_combo.setCurrentIndex(i)
+                            break
             if 'overlay9' in layer_settings and hasattr(self, 'overlay9_checkbox'):
                 self.overlay9_checkbox.setChecked(layer_settings['overlay9'].get('enabled', False))
             if 'overlay10' in layer_settings and hasattr(self, 'overlay10_checkbox'):
