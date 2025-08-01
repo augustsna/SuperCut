@@ -10308,15 +10308,34 @@ class SuperCutUI(QWidget):
             'resolution': self.resolution_combo.currentData(),
             'fps': self.fps_combo.currentData(),
             'preset': self.preset_combo.currentData(),
-            'audio_bitrate': '384k',  # Default, could be made configurable
-            'video_bitrate': '12M',   # Default, could be made configurable
-            'maxrate': '16M',         # Default, could be made configurable
-            'buffsize': '24M',         # Default, could be made configurable
+            'audio_bitrate': self.audio_bitrate_combo.currentData() if hasattr(self, 'audio_bitrate_combo') else '384k',
+            'video_bitrate': self.video_bitrate_combo.currentData() if hasattr(self, 'video_bitrate_combo') else '12M',
+            'maxrate': self.maxrate_combo.currentData() if hasattr(self, 'maxrate_combo') else '16M',
+            'buffsize': self.buffsize_combo.currentData() if hasattr(self, 'buffsize_combo') else '24M',
             'layer_order': self.layer_order or [],
             'layer_settings': {
                 'background': {'enabled': hasattr(self, 'bg_layer_checkbox') and self.bg_layer_checkbox.isChecked()},
-                'overlay1': {'enabled': hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked()},
-                'overlay2': {'enabled': hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked()},
+                'overlay1': {
+                    'enabled': hasattr(self, 'overlay_checkbox') and self.overlay_checkbox.isChecked(),
+                    'path': self.overlay_edit.text().strip() if hasattr(self, 'overlay_edit') else "",
+                    'size_percent': self.overlay1_size_percent if hasattr(self, 'overlay1_size_percent') else 50,
+                    'x_percent': self.overlay1_x_percent if hasattr(self, 'overlay1_x_percent') else 0,
+                    'y_percent': self.overlay1_y_percent if hasattr(self, 'overlay1_y_percent') else 75
+                },
+                'overlay2': {
+                    'enabled': hasattr(self, 'overlay2_checkbox') and self.overlay2_checkbox.isChecked(),
+                    'path': self.overlay2_edit.text().strip() if hasattr(self, 'overlay2_edit') else "",
+                    'size_percent': self.overlay2_size_percent if hasattr(self, 'overlay2_size_percent') else 10,
+                    'x_percent': self.overlay2_x_percent if hasattr(self, 'overlay2_x_percent') else 75,
+                    'y_percent': self.overlay2_y_percent if hasattr(self, 'overlay2_y_percent') else 0
+                },
+                'overlay1_2_effect': {
+                    'effect': self.selected_overlay1_2_effect if hasattr(self, 'selected_overlay1_2_effect') else "fadein",
+                    'duration': self.overlay1_2_duration if hasattr(self, 'overlay1_2_duration') else 6,
+                    'duration_full': hasattr(self, 'overlay1_2_duration_full_checkbox') and self.overlay1_2_duration_full_checkbox.isChecked(),
+                    'start_at_checkbox': hasattr(self, 'overlay1_2_start_at_checkbox') and self.overlay1_2_start_at_checkbox.isChecked(),
+                    'start_from': self.overlay1_2_start_from if hasattr(self, 'overlay1_2_start_from') else 0
+                },
                 'overlay3': {'enabled': hasattr(self, 'overlay3_checkbox') and self.overlay3_checkbox.isChecked()},
                 'overlay4': {'enabled': hasattr(self, 'overlay4_checkbox') and self.overlay4_checkbox.isChecked()},
                 'overlay5': {'enabled': hasattr(self, 'overlay5_checkbox') and self.overlay5_checkbox.isChecked()},
@@ -10325,7 +10344,19 @@ class SuperCutUI(QWidget):
                 'overlay8': {'enabled': hasattr(self, 'overlay8_checkbox') and self.overlay8_checkbox.isChecked()},
                 'overlay9': {'enabled': hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked()},
                 'overlay10': {'enabled': hasattr(self, 'overlay10_checkbox') and self.overlay10_checkbox.isChecked()},
-                'intro': {'enabled': hasattr(self, 'intro_checkbox') and self.intro_checkbox.isChecked()},
+                'intro': {
+                    'enabled': hasattr(self, 'intro_checkbox') and self.intro_checkbox.isChecked(),
+                    'path': self.intro_edit.text().strip() if hasattr(self, 'intro_edit') else "",
+                    'size_percent': self.intro_size_percent if hasattr(self, 'intro_size_percent') else 50,
+                    'x_percent': self.intro_x_percent if hasattr(self, 'intro_x_percent') else 50,
+                    'y_percent': self.intro_y_percent if hasattr(self, 'intro_y_percent') else 50,
+                    'effect': self.intro_effect if hasattr(self, 'intro_effect') else "fadeout",
+                    'duration_full': hasattr(self, 'intro_duration_full_checkbox') and self.intro_duration_full_checkbox.isChecked(),
+                    'duration': self.intro_duration if hasattr(self, 'intro_duration') else 6,
+                    'start_checkbox': hasattr(self, 'intro_start_checkbox') and self.intro_start_checkbox.isChecked(),
+                    'start_at': self.intro_start_at if hasattr(self, 'intro_start_at') else 0,
+                    'start_from': self.intro_start_from if hasattr(self, 'intro_start_from') else 0
+                },
                 'frame_box': {'enabled': hasattr(self, 'frame_box_checkbox') and self.frame_box_checkbox.isChecked()},
                 'frame_mp3cover': {'enabled': hasattr(self, 'frame_mp3cover_checkbox') and self.frame_mp3cover_checkbox.isChecked()},
                 'mp3_cover_overlay': {'enabled': hasattr(self, 'mp3_cover_overlay_checkbox') and self.mp3_cover_overlay_checkbox.isChecked()},
@@ -10344,6 +10375,25 @@ class SuperCutUI(QWidget):
                 'show_frame_mp3cover_settings': self.settings.value('show_frame_mp3cover_settings', False, type=bool),
                 'show_mp3_cover_overlay_settings': self.settings.value('show_mp3_cover_overlay_settings', False, type=bool),
                 'show_frame_box_settings': self.settings.value('show_frame_box_settings', False, type=bool),
+            },
+            'checkbox_labels': {
+                'intro_checkbox_label': self.settings.value('intro_checkbox_label', " Intro :", type=str),
+                'background_checkbox_label': self.settings.value('background_checkbox_label', " Background :", type=str),
+                'overlay1_checkbox_label': self.settings.value('overlay1_checkbox_label', " Overlay 1 :", type=str),
+                'overlay2_checkbox_label': self.settings.value('overlay2_checkbox_label', " Overlay 2 :", type=str),
+                'overlay3_checkbox_label': self.settings.value('overlay3_checkbox_label', " Overlay 3 :", type=str),
+                'overlay4_checkbox_label': self.settings.value('overlay4_checkbox_label', " Overlay 4 :", type=str),
+                'overlay5_checkbox_label': self.settings.value('overlay5_checkbox_label', " Overlay 5 :", type=str),
+                'overlay6_checkbox_label': self.settings.value('overlay6_checkbox_label', " Overlay 6 :", type=str),
+                'overlay7_checkbox_label': self.settings.value('overlay7_checkbox_label', " Overlay 7 :", type=str),
+                'overlay8_checkbox_label': self.settings.value('overlay8_checkbox_label', " Overlay 8 :", type=str),
+                'overlay9_checkbox_label': self.settings.value('overlay9_checkbox_label', " Overlay 9 :", type=str),
+                'overlay10_checkbox_label': self.settings.value('overlay10_checkbox_label', " Overlay 10 :", type=str),
+                'frame_box_checkbox_label': self.settings.value('frame_box_checkbox_label', " Frame Box :", type=str),
+                'frame_mp3cover_checkbox_label': self.settings.value('frame_mp3cover_checkbox_label', " Frame MP3 Cover :", type=str),
+                'mp3_cover_overlay_checkbox_label': self.settings.value('mp3_cover_overlay_checkbox_label', " MP3 Cover Overlay :", type=str),
+                'song_titles_checkbox_label': self.settings.value('song_titles_checkbox_label', " Song Titles :", type=str),
+                'soundwave_checkbox_label': self.settings.value('soundwave_checkbox_label', " Soundwave :", type=str),
             }
         }
         return settings
@@ -10419,10 +10469,94 @@ class SuperCutUI(QWidget):
             layer_settings = template_data.get('layer_settings', {})
             if 'background' in layer_settings and hasattr(self, 'bg_layer_checkbox'):
                 self.bg_layer_checkbox.setChecked(layer_settings['background'].get('enabled', False))
-            if 'overlay1' in layer_settings and hasattr(self, 'overlay_checkbox'):
-                self.overlay_checkbox.setChecked(layer_settings['overlay1'].get('enabled', False))
-            if 'overlay2' in layer_settings and hasattr(self, 'overlay2_checkbox'):
-                self.overlay2_checkbox.setChecked(layer_settings['overlay2'].get('enabled', False))
+            if 'overlay1' in layer_settings:
+                overlay1_settings = layer_settings['overlay1']
+                if hasattr(self, 'overlay_checkbox'):
+                    self.overlay_checkbox.setChecked(overlay1_settings.get('enabled', False))
+                if hasattr(self, 'overlay_edit'):
+                    self.overlay_edit.setText(overlay1_settings.get('path', ''))
+                if hasattr(self, 'overlay1_size_percent'):
+                    self.overlay1_size_percent = overlay1_settings.get('size_percent', 50)
+                if hasattr(self, 'overlay1_x_percent'):
+                    self.overlay1_x_percent = overlay1_settings.get('x_percent', 0)
+                if hasattr(self, 'overlay1_y_percent'):
+                    self.overlay1_y_percent = overlay1_settings.get('y_percent', 75)
+                
+                # Update UI controls to reflect the restored values
+                if hasattr(self, 'overlay_size_combo'):
+                    size = overlay1_settings.get('size_percent', 50)
+                    for i in range(self.overlay_size_combo.count()):
+                        if self.overlay_size_combo.itemData(i) == size:
+                            self.overlay_size_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay_x_combo'):
+                    x = overlay1_settings.get('x_percent', 0)
+                    for i in range(self.overlay_x_combo.count()):
+                        if self.overlay_x_combo.itemData(i) == x:
+                            self.overlay_x_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay_y_combo'):
+                    y = overlay1_settings.get('y_percent', 75)
+                    for i in range(self.overlay_y_combo.count()):
+                        if self.overlay_y_combo.itemData(i) == y:
+                            self.overlay_y_combo.setCurrentIndex(i)
+                            break
+            if 'overlay2' in layer_settings:
+                overlay2_settings = layer_settings['overlay2']
+                if hasattr(self, 'overlay2_checkbox'):
+                    self.overlay2_checkbox.setChecked(overlay2_settings.get('enabled', False))
+                if hasattr(self, 'overlay2_edit'):
+                    self.overlay2_edit.setText(overlay2_settings.get('path', ''))
+                if hasattr(self, 'overlay2_size_percent'):
+                    self.overlay2_size_percent = overlay2_settings.get('size_percent', 10)
+                if hasattr(self, 'overlay2_x_percent'):
+                    self.overlay2_x_percent = overlay2_settings.get('x_percent', 75)
+                if hasattr(self, 'overlay2_y_percent'):
+                    self.overlay2_y_percent = overlay2_settings.get('y_percent', 0)
+                
+                # Update UI controls to reflect the restored values
+                if hasattr(self, 'overlay2_size_combo'):
+                    size = overlay2_settings.get('size_percent', 10)
+                    for i in range(self.overlay2_size_combo.count()):
+                        if self.overlay2_size_combo.itemData(i) == size:
+                            self.overlay2_size_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay2_x_combo'):
+                    x = overlay2_settings.get('x_percent', 75)
+                    for i in range(self.overlay2_x_combo.count()):
+                        if self.overlay2_x_combo.itemData(i) == x:
+                            self.overlay2_x_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay2_y_combo'):
+                    y = overlay2_settings.get('y_percent', 0)
+                    for i in range(self.overlay2_y_combo.count()):
+                        if self.overlay2_y_combo.itemData(i) == y:
+                            self.overlay2_y_combo.setCurrentIndex(i)
+                            break
+            if 'overlay1_2_effect' in layer_settings:
+                overlay1_2_effect_settings = layer_settings['overlay1_2_effect']
+                if hasattr(self, 'selected_overlay1_2_effect'):
+                    self.selected_overlay1_2_effect = overlay1_2_effect_settings.get('effect', 'fadein')
+                if hasattr(self, 'overlay1_2_duration'):
+                    self.overlay1_2_duration = overlay1_2_effect_settings.get('duration', 6)
+                if hasattr(self, 'overlay1_2_duration_full_checkbox'):
+                    self.overlay1_2_duration_full_checkbox.setChecked(overlay1_2_effect_settings.get('duration_full', False))
+                if hasattr(self, 'overlay1_2_start_at_checkbox'):
+                    self.overlay1_2_start_at_checkbox.setChecked(overlay1_2_effect_settings.get('start_at_checkbox', False))
+                if hasattr(self, 'overlay1_2_start_from'):
+                    self.overlay1_2_start_from = overlay1_2_effect_settings.get('start_from', 0)
+                
+                # Update UI controls to reflect the restored values
+                if hasattr(self, 'effect_combo'):
+                    effect = overlay1_2_effect_settings.get('effect', 'fadein')
+                    for i in range(self.effect_combo.count()):
+                        if self.effect_combo.itemData(i) == effect:
+                            self.effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay1_2_duration_edit'):
+                    self.overlay1_2_duration_edit.setText(str(overlay1_2_effect_settings.get('duration', 6)))
+                if hasattr(self, 'overlay1_2_start_from_edit'):
+                    self.overlay1_2_start_from_edit.setText(str(overlay1_2_effect_settings.get('start_from', 0)))
             if 'overlay3' in layer_settings and hasattr(self, 'overlay3_checkbox'):
                 self.overlay3_checkbox.setChecked(layer_settings['overlay3'].get('enabled', False))
             if 'overlay4' in layer_settings and hasattr(self, 'overlay4_checkbox'):
@@ -10439,8 +10573,62 @@ class SuperCutUI(QWidget):
                 self.overlay9_checkbox.setChecked(layer_settings['overlay9'].get('enabled', False))
             if 'overlay10' in layer_settings and hasattr(self, 'overlay10_checkbox'):
                 self.overlay10_checkbox.setChecked(layer_settings['overlay10'].get('enabled', False))
-            if 'intro' in layer_settings and hasattr(self, 'intro_checkbox'):
-                self.intro_checkbox.setChecked(layer_settings['intro'].get('enabled', False))
+            if 'intro' in layer_settings:
+                intro_settings = layer_settings['intro']
+                if hasattr(self, 'intro_checkbox'):
+                    self.intro_checkbox.setChecked(intro_settings.get('enabled', False))
+                if hasattr(self, 'intro_start_checkbox'):
+                    self.intro_start_checkbox.setChecked(intro_settings.get('start_checkbox', False))
+                if hasattr(self, 'intro_start_at'):
+                    self.intro_start_at = intro_settings.get('start_at', 0)
+                if hasattr(self, 'intro_start_from'):
+                    self.intro_start_from = intro_settings.get('start_from', 0)
+                if hasattr(self, 'intro_duration'):
+                    self.intro_duration = intro_settings.get('duration', 6)
+                if hasattr(self, 'intro_duration_full_checkbox'):
+                    self.intro_duration_full_checkbox.setChecked(intro_settings.get('duration_full', False))
+                if hasattr(self, 'intro_effect'):
+                    self.intro_effect = intro_settings.get('effect', 'fadeout')
+                if hasattr(self, 'intro_size_percent'):
+                    self.intro_size_percent = intro_settings.get('size_percent', 50)
+                if hasattr(self, 'intro_x_percent'):
+                    self.intro_x_percent = intro_settings.get('x_percent', 50)
+                if hasattr(self, 'intro_y_percent'):
+                    self.intro_y_percent = intro_settings.get('y_percent', 50)
+                if hasattr(self, 'intro_edit'):
+                    self.intro_edit.setText(intro_settings.get('path', ''))
+                
+                # Update UI controls to reflect the restored values
+                if hasattr(self, 'intro_start_edit'):
+                    self.intro_start_edit.setText(str(intro_settings.get('start_at', 0)))
+                if hasattr(self, 'intro_start_from_edit'):
+                    self.intro_start_from_edit.setText(str(intro_settings.get('start_from', 0)))
+                if hasattr(self, 'intro_duration_edit'):
+                    self.intro_duration_edit.setText(str(intro_settings.get('duration', 6)))
+                if hasattr(self, 'intro_effect_combo'):
+                    effect = intro_settings.get('effect', 'fadeout')
+                    for i in range(self.intro_effect_combo.count()):
+                        if self.intro_effect_combo.itemData(i) == effect:
+                            self.intro_effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'intro_size_combo'):
+                    size = intro_settings.get('size_percent', 50)
+                    for i in range(self.intro_size_combo.count()):
+                        if self.intro_size_combo.itemData(i) == size:
+                            self.intro_size_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'intro_x_combo'):
+                    x = intro_settings.get('x_percent', 50)
+                    for i in range(self.intro_x_combo.count()):
+                        if self.intro_x_combo.itemData(i) == x:
+                            self.intro_x_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'intro_y_combo'):
+                    y = intro_settings.get('y_percent', 50)
+                    for i in range(self.intro_y_combo.count()):
+                        if self.intro_y_combo.itemData(i) == y:
+                            self.intro_y_combo.setCurrentIndex(i)
+                            break
             if 'frame_box' in layer_settings and hasattr(self, 'frame_box_checkbox'):
                 self.frame_box_checkbox.setChecked(layer_settings['frame_box'].get('enabled', False))
             if 'frame_mp3cover' in layer_settings and hasattr(self, 'frame_mp3cover_checkbox'):
@@ -10456,6 +10644,18 @@ class SuperCutUI(QWidget):
             ui_settings = template_data.get('ui_settings', {})
             for setting_name, value in ui_settings.items():
                 self.settings.setValue(setting_name, value)
+            
+            # Apply checkbox labels
+            checkbox_labels = template_data.get('checkbox_labels', {})
+            for label_name, label_value in checkbox_labels.items():
+                self.settings.setValue(label_name, label_value)
+            
+            # Update layer manager labels if it exists
+            if hasattr(self, 'layer_manager_dialog') and self.layer_manager_dialog is not None:
+                self.layer_manager_dialog.update_layer_labels()
+            
+            # Apply settings to update UI visibility and checkbox labels
+            self.apply_settings()
             
             # Update the template combo to show the applied template
             template_name = template_data.get('name', 'Unknown Template')

@@ -66,7 +66,8 @@ def create_template_from_current_settings(
         },
         "layer_order": current_settings.get('layer_order', []),
         "layer_settings": current_settings.get('layer_settings', {}),
-        "ui_settings": current_settings.get('ui_settings', {})
+        "ui_settings": current_settings.get('ui_settings', {}),
+        "checkbox_labels": current_settings.get('checkbox_labels', {})
     }
     return template
 
@@ -89,6 +90,10 @@ def apply_template_to_settings(template_data: Dict[str, Any]) -> Dict[str, Any]:
     # Apply UI settings
     if 'ui_settings' in template_data:
         settings['ui_settings'] = template_data['ui_settings']
+    
+    # Apply checkbox labels
+    if 'checkbox_labels' in template_data:
+        settings['checkbox_labels'] = template_data['checkbox_labels']
     
     return settings
 
