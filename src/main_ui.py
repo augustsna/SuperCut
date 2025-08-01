@@ -11898,7 +11898,7 @@ class SuperCutUI(QWidget):
             template_name = template_data.get('name', 'Unknown Template')
             
             # Print current FFmpeg settings after template application
-            print(f"\n🔖 {template_name} is applied. Video Creation Settings:")
+            print(f"\n✅ {template_name} is applied. Video Creation Settings:")
             print(f"FPS: {self.fps_combo.currentData() if hasattr(self, 'fps_combo') else 'N/A'}")
             print(f"Preset: {self.preset_combo.currentData() if hasattr(self, 'preset_combo') else 'N/A'}")
             print(f"Maxrate: {self.settings.value('default_ffmpeg_maxrate', '16M', type=str)}")
