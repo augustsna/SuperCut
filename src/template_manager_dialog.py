@@ -361,7 +361,7 @@ class TemplateManagerDialog(QDialog):
         
         self.template_list = QListWidget()
         self.template_list.setFixedWidth(230)
-        self.template_list.setMaximumHeight(250)
+        self.template_list.setMaximumHeight(320)
         self.template_list.itemClicked.connect(self.on_template_selected)
         self.template_list.setStyleSheet("""
             QListWidget {

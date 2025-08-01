@@ -1,7 +1,9 @@
 {
-  "name": "Template 23",
-  "description": "Template created from current settings",
-  "category": "custom",
+  "name": "123",
+  "description": "",
+  "category": "music",
+  "resources": "https://iconsna.xyz/",
+  "reference": "https://youtube.com/",
   "video_settings": {
     "codec": "h264_nvenc",
     "resolution": "1920x1080",
@@ -32,64 +34,57 @@
     "soundwave"
   ],
   "layer_settings": {
-    "background": {
-      "enabled": true,
-      "scale_percent": 100,
-      "crop_position": "center",
-      "effect": "none",
-      "intensity": 50
-    },
     "overlay1": {
-      "enabled": true,
+      "enabled": false,
       "path": "",
       "size_percent": 50,
       "x_percent": 0,
       "y_percent": 0
     },
     "overlay2": {
-      "enabled": true,
+      "enabled": false,
       "path": "",
       "size_percent": 50,
       "x_percent": 0,
       "y_percent": 0
     },
     "overlay3": {
-      "enabled": true,
+      "enabled": false,
       "path": "",
       "size_percent": 50,
-      "x_percent": 75,
+      "x_percent": 0,
       "y_percent": 0
     },
     "overlay4": {
-      "enabled": true,
+      "enabled": false,
       "path": "",
       "size_percent": 50,
-      "x_percent": 75,
+      "x_percent": 0,
       "y_percent": 0
     },
     "overlay5": {
-      "enabled": true,
+      "enabled": false,
       "path": "",
       "size_percent": 50,
-      "x_percent": 75,
+      "x_percent": 0,
       "y_percent": 0
     },
     "overlay6": {
-      "enabled": true,
+      "enabled": false,
       "path": "",
       "size_percent": 50,
-      "x_percent": 75,
+      "x_percent": 0,
       "y_percent": 0
     },
     "overlay7": {
-      "enabled": true,
+      "enabled": false,
       "path": "",
       "size_percent": 50,
-      "x_percent": 75,
+      "x_percent": 0,
       "y_percent": 0
     },
     "overlay8": {
-      "enabled": true,
+      "enabled": false,
       "path": "",
       "size_percent": 50,
       "x_percent": 0,
@@ -99,13 +94,13 @@
       "duration": 6,
       "start_checkbox": true,
       "start_at": 5,
-      "start_from": 0,
+      "start_from": 1,
       "popup_checkbox": false,
       "popup_start_at": 5,
       "popup_num": 1
     },
     "overlay9": {
-      "enabled": true,
+      "enabled": false,
       "path": "",
       "size_percent": 50,
       "x_percent": 0,
@@ -115,13 +110,13 @@
       "duration": 6,
       "start_checkbox": true,
       "start_at": 5,
-      "start_from": 0,
+      "start_from": 1,
       "popup_checkbox": false,
       "popup_start_at": 5,
       "popup_num": 1
     },
     "overlay10": {
-      "enabled": true,
+      "enabled": false,
       "path": "",
       "size_percent": 50,
       "x_percent": 0,
@@ -134,7 +129,7 @@
       "start_end_value": "start"
     },
     "intro": {
-      "enabled": true,
+      "enabled": false,
       "path": "",
       "size_percent": 50,
       "x_percent": 50,
@@ -147,7 +142,7 @@
       "start_from": 0
     },
     "frame_box": {
-      "enabled": true,
+      "enabled": false,
       "custom_image_checkbox": false,
       "custom_image_path": null,
       "size_percent": 50,
@@ -189,7 +184,7 @@
       "caption_effect_intensity": 5
     },
     "frame_mp3cover": {
-      "enabled": true,
+      "enabled": false,
       "custom_image_checkbox": false,
       "custom_image_path": null,
       "size_percent": 50,
@@ -201,7 +196,7 @@
       "start_time": 5
     },
     "mp3_cover_overlay": {
-      "enabled": true,
+      "enabled": false,
       "custom_image_checkbox": false,
       "custom_image_path": null,
       "size_percent": 20,
@@ -219,7 +214,7 @@
       "frame_size": 10
     },
     "song_titles": {
-      "enabled": true,
+      "enabled": false,
       "label": " Song Titles :",
       "effect": "fadeinout",
       "font": "default",
@@ -249,7 +244,7 @@
       "text_effect_intensity": 20
     },
     "soundwave": {
-      "enabled": true,
+      "enabled": false,
       "method": "bars",
       "color": "hue_rotate",
       "size_percent": 50,
@@ -316,5 +311,12 @@
   "overlay3_soundwave_effect_settings": {
     "effect": "fadein",
     "start_time": 5
+  },
+  "background_layer_settings": {
+    "enabled": false,
+    "scale_percent": 100,
+    "crop_position": "center",
+    "effect": "none",
+    "intensity": 50
   }
 }
