@@ -1257,92 +1257,92 @@ class VideoWorker(QObject):
             if 'soundwave_overlay_path' in locals() and soundwave_overlay_path and os.path.exists(soundwave_overlay_path):
                 try:
                     os.remove(soundwave_overlay_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove soundwave overlay file: {e}")
             # Clean up processed background image if it was created
             if 'processed_image_path' in locals() and processed_image_path != selected_image and os.path.exists(processed_image_path):
                 try:
                     os.remove(processed_image_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed background image: {e}")
             # Clean up processed overlay1 image if it was created
             if 'processed_overlay1_path' in locals() and processed_overlay1_path != self.overlay1_path and os.path.exists(processed_overlay1_path):
                 try:
                     os.remove(processed_overlay1_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed overlay1 image: {e}")
             # Clean up processed overlay2 image if it was created
             if 'processed_overlay2_path' in locals() and processed_overlay2_path != self.overlay2_path and os.path.exists(processed_overlay2_path):
                 try:
                     os.remove(processed_overlay2_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed overlay2 image: {e}")
             # Clean up processed overlay3 image if it was created
             if 'processed_overlay3_path' in locals() and processed_overlay3_path != self.overlay3_path and os.path.exists(processed_overlay3_path):
                 try:
                     os.remove(processed_overlay3_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed overlay3 image: {e}")
             # Clean up processed intro image if it was created
             if 'processed_intro_path' in locals() and processed_intro_path != self.intro_path and os.path.exists(processed_intro_path):
                 try:
                     os.remove(processed_intro_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed intro image: {e}")
             # Clean up processed overlay4 image if it was created
             if 'processed_overlay4_path' in locals() and processed_overlay4_path != self.overlay4_path and os.path.exists(processed_overlay4_path):
                 try:
                     os.remove(processed_overlay4_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed overlay4 image: {e}")
             # Clean up processed overlay5 image if it was created
             if 'processed_overlay5_path' in locals() and processed_overlay5_path != self.overlay5_path and os.path.exists(processed_overlay5_path):
                 try:
                     os.remove(processed_overlay5_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed overlay5 image: {e}")
             # Clean up processed overlay6 image if it was created
             if 'processed_overlay6_path' in locals() and processed_overlay6_path != self.overlay6_path and os.path.exists(processed_overlay6_path):
                 try:
                     os.remove(processed_overlay6_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed overlay6 image: {e}")
             # Clean up processed overlay7 image if it was created
             if 'processed_overlay7_path' in locals() and processed_overlay7_path != self.overlay7_path and os.path.exists(processed_overlay7_path):
                 try:
                     os.remove(processed_overlay7_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed overlay7 image: {e}")
             # Clean up processed overlay8 image if it was created
             if 'processed_overlay8_path' in locals() and processed_overlay8_path != self.overlay8_path and os.path.exists(processed_overlay8_path):
                 try:
                     os.remove(processed_overlay8_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed overlay8 image: {e}")
             # Clean up processed overlay9 image if it was created
             if 'processed_overlay9_path' in locals() and processed_overlay9_path != self.overlay9_path and os.path.exists(processed_overlay9_path):
                 try:
                     os.remove(processed_overlay9_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed overlay9 image: {e}")
             # Clean up processed overlay10 image if it was created
             if 'processed_overlay10_path' in locals() and processed_overlay10_path != self.overlay10_path and os.path.exists(processed_overlay10_path):
                 try:
                     os.remove(processed_overlay10_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed overlay10 image: {e}")
             # Clean up processed framebox image if it was created
             if 'processed_frame_box_path' in locals() and processed_frame_box_path != self.frame_box_path and os.path.exists(processed_frame_box_path):
                 try:
                     os.remove(processed_frame_box_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed framebox image: {e}")
             # Clean up processed frame_mp3cover image if it was created
             if 'processed_frame_mp3cover_path' in locals() and processed_frame_mp3cover_path != self.frame_mp3cover_path and os.path.exists(processed_frame_mp3cover_path):
                 try:
                     os.remove(processed_frame_mp3cover_path)
-                except:
-                    pass
+                except (OSError, PermissionError) as e:
+                    logger.warning(f"Failed to remove processed frame_mp3cover image: {e}")
             
         # Create log and move files
         failed_moves = self._create_log_and_move_files(

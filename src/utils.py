@@ -531,8 +531,8 @@ def extract_mp3_cover_image(mp3_path):
         if temp_cover_path and os.path.exists(temp_cover_path):
             try:
                 os.unlink(temp_cover_path)
-            except:
-                pass  # File might already be cleaned up
+            except (OSError, PermissionError) as e:
+                logger.warning(f"Failed to remove temporary cover file: {e}")
 
 def create_framed_cover_image(cover_data_or_path, output_path, frame_width=10, frame_color=(255, 255, 255)):
     """
