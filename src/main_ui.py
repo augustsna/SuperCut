@@ -8200,7 +8200,7 @@ class SuperCutUI(QWidget):
         self.about_btn.setFixedWidth(38)
         about_icon_path = os.path.join(PROJECT_ROOT, "src", "sources", "about.png")
         self.about_btn.setIcon(QIcon(about_icon_path))
-        self.about_btn.setIconSize(QSize(30, 30))
+        self.about_btn.setIconSize(QSize(32, 32))
         self.about_btn.setToolTip("About SuperCut")
         self.about_btn.setStyleSheet("""
             QPushButton {
@@ -8213,8 +8213,8 @@ class SuperCutUI(QWidget):
         
         # Enable hover events for icon size feedback
         self.about_btn.setMouseTracking(True)
-        self.about_btn.enterEvent = lambda event: self.about_btn.setIconSize(QSize(33, 33))
-        self.about_btn.leaveEvent = lambda event: self.about_btn.setIconSize(QSize(30, 30))
+        self.about_btn.enterEvent = lambda event: self.about_btn.setIconSize(QSize(35, 35))
+        self.about_btn.leaveEvent = lambda event: self.about_btn.setIconSize(QSize(32, 32))
 
         # Add version text after reset button
         self.version_label = QLabel("v2025.1")
@@ -8286,17 +8286,16 @@ class SuperCutUI(QWidget):
 
         progress_row = QtWidgets.QHBoxLayout()
         progress_row.setContentsMargins(0, 0, 0, 10)
-        progress_row.addSpacing(8)
-        progress_row.addWidget(self.reset_btn)
-        progress_row.addSpacing(5)
+        progress_row.setSpacing(0) 
+        progress_row.addSpacing(-1)
         progress_row.addWidget(self.about_btn)
-        progress_row.setSpacing(0)
-        progress_row.addStretch(0)
-        progress_row.addSpacing(32)         
+        progress_row.addSpacing(5)
+        progress_row.addWidget(self.reset_btn)  
+        progress_row.addSpacing(16)   
         progress_row.addWidget(self.stop_btn)
-        progress_row.addSpacing(50)
+        progress_row.addSpacing(32)
         progress_row.addWidget(self.progress_bar)
-        progress_row.addSpacing(15)
+        progress_row.addSpacing(10)
         progress_row.addStretch(0)
         progress_row.addWidget(self.version_label)
         layout.addLayout(progress_row)
