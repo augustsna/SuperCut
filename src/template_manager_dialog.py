@@ -599,6 +599,49 @@ class TemplateManagerDialog(QDialog):
         # Ctrl+W to close the dialog
         close_shortcut = QShortcut(QKeySequence("Ctrl+W"), self)
         close_shortcut.activated.connect(self.accept)
+    
+    def closeEvent(self, event):
+        """Clean up signals when dialog is closed"""
+        try:
+            # Disconnect all button signals
+            if hasattr(self, 'new_template_btn') and self.new_template_btn is not None:
+                self.new_template_btn.clicked.disconnect()
+            if hasattr(self, 'import_btn') and self.import_btn is not None:
+                self.import_btn.clicked.disconnect()
+            if hasattr(self, 'export_btn') and self.export_btn is not None:
+                self.export_btn.clicked.disconnect()
+            if hasattr(self, 'apply_btn') and self.apply_btn is not None:
+                self.apply_btn.clicked.disconnect()
+            if hasattr(self, 'edit_btn') and self.edit_btn is not None:
+                self.edit_btn.clicked.disconnect()
+            if hasattr(self, 'delete_btn') and self.delete_btn is not None:
+                self.delete_btn.clicked.disconnect()
+            if hasattr(self, 'close_btn') and self.close_btn is not None:
+                self.close_btn.clicked.disconnect()
+            
+            # Disconnect text change signals
+            if hasattr(self, 'search_edit') and self.search_edit is not None:
+                self.search_edit.textChanged.disconnect()
+            
+            # Disconnect combo box signals
+            if hasattr(self, 'category_combo') and self.category_combo is not None:
+                self.category_combo.currentTextChanged.disconnect()
+            if hasattr(self, 'resolution_filter') and self.resolution_filter is not None:
+                self.resolution_filter.currentTextChanged.disconnect()
+            if hasattr(self, 'fps_filter') and self.fps_filter is not None:
+                self.fps_filter.currentTextChanged.disconnect()
+            
+            # Disconnect list signals
+            if hasattr(self, 'template_list') and self.template_list is not None:
+                self.template_list.itemClicked.disconnect()
+            
+            # Disconnect shortcut signals
+            if hasattr(self, 'shortcut') and self.shortcut is not None:
+                self.shortcut.activated.disconnect()
+        except (TypeError, RuntimeError):
+            pass
+        
+        super().closeEvent(event)
         
     def load_templates(self):
         """Load all available templates"""

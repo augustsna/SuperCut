@@ -12050,6 +12050,7 @@ class SuperCutUI(QWidget):
             except (TypeError, RuntimeError):
                 pass
             try:
+                # Disconnect all finished signal connections
                 self._worker.finished.disconnect()
             except (TypeError, RuntimeError):
                 pass
@@ -12076,6 +12077,10 @@ class SuperCutUI(QWidget):
                 self._thread.started.disconnect()
             except (TypeError, RuntimeError):
                 pass
+            try:
+                self._thread.finished.disconnect()
+            except (TypeError, RuntimeError):
+                pass
             
             # Stop the thread if it's running
             if self._thread.isRunning():
@@ -12095,6 +12100,121 @@ class SuperCutUI(QWidget):
                 logger.warning(f"Error deleting thread: {e}")
             
             self._thread = None
+
+    def disconnect_all_signals(self):
+        """Disconnect all signal connections to prevent memory leaks"""
+        try:
+            # Disconnect text change signals
+            if hasattr(self, 'media_sources_edit') and self.media_sources_edit is not None:
+                try:
+                    self.media_sources_edit.textChanged.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            if hasattr(self, 'folder_edit') and self.folder_edit is not None:
+                try:
+                    self.folder_edit.textChanged.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            # Disconnect combo box signals
+            if hasattr(self, 'template_combo') and self.template_combo is not None:
+                try:
+                    self.template_combo.currentTextChanged.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            # Disconnect checkbox signals
+            if hasattr(self, 'name_list_checkbox') and self.name_list_checkbox is not None:
+                try:
+                    self.name_list_checkbox.stateChanged.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            if hasattr(self, 'mp3_count_checkbox') and self.mp3_count_checkbox is not None:
+                try:
+                    self.mp3_count_checkbox.stateChanged.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            # Disconnect button signals
+            if hasattr(self, 'template_manager_btn') and self.template_manager_btn is not None:
+                try:
+                    self.template_manager_btn.clicked.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            if hasattr(self, 'save_template_btn') and self.save_template_btn is not None:
+                try:
+                    self.save_template_btn.clicked.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            # Disconnect navigation button signals
+            if hasattr(self, 'nav_buttons'):
+                for btn in self.nav_buttons.values():
+                    if btn is not None:
+                        try:
+                            btn.clicked.disconnect()
+                        except (TypeError, RuntimeError):
+                            pass
+            
+            # Disconnect shortcut signals
+            if hasattr(self, 'shortcut') and self.shortcut is not None:
+                try:
+                    self.shortcut.activated.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            # Disconnect progress bar signals
+            if hasattr(self, 'progress_bar') and self.progress_bar is not None:
+                try:
+                    self.progress_bar.valueChanged.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            # Disconnect action button signals
+            if hasattr(self, 'create_btn') and self.create_btn is not None:
+                try:
+                    self.create_btn.clicked.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            if hasattr(self, 'stop_btn') and self.stop_btn is not None:
+                try:
+                    self.stop_btn.clicked.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            if hasattr(self, 'preview_btn') and self.preview_btn is not None:
+                try:
+                    self.preview_btn.clicked.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            # Disconnect settings signals
+            if hasattr(self, 'settings_btn') and self.settings_btn is not None:
+                try:
+                    self.settings_btn.clicked.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            # Disconnect layer manager signals
+            if hasattr(self, 'layer_manager_btn') and self.layer_manager_btn is not None:
+                try:
+                    self.layer_manager_btn.clicked.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+            
+            # Disconnect terminal signals
+            if hasattr(self, 'terminal_btn') and self.terminal_btn is not None:
+                try:
+                    self.terminal_btn.clicked.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+                    
+        except Exception as e:
+            logger.warning(f"Error disconnecting signals: {e}")
 
     def cleanup_dry_run_thread(self):
         """Clean up dry run thread safely."""
@@ -12121,6 +12241,9 @@ class SuperCutUI(QWidget):
     def cleanup_all_resources(self):
         """Clean up all threads, timers, and resources safely."""
         try:
+            # Disconnect all signals first
+            self.disconnect_all_signals()
+            
             # Clean up worker and thread
             self.cleanup_worker_and_thread()
             
