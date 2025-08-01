@@ -10380,8 +10380,35 @@ class SuperCutUI(QWidget):
                     'popup_start_at': self.overlay8_popup_start_at_percent if hasattr(self, 'overlay8_popup_start_at_percent') else 5,
                     'popup_num': self.overlay8_popup_num if hasattr(self, 'overlay8_popup_num') else 1
                 },
-                'overlay9': {'enabled': hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked()},
-                'overlay10': {'enabled': hasattr(self, 'overlay10_checkbox') and self.overlay10_checkbox.isChecked()},
+                'overlay9': {
+                    'enabled': hasattr(self, 'overlay9_checkbox') and self.overlay9_checkbox.isChecked(),
+                    'path': self.overlay9_path if hasattr(self, 'overlay9_path') else "",
+                    'size_percent': self.overlay9_size_percent if hasattr(self, 'overlay9_size_percent') else 50,
+                    'x_percent': self.overlay9_x_percent if hasattr(self, 'overlay9_x_percent') else 0,
+                    'y_percent': self.overlay9_y_percent if hasattr(self, 'overlay9_y_percent') else 0,
+                    'effect': self.selected_overlay9_effect if hasattr(self, 'selected_overlay9_effect') else "fadein",
+                    'duration_full': hasattr(self, 'overlay9_duration_full_checkbox') and self.overlay9_duration_full_checkbox.isChecked(),
+                    'duration': self.overlay9_duration if hasattr(self, 'overlay9_duration') else 6,
+                    'start_checkbox': hasattr(self, 'overlay9_start_at_checkbox') and self.overlay9_start_at_checkbox.isChecked(),
+                    'start_at': self.overlay9_start_percent if hasattr(self, 'overlay9_start_percent') else 5,
+                    'start_from': self.overlay9_start_from_percent if hasattr(self, 'overlay9_start_from_percent') else 0,
+                    'popup_checkbox': hasattr(self, 'overlay9_popup_checkbox') and self.overlay9_popup_checkbox.isChecked(),
+                    'popup_start_at': self.overlay9_popup_start_at_percent if hasattr(self, 'overlay9_popup_start_at_percent') else 5,
+                    'popup_num': self.overlay9_popup_num if hasattr(self, 'overlay9_popup_num') else 1
+                },
+                'overlay10': {
+                    'enabled': hasattr(self, 'overlay10_checkbox') and self.overlay10_checkbox.isChecked(),
+                    'path': self.overlay10_path if hasattr(self, 'overlay10_path') else "",
+                    'size_percent': self.overlay10_size_percent if hasattr(self, 'overlay10_size_percent') else 50,
+                    'x_percent': self.overlay10_x_percent if hasattr(self, 'overlay10_x_percent') else 0,
+                    'y_percent': self.overlay10_y_percent if hasattr(self, 'overlay10_y_percent') else 0,
+                    'effect': self.selected_overlay10_effect if hasattr(self, 'selected_overlay10_effect') else "fadein",
+                    'duration': self.overlay10_duration if hasattr(self, 'overlay10_duration') else 6,
+                    'start_time': self.overlay10_start_time if hasattr(self, 'overlay10_start_time') else 5,
+                    'start_time_percent': self.overlay10_start_time_percent if hasattr(self, 'overlay10_start_time_percent') else 0,
+                    'song_start_end_checked': hasattr(self, 'overlay10_song_start_end') and self.overlay10_song_start_end.isChecked(),
+                    'start_end_value': self.overlay10_start_end_value if hasattr(self, 'overlay10_start_end_value') else "start"
+                },
                 'intro': {
                     'enabled': hasattr(self, 'intro_checkbox') and self.intro_checkbox.isChecked(),
                     'path': self.intro_edit.text().strip() if hasattr(self, 'intro_edit') else "",
@@ -10861,10 +10888,158 @@ class SuperCutUI(QWidget):
                         if self.overlay8_effect_combo.itemData(i) == effect:
                             self.overlay8_effect_combo.setCurrentIndex(i)
                             break
-            if 'overlay9' in layer_settings and hasattr(self, 'overlay9_checkbox'):
-                self.overlay9_checkbox.setChecked(layer_settings['overlay9'].get('enabled', False))
-            if 'overlay10' in layer_settings and hasattr(self, 'overlay10_checkbox'):
-                self.overlay10_checkbox.setChecked(layer_settings['overlay10'].get('enabled', False))
+            if 'overlay9' in layer_settings:
+                overlay9_settings = layer_settings['overlay9']
+                if hasattr(self, 'overlay9_checkbox'):
+                    self.overlay9_checkbox.setChecked(overlay9_settings.get('enabled', False))
+                if hasattr(self, 'overlay9_edit'):
+                    self.overlay9_edit.setText(overlay9_settings.get('path', ''))
+                if hasattr(self, 'overlay9_path'):
+                    self.overlay9_path = overlay9_settings.get('path', '')
+                if hasattr(self, 'overlay9_size_percent'):
+                    self.overlay9_size_percent = overlay9_settings.get('size_percent', 50)
+                if hasattr(self, 'overlay9_x_percent'):
+                    self.overlay9_x_percent = overlay9_settings.get('x_percent', 0)
+                if hasattr(self, 'overlay9_y_percent'):
+                    self.overlay9_y_percent = overlay9_settings.get('y_percent', 0)
+                if hasattr(self, 'selected_overlay9_effect'):
+                    self.selected_overlay9_effect = overlay9_settings.get('effect', 'fadein')
+                if hasattr(self, 'overlay9_duration'):
+                    self.overlay9_duration = overlay9_settings.get('duration', 6)
+                if hasattr(self, 'overlay9_start_percent'):
+                    self.overlay9_start_percent = overlay9_settings.get('start_at', 5)
+                if hasattr(self, 'overlay9_start_from_percent'):
+                    self.overlay9_start_from_percent = overlay9_settings.get('start_from', 0)
+                if hasattr(self, 'overlay9_popup_start_at_percent'):
+                    self.overlay9_popup_start_at_percent = overlay9_settings.get('popup_start_at', 5)
+                if hasattr(self, 'overlay9_popup_num'):
+                    self.overlay9_popup_num = overlay9_settings.get('popup_num', 1)
+                
+                # Update UI controls to reflect the restored values
+                if hasattr(self, 'overlay9_size_combo'):
+                    size = overlay9_settings.get('size_percent', 50)
+                    for i in range(self.overlay9_size_combo.count()):
+                        if self.overlay9_size_combo.itemData(i) == size:
+                            self.overlay9_size_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay9_x_combo'):
+                    x = overlay9_settings.get('x_percent', 0)
+                    for i in range(self.overlay9_x_combo.count()):
+                        if self.overlay9_x_combo.itemData(i) == x:
+                            self.overlay9_x_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay9_y_combo'):
+                    y = overlay9_settings.get('y_percent', 0)
+                    for i in range(self.overlay9_y_combo.count()):
+                        if self.overlay9_y_combo.itemData(i) == y:
+                            self.overlay9_y_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay9_duration_edit'):
+                    self.overlay9_duration_edit.setText(str(overlay9_settings.get('duration', 6)))
+                if hasattr(self, 'overlay9_duration_full_checkbox'):
+                    self.overlay9_duration_full_checkbox.setChecked(overlay9_settings.get('duration_full', True))
+                if hasattr(self, 'overlay9_start_at_checkbox'):
+                    self.overlay9_start_at_checkbox.setChecked(overlay9_settings.get('start_checkbox', True))
+                if hasattr(self, 'overlay9_popup_checkbox'):
+                    self.overlay9_popup_checkbox.setChecked(overlay9_settings.get('popup_checkbox', False))
+                if hasattr(self, 'overlay9_popup_start_at_combo'):
+                    popup_start_at = overlay9_settings.get('popup_start_at', 5)
+                    for i in range(self.overlay9_popup_start_at_combo.count()):
+                        if self.overlay9_popup_start_at_combo.itemData(i) == popup_start_at:
+                            self.overlay9_popup_start_at_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay9_popup_num_combo'):
+                    popup_num = overlay9_settings.get('popup_num', 1)
+                    for i in range(self.overlay9_popup_num_combo.count()):
+                        if self.overlay9_popup_num_combo.itemData(i) == popup_num:
+                            self.overlay9_popup_num_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay9_start_combo'):
+                    start_at = overlay9_settings.get('start_at', 5)
+                    for i in range(self.overlay9_start_combo.count()):
+                        if self.overlay9_start_combo.itemData(i) == start_at:
+                            self.overlay9_start_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay9_start_from_combo'):
+                    start_from = overlay9_settings.get('start_from', 0)
+                    for i in range(self.overlay9_start_from_combo.count()):
+                        if self.overlay9_start_from_combo.itemData(i) == start_from:
+                            self.overlay9_start_from_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay9_effect_combo'):
+                    effect = overlay9_settings.get('effect', 'fadein')
+                    for i in range(self.overlay9_effect_combo.count()):
+                        if self.overlay9_effect_combo.itemData(i) == effect:
+                            self.overlay9_effect_combo.setCurrentIndex(i)
+                            break
+            if 'overlay10' in layer_settings:
+                overlay10_settings = layer_settings['overlay10']
+                if hasattr(self, 'overlay10_checkbox'):
+                    self.overlay10_checkbox.setChecked(overlay10_settings.get('enabled', False))
+                if hasattr(self, 'overlay10_edit'):
+                    self.overlay10_edit.setText(overlay10_settings.get('path', ''))
+                if hasattr(self, 'overlay10_path'):
+                    self.overlay10_path = overlay10_settings.get('path', '')
+                if hasattr(self, 'overlay10_size_percent'):
+                    self.overlay10_size_percent = overlay10_settings.get('size_percent', 50)
+                if hasattr(self, 'overlay10_x_percent'):
+                    self.overlay10_x_percent = overlay10_settings.get('x_percent', 0)
+                if hasattr(self, 'overlay10_y_percent'):
+                    self.overlay10_y_percent = overlay10_settings.get('y_percent', 0)
+                if hasattr(self, 'selected_overlay10_effect'):
+                    self.selected_overlay10_effect = overlay10_settings.get('effect', 'fadein')
+                if hasattr(self, 'overlay10_duration'):
+                    self.overlay10_duration = overlay10_settings.get('duration', 6)
+                if hasattr(self, 'overlay10_start_time'):
+                    self.overlay10_start_time = overlay10_settings.get('start_time', 5)
+                if hasattr(self, 'overlay10_start_time_percent'):
+                    self.overlay10_start_time_percent = overlay10_settings.get('start_time_percent', 0)
+                if hasattr(self, 'overlay10_start_end_value'):
+                    self.overlay10_start_end_value = overlay10_settings.get('start_end_value', 'start')
+                
+                # Update UI controls to reflect the restored values
+                if hasattr(self, 'overlay10_size_combo'):
+                    size = overlay10_settings.get('size_percent', 50)
+                    for i in range(self.overlay10_size_combo.count()):
+                        if self.overlay10_size_combo.itemData(i) == size:
+                            self.overlay10_size_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay10_x_combo'):
+                    x = overlay10_settings.get('x_percent', 0)
+                    for i in range(self.overlay10_x_combo.count()):
+                        if self.overlay10_x_combo.itemData(i) == x:
+                            self.overlay10_x_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay10_y_combo'):
+                    y = overlay10_settings.get('y_percent', 0)
+                    for i in range(self.overlay10_y_combo.count()):
+                        if self.overlay10_y_combo.itemData(i) == y:
+                            self.overlay10_y_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay10_duration_edit'):
+                    self.overlay10_duration_edit.setText(str(overlay10_settings.get('duration', 6)))
+                if hasattr(self, 'overlay10_start_edit'):
+                    self.overlay10_start_edit.setText(str(overlay10_settings.get('start_time', 5)))
+                if hasattr(self, 'overlay10_start_percent_combo'):
+                    start_time_percent = overlay10_settings.get('start_time_percent', 0)
+                    for i in range(self.overlay10_start_percent_combo.count()):
+                        if self.overlay10_start_percent_combo.itemData(i) == start_time_percent:
+                            self.overlay10_start_percent_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay10_song_start_end'):
+                    self.overlay10_song_start_end.setChecked(overlay10_settings.get('song_start_end_checked', False))
+                if hasattr(self, 'overlay10_start_end_combo'):
+                    start_end_value = overlay10_settings.get('start_end_value', 'start')
+                    for i in range(self.overlay10_start_end_combo.count()):
+                        if self.overlay10_start_end_combo.itemData(i) == start_end_value:
+                            self.overlay10_start_end_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'overlay10_effect_combo'):
+                    effect = overlay10_settings.get('effect', 'fadein')
+                    for i in range(self.overlay10_effect_combo.count()):
+                        if self.overlay10_effect_combo.itemData(i) == effect:
+                            self.overlay10_effect_combo.setCurrentIndex(i)
+                            break
             if 'intro' in layer_settings:
                 intro_settings = layer_settings['intro']
                 if hasattr(self, 'intro_checkbox'):
