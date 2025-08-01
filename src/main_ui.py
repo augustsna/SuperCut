@@ -10436,7 +10436,7 @@ class SuperCutUI(QWidget):
                     'x_percent': self.frame_box_x_percent if hasattr(self, 'frame_box_x_percent') else 0,
                     'y_percent': self.frame_box_y_percent if hasattr(self, 'frame_box_y_percent') else 0,
                     'path': self.frame_box_path if hasattr(self, 'frame_box_path') else "",
-                    'effect': self.frame_box_effect if hasattr(self, 'frame_box_effect') else "fadein",
+                    'effect': self.selected_frame_box_effect if hasattr(self, 'selected_frame_box_effect') else "fadein",
                     'duration': self.frame_box_duration if hasattr(self, 'frame_box_duration') else 6,
                     'duration_full': hasattr(self, 'frame_box_duration_full_checkbox') and self.frame_box_duration_full_checkbox.isChecked(),
                     'start_time': self.frame_box_start_time if hasattr(self, 'frame_box_start_time') else 5,
@@ -10487,6 +10487,7 @@ class SuperCutUI(QWidget):
                 'song_titles': {
                     'enabled': hasattr(self, 'song_title_checkbox') and self.song_title_checkbox.isChecked(),
                     'label': self.song_titles_label_edit.text().strip() if hasattr(self, 'song_titles_label_edit') else " Song Titles :",
+                    'effect': self.song_title_effect if hasattr(self, 'song_title_effect') else "fadeinout",
                     'font': self.song_title_font if hasattr(self, 'song_title_font') else "default",
                     'font_size': self.song_title_font_size if hasattr(self, 'song_title_font_size') else 220,
                     'scale_percent': self.song_title_scale_percent if hasattr(self, 'song_title_scale_percent') else 50,
@@ -10496,6 +10497,7 @@ class SuperCutUI(QWidget):
                     'opacity': self.song_title_opacity if hasattr(self, 'song_title_opacity') else 0.20,
                     'x_percent': self.song_title_x_percent if hasattr(self, 'song_title_x_percent') else 50,
                     'y_percent': self.song_title_y_percent if hasattr(self, 'song_title_y_percent') else 20,
+                    'start_at': self.song_title_start_at if hasattr(self, 'song_title_start_at') else 5,
                     'text_effect': self.song_title_text_effect if hasattr(self, 'song_title_text_effect') else "none",
                     'text_effect_color': self.song_title_text_effect_color if hasattr(self, 'song_title_text_effect_color') else (0, 0, 0),
                     'text_effect_intensity': self.song_title_text_effect_intensity if hasattr(self, 'song_title_text_effect_intensity') else 20
@@ -11228,8 +11230,8 @@ class SuperCutUI(QWidget):
                     self.frame_box_y_percent = frame_box_settings.get('y_percent', 0)
                 if hasattr(self, 'frame_box_path'):
                     self.frame_box_path = frame_box_settings.get('path', '')
-                if hasattr(self, 'frame_box_effect'):
-                    self.frame_box_effect = frame_box_settings.get('effect', 'fadein')
+                if hasattr(self, 'selected_frame_box_effect'):
+                    self.selected_frame_box_effect = frame_box_settings.get('effect', 'fadein')
                 if hasattr(self, 'frame_box_duration'):
                     self.frame_box_duration = frame_box_settings.get('duration', 6)
                 if hasattr(self, 'frame_box_start_time'):
@@ -11508,6 +11510,8 @@ class SuperCutUI(QWidget):
                     self.song_title_checkbox.setChecked(song_titles_settings.get('enabled', False))
                 if hasattr(self, 'song_titles_label_edit'):
                     self.song_titles_label_edit.setText(song_titles_settings.get('label', ' Song Titles :'))
+                if hasattr(self, 'song_title_effect'):
+                    self.song_title_effect = song_titles_settings.get('effect', 'fadeinout')
                 if hasattr(self, 'song_title_font'):
                     self.song_title_font = song_titles_settings.get('font', 'default')
                 if hasattr(self, 'song_title_font_size'):
@@ -11526,6 +11530,8 @@ class SuperCutUI(QWidget):
                     self.song_title_x_percent = song_titles_settings.get('x_percent', 50)
                 if hasattr(self, 'song_title_y_percent'):
                     self.song_title_y_percent = song_titles_settings.get('y_percent', 20)
+                if hasattr(self, 'song_title_start_at'):
+                    self.song_title_start_at = song_titles_settings.get('start_at', 5)
                 if hasattr(self, 'song_title_text_effect'):
                     self.song_title_text_effect = song_titles_settings.get('text_effect', 'none')
                 if hasattr(self, 'song_title_text_effect_color'):
@@ -11570,6 +11576,14 @@ class SuperCutUI(QWidget):
                         if self.song_title_y_combo.itemData(i) == y:
                             self.song_title_y_combo.setCurrentIndex(i)
                             break
+                if hasattr(self, 'song_title_effect_combo'):
+                    effect = song_titles_settings.get('effect', 'fadeinout')
+                    for i in range(self.song_title_effect_combo.count()):
+                        if self.song_title_effect_combo.itemData(i) == effect:
+                            self.song_title_effect_combo.setCurrentIndex(i)
+                            break
+                if hasattr(self, 'song_title_start_edit'):
+                    self.song_title_start_edit.setText(str(song_titles_settings.get('start_at', 5)))
                 if hasattr(self, 'song_title_text_effect_combo'):
                     effect = song_titles_settings.get('text_effect', 'none')
                     for i in range(self.song_title_text_effect_combo.count()):
