@@ -7957,6 +7957,128 @@ class SuperCutUI(QWidget):
         
         # Initialize overlay 3 & soundwave effect control state
         set_overlay3_soundwave_effect_enabled()
+        
+    def reset_main_form(self):
+        """Reset all main form fields to default values"""
+        try:
+            # Reset video settings to defaults
+            self.codec_combo.setCurrentIndex(0)  # h264_nvenc
+            self.resolution_combo.setCurrentIndex(0)  # 1920x1080
+            self.fps_combo.setCurrentIndex(0)  # 24
+            self.preset_combo.setCurrentIndex(1)  # slow
+            
+            # Reset folder inputs
+            self.media_sources_edit.clear()
+            self.folder_edit.clear()
+            self.part1_edit.clear()
+            self.part2_edit.setText("1")
+            self.mp3_count_edit.setText("3")
+            
+            # Reset checkboxes to unchecked
+            if hasattr(self, 'name_list_checkbox'):
+                self.name_list_checkbox.setChecked(False)
+            if hasattr(self, 'mp3_count_checkbox'):
+                self.mp3_count_checkbox.setChecked(False)
+            
+            # Reset intro settings
+            if hasattr(self, 'intro_checkbox'):
+                self.intro_checkbox.setChecked(True)
+            if hasattr(self, 'intro_edit'):
+                self.intro_edit.clear()
+            if hasattr(self, 'intro_size_combo'):
+                self.intro_size_combo.setCurrentIndex(4)  # 50%
+            if hasattr(self, 'intro_x_combo'):
+                self.intro_x_combo.setCurrentIndex(4)  # 50%
+            if hasattr(self, 'intro_y_combo'):
+                self.intro_y_combo.setCurrentIndex(4)  # 50%
+            if hasattr(self, 'intro_effect_combo'):
+                self.intro_effect_combo.setCurrentIndex(0)  # fadeinout
+            if hasattr(self, 'intro_duration_edit'):
+                self.intro_duration_edit.setText("6")
+            if hasattr(self, 'intro_start_edit'):
+                self.intro_start_edit.setText("0")
+            if hasattr(self, 'intro_start_from_edit'):
+                self.intro_start_from_edit.setText("0")
+            if hasattr(self, 'intro_start_checkbox'):
+                self.intro_start_checkbox.setChecked(False)
+            if hasattr(self, 'intro_duration_full_checkbox'):
+                self.intro_duration_full_checkbox.setChecked(False)
+            
+            # Reset overlay settings
+            if hasattr(self, 'overlay_checkbox'):
+                self.overlay_checkbox.setChecked(False)
+            if hasattr(self, 'overlay_edit'):
+                self.overlay_edit.clear()
+            if hasattr(self, 'overlay_size_combo'):
+                self.overlay_size_combo.setCurrentIndex(4)  # 50%
+            if hasattr(self, 'overlay_x_combo'):
+                self.overlay_x_combo.setCurrentIndex(0)  # 0%
+            if hasattr(self, 'overlay_y_combo'):
+                self.overlay_y_combo.setCurrentIndex(3)  # 75%
+            
+            if hasattr(self, 'overlay2_checkbox'):
+                self.overlay2_checkbox.setChecked(False)
+            if hasattr(self, 'overlay2_edit'):
+                self.overlay2_edit.clear()
+            if hasattr(self, 'overlay2_size_combo'):
+                self.overlay2_size_combo.setCurrentIndex(0)  # 10%
+            if hasattr(self, 'overlay2_x_combo'):
+                self.overlay2_x_combo.setCurrentIndex(3)  # 75%
+            if hasattr(self, 'overlay2_y_combo'):
+                self.overlay2_y_combo.setCurrentIndex(0)  # 0%
+            
+            # Reset other overlay checkboxes
+            for i in range(3, 11):
+                if hasattr(self, f'overlay{i}_checkbox'):
+                    getattr(self, f'overlay{i}_checkbox').setChecked(False)
+                if hasattr(self, f'overlay{i}_edit'):
+                    getattr(self, f'overlay{i}_edit').clear()
+            
+            # Reset frame box settings
+            if hasattr(self, 'frame_box_checkbox'):
+                self.frame_box_checkbox.setChecked(False)
+            if hasattr(self, 'frame_box_edit'):
+                self.frame_box_edit.clear()
+            
+            # Reset frame mp3cover settings
+            if hasattr(self, 'frame_mp3cover_checkbox'):
+                self.frame_mp3cover_checkbox.setChecked(False)
+            if hasattr(self, 'frame_mp3cover_edit'):
+                self.frame_mp3cover_edit.clear()
+            
+            # Reset mp3 cover overlay settings
+            if hasattr(self, 'mp3_cover_overlay_checkbox'):
+                self.mp3_cover_overlay_checkbox.setChecked(False)
+            if hasattr(self, 'mp3_cover_overlay_edit'):
+                self.mp3_cover_overlay_edit.clear()
+            
+            # Reset song titles settings
+            if hasattr(self, 'song_title_checkbox'):
+                self.song_title_checkbox.setChecked(False)
+            if hasattr(self, 'song_title_font_combo'):
+                self.song_title_font_combo.setCurrentIndex(0)  # default
+            if hasattr(self, 'song_title_font_size_edit'):
+                self.song_title_font_size_edit.setText("32")
+            if hasattr(self, 'song_title_scale_combo'):
+                self.song_title_scale_combo.setCurrentIndex(4)  # 100%
+            
+            # Reset soundwave settings
+            if hasattr(self, 'soundwave_checkbox'):
+                self.soundwave_checkbox.setChecked(False)
+            if hasattr(self, 'soundwave_edit'):
+                self.soundwave_edit.clear()
+            
+            # Reset template selection
+            if hasattr(self, 'template_combo'):
+                self.template_combo.setCurrentIndex(0)  # "No Template"
+            
+            # Reset layer order to default
+            self.layer_order = None
+            
+        except Exception as e:
+            # Silently handle any errors without showing dialog
+            pass
+            
     def create_action_buttons(self, layout):
         """Create action buttons"""
 
@@ -8027,7 +8149,32 @@ class SuperCutUI(QWidget):
         self.placeholder_btn.clicked.connect(self.open_iconsna_website)
         
 
-        # Add version text after placeholder button
+        # Add reset button after placeholder button
+        self.reset_btn = QPushButton("Reset")
+        self.reset_btn.setFixedHeight(30)
+        self.reset_btn.setFixedWidth(80)
+        self.reset_btn.setToolTip("Reset all form fields to default values")
+        self.reset_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                color: #495057;
+                font-weight: 500;
+                padding: 8px 16px;
+            }
+            QPushButton:hover {
+                background-color: #e9ecef;
+                border-color: #adb5bd;
+            }
+            QPushButton:pressed {
+                background-color: #dee2e6;
+                border-color: #6c757d;
+            }
+        """)
+        self.reset_btn.clicked.connect(self.reset_main_form)
+
+        # Add version text after reset button
         self.version_label = QLabel("v2025.1")
         self.version_label.setStyleSheet("color: #666; font-size: 12px; font-weight: normal;")
         self.version_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
@@ -8090,6 +8237,8 @@ class SuperCutUI(QWidget):
 
         progress_row = QtWidgets.QHBoxLayout()
         progress_row.setContentsMargins(0, 0, 0, 10)
+        progress_row.addSpacing(8)
+        progress_row.addWidget(self.reset_btn)
         progress_row.setSpacing(0)
         progress_row.addStretch(0)
         progress_row.addSpacing(32)         
