@@ -1441,16 +1441,15 @@ class VideoWorker(QObject):
         print(f"✔️ Batch {batch_count + 1}/{total_batches} completed: {output_filename} (Time spent: {time_str}) \u2713") 
         
         return True, failed_moves
-        
-        finally:
-            # Clean up batch memory
-            try:
-                unregister_from_cleanup(batch_name)
-                # Force garbage collection after each batch
-                if batch_count % 5 == 0:  # Every 5 batches
-                    force_garbage_collection()
-            except Exception as e:
-                logger.warning(f"Error during batch cleanup: {e}")
+    finally:
+        # Clean up batch memory
+        try:
+            unregister_from_cleanup(batch_name)
+            # Force garbage collection after each batch
+            if batch_count % 5 == 0:  # Every 5 batches
+                force_garbage_collection()
+        except Exception as e:
+            logger.warning(f"Error during batch cleanup: {e}")
 
     def _cleanup_temp_audio(self, audio_path: str):
         """Clean up temporary audio file"""

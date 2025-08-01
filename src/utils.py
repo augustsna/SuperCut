@@ -57,7 +57,13 @@ def register_for_cleanup(obj: Any, name: str = None) -> str:
         name = f"obj_{id(obj)}"
     
     MEMORY_REGISTRY[name] = obj
-    WEAK_REFERENCES[name] = weakref.ref(obj, lambda ref, name=name: _cleanup_callback(name))
+    
+    # Only create weak reference if the object supports it
+    try:
+        WEAK_REFERENCES[name] = weakref.ref(obj, lambda ref, name=name: _cleanup_callback(name))
+    except TypeError:
+        # Object doesn't support weak references (like dict, list, etc.)
+        logger.debug(f"Object '{name}' doesn't support weak references, skipping")
     
     logger.debug(f"Registered object '{name}' for cleanup")
     return name
@@ -164,8 +170,17 @@ def sanitize_filename(name: str) -> str:
     # Remove invalid characters
     sanitized = re.sub(r'[<>:"/\\|?*]', '_', name)
     
+    # Replace spaces with underscores
+    sanitized = sanitized.replace(' ', '_')
+    
     # Remove leading/trailing spaces and dots
     sanitized = sanitized.strip(' .')
+    
+    # Remove consecutive underscores
+    sanitized = re.sub(r'_+', '_', sanitized)
+    
+    # Remove leading/trailing underscores
+    sanitized = sanitized.strip('_')
     
     # Ensure it's not empty after sanitization
     if not sanitized:
@@ -204,8 +219,11 @@ def clean_file_path(path: str) -> str:
         # This looks like a Windows path, ensure proper format
         drive_part, rest = path.split(':', 1)
         if rest.startswith('/'):
-            # Convert C:/path to C:\path
-            path = drive_part + ':' + rest.replace('/', '\\')
+            # Convert C:/path to C:/path (keep forward slashes for consistency)
+            path = drive_part + ':' + rest
+    
+    # Convert backslashes to forward slashes for consistency
+    path = path.replace('\\', '/')
     
     # Normalize the path
     return os.path.normpath(path)
@@ -220,11 +238,11 @@ def validate_file_path(path: str, file_type: str = None) -> tuple[bool, str]:
     
     # Check if file exists
     if not os.path.exists(cleaned_path):
-        return False, f"File does not exist: {cleaned_path}"
+        return False, f"File not found: {cleaned_path}"
     
     # Check if it's actually a file (not a directory)
     if not os.path.isfile(cleaned_path):
-        return False, f"Path is not a file: {cleaned_path}"
+        return False, f"Path is a directory: {cleaned_path}"
     
     # Check if file is readable
     if not os.access(cleaned_path, os.R_OK):
@@ -284,7 +302,8 @@ def has_enough_disk_space(path: str, required_bytes: int) -> bool:
 
 def create_temp_file(suffix: str = "", prefix: str = "") -> str:
     """Create a temporary file and track it for cleanup. Checks for minimum free disk space."""
-    unique_prefix = "supercut_"
+    # Use provided prefix or default to "supercut_"
+    unique_prefix = prefix if prefix else "supercut_"
     temp_dir = tempfile.gettempdir()
     if not has_enough_disk_space(temp_dir, MIN_FREE_SPACE_BYTES):
         logger.error(f"Not enough disk space to create temp file in {temp_dir}. At least {MIN_FREE_SPACE_BYTES // (1024*1024)}MB required.")
@@ -330,18 +349,18 @@ def get_file_extension(filename: str) -> str:
 
 def is_audio_file(filename: str) -> bool:
     """Check if a file is an audio file"""
-    from src.config import AUDIO_EXTENSIONS
-    return get_file_extension(filename) in AUDIO_EXTENSIONS
+    audio_extensions = {'.mp3', '.wav', '.flac', '.aac', '.ogg', '.m4a', '.wma'}
+    return get_file_extension(filename).lower() in audio_extensions
 
 def is_image_file(filename: str) -> bool:
     """Check if a file is an image file"""
-    from src.config import IMAGE_EXTENSIONS
-    return get_file_extension(filename) in IMAGE_EXTENSIONS
+    image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'}
+    return get_file_extension(filename).lower() in image_extensions
 
 def is_video_file(filename: str) -> bool:
     """Check if a file is a video file"""
-    from src.config import VIDEO_EXTENSIONS
-    return get_file_extension(filename) in VIDEO_EXTENSIONS
+    video_extensions = {'.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv', '.webm'}
+    return get_file_extension(filename).lower() in video_extensions
 
 def is_overlay_file(filename: str) -> bool:
     """Check if a file is a valid overlay file (image or video)"""
@@ -375,8 +394,17 @@ def get_files_by_type(folder_path: str, file_type: str) -> list:
 
 def format_time(seconds: int) -> str:
     """Format seconds into HH:MM:SS format"""
-    import time
-    return time.strftime('%H:%M:%S', time.gmtime(seconds)) if seconds > 0 else "--:--:--"
+    if seconds < 0:
+        return "--:--:--"
+    
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    secs = seconds % 60
+    
+    if hours > 0:
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+    else:
+        return f"{minutes:02d}:{secs:02d}"
 
 def validate_numeric_input(value: str, min_val: int = None, max_val: int = None, 
                           allow_float: bool = False) -> tuple[bool, str, float]:
@@ -393,10 +421,11 @@ def validate_numeric_input(value: str, min_val: int = None, max_val: int = None,
         return False, f"Value '{value}' is not a valid number.", 0
     
     # Check bounds if specified
-    if min_val is not None and num_val < min_val:
+    if min_val is not None and max_val is not None and (num_val < min_val or num_val > max_val):
+        return False, f"Value must be between {min_val} and {max_val}.", 0
+    elif min_val is not None and num_val < min_val:
         return False, f"Value must be at least {min_val}.", 0
-    
-    if max_val is not None and num_val > max_val:
+    elif max_val is not None and num_val > max_val:
         return False, f"Value must be at most {max_val}.", 0
     
     return True, "", num_val
@@ -472,7 +501,7 @@ def validate_media_files(media_sources: str, min_mp3_count: int = 3) -> tuple[bo
     
     # Validate media sources directory
     if not os.path.exists(media_sources):
-        return False, f"Media sources directory does not exist: {media_sources}", [], []
+        return False, f"Media sources directory not found: {media_sources}", [], []
     
     if not os.path.isdir(media_sources):
         return False, f"Media sources path is not a directory: {media_sources}", [], []

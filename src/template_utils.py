@@ -26,8 +26,17 @@ def sanitize_template_name(name: str) -> str:
     # Remove invalid characters
     sanitized = re.sub(r'[<>:"/\\|?*]', '_', name)
     
+    # Replace spaces with underscores
+    sanitized = sanitized.replace(' ', '_')
+    
     # Remove leading/trailing spaces and dots
     sanitized = sanitized.strip(' .')
+    
+    # Remove consecutive underscores
+    sanitized = re.sub(r'_+', '_', sanitized)
+    
+    # Remove leading/trailing underscores
+    sanitized = sanitized.strip('_')
     
     # Ensure it's not empty after sanitization
     if not sanitized:
@@ -144,38 +153,26 @@ def validate_template(template_data: Dict[str, Any]) -> tuple[bool, str]:
     if not isinstance(template_data, dict):
         return False, "Template data must be a dictionary"
     
-    required_fields = ['name', 'description', 'category', 'video_settings']
-    
-    for field in required_fields:
-        if field not in template_data:
-            return False, f"Missing required field: {field}"
-    
-    # Validate name
+    # Validate name (required)
     name = template_data.get('name', '')
     if not name or not isinstance(name, str):
         return False, "Template name must be a non-empty string"
     if len(name) > 100:
         return False, "Template name must be 100 characters or less"
     
-    # Validate description
+    # Validate description (optional)
     description = template_data.get('description', '')
-    if not isinstance(description, str):
+    if description and not isinstance(description, str):
         return False, "Template description must be a string"
     if len(description) > 500:
         return False, "Template description must be 500 characters or less"
     
-    # Validate category
-    category = template_data.get('category', '')
-    if not category or not isinstance(category, str):
-        return False, "Template category must be a non-empty string"
-    if len(category) > 50:
-        return False, "Template category must be 50 characters or less"
-    
-    # Validate video settings
+    # Validate video settings (required)
     video_settings = template_data.get('video_settings', {})
     if not isinstance(video_settings, dict):
         return False, "Video settings must be a dictionary"
     
+    # Validate required video fields
     required_video_fields = ['codec', 'resolution', 'fps']
     for field in required_video_fields:
         if field not in video_settings:
@@ -193,21 +190,25 @@ def validate_template(template_data: Dict[str, Any]) -> tuple[bool, str]:
     
     # Validate fps
     fps = video_settings.get('fps', '')
-    if not fps or not isinstance(fps, str):
-        return False, "Video fps must be a non-empty string"
+    if not fps or not isinstance(fps, (int, str)):
+        return False, "Video fps must be a non-empty string or integer"
     
     # Validate optional fields if present
-    optional_fields = ['layer_order', 'layer_settings', 'ui_settings', 'checkbox_labels']
+    optional_fields = ['layer_order', 'layer_settings', 'ui_settings', 'checkbox_labels', 'tags', 'rating', 'usage_count']
     for field in optional_fields:
         if field in template_data:
-            if not isinstance(template_data[field], dict):
+            if field == 'layer_order' and not isinstance(template_data[field], list):
+                return False, f"Field '{field}' must be a list"
+            elif field == 'tags' and not isinstance(template_data[field], list):
+                return False, f"Field '{field}' must be a list"
+            elif field in ['rating', 'usage_count'] and not isinstance(template_data[field], (int, float)):
+                return False, f"Field '{field}' must be a number"
+            elif field not in ['layer_order', 'tags', 'rating', 'usage_count'] and not isinstance(template_data[field], dict):
                 return False, f"Field '{field}' must be a dictionary"
     
     # Validate layer_order if present
     if 'layer_order' in template_data:
         layer_order = template_data['layer_order']
-        if not isinstance(layer_order, list):
-            return False, "Layer order must be a list"
         for layer in layer_order:
             if not isinstance(layer, str):
                 return False, "Layer order items must be strings"
@@ -218,8 +219,12 @@ def validate_template(template_data: Dict[str, Any]) -> tuple[bool, str]:
         for layer_name, settings in layer_settings.items():
             if not isinstance(settings, dict):
                 return False, f"Layer settings for '{layer_name}' must be a dictionary"
+            # Validate boolean fields in layer settings
+            for key, value in settings.items():
+                if key == 'enabled' and not isinstance(value, bool):
+                    return False, f"Layer setting 'enabled' must be a boolean"
     
-    return True, "Template is valid"
+    return True, ""
 
 def export_template(template_name: str, export_path: str) -> bool:
     """Export a template to a file"""
