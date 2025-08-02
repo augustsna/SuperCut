@@ -1,7 +1,7 @@
 {
-  "name": "123",
-  "description": "",
-  "category": "music",
+  "name": "1intro",
+  "description": "Template created from current settings",
+  "category": "custom",
   "resources": "https://iconsna.xyz/",
   "reference": "https://youtube.com/",
   "video_settings": {
@@ -129,8 +129,8 @@
       "start_end_value": "start"
     },
     "intro": {
-      "enabled": false,
-      "path": "",
+      "enabled": true,
+      "path": "C:\\Users\\Rome\\Desktop\\overlay1.png",
       "size_percent": 50,
       "x_percent": 50,
       "y_percent": 50,

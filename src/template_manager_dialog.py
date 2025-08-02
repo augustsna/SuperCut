@@ -929,14 +929,14 @@ class TemplateEditDialog(QDialog):
         
     def init_ui(self):
         """Initialize the user interface"""
-        self.setWindowTitle(f"Edit Template: {self.template_data.get('name', 'Unknown')}")
+        self.setWindowTitle("Template Editor")
         self.setModal(True)
         self.setFixedSize(700, 600)
         
         layout = QVBoxLayout(self)
         
         # Title
-        title_label = QLabel(f"Edit Template: {self.template_data.get('name', 'Unknown')}")
+        title_label = QLabel(f"{self.template_data.get('name', 'Unknown')}")
         title_label.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 10px;")
         layout.addWidget(title_label)
         
@@ -1050,7 +1050,31 @@ class TemplateEditDialog(QDialog):
                 QMessageBox.warning(self, "Invalid Template", "Template must have a 'name' field.")
                 return
             
-            # Save the template
+            # Check if name has changed
+            new_name = new_template_data.get('name', '')
+            old_name = self.template_data.get('name', '')
+            
+            if new_name != old_name:
+                # Name has changed, need to update filename
+                new_filename = new_name.lower().replace(' ', '_')
+                old_filename = self.template_filename
+                
+                # Delete old file if it exists
+                from src.config import delete_template
+                delete_template(old_filename)
+                
+                # Update filename for saving
+                self.template_filename = new_filename
+                
+                # Update the template data
+                self.template_data = new_template_data
+                self.original_data = new_template_data.copy()
+                
+                # Update dialog title
+                self.setWindowTitle("Template Editor")
+                self.findChild(QLabel).setText(new_name)
+            
+            # Save the template with new filename
             if save_template(new_template_data, self.template_filename):
                 self.template_data = new_template_data
                 self.accept()
